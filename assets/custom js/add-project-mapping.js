@@ -1,0 +1,118 @@
+// sweet alert notifications
+function sweet_alert(err, msg) {
+    return swal({
+        title: err,
+        text: msg,
+        type: "Error",
+        timer: 5000,
+        showConfirmButton: false
+    });
+    setTimeout(function () { }, 2000);
+}
+
+function more(projid, opid) {
+    if (projid, opid) {
+        $.ajax({
+            url: "assets/processor/add-project-map-location-assign-process.php",
+            type: "post",
+            data: { projid: projid, opid: opid, get_more: "get_more" },
+            dataType: "html",
+            success: function (response) {
+                $("#moreinfo").html(response);
+            }
+        });
+    } else {
+        alert("Error please refresh the page");
+    }
+}
+
+function add(projid, opid) {
+    if (opid && projid) {
+        $.ajax({
+            type: "post",
+            url: "assets/processor/add-project-map-location-assign-process.php",
+            data: { opid: opid, projid: projid, get_locations: "get_locations" },
+            dataType: "html",
+            success: function (response) {
+                $("#assign_table_body").html(response);
+                $(".selectpicker").selectpicker("refresh");
+                $("#newitem").val("newitem");
+                $("#newitem").attr("name", "newitem");
+            }
+        }); 
+    }
+}
+
+function edit(projid, opid) {
+    if (opid && projid) {
+        $.ajax({
+            type: "post",
+            url: "assets/processor/add-project-map-location-assign-process.php",
+            data: { opid: opid, projid: projid, get_details: "get_details" },
+            dataType: "html",
+            success: function (response) {
+                $("#assign_table_body").html(response);
+                $(".selectpicker").selectpicker("refresh");
+                $("#newitem").val("edititem");
+                $("#newitem").attr("name", "edititem");
+            }
+        });
+    }
+}
+
+// get responsible who is in charge 
+function get_responsible(rowno) {
+    var members = $(`#team${rowno}`).val();
+    if (projid) {
+        $.ajax({
+            type: "POST",
+            url: "assets/processor/add-project-map-location-assign-process.php",
+            data: {
+                get_responsible: "responsible",
+                members: members
+            },
+            dataType: 'html',
+            success: function (html) {
+                $("#responsible" + rowno).html(html);
+                $(".selectpicker").selectpicker("refresh");
+            }
+        });
+    }
+}
+
+// validate dates 
+function validate_date($rowno) {
+    var today = new Date().setHours(0, 0, 0, 0);
+    var chosen = new Date($("#mdate" + $rowno).val()).setHours(0, 0, 0, 0);
+    if (today >= chosen) {
+        $("#mdate" + $rowno).val("");
+        var msg = "Date should be greater than today";
+        // sweet_alert("Error", msg);
+        alert(msg)
+    }
+}
+
+
+// submit form 
+$("#submitMilestoneForm").submit(function (e) {
+    e.preventDefault();
+    var formData = $("#submitMilestoneForm").serialize();
+    $.ajax({
+        type: "POST",
+        url: "assets/processor/add-project-map-location-assign-process.php",
+        data: formData,
+        dataType: "json",
+        success: function (response) {
+            if (response.success == true) {
+                alert(response.messages);
+                $(".modal").each(function () {
+                    $(this).modal("hide");
+                });
+                location.reload(true);
+            } else {
+                alert(response.messages);
+                location.reload(true);
+            }
+        }
+    });
+});
