@@ -13,7 +13,7 @@ function sweet_alert(err, msg) {
 function more(projid, opid) {
     if (projid, opid) {
         $.ajax({
-            url: "assets/processor/add-project-map-location-assign-process.php",
+            url: "assets/processor/add-project-map-location-assign-process",
             type: "post",
             data: { projid: projid, opid: opid, get_more: "get_more" },
             dataType: "html",
@@ -30,7 +30,7 @@ function add(projid, opid) {
     if (opid && projid) {
         $.ajax({
             type: "post",
-            url: "assets/processor/add-project-map-location-assign-process.php",
+            url: "assets/processor/add-project-map-location-assign-process",
             data: { opid: opid, projid: projid, get_locations: "get_locations" },
             dataType: "html",
             success: function (response) {
@@ -47,7 +47,7 @@ function edit(projid, opid) {
     if (opid && projid) {
         $.ajax({
             type: "post",
-            url: "assets/processor/add-project-map-location-assign-process.php",
+            url: "assets/processor/add-project-map-location-assign-process",
             data: { opid: opid, projid: projid, get_details: "get_details" },
             dataType: "html",
             success: function (response) {
@@ -66,7 +66,7 @@ function get_responsible(rowno) {
     if (projid) {
         $.ajax({
             type: "POST",
-            url: "assets/processor/add-project-map-location-assign-process.php",
+            url: "assets/processor/add-project-map-location-assign-process",
             data: {
                 get_responsible: "responsible",
                 members: members
@@ -99,7 +99,7 @@ $("#submitMilestoneForm").submit(function (e) {
     var formData = $("#submitMilestoneForm").serialize();
     $.ajax({
         type: "POST",
-        url: "assets/processor/add-project-map-location-assign-process.php",
+        url: "assets/processor/add-project-map-location-assign-process",
         data: formData,
         dataType: "json",
         success: function (response) {

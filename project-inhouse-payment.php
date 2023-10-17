@@ -7,8 +7,6 @@ $replacement_array = array(
 
 $page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
 	try {
 		$query_ipProjects =  $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' AND projcategory = '1' AND (projstatus = 4  OR projstatus = 11)");
@@ -35,8 +33,8 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
 						</div>
@@ -53,7 +51,7 @@ if ($permission) {
 								<a href="project-milestones-payment.php" class="btn bg-light-blue waves-effect" style="margin-top:10px">Contractor</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">In House</a>
 								<a href="certificateofcompletion.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Completion Certificates</a>
-								<a href="paymentsreport.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>
+								<!--<a href="paymentsreport.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>-->
 							</div>
 						</div>
 					</div>
@@ -139,7 +137,7 @@ if ($permission) {
 																		}
 
 																		$totalprojamountpaid = number_format($amountpaid, 2);
-																		$utilrate = $amountpaid > 0 && $projbudget > 0 ? ($amountpaid / $projbudget) * 100: 0;
+																		$utilrate = $amountpaid > 0 && $projbudget > 0 ? ($amountpaid / $projbudget) * 100 : 0;
 															?>
 																		<li class="dd-item" data-id="4">
 																			<div class="dd-handle"><?php echo $sn; ?>. &nbsp;&nbsp;|&nbsp;&nbsp; <font color="#4CAF50" width="20%"> <?php echo $projcode . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $projname . "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $projstatus; ?></font>
@@ -158,7 +156,7 @@ if ($permission) {
 																					</thead>
 																					<tbody>
 																						<tr>
-																							<td ><strong>In House</strong></td>
+																							<td><strong>In House</strong></td>
 																							<td><?php echo number_format($row_ipProjects['projcost'], 2); ?></td>
 																							<td><?php echo $totalprojamountpaid; ?></td>
 																							<td align="center"><?php echo $utilrate . "%"; ?></td>

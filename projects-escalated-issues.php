@@ -1,17 +1,9 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
 
 if ($permission) {
     try {
-        $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.rskid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)");
+        $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.catid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)");
         $query_escalatedissues->execute();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -22,8 +14,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>

@@ -181,8 +181,8 @@ function get_disaggregations(rowno, type = null) {
             dataType: "html",
             success: function (response) {
                 if (type == 1) {
-                    $(`#impact_dissagragation_type${rowno}`).html(response);
-                    $(`#impact_dissagragation_parent${rowno}`).html(response);
+                    $(`#direct_impact_dissagragation_type${rowno}`).html(response);
+                    $(`#direct_impact_dissagragation_parent${rowno}`).html(response);
                 } else if (type == 2) {
                     $(`#direct_outcome_dissagragation_type${rowno}`).html(response);
                     $(`#direct_outcome_dissagragation_parent${rowno}`).html(response);

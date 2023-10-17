@@ -1,371 +1,252 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-   'planlabel' => "CIDP",
-   'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
-  try {
-      if (isset($_GET['mapid'])) {
-          $mapping_id = $_GET['mapid'];
-          $query_rsMap = $db->prepare("SELECT *  FROM tbl_project_mapping WHERE id=:mapping_id ");
-          $query_rsMap->execute(array(":mapping_id" => $mapping_id));
-          $row_rsMap = $query_rsMap->fetch();
-          $totalRows_rsMap = $query_rsMap->rowCount();
+    try {
+        $d_site_id = isset($_GET['site_id']) ? base64_decode($_GET['site_id']) : "";
+        $d_state_id = isset($_GET['state_id']) ? base64_decode($_GET['state_id']) : "";
+        $output_id = isset($_GET['opid']) ? base64_decode($_GET['opid']) : "";
 
-          $responsible = $row_rsMap['responsible'];
-          $projid = $row_rsMap['projid'];
-          $opid = $row_rsMap['outputid'];
-          $location = $row_rsMap['location'];
-          $stid = $row_rsMap['stid'];
-          $locationName = '';
-          if ($location != 0) {
-              $query_rsComm =  $db->prepare("SELECT id, name FROM tbl_project_results_level_disaggregation WHERE id='$location'");
-              $query_rsComm->execute();
-              $row_rsComm = $query_rsComm->fetch();
-              $totalRows_rsComm = $query_rsComm->rowCount();
-              $name = $row_rsComm['name'];
-              $locationName = '<li class="list-group-item"><strong>Location: </strong> ' . $name . '</li>';
-          }
+        $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE id = :output_id ");
+        $query_Output->execute(array(":output_id" => $output_id));
+        $row_rsOutput = $query_Output->fetch();
+        $total_Output = $query_Output->rowCount();
 
-          $query_rsProjects = $db->prepare("SELECT *  FROM tbl_projects WHERE deleted='0' and projid=:projid");
-          $query_rsProjects->execute(array(":projid" => $projid));
-          $row_rsProjects = $query_rsProjects->fetch();
-          $totalRows_rsProjects = $query_rsProjects->rowCount();
-          $projname = $row_rsProjects['projname'];
-          $projcode = $row_rsProjects['projcode'];
+        $indicator_id = $total_Output > 0 ? $row_rsOutput['indicator'] : "";
+        $projid = $total_Output > 0 ?  $row_rsOutput['projid'] : "";
+        $projid = $total_Output > 0 ?  $row_rsOutput['projid'] : "";
 
-          $query_rsOutput =  $db->prepare("SELECT * FROM tbl_project_details WHERE id ='$opid'  ORDER BY id ASC");
-          $query_rsOutput->execute();
-          $row_rsOutput = $query_rsOutput->fetch();
-          $totalRows_rsOutput = $query_rsOutput->rowCount();
-          $indicatorID = $row_rsOutput['indicator'];
-          $outputid = $row_rsOutput['outputid'];
-          $mapping_type = $row_rsOutput['mapping_type'];
+        $projid_hashed = base64_encode("projid54321{$projid}");
 
-          $query_Indicator = $db->prepare("SELECT indicator_name,indicator_unit FROM tbl_indicator WHERE indid ='$indicatorID'");
-          $query_Indicator->execute();
-          $row = $query_Indicator->fetch();
-          $indname = $row['indicator_name'];
-          $unitid = $row['indicator_unit'];
 
-          $query_rsOPUnit = $db->prepare("SELECT unit FROM  tbl_measurement_units WHERE id ='$unitid'");
-          $query_rsOPUnit->execute();
-          $row_rsOPUnit = $query_rsOPUnit->fetch();
-          $opunit = $row_rsOPUnit['unit'];
+        $query_rsIndicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indicator_id");
+        $query_rsIndicator->execute(array(":indicator_id" => $indicator_id));
+        $row_rsIndicator = $query_rsIndicator->fetch();
+        $totalRows_rsIndicator = $query_rsIndicator->rowCount();
 
-          $query_out = $db->prepare("SELECT * FROM tbl_progdetails WHERE id='$outputid'");
-          $query_out->execute();
-          $row_out = $query_out->fetch();
-          $count_row = $query_out->rowCount();
-          $outputName = "";
-          if ($count_row > 0) {
-              $outputName = $row_out['output'];
-          }
+        $output_name = $totalRows_rsIndicator > 0 ? $row_rsIndicator['indicator_name'] : "";
+        $mapping_type = $totalRows_rsIndicator > 0 ? $row_rsIndicator['indicator_mapping_type'] : "";
+        $unit_id = $totalRows_rsIndicator > 0 ? $row_rsIndicator['indicator_unit'] : "";
 
-          // get the state level3
-          $query_rsForest =  $db->prepare("SELECT id, state , parent FROM tbl_state WHERE id=:projstate");
-          $query_rsForest->execute(array(":projstate" => $stid));
-          $row_rsForest = $query_rsForest->fetch();
-          $totalRows_rsForest = $query_rsForest->rowCount();
-          $level3 = $row_rsForest['state'];
-          $parent = $row_rsForest['parent'];
 
-          // get the state level2
-          $query_rsForest =  $db->prepare("SELECT id, state, parent FROM tbl_state WHERE id=:projstate");
-          $query_rsForest->execute(array(":projstate" => $parent));
-          $row_rsForest = $query_rsForest->fetch();
-          $totalRows_rsForest = $query_rsForest->rowCount();
-          $level2 = $row_rsForest['state'];
-          $parent1 = $row_rsForest['parent'];
+        $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id =:unit_id");
+        $query_rsIndUnit->execute(array(":unit_id" => $unit_id));
+        $row_rsIndUnit = $query_rsIndUnit->fetch();
+        $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+        $unit = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : "";
 
-          // get the state location
-          $query_rsForest =  $db->prepare("SELECT id, state FROM tbl_state WHERE id=:projstate");
-          $query_rsForest->execute(array(":projstate" => $parent1));
-          $row_rsForest = $query_rsForest->fetch();
-          $totalRows_rsForest = $query_rsForest->rowCount();
-          $level1 = $row_rsForest['state'];
-      }
+        $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type WHERE id=:map");
+        $query_rsMapType->execute(array(":map" => $mapping_type));
+        $row_rsMapType = $query_rsMapType->fetch();
+        $totalRows_rsMapType = $query_rsMapType->rowCount();
+        $map = $totalRows_rsMapType > 0 ? $row_rsMapType['type'] : "";
 
-      if (isset($_POST['submit'])) {
-          $projid = $_POST['projid'];
-          $outputid = $_POST['opid'];
-          $comment = $_POST['comment'];
-          $location = ($_POST['location'] != "") ? $_POST['location'] : 0;
-          $user_name = $_POST['user_name'];
-          $current_date = date("Y-m-d");
-          $state = $_POST['state'];
-          $mapid = $_POST['mapid'];
-          $lat = $_POST['lat'];
-          $lng = $_POST['lng'];
+        $query_rsProjects = $db->prepare("SELECT *  FROM tbl_projects WHERE deleted='0' and projid=:projid");
+        $query_rsProjects->execute(array(":projid" => $projid));
+        $row_rsProjects = $query_rsProjects->fetch();
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
+        $projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
+        $projcode = $totalRows_rsProjects > 0 ? $row_rsProjects['projcode'] : "";
+        $sub_stage = $totalRows_rsProjects > 0 ? $row_rsProjects['proj_substage'] : "";
+        $approval_stage = ($sub_stage  >= 2) ? true : false;
 
-          $result = [];
-          $counter = count($lat);
-          for ($i = 0; $i < $counter; $i++) {
-              $lat = $lat[$i];
-              $lng = $lng[$i];
-              $params = array(':projid' => $projid, ":opid" => $outputid, ":mapid" => $mapid, ":state" => $state, ':location' => $location, ':lat' => $lat, ':lng' => $lng, ":comment" => $comment, ":mapped_date" => $current_date, ":mapped_by" => $user_name);
-              $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,mapid,state, location, lat, lng, comment, mapped_date,mapped_by)  VALUES(:projid,:opid,:mapid, :state, :location,:lat, :lng, :comment,:mapped_date,:mapped_by)");
-              $result[] = $sql->execute($params);
-          }
+        $total_target = $distance_mapped = 0;
+        $site = "N/A";
+        $state = [];
+        $previous_lat = $previous_lng  = "";
+        $action = '';
+        if ($mapping_type == 1 || $mapping_type == 3) {
+            $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_state s ON s.id = d.state_id WHERE site_id = :id ");
+            $querysSite->execute(array(":id" => $d_site_id));
+            $totalsSite = $querysSite->rowCount();
+            $row_rsSite = $querysSite->fetch();
+            if ($total_Output > 0) {
+                $site = $row_rsSite['site'];
+                $state[] = $row_rsSite['state'];
 
-          if ($result) {
-              $query_rsProjects = $db->prepare("SELECT *  FROM tbl_projects WHERE deleted='0' and projid=:projid");
-              $query_rsProjects->execute(array(":projid" => $projid));
-              $row_rsProjects = $query_rsProjects->fetch();
-              $totalRows_rsProjects = $query_rsProjects->rowCount();
-              $projstate = $row_rsProjects['projlocation'];
-              $state = explode(",", $projstate);
-              $handler = [];
-              for ($i = 0; $i < count($state); $i++) {
-                  $query_rsMap = $db->prepare("SELECT * FROM tbl_markers WHERE state=:state");
-                  $query_rsMap->execute(array(":state" => $state[$i]));
-                  $row_rsMap = $query_rsMap->fetch();
-                  $totalRows_rsMap = $query_rsMap->rowCount();
+                $query_rsState = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id ");
+                $query_rsState->execute(array(":site_id" => $d_site_id));
+                $total_rsState = $query_rsState->rowCount();
+                $row_rsState = $query_rsState->fetch();
+                $target = ($total_rsState > 0) ? $row_rsState['total_target'] : "";
+                $total_target = $target == 0 ? 1 : $target;
+            }
 
-                  if ($totalRows_rsMap > 0) {
-                      $handler[] = true;
-                  } else {
-                      $handler[] = false;
-                  }
-              }
+            $query_rsMapping = $db->prepare("SELECT * FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id ORDER BY id DESC LIMIT 1");
+            $query_rsMapping->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
+            $rows_rsMapping = $query_rsMapping->fetch();
+            $total_rsMapping = $query_rsMapping->rowCount();
+            $action =  $total_rsMapping > 0 ? 'Update' : "Submit";
+        } else {
+            $query_rsState = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE outputid=:output_id ");
+            $query_rsState->execute(array(":output_id" => $output_id));
+            $total_rsState = $query_rsState->rowCount();
 
-              if (!in_array(false, $handler)) {
-                  $mapped = 1;
-                  $sql = "UPDATE tbl_projects SET mapped=:mapped WHERE projid=:projid";
-                  $stmt = $db->prepare($sql);
-                  $result = $stmt->execute(array(':mapped' => $mapped, ':projid' => $projid));
-                  if ($result) {
-                      $msg = "Successfully Mapped";
-                      $results = "<script type=\"text/javascript\">
-                          swal({
-                          title: \"Success!\",
-                          text: \" $msg\",
-                          type: 'Success',
-                          timer: 2000,
-                          showConfirmButton: false });
-                          setTimeout(function(){
-                                  window.location.href = 'project-mapping.php';
-                              }, 2000);
-                      </script>";
-                      echo $results;
-                  }
-              } else {
-                  $msg = "Successfully Mapped";
-                  $results = "<script type=\"text/javascript\">
-                          swal({
-                          title: \"Success!\",
-                          text: \" $msg\",
-                          type: 'Success',
-                          timer: 2000,
-                          showConfirmButton: false });
-                          setTimeout(function(){
-                                  window.location.href = 'project-mapping.php';
-                              }, 2000);
-                      </script>";
-                  echo $results;
-              }
-          }
-      }
-  } catch (PDOException $ex) {
-      $result = flashMessage("An error occurred: " . $ex->getMessage());
-      print($result);
-  }
+            if ($total_rsState > 0) {
+                while ($row_rsState = $query_rsState->fetch()) {
+                    $state[] = $row_rsState['state'];
+                }
+            }
+
+            $query_rsMapping = $db->prepare("SELECT * FROM tbl_markers  WHERE opid=:output_id ORDER BY id DESC LIMIT 1");
+            $query_rsMapping->execute(array(":output_id" => $output_id));
+            $rows_rsMapping = $query_rsMapping->fetch();
+            $total_rsMapping = $query_rsMapping->rowCount();
+            $action = "Pin";
+        }
+
+        if (isset($_POST['submit'])) {
+            $current_date = date("Y-m-d");
+            $projid = $_POST['projid'];
+            $outputid = $_POST['opid'];
+            $state_id = $_POST['state_id'];
+            $site_id = $_POST['site_id'];
+            $user_name = $_POST['user_name'];
+            $mapping_type = $_POST['mapping_type'];
+            $lat = $_POST['latitude'];
+            $lng = $_POST['longitude'];
+
+            if ($mapping_type == 1) {
+                $sql = $db->prepare("DELETE FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id");
+                $sql->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
+            }
+
+            $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,state,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:state,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
+            $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ":state" => $state_id, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+            $msg = 'The Mapping was successfully.';
+
+            $hashproc = base64_encode("projid54321{$projid}");
+            $msg = 'Records created successfully added.';
+            $results = "<script type=\"text/javascript\">
+                swal({
+                title: \"Success!\",
+                text: \" $msg\",
+                type: 'Success',
+                timer: 2000,
+                icon:'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                        window.location.href = 'add-project-mapping?projid=$hashproc';
+                    }, 3000);
+            </script>";
+        }
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
-<style>
-    /* Always set the map height explicitly to define the size of the div
-   * element that contains the map. */
-    #map {
-        height: 500px;
-        width: 98%;
-        /* The width is the width of the web page */
-    }
+    <style>
+        .mt-map-wrapper {
+            width: 100%;
+            padding-bottom: 41.6%;
+            height: 0;
+            overflow: hidden;
+            position: relative;
+        }
 
-    /* Optional: Makes the sample page fill the window. */
-    html,
-    body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
-</style>
-   <!-- start body  -->
-   <section class="content">
-      <div class="container-fluid">
-         <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-            <h4 class="contentheader">
-               <i class="fa fa-columns" aria-hidden="true"></i>
-               <?php echo $pageTitle ?>
-               <div class="btn-group" style="float:right">
-                  <div class="btn-group" style="float:right">
-                  </div>
-               </div>
-            </h4>
-         </div>
-         <div class="row clearfix">
-            <div class="block-header">
-               <?= $results; ?>
+        .mt-map {
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            position: absolute;
+        }
+    </style>
+    <!-- start body  -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                <h4 class="contentheader">
+                    <?= $icon . "  " . $pageTitle ?>
+                    <?= $results ?>
+                    <div class="btn-group" style="float:right">
+                        <div class="btn-group" style="float:right">
+                            <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                                Go Back
+                            </a>
+                        </div>
+                    </div>
+                </h4>
             </div>
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="card">
-                 <div class="card-header">
-                     <div class="row clearfix">
-                         <div class="col-md-12">
-                             <ul class="list-group">
-                                 <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
-                                 <li class="list-group-item"><strong>Output: </strong> <?= $outputName ?> </li>
-                                 <li class="list-group-item"><strong>Output Unit of Measure: </strong> <?= $opunit ?> </li>
-                                 <li class="list-group-item"><strong>Project <?= $level1label ?>: </strong> <?= $level1 ?> </li>
-                                 <li class="list-group-item"><strong>Project <?= $level2label ?>: </strong> <?= $level2 ?> </li>
-                                 <li class="list-group-item"><strong>Project <?= $level3label ?>: </strong> <?= $level3 ?> </li>
-                                 <?= $locationName ?>
-                             </ul>
-                         </div>
-                         <div class="col-md-12" id="sbutton">
-                         </div>
-                     </div>
-                 </div>
-                  <div class="body">
-                    <?php
-                    if (isset($mapping_type) == 1) {
-                        // add area map
-                    ?>
-                        <div class="row clearfix">
-                            <div class="col-md-12">
-                                <form action="" method="post" id="submitform">
-                                    <div class="col-md-6">
-                                        <label for="lat">Project Latitude *:</label>
-                                        <input type="text" name="lat[]" id="lat" readonly class="form-control">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="long">Project Longitude *:</label>
-                                        <input type="text" name="lng[]" id="lng" readonly class="form-control">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label for="comment">Mapping Comments *:</label>
-                                        <textarea name="comment" class="form-control" id="" cols="" rows="5" required></textarea>
-                                    </div>
-                                    <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                    <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                    <input type="hidden" name="mapid" id="mapid" value="<?= $mapping_id ?>">
-                                    <input type="hidden" name="opid" id="opid" value="<?= $opid ?>">
-                                    <input type="hidden" name="state" id="state" value="<?= $stid ?>">
-                                    <input type="hidden" name="location" id="location" value="<?= $location ?>">
-                                    <div class="col-md-12" align="center">
-                                        <button type="submit" name="submit" class="btn btn-success">Submit</button>
-                                    </div>
-                                </form>
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row clearfix">
+                                <div class="col-md-12">
+                                    <ul class="list-group">
+                                        <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
+                                        <li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
+                                        <li class="list-group-item"><strong><?= $level2label ?>: </strong> <?= implode(",", $state) ?> </li>
+                                        <li class="list-group-item"><strong>Site: </strong> <?= $site ?> </li>
+                                        <li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li> 
+                                    </ul>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="sbutton">
+                                    <?php
+                                    if ($mapping_type == 2 || $mapping_type == 3) {
+                                    ?>
+                                        <button class="btn btn-sm btn-sucess" onclick="pin_coordinates()">Pin</button>
+                                    <?php
+                                    }
+                                    ?>
+                                </div>
                             </div>
                         </div>
-                    <?php
-                    } else if ($mapping_type == 2) {
-                        // static maps
-                    ?>
-                        <div class="row clearfix">
-                            <div class="col-md-12" align="right">
-                                <button type="button" name="start" onclick="check_position()" id="start" class="btn btn-warning">Start</button>
+                        <div class="body">
+                            <input type="hidden" name="lat" id="lat" value="-1.2864">
+                            <input type="hidden" name="long" id="long" value="36.8172">
+                            <input type="hidden" name="sub_stage" value="<?= $sub_stage ?>">
+                            <div class="mt-map-wrapper">
+                                <div class="mt-map propmap" id="map">
+                                    <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <form action="" method="post" id="submitform">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped table-hover" id="assign_table" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th width="5%">#</th>
-                                                    <th width="30%">Latitude</th>
-                                                    <th width="30%">Longitude</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="waypoint_table_body">
-                                                <tr></tr>
-                                                <tr id="removeTr">
-                                                    <td colspan="3">Assign</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label for="comment">Mapping Comments *:</label>
-                                        <textarea name="comment" class="form-control" id="" cols="" rows="5" required></textarea>
-                                    </div>
-                                    <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                    <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                    <input type="hidden" name="mapid" id="mapid" value="<?= $mapping_id ?>">
-                                    <input type="hidden" name="opid" id="opid" value="<?= $opid ?>">
-                                    <input type="hidden" name="state" id="state" value="<?= $stid ?>">
-                                    <input type="hidden" name="location" id="location" value="<?= $location ?>">
-
-                                    <div class="col-md-12" align="center">
-                                        <button type="submit" name="submit" class="btn btn-success">Submit</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    <?php
-                    } else if ($mapping_type == 3) {
-                        // waypoint maps
-                    ?>
-                        <div class="row clearfix">
-                            <div class="col-md-12" align="right">
-                                <button type="button" name="start" onclick="checkposition()" id="start" class="btn btn-warning">Start</button>
-                            </div>
-                            <div class="col-md-12">
-                                <form action="" method="post" id="submitform">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped table-hover" id="assign_table" style="width:100%">
-                                            <thead>
-                                                <tr>
-                                                    <th width="5%">#</th>
-                                                    <th width="30%">Latitude</th>
-                                                    <th width="30%">Longitude</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="area_table_body">
-                                                <tr></tr>
-                                                <tr id="removeTr">
-                                                    <td colspan="3">Assign</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label for="comment">Mapping Comments *:</label>
-                                        <textarea name="comment" class="form-control" id="" cols="" rows="5" required></textarea>
-                                    </div>
-                                    <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                    <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                    <input type="hidden" name="mapid" id="mapid" value="<?= $mapping_id ?>">
-                                    <input type="hidden" name="opid" id="opid" value="<?= $opid ?>">
-                                    <input type="hidden" name="state" id="state" value="<?= $stid ?>">
-                                    <input type="hidden" name="location" id="location" value="<?= $location ?>">
-                                    <div class="col-md-12" align="center">
-                                        <button type="submit" name="submit" class="btn btn-success">Submit</button>
-                                    </div>
-                                </form>
+                            <div class="header">
+                                <div class="row clearfix">
+                                    <form action="" method="post" id="submitform">
+                                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                            <label for="latitude">Project Latitude *:</label>
+                                            <input type="text" name="latitude" id="latitude" readonly class="form-control">
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                            <label for="longitude">Project Longitude *:</label>
+                                            <input type="text" name="longitude" id="longitude" readonly class="form-control">
+                                        </div>
+                                        <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                                        <input type="hidden" name="opid" id="opid" value="<?= $output_id ?>">
+                                        <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
+                                        <input type="hidden" name="state_id" id="state_id" value="<?= $d_state_id ?>">
+                                        <input type="hidden" name="site_id" id="site_id" value="<?= $d_site_id ?>">
+                                        <input type="hidden" name="mapping_type" id="mapping_type" value="<?= $mapping_type ?>">
+                                        <div class="col-md-12" align="center">
+                                            <?php
+                                            if (!$approval_stage) {
+                                            ?>
+                                                <button type="submit" name="submit" class="btn btn-success"> <?= $action ?></button>
+                                                <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning">
+                                                    Cancel
+                                                </a>
+                                            <?php
+                                            }
+                                            ?>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    <?php
-                    }
-                    ?>
-                  </div>
-               </div>
+                    </div>
+                </div>
             </div>
-         </div>
-   </section>
-   <!-- end body  -->
+    </section>
+    <!-- end body  -->
 <?php
 } else {
-   $results =  restriction();
-   echo $results;
+    $results =  restriction();
+    echo $results;
 }
-
 require('includes/footer.php');
 ?>
-<script src="assets/custom js/add-mapping.js"></script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB8Ii3rrQB5FLivgpihlQPuQSUU6EMc-sQ">
-</script>
+
+<script src="assets/js/map/auto.js"></script>
+<!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>

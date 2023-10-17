@@ -1,16 +1,7 @@
 <?php
-$replacement_array = array(
-   'planlabel' => "CIDP",
-   'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-   $pageTitle = "Risk Categories";
-   $action_permission = $designation == 5 && $role_group == 1 ? true : false;
-
    try {
       $query_rsriskcategory = $db->prepare("SELECT * FROM tbl_projrisk_categories");
       $query_rsriskcategory->execute();
@@ -25,12 +16,12 @@ if ($permission) {
       <div class="container-fluid">
          <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
             <h4 class="contentheader">
-               <i class="fa fa-columns" aria-hidden="true"></i>
-               <?php echo $pageTitle ?>
+               <?= $icon ?>
+               <?= $pageTitle ?>
                <div class="btn-group" style="float:right">
                   <div class="btn-group" style="float:right">
                      <?php
-                     if ($file_rights->add) {
+                     if (in_array("create", $page_actions)) {
                      ?>
                         <a href="add-risk-category.php" class="btn btn-primary pull-right">Add Risk Category</a>
                      <?php
@@ -56,7 +47,7 @@ if ($permission) {
                                  <th style="width:80%">Risks/Assumptions Name</th>
                                  <th style="width:10%">Result Level</th>
                                  <?php
-                                 if ($file_rights->edit && $file_rights->delete_permission) {
+                                 if (in_array("update", $page_actions) || in_array("delete", $page_actions)) {
                                  ?>
                                     <th style="width:5%" data-orderable="false">Action</th>
                                  <?php
@@ -70,7 +61,7 @@ if ($permission) {
                                  $nm = 0;
                                  while ($row_rsriskcategory = $query_rsriskcategory->fetch()) {
                                     $nm = $nm + 1;
-                                    $riskid = $row_rsriskcategory['rskid'];
+                                    $riskid = $row_rsriskcategory['catid'];
                                     $riskcat = $row_rsriskcategory['category'];
                                     $type = explode(',', $row_rsriskcategory['type']);
                                     $risk_type = array();
@@ -90,7 +81,7 @@ if ($permission) {
                                        <td><?php echo $riskcat; ?></td>
                                        <td><?php echo $risk_type; ?></td>
                                        <?php
-                                       if ($file_rights->edit && $file_rights->delete_permission) {
+                                       if (in_array("update", $page_actions) || in_array("edit", $page_actions)) {
                                        ?>
                                           <td>
                                              <div class="btn-group">
@@ -98,16 +89,26 @@ if ($permission) {
                                                    Options <span class="caret"></span>
                                                 </button>
                                                 <ul class="dropdown-menu">
-                                                   <li>
-                                                      <a type="button" href="add-risk-category.php?risk=<?= base64_encode($riskid) ?>" id="addFormModalBtn">
-                                                         <i class="fa fa-pencil-square"></i> </i> Edit
-                                                      </a>
-                                                   </li>
-                                                   <li>
-                                                      <a type="button" onclick="removeItem('<?php echo $riskid ?>')">
-                                                         <i class="fa fa-trash-o"></i> Delete
-                                                      </a>
-                                                   </li>
+                                                   <?php
+                                                   if (in_array("update", $page_actions)) {
+                                                   ?>
+                                                      <li>
+                                                         <a type="button" href="add-risk-category.php?risk=<?= base64_encode($riskid) ?>" id="addFormModalBtn">
+                                                            <i class="fa fa-pencil-square"></i> </i> Edit
+                                                         </a>
+                                                      </li>
+                                                   <?php
+                                                   }
+                                                   if (in_array("delete", $page_actions)) {
+                                                   ?>
+                                                      <li>
+                                                         <a type="button" onclick="removeItem('<?php echo $riskid ?>')">
+                                                            <i class="fa fa-trash-o"></i> Delete
+                                                         </a>
+                                                      </li>
+                                                   <?php
+                                                   }
+                                                   ?>
                                                 </ul>
                                              </div>
                                           </td>

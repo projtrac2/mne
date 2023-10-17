@@ -7,23 +7,24 @@ $sql->execute();
 $rows_count = $sql->rowCount();
 $output = array('data' => array());
 if ($rows_count > 0) {
-	// $row = $result->fetch_array();
 	$active = "";
-	$sn = 0; 
+	$sn = 0;
 	while ($row = $sql->fetch()) {
 		$sn++;
 		$itemId = $row['moid'];
 		$designation = $row['designation'];
 		$reportingid = $row['Reporting'];
-		if($reportingid==$itemId){
+
+
+		if ($reportingid == $itemId) {
 			$reporting = "N/A";
 		} else {
 			$sqlquery = $db->prepare("SELECT * FROM tbl_pmdesignation where `moid`= '$reportingid'");
 			$sqlquery->execute();
 			$rowdesignation = $sqlquery->fetch();
-			$reporting = $rowdesignation["designation"];
+			$reporting = $rowdesignation ? $rowdesignation["designation"] : "N/A";
 		}
-		// status 
+
 		if ($row['active'] == 1) {
 			$active = "<label class='label label-success'>Enabled</label>";
 		} else {
@@ -41,7 +42,7 @@ if ($rows_count > 0) {
 			</ul>
 		</div>';
 
-		$status = $row["status"];
+		// $status = $row["status"];
 		$output['data'][] = array(
 			$sn,
 			$designation,

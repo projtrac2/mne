@@ -1,16 +1,6 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
-    $pageTitle = "Add " . $pageTitle;
     try {
         function get_end_year()
         {
@@ -19,7 +9,7 @@ if ($permission) {
             $query_rsEndYear->execute();
             $row_rsEndYear = $query_rsEndYear->fetch();
             $totalRows_rsEndYear = $query_rsEndYear->rowCount();
-    
+
             $end_year = 0;
             if ($totalRows_rsEndYear > 0) {
                 $start_year = $row_rsEndYear['starting_year'];
@@ -28,9 +18,9 @@ if ($permission) {
             }
             return $end_year;
         }
-    
-    
-        $current_date = date("Y-m-d"); 
+
+
+        $current_date = date("Y-m-d");
         $user = $user_name;
         if (isset($_POST['addplan'])) {
             $strategicplan = $_POST['strategicplan'];
@@ -41,7 +31,7 @@ if ($permission) {
             $active = 0;
             $strplanInsert = $db->prepare("INSERT INTO tbl_strategicplan (plan, vision, mission, years, starting_year, created_by, date_created) VALUES (:plan, :vision, :mission, :years, :styear, :user, :dates)");
             $resultstrplan = $strplanInsert->execute(array(":plan" => $strategicplan, ":vision" => $vision, ":mission" => $mission, ":years" => $years, ":styear" => $styear, ":user" => $user, ":dates" => $current_date));
-    
+
             if ($resultstrplan) {
                 $stratplanid = $db->lastInsertId();
                 for ($cnt = 0; $cnt < count($_POST["kra"]); $cnt++) {
@@ -49,10 +39,10 @@ if ($permission) {
                     $kraInsert = $db->prepare("INSERT INTO tbl_key_results_area (spid,kra,created_by,date_created) VALUES (:spid, :kra, :user, :dates)");
                     $result = $kraInsert->execute(array(":spid" => $stratplanid, ":kra" => $kra, ":user" => $user, ":dates" => $current_date));
                 }
-    
-                $msg = 'The '.$planlabel.' was successfully created.';
+
+                $msg = 'The ' . $planlabel . ' was successfully created.';
                 $results =
-                "<script type=\"text/javascript\">
+                    "<script type=\"text/javascript\">
                     swal({
                         title: \"Success!\",
                         text: \" $msg\",
@@ -78,10 +68,13 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
+                    <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
+                            <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+                                Go Back
+                            </button>
                         </div>
                     </div>
                 </h4>
@@ -98,32 +91,32 @@ if ($permission) {
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                         <span id="">Add</span> <?= $planlabel ?>.
                                     </legend>
-                                    <div class="col-md-12">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <label class="control-label"><?= $planlabel ?> *:</label>
                                         <div class="form-line">
-                                            <input name="strategicplan" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" required>
+                                            <input name="strategicplan" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" placeholder="Describe the plan" required>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <label class="control-label">Vision *:</label>
                                         <div class="form-line">
-                                            <input name="vision" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" required>
+                                            <input name="vision" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" placeholder="Enter organization vision" required>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <label class="control-label">Mission *:</label>
                                         <div class="form-line">
-                                            <input name="mission" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" required>
+                                            <input name="mission" type="text" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" placeholder="Enter organization mission" required>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Starting from (Year) *:</label>
-                                        <input name="startingyear" type="text" id="stryear" class="form-control" onchange="validate()" style="width:100%; border:#CCC thin solid; border-radius: 5px" required>
+                                        <input name="startingyear" type="text" id="stryear" class="form-control" onchange="validate()" style="width:100%; border:#CCC thin solid; border-radius: 5px" placeholder="Enter the plan's start year" required>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Number of Years *: </label>
                                         <div class="form-line">
-                                            <input name="years" type="number" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" required>
+                                            <input name="years" type="number" class="form-control" style="width:100%; border:#CCC thin solid; border-radius: 5px" placeholder="Enter the plan's number of years" required>
                                         </div>
                                     </div>
                                 </fieldset>

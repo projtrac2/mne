@@ -20,7 +20,7 @@ function more(itemId = null) {
         $(".div-result").addClass("div-hide");
 
         $.ajax({
-            url: "general-settings/selected-items/fetch-selected-projects-item.php",
+            url: "general-settings/selected-items/fetch-selected-projects-item",
             type: "post",
             data: { itemId: itemId },
             dataType: "html",
@@ -51,7 +51,7 @@ function edit(projid) {
     if (projid) {
         $.ajax({
             type: "post",
-            url: "assets/processor/add-project-map-assign-process.php",
+            url: "assets/processor/add-project-map-assign-process",
             data: {
                 get_edit: "get_edit",
                 projid: projid
@@ -145,7 +145,7 @@ function delete_row_assign(rowno) {
             if (projid && hid) {
                 $.ajax({
                     type: "post",
-                    url: "assets/processor/add-project-map-assign-process.php",
+                    url: "assets/processor/add-project-map-assign-process",
                     data: {
                         deleteItem: "deleteItem",
                         projid: projid,
@@ -219,7 +219,7 @@ function get_options(rowno) {
     if (projid) {
         $.ajax({
             type: "POST",
-            url: "assets/processor/add-project-map-assign-process.php",
+            url: "assets/processor/add-project-map-assign-process",
             data: {
                 get_option: "get_option",
                 projid: projid
@@ -256,7 +256,7 @@ $("#submitMilestoneForm").submit(function (e) {
     var formData = $("#submitMilestoneForm").serialize();
     $.ajax({
         type: "POST",
-        url: "assets/processor/add-project-map-assign-process.php",
+        url: "assets/processor/add-project-map-assign-process",
         data: formData,
         dataType: "json",
         success: function (response) {
@@ -284,7 +284,7 @@ function get_responsible(rowno) {
     if (projid) {
         $.ajax({
             type: "POST",
-            url: "assets/processor/add-project-map-assign-process.php",
+            url: "assets/processor/add-project-map-assign-process",
             data: {
                 get_responsible: "responsible",
                 members: data

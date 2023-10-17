@@ -1,16 +1,10 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 require('functions/indicator.php');
-// require('functions/department.php');
+require('functions/department.php');
 
 if ($permission) {
-    $pageTitle = "Indicators";
+
     $total_output_indicators = 0;
     $total_outcome_indicators = 0;
     $total_impact_indicators = 0;
@@ -35,8 +29,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -46,16 +40,23 @@ if ($permission) {
             <div class="row clearfix">
                 <div class="block-header">
                     <?= $results; ?>
+                    <?= $results; ?>
                 </div>
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="card-header">
                             <ul class="nav nav-tabs" style="font-size:14px">
                                 <li class="active">
-                                    <a data-toggle="tab" href="#output"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Output &nbsp;<span class="badge bg-orange"><?= $total_output_indicators ?></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                                    <a data-toggle="tab" href="#output"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Output Indicators&nbsp;<span class="badge bg-orange"><?= $total_output_indicators ?></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
                                 </li>
                                 <li>
-                                    <a data-toggle="tab" href="#outcome"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Outcome &nbsp;<span class="badge bg-blue"><?= $total_outcome_indicators ?></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                                    <a data-toggle="tab" href="#outcome"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Outcome Indicators&nbsp;<span class="badge bg-blue"><?= $total_outcome_indicators ?></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
+                                </li>
+                                <li id="impact_tab">
+                                    <a data-toggle="tab" href="#impact">
+                                        <i class="fa fa-caret-square-o-right bg-green" aria-hidden="true"></i> Impact Indicators&nbsp;
+                                        <span class="badge bg-green" id="impact_counter"> <?= $total_impact_indicators ?> </span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </a>
                                 </li>
                             </ul>
                         </div>
@@ -68,7 +69,7 @@ if ($permission) {
                                     <div class="card-header">
                                         <div class="pull-right">
                                             <?php
-                                            if ($file_rights->add) {
+                                            if (in_array("create", $page_actions)) {
                                             ?>
                                                 <a href="add-output-indicator.php" class="btn btn-warning">New Indicator </a>
                                             <?php
@@ -95,7 +96,8 @@ if ($permission) {
                                                     if ($total_output_indicators > 0) {
                                                         $num = 0;
                                                         foreach ($output_indicators as $output_indicator) {
-                                                            $indid = base64_encode($output_indicator['indid']);
+                                                            $indid = $output_indicator['indid'];
+                                                            $indid = base64_encode("opid{$indid}");
                                                             $ind = $output_indicator['indid'];
                                                             $inddept = $output_indicator['indicator_dept'];
                                                             $baselinelevel = $output_indicator['indicator_baseline_level'];
@@ -118,7 +120,7 @@ if ($permission) {
                                                             $result_department = get_department($inddept);
                                                             $department = "N/A";
                                                             if ($result_department) {
-                                                                $department = $result_department->sector;
+                                                                $department = $result_department['sector'];
                                                             }
                                                     ?>
                                                             <tr id="rowlines">
@@ -139,19 +141,24 @@ if ($permission) {
                                                                                 </a>
                                                                             </li>
                                                                             <?php
-                                                                            if ($file_rights->edit && $file_rights->delete_permission) {
+                                                                           if (in_array("update", $page_actions)) {
                                                                             ?>
                                                                                 <li>
                                                                                     <a type="button" href="edit-output-indicator.php?ind=<?= $indid ?>" id="addFormModalBtn">
                                                                                         <i class="fa fa-pencil-square"></i> Edit Indicator
                                                                                     </a>
                                                                                 </li>
+                                                                            <?php
+                                                                            }
+                                                                            if (in_array("delete", $page_actions)) {
+                                                                            ?>
                                                                                 <li>
                                                                                     <a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="removeItem('<?php echo $ind ?>')">
                                                                                         <i class="fa fa-trash-o"></i> Delete
                                                                                     </a>
                                                                                 </li>
                                                                             <?php
+
                                                                             }
 
                                                                             if ($baselineid == 1) {
@@ -162,7 +169,7 @@ if ($permission) {
                                                                                     </a>
                                                                                 </li>
                                                                             <?php
-                                                                            } else if ($file_rights->edit && $file_rights->delete_permission) {
+                                                                            } else if (in_array("create", $page_actions)) {
                                                                             ?>
                                                                                 <li>
                                                                                     <a type="button" href="indicator-existing-baseline-data.php?ind=<?= $indid ?>">
@@ -190,7 +197,7 @@ if ($permission) {
                                     <div class="card-header">
                                         <div class="pull-right">
                                             <?php
-                                            if ($file_rights->add) {
+                                            if (in_array("create", $page_actions)) {
                                             ?>
                                                 <a href="add-outcome-indicator.php" class="btn btn-primary"> New Indicator</a>
                                             <?php
@@ -207,7 +214,8 @@ if ($permission) {
                                                     <tr class="bg-blue" style="width:100%">
                                                         <th width="3%"><strong id="colhead">SN</strong></th>
                                                         <th width="5%"><strong id="colhead">Code</strong></th>
-                                                        <th width="55%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="40%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="15%"><strong id="colhead">Unit of Measure</strong></th>
                                                         <th width="30%"><strong id="colhead"><?= $departmentlabel ?></strong></th>
                                                         <th width="7%"><strong id="colhead">Action</strong></th>
                                                     </tr>
@@ -220,7 +228,8 @@ if ($permission) {
                                                         <?php } else {
                                                         $num = 0;
                                                         foreach ($outcome_indicators as $outcome_indicator) {
-                                                            $indid = base64_encode($outcome_indicator['indid']);
+                                                            $indid = $outcome_indicator['indid'];
+                                                            $indid = base64_encode("ocid{$indid}");
                                                             $ind = $outcome_indicator['indid'];
                                                             $inddept = $outcome_indicator['indicator_dept'];
                                                             $num = $num + 1;
@@ -228,7 +237,7 @@ if ($permission) {
                                                             $result_department = get_department($inddept);
                                                             $department = "N/A";
                                                             if ($result_department) {
-                                                                $department = $result_department->sector;
+                                                                $department = $result_department['sector'];
                                                             }
 
                                                             $indunit = $outcome_indicator['indicator_unit'];
@@ -243,7 +252,8 @@ if ($permission) {
                                                             <tr id="rowlines">
                                                                 <td width="3%"><?php echo $num; ?></td>
                                                                 <td width="5%"><?php echo $outcome_indicator['indicator_code']; ?></td>
-                                                                <td width="55%"><?php echo $ms_unit . " of " . $outcome_indicator['indicator_name']; ?></td>
+                                                                <td width="40%"><?php echo $outcome_indicator['indicator_name']; ?></td>
+                                                                <td width="15%"><?php echo $ms_unit; ?></td>
                                                                 <td width="30%"><?php echo $department; ?></td>
                                                                 <td width="7%">
                                                                     <div class="btn-group">
@@ -254,16 +264,124 @@ if ($permission) {
                                                                             <li>
                                                                                 <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="get_more(<?php echo $ind ?>)">
                                                                                     <i class="fa fa-file-text"></i> More Info
-                                                                                </a>u'
+                                                                                </a>
                                                                             </li>
                                                                             <?php
-                                                                            if ($file_rights->edit && $file_rights->delete_permission) {
-                                                                            ?>
+                                                                            if (in_array("update", $page_actions)) {                                                                            ?>
                                                                                 <li>
                                                                                     <a type="button" href="edit-outcome-indicator.php?ind=<?= $indid ?>" id="addFormModalBtn">
                                                                                         <i class="fa fa-pencil-square"></i> </i> Edit
                                                                                     </a>
                                                                                 </li>
+                                                                            <?php
+                                                                            }
+                                                                            if (in_array("delete", $page_actions)) {                                                                            ?>
+                                                                                <li>
+                                                                                    <a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="removeItem(<?php echo $ind ?>)">
+                                                                                        <i class="fa fa-trash-o"></i> Delete
+                                                                                    </a>
+                                                                                </li>
+                                                                            <?php
+                                                                            }
+                                                                            ?>
+
+                                                                        </ul>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                    <?php
+                                                        }
+                                                    }
+                                                    ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="impact" class="tab-pane fade">
+                                    <div class="card-header">
+                                        <div class="pull-right">
+                                            <?php
+                                            if (in_array("create", $page_actions)) {
+                                            ?>
+                                                <a href="add-impact-indicator.php" class="btn btn-success"> New Indicator</a>
+                                            <?php
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <br>
+                                    <div class="body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="indepedentPrograms" style="width:100%">
+                                                <thead style="width:100%">
+                                                    <tr class="bg-green" style="width:100%">
+                                                        <th width="3%"><strong id="colhead">SN</strong></th>
+                                                        <th width="5%"><strong id="colhead">Code</strong></th>
+                                                        <th width="40%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="15%"><strong id="colhead">Unit of Measure</strong></th>
+                                                        <th width="30%"><strong id="colhead"><?= $departmentlabel ?></strong></th>
+                                                        <th width="7%"><strong id="colhead">Action</strong></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    if ($total_impact_indicators == 0) {
+                                                    ?>
+
+                                                        <?php } else {
+                                                        $num = 0;
+                                                        foreach ($impact_indicators as $impact_indicator) {
+                                                            $indid = $impact_indicator['indid'];
+                                                            $indid = base64_encode("impid{$indid}");
+                                                            $ind = $impact_indicator['indid'];
+                                                            $inddept = $impact_indicator['indicator_dept'];
+                                                            $num = $num + 1;
+
+                                                            $result_department = get_department($inddept);
+                                                            $department = "N/A";
+                                                            if ($result_department) {
+                                                                $department = $result_department['sector'];
+                                                            }
+
+                                                            $indunit = $impact_indicator['indicator_unit'];
+
+                                                            $query_indunit = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id='$indunit' LIMIT 1");
+                                                            $query_indunit->execute();
+                                                            $row_indunit = $query_indunit->fetch();
+                                                            if (!empty($row_indunit)) {
+                                                                $ms_unit = $row_indunit["unit"];
+                                                            }
+                                                        ?>
+                                                            <tr id="rowlines">
+                                                                <td width="3%"><?php echo $num; ?></td>
+                                                                <td width="5%"><?php echo $impact_indicator['indicator_code']; ?></td>
+                                                                <td width="40%"><?php echo $impact_indicator['indicator_name']; ?></td>
+                                                                <td width="15%"><?php echo $ms_unit; ?></td>
+                                                                <td width="30%"><?php echo $department; ?></td>
+                                                                <td width="7%">
+                                                                    <div class="btn-group">
+                                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                            Options <span class="caret"></span>
+                                                                        </button>
+                                                                        <ul class="dropdown-menu">
+                                                                            <li>
+                                                                                <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="get_more(<?php echo $ind ?>)">
+                                                                                    <i class="fa fa-file-text"></i> More Info
+                                                                                </a>
+                                                                            </li>
+                                                                            <?php
+                                                                            if (in_array("update", $page_actions)) {
+                                                                            ?>
+                                                                                <li>
+                                                                                    <a type="button" href="edit-impact-indicator.php?ind=<?= $indid ?>" id="addFormModalBtn">
+                                                                                        <i class="fa fa-pencil-square"></i> </i> Edit
+                                                                                    </a>
+                                                                                </li>
+                                                                            <?php
+                                                                            }
+                                                                            if (in_array("delete", $page_actions)) {                                                                            ?>
                                                                                 <li>
                                                                                     <a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="removeItem(<?php echo $ind ?>)">
                                                                                         <i class="fa fa-trash-o"></i> Delete

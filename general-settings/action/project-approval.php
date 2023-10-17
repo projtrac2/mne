@@ -1,7 +1,6 @@
 <?php
 
 include_once "controller.php";
-include_once '../../system-labels.php';
 
 $itemId = $_POST['itemId'];
 $TargetB = '';

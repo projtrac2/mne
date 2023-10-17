@@ -146,7 +146,7 @@ class CronJob
             $output_tasks = $this->tasks($where);
             $total_tasks = $output_tasks ? count($output_tasks) : 0;
             $task_progress = 0;
- 
+
             if ($total_tasks > 0) {
                 foreach ($output_tasks as $output_task) {
                     $task_status = $output_task->status;
@@ -156,7 +156,7 @@ class CronJob
             }
 
             $milestone_status  = 5;
-            $percentage = $total_tasks > 0 ? ($task_progress / $total_tasks) : 0; 
+            $percentage = $total_tasks > 0 ? ($task_progress / $total_tasks) : 0;
             if ($percentage < 100) {
                 if (in_array(11, $milestone_task_status)) {
                     $milestone_status = 11;
@@ -197,15 +197,16 @@ class CronJob
     public function progress_update($projid)
     {
         // get projects outputs
-        $project_outputs = $this->get_outputs($projid);
+        $project_outputs = $this->get_outputs($projid); 
         if ($project_outputs) {
             foreach ($project_outputs as $project_output) {
                 $output_id = $project_output->id;
                 // get Project output Tasks  
                 $where = "status <> 2 AND status <> 5 AND status <> 6 AND outputid = '$output_id'";
                 $output_tasks = $this->tasks($where);
+
                 if ($output_tasks) {
-                    foreach ($output_tasks as $output_task) {
+                    foreach ($output_tasks as $output_task) { // loop through task 
                         $task_id = $output_task->tkid;
                         $task_progress =  $output_task->progress;
                         $monitored = $output_task->monitored;
@@ -214,14 +215,16 @@ class CronJob
                         $task_status = 4;
                         $end_date =  $output_task->edate;
                         $start_date =  $output_task->sdate;
+                        
                         if ($monitored) {
                             // get Projecs output locations 
                             $output_locations = $this->get_locations($output_id);
                             $questions = $this->get_task_questions($task_id);
                             $total_locations = ($questions) ?  count($output_locations) : 0;
                             $total_questions = ($questions) ? count($questions) : 0;
+
                             if ($output_locations) {
-                                foreach ($output_locations as $output_location) {
+                                foreach ($output_locations as $output_location) { // sossiani // b
                                     $location_id = $output_location->outputstate;
                                     // get task questions 
                                     if ($questions) {
@@ -234,7 +237,10 @@ class CronJob
                             }
 
                             if ($total_locations > 0 && $total_questions > 0) {
-                                $task_progress = (($location_score_per_question / 10) / ($total_locations * $total_questions)) * 100;
+                                // $task_progress = (($location_score_per_question / 10) / ($total_locations * $total_questions)) * 100;
+                                // questions  (((sum of score of questions in a location)  / (number of questions in a location) ) / 10 ) * 100  = task progress in a location(%)
+                                $avarage_score_in_all_locations = $location_score_per_question / ($total_questions * $total_locations);
+                                $task_progress =  ($avarage_score_in_all_locations / 10) * 100;
                             }
 
                             $task_status = 5;

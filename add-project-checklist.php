@@ -1,16 +1,7 @@
-<?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
+<?php 
+require('includes/head.php'); 
 
-$page = "view";
-require('includes/head.php');
-$pageTitle = $planlabelplural;
-
-if ($permission) {
-    $pageTitle = "Add Project Checklist/s";
+if ($permission) { 
     try {
         if (isset($_POST["search"])) {
             $projcode = trim($_POST["srccode"]);
@@ -89,8 +80,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                <?=$icon?>
+					<?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -379,7 +370,7 @@ require('includes/footer.php');
     function CallRiskAction(id) {
         $.ajax({
             type: 'post',
-            url: 'callriskaction.php',
+            url: 'callriskaction',
             data: {
                 rskid: id
             },

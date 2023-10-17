@@ -1,12 +1,7 @@
-<?php
-$Id = 11;
-$subId = 48;
+<?php 
 include_once 'includes/head-alt.php';
 $crud_permissions = $role_group  == 1 ? true : false;
-
 try {
-
-
     if (isset($_GET['contrid'])) {
         $contrid_rsInfo = $_GET['contrid'];
     }

@@ -1,6 +1,4 @@
-<?php
-$Id = 8;
-$subId = 41;
+<?php 
 $pageName = "Manage Financier";
 require('includes/head.php');
 require('includes/header.php');

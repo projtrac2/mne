@@ -1,27 +1,27 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
+
+echo '<title>Result-Based Monitoring &amp; Evaluation System: Escalated Project Issues</title>';
 
 if ($permission) {
 	try {
+		$projcategory = "";
 		if (isset($_GET["proj"]) && !empty($_GET["proj"])) {
 			$prjid = $_GET["proj"];
-			$query_issuesanalysis = $db->prepare("SELECT i.id, p.projid, projname, category, observation, recommendation, i.status as status, i.created_by AS monitor, i.date_assigned , i.date_created AS issuedate, i.assigned_by, pr.priority, output FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid INNER JOIN tbl_projrisk_categories c ON c.rskid=i.risk_category inner join tbl_priorities pr on pr.id=i.priority  inner join tbl_project_details d on d.id=i.opid inner join tbl_progdetails o on o.id=d.outputid WHERE p.projid='$prjid' and i.status<>1");
-
+			
+			$query_issuesanalysis = $db->prepare("SELECT i.id, i.origin, p.projid, p.projname AS projname, p.projcategory, risk_category, observation, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate, i.date_assigned, i.priority, i.assigned_by FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid WHERE p.projid='$prjid' and i.status=2");
 			$query_issuesanalysis->execute();
 			$rows = $query_issuesanalysis->fetch();
 			$count_issuesanalysis = $query_issuesanalysis->rowCount();
+			
 			$issuestatus = $rows["status"];
-			$projname = $rows["projname"];
-			$projcategory = $rows['projcategory'];
 		}
+
+		$query_projdetails = $db->prepare("SELECT * FROM tbl_projects WHERE projid='$prjid'");
+		$query_projdetails->execute();
+		$row_projdetails = $query_projdetails->fetch();
+		$projname = $row_projdetails['projname'];
+		$projcategory = $row_projdetails['projcategory'];
 
 		$query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = '$prjid'");
 		$query_rsMlsProg->execute();
@@ -35,13 +35,18 @@ if ($permission) {
 		print($result);
 	}
 ?>
+
+    <link href="css/project-progress.css" rel="stylesheet">
 	<!-- start body  -->
+	<!-- JQuery Nestable Css -->
+	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
+	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
 						</div>
@@ -51,46 +56,44 @@ if ($permission) {
 			<div class="row clearfix">
 				<div class="block-header">
 					<?= $results; ?>
-					<div class="header" style="padding-bottom:0px">
-						<div class="button-demo" style="margin-top:-15px">
-							<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
-							<a href="myprojectdash.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Details</a>
-							<a href="myprojectmilestones.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
-							<a href="myprojectworkplan.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Work Plan</a>
-							<a href="myprojectfinancialplan.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
-							<a href="myproject-key-stakeholders.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
-							<?php if ($projcategory == '2') { ?>
-								<div class="dropdown">
-									<button type="button" class="btn bg-grey waves-effect dropdown-toggle" data-toggle="dropdown">
-										Issues
-									</button>
-									<div class="dropdown-menu">
-										<a class="dropdown-item" href="projectissueslist.php?proj=<?= $prjid ?>">Issues Log</a>
-										<a class="dropdown-item" href="#">Issues Analysis</a>
-										<a class="dropdown-item" href="#">Issues Escalated</a>
-									</div>
-								</div>
-							<?php } else { ?>
-								<div class="btn-group" style="background-color: transparent; border-color: transparent; box-shadow: none;">
-									<button type="button" class="btn bg-grey waves-effect dropdown-toggle" style="margin-top:10px; margin-left:-9px" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										<span class="sr-only">Project Issues</span>
-										<span class="caret"></span>
-									</button>
-									<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-										<li style="width:100%"><a href="projectissueslist.php?proj=<?= $prjid ?>">Issues Log</a></li>
-										<li style="width:100%"><a href="projectissuesanalysis.php?proj=<?= $prjid ?>">Issues Analysis</a></li>
-										<li style="width:100%"><a href="project-escalated-issues.php?proj=<?= $prjid ?>">Issues Escalated</a></li>
-									</ul>
-								</div>
-							<?php } ?>
-							<a href="myprojectfiles.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
-							<a href="projreports.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Progress Report</a>
-						</div>
-					</div>
-
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="header" style="padding-bottom:0px">
+							<div class="button-demo" style="margin-top:-15px">
+								<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
+								<a href="myprojectdash.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Details</a>
+								<a href="myprojectmilestones.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
+								<a href="myprojectfinancialplan.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
+								<a href="myproject-key-stakeholders.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
+								<?php if ($projcategory == '2') { ?>
+									<div class="btn-group" style="background-color: transparent; border-color: transparent; box-shadow: none;">
+										<button type="button" class="btn bg-grey waves-effect dropdown-toggle" style="margin-top:10px; margin-left:-9px" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span class="sr-only">Issues</span>
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
+											<li style="width:100%"><a href="projectissueslist.php?proj=<?= $prjid ?>">Issues Log</a></li>
+											<li style="width:100%"><a href="#">Issues Analysis</a></li>
+											<li style="width:100%"><a href="project-escalated-issues.php?proj=<?= $prjid ?>">Issues Escalated</a></li>
+										</ul>
+									</div>
+								<?php } else { ?>
+									<div class="btn-group" style="background-color: transparent; border-color: transparent; box-shadow: none;">
+										<button type="button" class="btn bg-grey waves-effect dropdown-toggle" style="margin-top:10px; margin-left:-9px" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											<span class="sr-only">Project Issues</span>
+											<span class="caret"></span>
+										</button>
+										<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
+											<li style="width:100%"><a href="projectissueslist.php?proj=<?= $prjid ?>">Issues Log</a></li>
+											<li style="width:100%"><a href="projectissuesanalysis.php?proj=<?= $prjid ?>">Issues Analysis</a></li>
+											<li style="width:100%"><a href="project-escalated-issues.php?proj=<?= $prjid ?>">Issues Escalated</a></li>
+										</ul>
+									</div>
+								<?php } ?>
+								<a href="myprojectfiles.php?projid=<?php echo $prjid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
+							</div>
+						</div>
+
 						<h4>
-							<div class="col-md-12" style="background-color:#F7F7F7; border:#F7F7F7 thin solid; border-radius:2px; margin-bottom:5px; height:25px"><i class="fa fa-bar-chart" aria-hidden="true"></i> Project Issues Analysis</div>
 							<div class="col-md-8" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
 								Project Name: <font color="white"><?php echo $projname; ?></font>
 							</div>
@@ -114,11 +117,11 @@ if ($permission) {
 											<thead>
 												<tr class="bg-orange">
 													<th style="width:3%">#</th>
-													<th style="width:20%">Issue</th>
+													<th style="width:23%">Issue</th>
+													<th style="width:7%">Origin</th>
 													<th style="width:24%">Output</th>
 													<th style="width:7%">Priority</th>
 													<th style="width:10%">Date Recorded</th>
-													<th style="width:10%">Action Date</th>
 													<th style="width:10%">Due Date</th>
 													<th style="width:9%">Status</th>
 													<th style="width:7%">Action</th>
@@ -133,15 +136,34 @@ if ($permission) {
 														$id = $rows['id'];
 														$projid = $rows['projid'];
 														$project = $rows['projname'];
-														$risk = $rows['category'];
+														$origin = $rows['origin'];
+														$riskid = $rows['risk_category'];
 														$observation = $rows['observation'];
-														$priority = $rows['priority'];
+														$priorityid = $rows['priority'];
 														$monitor = $rows['monitor'];
 														$issuedate = $rows['issuedate'];
 														$assignee = $rows['assigned_by'];
 														$dateassigned = $rows['date_assigned'];
 														$status = $rows['status'];
-														$output = $rows['output'];
+														
+														$query_issuesrisk = $db->prepare("SELECT category FROM tbl_projrisk_categories WHERE rskid='$riskid'");
+														$query_issuesrisk->execute();
+														$row_issuesrisk = $query_issuesrisk->fetch();
+														$risk = $row_issuesrisk['category'];
+														
+														$query_issuespriority = $db->prepare("SELECT priority FROM tbl_priorities WHERE id='$priorityid'");
+														$query_issuespriority->execute();
+														$row_issuespriority = $query_issuespriority->fetch();
+														$priority = $row_issuespriority['priority'];
+														
+														$query_issue_output = $db->prepare("SELECT i.id, p.projid, p.projcategory, projname, category, observation, recommendation, i.status as status, i.created_by AS monitor, i.date_assigned , i.date_created AS issuedate, i.assigned_by, pr.priority, output FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid INNER JOIN tbl_projrisk_categories c ON c.rskid=i.risk_category inner join tbl_priorities pr on pr.id=i.priority  inner join tbl_project_details d on d.id=i.opid inner join tbl_progdetails o on o.id=d.outputid WHERE i.id='$id'");
+														$query_issue_output->execute();
+														$row_issue_output = $query_issue_output->fetch();
+														
+														$output = "No defined";
+														if($row_issue_output){
+															$output = $row_issue_output['output'];
+														}
 
 														$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=2 and active=1");
 														$query_timeline->execute();
@@ -229,11 +251,11 @@ if ($permission) {
 														<tr style="background-color:#fff">
 															<td align="center"><?php echo $nm; ?></td>
 															<td><?php echo $risk; ?></td>
+															<td><?php echo $origin; ?></td>
 															<td><?php echo $output; ?></td>
 															<td><?php echo $priority; ?></td>
 															<td><?php echo date("d M Y", strtotime($issuedate)); ?></td>
 															<td><span data-toggle="tooltip" data-placement="bottom" title="<?php echo $dateaction; ?>"><?php echo $dateassigned; ?></span></td>
-															<td><?php echo $actiondate; ?></td>
 															<td <?php echo $styled; ?>><strong><?php echo $actionstatus; ?></strong></td>
 															<td>
 																<div align="center">

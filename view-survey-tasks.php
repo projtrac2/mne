@@ -1,342 +1,263 @@
 <?php
-//include_once 'projtrac-dashboard/resource/session.php';
+require('includes/head.php');
+if ($permission) {
+	try {
+		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
+			$progid = $_GET["prg"];
+		}
 
-include_once 'projtrac-dashboard/resource/Database.php';
-include_once 'projtrac-dashboard/resource/utilities.php';
-//$currentdate = date("Y-m-d");
+		if (isset($_GET["userid"]) && !empty($_GET["userid"])) {
+			$userid = $_GET["userid"];
+		}
 
-if (!isset($_SESSION)) {
-  session_start();
-}
+		$query_userdetails =  $db->prepare("SELECT ptid FROM tbl_projteam2 t inner join tbl_users u on u.pt_id=t.ptid WHERE u.username = '$user_name'");
+		$query_userdetails->execute();
+		$row_userdetails = $query_userdetails->fetch();
+		$userid = $row_userdetails["ptid"];
+		//$userid = 30;
 
-require 'authentication.php';
 
-try {
+		//get financial years 
+		$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year");
+		$query_rsYear->execute();
+		$row_rsYear = $query_rsYear->fetch();
+		$totalRows_rsYear = $query_rsYear->rowCount();
 
-	
+		//get subcounty
+		$query_rsComm =  $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY state ASC");
+		$query_rsComm->execute();
+		$row_rsComm = $query_rsComm->fetch();
+		$totalRows_rsComm = $query_rsComm->rowCount();
 
-	if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
-		$progid = $_GET["prg"];
+		//get mapping type 
+		$query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
+		$query_rsMapType->execute();
+		$row_rsMapType = $query_rsMapType->fetch();
+		$totalRows_rsMapType = $query_rsMapType->rowCount();
+
+		//get project implementation methods 
+		$query_rsProjImplMethod =  $db->prepare("SELECT id, method FROM tbl_project_implementation_method");
+		$query_rsProjImplMethod->execute();
+		$row_rsProjImplMethod = $query_rsProjImplMethod->fetch();
+		$totalRows_rsProjImplMethod = $query_rsProjImplMethod->rowCount();
+
+		// get project risks 
+		$query_rsRiskCategories =  $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
+		$query_rsRiskCategories->execute();
+		$row_rsRiskCategories = $query_rsRiskCategories->fetch();
+		$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
+	} catch (PDOException $ex) {
+		// $result = flashMessage("An error occurred: " .$ex->getMessage());
+		print($ex->getMessage());
 	}
-
-	if (isset($_GET["userid"]) && !empty($_GET["userid"])) {
-		$userid = $_GET["userid"];
-	}
-
-	$query_userdetails =  $db->prepare("SELECT ptid FROM tbl_projteam2 t inner join tbl_users u on u.pt_id=t.ptid WHERE u.username = '$user_name'");
-	$query_userdetails->execute();
-	$row_userdetails = $query_userdetails->fetch();
-	$userid = $row_userdetails["ptid"];
-	//$userid = 30;
-
-
-	//get financial years 
-	$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year");
-	$query_rsYear->execute();
-	$row_rsYear = $query_rsYear->fetch();
-	$totalRows_rsYear = $query_rsYear->rowCount();
-
-	//get subcounty
-	$query_rsComm =  $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY state ASC");
-	$query_rsComm->execute();
-	$row_rsComm = $query_rsComm->fetch();
-	$totalRows_rsComm = $query_rsComm->rowCount();
-
-	//get mapping type 
-	$query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
-	$query_rsMapType->execute();
-	$row_rsMapType = $query_rsMapType->fetch();
-	$totalRows_rsMapType = $query_rsMapType->rowCount();
-
-	//get project implementation methods 
-	$query_rsProjImplMethod =  $db->prepare("SELECT id, method FROM tbl_project_implementation_method");
-	$query_rsProjImplMethod->execute();
-	$row_rsProjImplMethod = $query_rsProjImplMethod->fetch();
-	$totalRows_rsProjImplMethod = $query_rsProjImplMethod->rowCount();
-
-	// get project risks 
-	$query_rsRiskCategories =  $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
-	$query_rsRiskCategories->execute();
-	$row_rsRiskCategories = $query_rsRiskCategories->fetch();
-	$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
-} catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	print($ex->getMessage());
-}
 ?>
-<!DOCTYPE html>
-<html>
-
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
-	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-	<title>Result-Based Monitoring &amp; Project Titles </title>
-	<!-- Favicon-->
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
-
-	<!-- Google Fonts -->
-	<link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
-	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
-	<!-- Bootstrap Core Css -->
-	<link href="projtrac-dashboard/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-	<!-- Waves Effect Css -->
-	<link href="projtrac-dashboard/plugins/node-waves/waves.css" rel="stylesheet" />
-
-	<!-- Animation Css -->
-	<link href="projtrac-dashboard/plugins/animate-css/animate.css" rel="stylesheet" />
-
-	<!--WaitMe Css-->
-	<link href="projtrac-dashboard/plugins/waitme/waitMe.css" rel="stylesheet" />
-
-	<!-- Multi Select Css -->
-	<link href="projtrac-dashboard/plugins/multi-select/css/multi-select.css" rel="stylesheet">
-
-	<!-- Bootstrap Spinner Css -->
-	<link href="projtrac-dashboard/plugins/jquery-spinner/css/bootstrap-spinner.css" rel="stylesheet">
-
-	<!-- Bootstrap Tagsinput Css -->
-	<link href="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
-
-	<!-- Bootstrap Select Css -->
-	<link href="projtrac-dashboard/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
-	<!-- JQuery DataTable Css -->
-	<link href="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
-
-	<!-- Sweet Alert Css -->
-	<link href="projtrac-dashboard/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-
-	<!-- Custom Css -->
-	<link href="projtrac-dashboard/css/style.css" rel="stylesheet">
-
-	<!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
-	<link href="projtrac-dashboard/css/themes/all-themes.css" rel="stylesheet" />
-	<link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
-	<script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
-
-	<link href="css/left_menu.css" rel="stylesheet">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/3.3.0/js/jquery.tooltipster.min.js"></script>
-	<script src="ckeditor/ckeditor.js"></script>
-	<style>
-		#links a {
-			color: #FFFFFF;
-			text-decoration: none;
-		}
-
-		hr {
-			display: block;
-			margin-top: 0.5em;
-			margin-bottom: 0.5em;
-			margin-left: auto;
-			margin-right: auto;
-			border-style: inset;
-			border-width: 1px;
-		}
-	</style>
-
-	<script type="text/javascript">
-	$(document).ready(function () {
-		var userid;
-		userid = <?php echo $userid; ?>;
-		console.log("USER: " + userid);
-		get_all(userid);
-	});
-		function CallRiskAction(id) {
-			$.ajax({
-				type: 'post',
-				url: 'callriskaction.php',
-				data: {
-					rskid: id
-				},
-				success: function(data) {
-					$('#riskaction').html(data);
-					$("#riskModal").modal({
-						backdrop: "static"
-					});
-				}
-			});
-		}
-
-		$(document).ready(function() {
-			$(".account").click(function() {
-				var X = $(this).attr('id');
-				if (X == 1) {
-					$(".submenus").hide();
-					$(this).attr('id', '0');
-				} else {
-					$(".submenus").show();
-					$(this).attr('id', '1');
-				}
-			});
-			//Mouseup textarea false
-			$(".submenus").mouseup(function() {
-				return false
-			});
-			$(".account").mouseup(function() {
-				return false
-			});
-
-			//Textarea without editing.
-			$(document).mouseup(function() {
-				$(".submenus").hide();
-				$(".account").attr('id', '');
-			});
-
-		});
-	</script>
-
 	<style>
 		.modal-lg {
 			max-width: 100% !important;
 			width: 90%;
 		}
 	</style>
-</head>
-
-<body class="theme-blue">
-	<!-- Page Loader -->
-	<!-- <div class="page-loader-wrapper"> -->
-	<!-- <div class="loader">
-		<div class="preloader">
-			<div class="spinner-layer pl-red">
-				<div class="circle-clipper left">
-					<div class="circle"></div>
-				</div>
-				<div class="circle-clipper right">
-					<div class="circle"></div>
-				</div>
-			</div>
-		</div>
-		<p>Please wait...</p>
-	</div>
-</div> -->
-	<!-- #END# Page Loader -->
-	<!-- Overlay For Sidebars -->
-	<div class="overlay"></div>
-	<!-- #END# Overlay For Sidebars -->
-	<!-- Top Bar -->
-	<nav class="navbar" style="height:69px; padding-top:-10px">
+	<!-- start body  -->
+	<section class="content">
 		<div class="container-fluid">
-			<div class="navbar-header">
-				<a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-				<a href="javascript:void(0);" class="bars"></a>
-				<img src="images/logo.png" alt="logo" width="239" height="39">
+			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+				<h4 class="contentheader">
+					<?= $icon ?>
+					<?= $pageTitle ?>
+					<div class="btn-group" style="float:right">
+						<div class="btn-group" style="float:right">
+						</div>
+					</div>
+				</h4>
 			</div>
-			
-		</div>
-	</nav>
-	<!-- #Top Bar -->
-	<section>
-		<!-- Left Sidebar -->
-		<aside id="leftsidebar" class="sidebar">
-			<!-- User Info -->
-			<div class="user-info">
-				<div class="image">
-					<img src="images/user.png" width="48" height="48" alt="User" />
+			<div class="row clearfix">
+				<div class="block-header">
+					<?= $results; ?>
 				</div>
-				<?php
-				include_once("includes/user-info.php");
-				?>
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<div class="card">
+						<div class="card-header">
+							<ul class="nav nav-tabs" style="font-size:14px">
+								<li class="active" id="output_tab">
+									<a data-toggle="tab" href="#output">
+										<i class="fa fa-hourglass-half bg-orange" aria-hidden="true"></i> Output Baseline Survey Tasks &nbsp;
+										<span class="badge bg-orange" id="output_counter"> 0</span>
+									</a>
+								</li>
+								<li id="outcome_tab">
+									<a data-toggle="tab" href="#outcome">
+										<i class="fa fa-file-text-o bg-blue-grey" aria-hidden="true"></i> Outcome Survey Tasks&nbsp;
+										<span class="badge bg-blue-grey" id="outcome_counter"> 0</span>
+									</a>
+								</li>
+								<li id="impact_tab">
+									<a data-toggle="tab" href="#impact">
+										<i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Impact Survey Tasks&nbsp;
+										<span class="badge bg-light-blue" id="impact_counter"> 0</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="body">
+							<div class="table-responsive">
+
+								<div class="tab-content">
+									<div id="output" class="tab-pane fade in active">
+										<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+											<thead>
+												<tr class="bg-orange">
+													<th style="width:5%">#</th>
+													<th style="width:40%">Project</th>
+													<th style="width:35%">Indicator</th>
+													<th style="width:10%">Location</th>
+													<th style="width:10%">Action</th>
+												</tr>
+											</thead>
+											<tbody id="tbody_output">
+
+											</tbody>
+										</table>
+									</div>
+									<div id="outcome" class="tab-pane fade">
+										<ul class="nav nav-tabs" style="font-size:14px">
+											<li id="outcome_base_tab" class="active">
+												<a data-toggle="tab" href="#outcome_baseline">
+													<i class="fa fa-file-text-o bg-blue-grey" aria-hidden="true"></i> Baseline Tasks&nbsp;
+													<span class="badge bg-blue-grey" id="outcome_baseline_counter"> 0</span>
+												</a>
+											</li>
+											<li id="outcome_eval_tab">
+												<a data-toggle="tab" href="#outcome_evaluation">
+													<i class="fa fa-pencil-square-o bg-light-green" aria-hidden="true"></i> Evaluation Tasks&nbsp;
+													<span class="badge bg-light-green" id="outcome_evaluation_counter"> 0</span>
+												</a>
+											</li>
+										</ul>
+										<div class="tab-content">
+											<div id="outcome_baseline" class="tab-pane fade in active">
+												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+													<thead>
+														<tr class="bg-blue-grey">
+															<th style="width:5%">#</th>
+															<th style="width:40%">Project</th>
+															<th style="width:35%">Indicator</th>
+															<th style="width:10%">Location</th>
+															<th style="width:10%">Action</th>
+														</tr>
+													</thead>
+													<tbody id="tbody_outcome_baseline">
+
+													</tbody>
+												</table>
+											</div>
+											<div id="outcome_evaluation" class="tab-pane fade">
+												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+													<thead>
+														<tr class="bg-light-green">
+															<th style="width:5%">#</th>
+															<th style="width:40%">Project</th>
+															<th style="width:35%">Indicator</th>
+															<th style="width:10%">Location</th>
+															<th style="width:10%">Action</th>
+
+														</tr>
+													</thead>
+													<tbody id="tbody_outcome_evaluation">
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+									<div id="impact" class="tab-pane fade">
+										<ul class="nav nav-tabs" style="font-size:14px">
+											<li id="impact_base_tab">
+												<a data-toggle="tab" href="#impact_baseline">
+													<i class="fa fa-file-text-o bg-light-blue" aria-hidden="true"></i> Baseline Tasks&nbsp;
+													<span class="badge bg-light-blue" id="impact_baseline_counter"> 0</span>
+												</a>
+											</li>
+											<li id="impact_eval_tab">
+												<a data-toggle="tab" href="#impact_evaluation">
+													<i class="fa fa-pencil-square-o bg-light-green" aria-hidden="true"></i> Evaluation Tasks&nbsp;
+													<span class="badge bg-light-green" id="impact_evaluation_counter"> 0</span>
+												</a>
+											</li>
+										</ul>
+										<div class="tab-content">
+											<div id="impact_baseline" class="tab-pane fade">
+												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+													<thead>
+														<tr class="bg-light-blue">
+															<th style="width:5%">#</th>
+															<th style="width:40%">Project</th>
+															<th style="width:35%">Indicator</th>
+															<th style="width:10%">Location</th>
+															<th style="width:10%">Action</th>
+
+														</tr>
+													</thead>
+													<tbody id="tbody_impact_baseline">
+
+													</tbody>
+												</table>
+											</div>
+											<div id="impact_evaluation" class="tab-pane fade">
+												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+													<thead>
+														<tr class="bg-light-green">
+															<th style="width:5%">#</th>
+															<th style="width:40%">Project</th>
+															<th style="width:35%">Indicator</th>
+															<th style="width:10%">Location</th>
+															<th style="width:10%">Action</th>
+
+														</tr>
+													</thead>
+													<tbody id="tbody_impact_evaluation">
+
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
-			<!-- #User Info -->
-			<!-- Menu -->
-			<?php
-			include_once("includes/sidebar.php");
-			?>
-			<!-- #Menu -->
-			<!-- Footer -->
-			<div class="legal">
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-					ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-				</div>
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-					Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
-				</div>
-			</div>
-			<!-- #Footer -->
-		</aside>
-		<!-- #END# Left Sidebar -->
 	</section>
+	<!-- end body  -->
+<?php
+} else {
+	$results =  restriction();
+	echo $results;
+}
 
-	<section class="content" style="margin-top:-20px; padding-bottom:0px">
-		<div class="container-fluid">
-			<!-- <div class="body"> -->
-			<?php
-			    include_once('view-survey-tasks-inner.php');
-			?>
-			<!--</div> -->
-		</div>
-	</section>
+require('includes/footer.php');
+?>
+<script src="general-settings/js/fecth-selected-baseline-tasks-items.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var userid;
+		userid = <?php echo $user_name; ?>;
+		get_all(userid);
+	});
 
-	<!-- Jquery Core Js -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-
-	<!-- Bootstrap Core Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script>
-
-	<!-- Select Plugin Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script>
-
-	<!-- Multi Select Plugin Js -->
-	<script src="projtrac-dashboard/plugins/multi-select/js/jquery.multi-select.js"></script>
-
-	<!-- Slimscroll Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-
-	<!-- Waves Effect Plugin Js -->
-	<script src="projtrac-dashboard/plugins/node-waves/waves.js"></script>
-
-	<!-- Sweet Alert Plugin Js -->
-	<script src="projtrac-dashboard/plugins/sweetalert/sweetalert.min.js"></script>
-
-	<!-- Sparkline Chart Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-sparkline/jquery.sparkline.js"></script>
-
-	<!-- Bootstrap Colorpicker Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.js"></script>
-
-	<!-- Input Mask Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-
-	<!-- Jquery Spinner Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-
-	<!-- Bootstrap Tags Input Plugin Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.js"></script>
-
-	<!-- noUISlider Plugin Js -->
-	<script src="projtrac-dashboard/plugins/nouislider/nouislider.js"></script>
-
-	<!-- Jquery Knob Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-knob/jquery.knob.min.js"></script>
-
-	<!-- Jquery DataTable Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-datatable/jquery.dataTables.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.flash.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/jszip.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/pdfmake.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/vfs_fonts.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.html5.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.print.min.js"></script>
-
-	<!-- Custom Js -->
-	<script src="projtrac-dashboard/js/pages/tables/jquery-datatable.js"></script>
-	<script src="projtrac-dashboard/js/admin.js"></script>
-	<script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
-	<script src="projtrac-dashboard/js/pages/charts/jquery-knob.js"></script>
-
-	<!-- Demo Js -->
-	<script src="projtrac-dashboard/js/demo.js"></script>
-</body>
-
-</html>
+	function CallRiskAction(id) {
+		$.ajax({
+			type: 'post',
+			url: 'callriskaction',
+			data: {
+				rskid: id
+			},
+			success: function(data) {
+				$('#riskaction').html(data);
+				$("#riskModal").modal({
+					backdrop: "static"
+				});
+			}
+		});
+	}
+</script>

@@ -1,8 +1,7 @@
-<?php
-$Id = 7;
-$subId = 24;
+<?php 
 require('includes/head.php');
 
+if ($permission) {
 $projid = (isset($_GET['prjid'])) ? base64_decode($_GET['prjid']) : header("Location: project-concluded-evaluations"); 
 //$formid = base64_encode($frmid);
 $pageName ="Project Secondary Data Evaluation Report";
@@ -58,7 +57,8 @@ if(!empty($row_indicator)){
 		while($row_indicator_disag_type = $query_indicator_disag_type->fetch()){
 			$variable_category[] = $row_indicator_disag_type["category"];
 		}
-		$variablecategory = explode(",",$variable_category);
+		
+		$variablecategory = implode(",",$variable_category);
 
 		$query_indicator_disaggregations = $db->prepare("SELECT *, d.id AS disid FROM tbl_indicator_disaggregations d left join tbl_indicator_disaggregation_types t on t.id=d.disaggregation_type WHERE indicatorid=:indid");
 		$query_indicator_disaggregations->execute(array(":indid" => $indid));
@@ -446,6 +446,12 @@ $comments = $row_conclusion_comments["comments"];
 							</div>
 						</div>
 					</div>
+
 <?php
-    require('includes/footer.php');
+} else {
+  $results =  restriction();
+  echo $results;
+}
+
+require('includes/footer.php');
 ?>

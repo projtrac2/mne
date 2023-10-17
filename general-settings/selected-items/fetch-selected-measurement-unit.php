@@ -1,6 +1,8 @@
 <?php
-
-include_once "controller.php";
+date_default_timezone_set("Africa/Nairobi");
+//include_once 'projtrac-dashboard/resource/session.php';
+include_once '../../projtrac-dashboard/resource/Database.php';
+include_once '../../projtrac-dashboard/resource/utilities.php';
 
 $itemId = $_POST['itemId'];
 $query_item = $db->prepare("SELECT * FROM tbl_measurement_units WHERE id = '$itemId'");

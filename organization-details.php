@@ -1,110 +1,103 @@
 <?php
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-	$pageTitle = "Organization Details";
-
 	try {
-		$setting = $db->query("select * from `tbl_company_settings`")->fetch();
+		$query_setting = $db->prepare("select * from `tbl_company_settings`");
+		$query_setting->execute();
+		$setting = $query_setting->fetch();
+		$rows_count = $query_setting->rowCount();
 
-		$query_title =  $db->prepare("SELECT id,title FROM tbl_mbrtitle");
-		$query_title->execute();
-
-		$query_financiertype =  $db->prepare("SELECT * FROM tbl_funding_type where status=1 ORDER BY id ASC");
-		$query_financiertype->execute();
-
-		$query_country =  $db->prepare("SELECT id,country FROM countries");
+		$query_country =  $db->prepare("SELECT id,country FROM countries where status=1");
 		$query_country->execute();
 
-		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addfinancierfrm")) {
+		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addcompanydetailsfrm")) {
 			$current_date = date("Y-m-d");
-			$results = "";
+			// $latitude = "-1.292066";
+			// $longitude = "36.821946";
 
-			//if(!empty($_POST['financier']) && !empty($_POST['type']) && !empty($_POST['contactperson']) && !empty($_POST['title']) && !empty($_POST['designation']) && !empty($_POST['address']) && !empty($_POST['city']) && !empty($_POST['state']) && !empty($_POST['country']) && !empty($_POST['phone']) && !empty($_POST['email']) && !empty($_POST['comments'])){
+			$latitude = $_POST['latitude'];
+			$longitude = $_POST['longitude'];
+			$company_name = $_POST['company_name'];
+			$postal_address = $_POST['postal_address'];
+			$country = $_POST['country'];
+			$phone = $_POST['phone'];
+			$mobile = $_POST['mobile'];
+			$email = $_POST['email'];
+			$ip_address =$_POST['ip_address'];
+			$domain_address = $_POST['domain_address'];
+			$plot_no =  $_POST['plot_no'];
+			$city = $_POST['city'];
+			if (!empty($_FILES['logo']['name'])) {
+				$filename = basename($_FILES['logo']['name']);
+				$ext = substr($filename, strrpos($filename, '.') + 1);
 
-			$insertSQL = $db->prepare("INSERT INTO tbl_company_settings (financier, type, contact, title, designation, address, city, state, country, phone, email, comments, created_by, date_created) VALUES (:financier, :type, :contact, :title, :designation, :address, :city, :state, :country, :phone, :email, :comments, :user, :date)");
-			$insertSQL->execute(array(':financier' => $_POST['financier'], ':type' => $_POST['type'], ':contact' => $_POST['contactperson'], ':title' => $_POST['title'], ':designation' => $_POST['designation'], ':address' => $_POST['address'], ':city' => $_POST['city'],  ':state' => $_POST['state'], ':country' => $_POST['country'], ':phone' => $_POST['phone'], ':email' => $_POST['email'], ':comments' => $_POST['comments'], ':user' => $user_name, ':date' => $current_date));
+				if (($ext != "exe") && ($_FILES["logo"]["type"] != "application/x-msdownload")) {
+					$filepath = "uploads/company/" . $filename;
 
-			$last_id = $db->lastInsertId();
-			if ($insertSQL->rowCount() == 1) {
-				$filecategory = "Financiers";
-				$catid = $last_id;
-				$myUser = $_POST['user_name'];
-
-				$count = count($_POST["attachmentpurpose"]);
-
-				for ($cnt = 0; $cnt < $count; $cnt++) {
-					if (!empty($_FILES['financierattachment']['name'][$cnt])) {
-						$reason = $_POST["attachmentpurpose"][$cnt];
-						$filename = basename($_FILES['financierattachment']['name'][$cnt]);
-						$ext = substr($filename, strrpos($filename, '.') + 1);
-
-						if (($ext != "exe") && ($_FILES["financierattachment"]["type"][$cnt] != "application/x-msdownload")) {
-							$newname = $catid . "-" . $filename;
-							$filepath = "uploads/financiers/" . $newname;
-
-							if (!file_exists($filepath)) {
-								if (move_uploaded_file($_FILES['financierattachment']['tmp_name'][$cnt], $filepath)) {
-									$qry2 = $db->prepare("INSERT INTO tbl_files (`projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:stage, :fname, :ext, :floc, :fcat, :reason, :user, :date)");
-									$qry2->execute(array(':stage' => $catid, ':fname' => $newname, ':ext' => $ext, ':floc' => $filepath, ':fcat' => $filecategory, ':reason' => $reason, ':user' => $myUser, ':date' => $current_date));
-								}
-							} else {
-								$msg = 'File you are uploading already exists, try another file!!';
-								$results = "<script type=\"text/javascript\">
-										swal({
-											title: \"Error!\",
-											text: \" $msg \",
-											type: 'Danger',
-											timer: 3000,
-											showConfirmButton: false });
-									</script>";
-							}
-						} else {
-							$msg = 'This file type is not allowed, try another file!!';
-							$results = "<script type=\"text/javascript\">
-									swal({
-										title: \"Error!\",
-										text: \" $msg \",
-										type: 'Danger',
-										timer: 3000,
-										showConfirmButton: false });
-									</script>";
+					if (!file_exists($filepath)) {
+						if (move_uploaded_file($_FILES['logo']['tmp_name'], $filepath)) {
+							if($rows_count == 0){
+								$insertSQL = $db->prepare("INSERT INTO tbl_company_settings (company_name, postal_address, country, telephone_no, mobile_no, email_address, city, plot_no, domain_address, ip_address, logo, latitude, longitude, created_by, date_created) VALUES (:companyname, :postal, :country, :phone, :mobile, :email, :city, :plotno, :domain, :ipaddress, :logo, :latitude, :longitude, :user, :date)");
+								$insertSQL->execute(array(':companyname' => $company_name, ':postal' => $postal_address, ':country' => $country, ':phone' => $phone, ':mobile' => $mobile, ':email' => $email, ':city' => $city, ':plotno' =>$plot_no,  ':domain' => $domain_address, ':ipaddress' => $ip_address, ':logo' => $filepath, ':latitude' => $latitude, ':longitude' => $longitude, ':user' => $user_name, ':date' => $current_date));
+								
+								$msg = "Company details successfully added";
+							}else{
+								$detailsid = $setting["id"];
+								$updateQuery = $db->prepare("UPDATE tbl_company_settings SET company_name=:companyname, postal_address=:postal, country=:country, telephone_no=:phone, mobile_no=:mobile, email_address=:email, city=:city, plot_no=:plotno, domain_address=:domain, ip_address=:ipaddress, logo=:logo, latitude=:latitude, longitude=:longitude, created_by=:user, date_created=:date  WHERE id=:id");
+								$updatest = $updateQuery->execute(array(':companyname' => $_POST['company_name'], ':postal' => $_POST['postal_address'], ':country' => $_POST['country'], ':phone' => $_POST['phone'], ':mobile' => $_POST['mobile'], ':email' => $_POST['email'], ':city' => $_POST['city'], ':plotno' => $_POST['plot_no'],  ':domain' => $_POST['domain_address'], ':ipaddress' => $_POST['ip_address'], ':logo' => $filepath, ':latitude' => $latitude, ':longitude' => $longitude, ':user' => $user_name, ':date' => $current_date, ':id' => $detailsid));
+								$msg = "Company details successfully updated";
+							} 
 						}
 					} else {
-						$msg = 'You have not attached any file!!';
-						$results = "<script type=\"text/javascript\">
+						$msg = 'The logo file you are uploading already exists, try another file!!';
+						$results =
+							"<script type=\"text/javascript\">
 								swal({
 									title: \"Error!\",
 									text: \" $msg \",
 									type: 'Danger',
 									timer: 3000,
-									showConfirmButton: false });
+									showConfirmButton: false 
+								});
 							</script>";
 					}
+				} else {
+					$msg = 'This logo file type is not allowed, try another file!!';
+					$results =
+						"<script type=\"text/javascript\">
+							swal({
+								title: \"Error!\",
+								text: \" $msg \",
+								type: 'Danger',
+								timer: 3000,
+								showConfirmButton: false });
+							</script>";
 				}
-
-				$msg = 'Financier successfully added.';
+			} else {
+				$msg = 'You have not attached any logo file!!';
 				$results = "<script type=\"text/javascript\">
 						swal({
-							title: \"Success!\",
-							text: \" $msg\",
-							type: 'Success',
-							timer: 2000,
-							showConfirmButton: false });
-						setTimeout(function(){
-							window.location.href = 'view-financiers';
-						}, 2000);
+							title: \"Error!\",
+							text: \" $msg \",
+							type: 'Danger',
+							timer: 3000,
+							showConfirmButton: false 
+						});
 					</script>";
 			}
-			//}
-
-			echo $results;
+			//$msg = 'company details successfully added.';
+			$results = "<script type=\"text/javascript\">
+					swal({
+						title: \"Success!\",
+						text: \" $msg\",
+						type: 'Success',
+						timer: 2000,
+						showConfirmButton: false });
+					setTimeout(function(){
+						window.location.href = 'organization-details.php';
+					}, 2000);
+				</script>";
 		}
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -116,11 +109,10 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-
 						</div>
 					</div>
 				</h4>
@@ -129,9 +121,7 @@ if ($permission) {
 				<div class="block-header">
 					<?= $results; ?>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="header" style="padding-bottom:5px; margin-left:-10px; margin-right:-12px">
-							<?php include_once("settings-menu.php"); ?>
-						</div>
+						<?php include_once("settings-menu.php"); ?>
 					</div>
 				</div>
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -142,7 +132,6 @@ if ($permission) {
 							<!-- ============================================================== -->
 
 							<form id="add_financier" method="POST" name="addfinancierfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
-
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
 									<div class="col-md-12">
@@ -152,7 +141,7 @@ if ($permission) {
 										</div>
 									</div>
 									<div class="col-md-12">
-										<label>Address *:</label>
+										<label>postal_address *:</label>
 										<div class="form-line">
 											<input type="text" class="form-control" name="postal_address" placeholder="Enter the organization address" value="<?= $setting["postal_address"] ?>" style="border:#CCC thin solid; border-radius: 5px" required>
 										</div>
@@ -169,10 +158,16 @@ if ($permission) {
 											<select name="country" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
 												<option value="" selected="selected" class="selection">...Select organization Country...</option>
 												<?php
+												$countrycode = $setting["country"];
 												while ($row_country = $query_country->fetch()) {
-												?>
-													<option value="<?php echo $row_country['id'] ?>"><?php echo $row_country['country'] ?></option>
-												<?php
+													$selected = "";
+													$code = $row_country['id'];
+													if($countrycode == $code){
+														$selected = "selected";
+													}
+													?>
+													<option value="<?php echo $row_country['id'] ?>" <?php echo $selected ?> ><?php echo $row_country['country'] ?></option>
+													<?php
 												}
 												?>
 											</select>
@@ -228,7 +223,7 @@ if ($permission) {
 														</tr>
 														<tr>
 															<td>
-																<input type="file" name="financierattachment" multiple id="financierattachment" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
+																<input type="file" name="logo" multiple id="logo" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
 															</td>
 														</tr>
 													</table>
@@ -246,14 +241,12 @@ if ($permission) {
 										<div class="btn-group">
 											<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Save" />
 										</div>
-										<input type="hidden" name="MM_insert" value="addfinancierfrm" />
+										<input type="hidden" name="MM_insert" value="addcompanydetailsfrm" />
 									</div>
 									<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
 									</div>
 								</div>
 							</form>
-
-
 							<!-- ============================================================== -->
 							<!-- End PAge Content -->
 							<!-- ============================================================== -->

@@ -61,6 +61,27 @@ function getEditTeamForm(projid, progid) {
   }
 }
 
+// get edit inspection checklist
+function getChangeProjTeam(projid, progid) {
+  if (projid) {
+    $.ajax({
+      type: "post",
+      url: "general-settings/action/project-team-action",
+      data: {
+        getChangeProjTeam: "change",
+        projid: projid
+      },
+      dataType: "html",
+      success: function (response) {
+        $("#teamForm").html(response);
+        $('.selectpicker').selectpicker('refresh');
+      }
+    });
+  } else {
+    console.log("Id does not exists");
+  }
+}
+
 // remove function
 function removeItem(projid, option) {
   if (projid) {
@@ -131,7 +152,6 @@ function getrole(rowno) {
     }
   });
 }
-
 function add_row_member() {
   $("#hideinfo").remove(); //new change 
   $rowno = $("#member_table_body tr").length;
@@ -142,20 +162,20 @@ function add_row_member() {
     `<tr id="row${$rowno}">
     <td></td>
     <td>
-    <select data-id="${$rowno}" name="role[]" id="rolerow${$rowno}"  class="form-control validrole selectRole" required="required">
+    <select data-id="${$rowno}" name="role[]" id="rolerow${$rowno}"  class="form-control validrole selectRole" required>
       <option value="">Select Member Role</option> 
     </select>
     </td>
     <td>
-      <select data-id="${$rowno}" name="department[]" id="departmentrow${$rowno}" onchange="getmember(${$rowno})" data-live-search="true"  class="form-control selectpicker" required="required">
+      <select data-id="${$rowno}" name="department[]" id="departmentrow${$rowno}" onchange="getmember(${$rowno})" data-live-search="true"  class="form-control selectpicker" required>
         <option value="">Select Project Department </option> 
       </select>
     </td> 
     <td>
-      <select data-id="${$rowno}" name="member[]" id="memberrow${$rowno}" data-live-search="true"  class="form-control selectpicker" required="required">
+      <select data-id="${$rowno}" name="member[]" id="memberrow${$rowno}" data-live-search="true"  class="form-control selectpicker" required>
         <option value="">Select Project Member </option> 
       </select>
-    </td> 
+    </td>
     <td>
       <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_member("row${$rowno}")>
         <span class="glyphicon glyphicon-minus"></span>
@@ -224,21 +244,33 @@ function getmember(rowno) {
 $(document).ready(function () {
   $("#team-form-submit").click(function (e) {
     e.preventDefault();
+
     var role = [];
+    var validation = [];
     $("select[name='role[]']").each(function () {
-      role.push($(this).val());
+      if($(this).val() != ""){
+        role.push($(this).val());
+        validation.push(true);
+      }else{
+        validation.push(false);
+      }
     });
 
     var member = [];
     $("select[name='member[]']").each(function () {
-      member.push($(this).val());
+      if($(this).val() != ""){
+        member.push($(this).val());
+        validation.push(true);
+      }else{
+        validation.push(false);
+      }
     });
 
     var projid = $("#projid").val();
     var user_name = $("#user_name").val();
     var action = $("#action").val();
 
-    if (member.length > 0 && role.length > 0) {
+    if (member.length > 0 && role.length > 0 && !(validation.includes(false))) {
       if (action == 2) {
         $.ajax({
           type: "post",
@@ -282,9 +314,9 @@ $(document).ready(function () {
           }
         });
       }
+    }else{
+      alert("Ensure you have filled all the fields before submitting")
     }
-
-
   });
 
   // functionality to collapse

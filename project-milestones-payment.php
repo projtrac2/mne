@@ -1,15 +1,8 @@
-<?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
+<?php 
 require('includes/head.php');
-$pageTitle = $planlabelplural;
+//$pageTitle = $planlabelplural;
 
-if ($permission) {
+if ($permission) { 
 	try {
 		$query_rsMilestone =  $db->prepare("SELECT * FROM tbl_milestone WHERE paymentstatus = 0 AND status = 5 AND paymentrequired = 1 GROUP BY msid");
 		$query_rsMilestone->execute();
@@ -30,9 +23,9 @@ if ($permission) {
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+				<h4 class="contentheader">					
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
 						</div>
@@ -47,9 +40,9 @@ if ($permission) {
 							<div class="button-demo" style="margin-top:-15px">
 								<span class="label bg-black" style="font-size:18px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" /> Menu</span>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px">Contractor</a>
-								<a href="project-inhouse-payment.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">In House</a>
-								<a href="certificateofcompletion.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Completion Certificates</a>
-								<a href="paymentsreport.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>
+								<a href="view-inhouse-payment-requests.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">In House</a>
+								<!-- <a href="certificateofcompletion.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Completion Certificates</a> -->
+								<!--<a href="paymentsreport.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>-->
 							</div>
 						</div>
 					</div>
@@ -105,16 +98,22 @@ if ($permission) {
 																	$query_milestonePrj->execute();
 																	$row_milestonePrj = $query_milestonePrj->fetch();
 
-																	$progid = $row_milestonePrj['progid'];
-																	$projname = $row_milestonePrj['projname'];
-																	$subcounty = $row_milestonePrj['projcommunity'];
-																	$ward = $row_milestonePrj['projlga'];
-																	$location = $row_milestonePrj['projstate'];
-																	$stdate = $row_milestonePrj['projstartdate'];
-																	$projectStatus = $row_milestonePrj['statusname'];
-																	$projcategory = $row_milestonePrj['projcategory'];
-																	$projcontrid = $row_milestonePrj['projcontractor'];
-
+																	if($row_milestonePrj){
+																		$progid = $row_milestonePrj['progid'];
+																		$projname = $row_milestonePrj['projname'];
+																		$subcounty = $row_milestonePrj['projcommunity'];
+																		$ward = $row_milestonePrj['projlga'];
+																		$location = $row_milestonePrj['projstate'];
+																		$stdate = $row_milestonePrj['projstartdate'];
+																		$projectStatus = $row_milestonePrj['statusname'];
+																		$projcategory = $row_milestonePrj['projcategory'];
+																		$projcontrid = $row_milestonePrj['projcontractor'];
+																		
+																		$query_rsProjContractor =  $db->prepare("SELECT * FROM tbl_contractor WHERE contrid = '$projcontrid'");
+																		$query_rsProjContractor->execute();
+																		$row_rsProjContractor = $query_rsProjContractor->fetch();
+																	}
+																	
 																	$query_milestoneoutput =  $db->prepare("SELECT g.output FROM tbl_progdetails g inner join tbl_projdetails p on p.outputid = g.id WHERE p.id = '$outputid'");
 																	$query_milestoneoutput->execute();
 																	$row_milestoneoutput = $query_milestoneoutput->fetch();
@@ -124,15 +123,11 @@ if ($permission) {
 																	$query_tenderamount =  $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid = '$projid'");
 																	$query_tenderamount->execute();
 																	$row_tenderamount = $query_tenderamount->fetch();
-																	$tendercost = $row_tenderamount["tenderamount"];
+																	
 
 																	$query_rsProjFinancier =  $db->prepare("SELECT * FROM tbl_myprojfunding m inner join tbl_financiers f ON f.id=m.financier inner join tbl_financier_type t on t.id= f.type WHERE projid = :projid ORDER BY amountfunding desc");
 																	$query_rsProjFinancier->execute(array(":projid" => $projid));
 																	$totalRows_rsProjFinancier = $query_rsProjFinancier->rowCount();
-
-																	$query_rsProjContractor =  $db->prepare("SELECT * FROM tbl_contractor WHERE contrid = '$projcontrid'");
-																	$query_rsProjContractor->execute();
-																	$row_rsProjContractor = $query_rsProjContractor->fetch();
 
 																	$query_amntPaid =  $db->prepare("SELECT SUM(tbl_payments_disbursed.amountpaid) AS totalamount FROM tbl_projects LEFT JOIN tbl_payments_request ON tbl_projects.projid = tbl_payments_request.projid LEFT JOIN tbl_payments_disbursed ON tbl_payments_request.id = tbl_payments_disbursed.reqid WHERE  tbl_projects.projid = '$projid'");
 																	$query_amntPaid->execute();
@@ -140,12 +135,19 @@ if ($permission) {
 																	$totalRows_amntPaid = $query_amntPaid->rowCount();
 																	if (empty($row_amntPaid['totalamount']) || $row_amntPaid['totalamount'] == '') {
 																		$amountpaid = 0;
+																		$utilrate = 0;
 																	} else {
 																		$amountpaid = $row_amntPaid['totalamount'];
 																	}
+																	
+																	if($row_tenderamount){
+																		$tendercost = $row_tenderamount["tenderamount"];
+																	}
 
 																	$totalprojamountpaid = number_format($amountpaid, 2);
-																	$utilrate = ($amountpaid / $tendercost) * 100;
+																	if($amountpaid > 0){
+																		$utilrate = ($amountpaid / $tendercost) * 100;
+																	}
 
 																	$query_rsProjBudget =  $db->prepare("SELECT SUM(unit_cost) AS cost, SUM(units_no) AS units FROM tbl_project_direct_cost_plan WHERE tasks IS NULL and projid = '$projid'");
 																	$query_rsProjBudget->execute();
@@ -153,9 +155,9 @@ if ($permission) {
 																	$itemprice = $row_sProjBudget['cost'];
 																	$units = $row_sProjBudget['units'];
 																	$sProjBudget = $itemprice * $units;
-																	$tenderamount = $row_tenderamount["tenderamount"];
-																	$projectcost = $tenderamount + $sProjBudget;
-															?>
+																	//$tenderamount = $row_tenderamount["tenderamount"];
+																	$projectcost = $tendercost + $sProjBudget;
+																	?>
 																	<li class="dd-item" data-id="4">
 																		<div class="dd-handle"><?php echo $sn; ?>. &nbsp;&nbsp;|&nbsp;&nbsp; <font color="#4CAF50" width="20%"> <?php echo "<u>PROJECT NAME</u>: " . $projname . "; </font><font color='#FF5722' > <u>MILESTONE NAME</u>: " . $milestone; ?></font>
 																		</div>
@@ -271,7 +273,7 @@ if ($permission) {
 																								<td><?php echo number_format($total_amount, 2); ?></td>
 																								<td>
 																									<?php
-																									if ($Rows_rsMilestoneReq == 0 ||  $paystatus == 3 && $file_rights->add) {
+																									if ($Rows_rsMilestoneReq == 0 ||  $paystatus == 3 && $add) {
 																									?>
 																										<a type="button" class="btn bg-purple waves-effect" onclick="javascript:CallMlstPaymentRequest(<?php echo $msid . ',' . $total_amount ?>)" data-toggle="tooltip" data-placement="bottom" title="Click here to request payment" style="height:25px; padding-top:0px"><i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Request</a>
 																									<?php
@@ -718,8 +720,8 @@ require('includes/footer.php');
 ?>
 
 <!-- Jquery Nestable -->
-<script src="assets/projtrac-dashboard/plugins/nestable/jquery.nestable.js"></script>
-<script src="assets/projtrac-dashboard/js/pages/ui/sortable-nestable.js"></script>
+<script src="projtrac-dashboard/plugins/nestable/jquery.nestable.js"></script>
+<script src="projtrac-dashboard/js/pages/ui/sortable-nestable.js"></script>
 <script language="javascript" type="text/javascript">
 	$(document).ready(function() {
 		$('#payment-request-form').on('submit', function(event) {

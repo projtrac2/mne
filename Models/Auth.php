@@ -16,7 +16,7 @@ class Auth
     // get user details from the database
     public function get_user($email)
     {
-        $get_user = $this->db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.email=:email OR u.username=:email AND p.disabled = 0");
+        $get_user = $this->db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.email=:email ");
         $get_user->execute(array(":email" => $email));
         $count_user = $get_user->rowCount();
         $user = $get_user->fetch();
@@ -41,7 +41,7 @@ class Auth
         }
     }
 
-    // login functionality 
+    // login functionality
     public function login($email, $password)
     {
         $user = $this->get_user($email);
@@ -58,10 +58,10 @@ class Auth
         }
     }
 
-    // send reset link to users email 
+    // send reset link to users email
     public function forgot_password($email)
     {
-        $user = $this->get_user($email); 
+        $user = $this->get_user($email);
         if ($user) {
             $token = $this->generate_string(64);
             $create_reset_token = $this->db->prepare("INSERT INTO tbl_password_resets (`email`, `token`) VALUES (:email, :token)");
@@ -99,10 +99,10 @@ class Auth
         }
     }
 
-    // Verify token when reseting pasword 
+    // Verify token when reseting pasword
     public function verify_token($token)
     {
-        $get_user = $this->db->prepare("SELECT * FROM tbl_password_resets WHERE token=:token");
+        $get_user = $this->db->prepare("SELECT * FROM tbl_password_resets WHERE token=:token ORDER BY created_at DESC LIMIT 1");
         $get_user->execute(array(":token" => $token));
         $count_user = $get_user->rowCount();
         $token_data = $get_user->fetch();
@@ -118,7 +118,7 @@ class Auth
         }
     }
 
-    // calculate time and return in minutes 
+    // calculate time and return in minutes
     private function calculate_time($created_at)
     {
         $date1 = strtotime($created_at);
@@ -144,7 +144,7 @@ class Auth
         return ((60 - $minutes) > 0) ? true : false;
     }
 
-    // Reset password 
+    // Reset password
     public function reset_password($email, $token, $password)
     {
         $user = $this->get_user($email);
@@ -200,7 +200,7 @@ class Auth
             $sql = $this->db->prepare("UPDATE users SET password=:password, first_login=0 WHERE userid=:userid");
             $results = $sql->execute(array(":password" => $password_hashed, ":userid" => $userid));
             if ($results) {
-                return true;
+                return $user;
             } else {
                 return false;
             }

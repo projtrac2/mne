@@ -22,7 +22,7 @@ if (isset($_POST['more'])) {
 					<thead>
 						<tr>
 							<th width="3%">#</th>
-							<th width="87%">Strategies </th> 
+							<th width="87%">Strategy </th> 
 							' . $role_th . '
 						</tr>
 					</thead>
@@ -102,7 +102,7 @@ if (isset($_POST['moreInfo'])) {
         <div class="card"> 
             <div class="header">
                 <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
-                    <label style="color:#673AB7; font-size:16px"> Strategic Objective: ' . $row_Objective['objective'] . ' </label> 
+                    <label style="font-size:16px"> Strategic Objective: <span style="color:#673AB7;">' . $row_Objective['objective'] . ' </span></label> 
                 </div>  
             </div>
             <div class="body">

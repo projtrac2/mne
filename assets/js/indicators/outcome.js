@@ -322,7 +322,7 @@ function outcome_validate() {
 function indcalculation_change() {
     var calculation_method = $("#indcalculation").val();
     var category = "Outcome";
-    var outcome_type = 1;
+    var outcome_type = 2;
     outcome_category();
     if (calculation_method != null && category != null) {
         $.ajax({
@@ -331,7 +331,7 @@ function indcalculation_change() {
             data: {
                 get_method: "get_method",
                 method: calculation_method,
-                outcome_type: outcome_type
+                results_type: outcome_type
             },
             dataType: "html",
             success: function (response) {  

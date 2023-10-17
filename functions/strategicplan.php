@@ -1,5 +1,4 @@
 <?php
-
 // get strategic plan 
 function get_strategic_plans(){
     global $db;
@@ -13,6 +12,7 @@ function get_strategic_plans(){
         return false;
     }
 }
+
 // get strategic plan 
 function get_splan($stplan){
     global $db;
@@ -213,27 +213,24 @@ function strategic_objective_programs($objid){
     }
 }
 
-function get_strategic_plan_yearly_target($ind, $plan, $year){
+function get_strategic_plan_yearly_baseline($ind, $year){
     global $db;
-    $query_target =  $db->prepare("SELECT year_target FROM tbl_strategic_plan_op_indicator_targets WHERE op_indicator_id='$ind' AND strategic_plan_id='$plan' AND year='$year'");
-    $query_target->execute();
-	$row_target = $query_target->fetch();
-    $totalRows_target = $query_target->rowCount();
-	$target = 0;
-
-    if($totalRows_target > 0){
-		$target = $row_target["year_target"];
-        return $target; 
-    }else{
-        return false;
-    }
-}
-
-function get_strategic_plan_yearly_achieved($ind, $plan, $year){
-    global $db;
-	$startdate = $year."-07-01";
+	
+	//$year = $year ;
 	$enddate = $year."-06-30";
 	$achieved = 0;
+    $basevalue = 0;
+
+	$query_baseline =  $db->prepare("SELECT SUM(value) as baseline FROM tbl_indicator_output_baseline_values WHERE indid='$ind'");
+	$query_baseline->execute();
+	$row_baseline = $query_baseline->fetch();
+	
+	if($row_baseline){
+		$basevalue = $row_baseline["baseline"];
+		if ($basevalue > 0) {
+			$basevalue = $basevalue;
+		} 
+	}
 	
     $query_opid =  $db->prepare("SELECT d.id as opid FROM tbl_project_details d INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE g.indicator='$ind'");
     $query_opid->execute();
@@ -241,16 +238,83 @@ function get_strategic_plan_yearly_achieved($ind, $plan, $year){
 	
 	while($row_opid = $query_opid->fetch()){
 		$opid = $row_opid["opid"];
-		$query_achieved =  $db->prepare("SELECT sum(actualoutput) AS achieved FROM tbl_monitoringoutput i inner join tbl_projects p on p.projid=i.projid inner join tbl_programs g on g.progid=p.progid WHERE i.opid='$opid' AND g.strategic_plan='$plan' AND (i.date_created >=  '" . $startdate . "' AND  i.date_created <=  '" . $enddate . "')");
+		$query_achieved =  $db->prepare("SELECT sum(achieved) AS achieved FROM tbl_monitoringoutput WHERE output_id='$opid' AND date_created <=  '" . $enddate . "'");
 		$query_achieved->execute();
 		$row_achieved = $query_achieved->fetch();
 		$opachieved = $row_achieved["achieved"];
 		$achieved = $achieved + $opachieved;
 	}
+	
+	$baseline = $basevalue + $achieved;
+
+    return number_format($baseline);
+}
+
+function get_strategic_plan_yearly_target($ind, $year){
+    global $db;
+	$target = 0;
+    $query_target =  $db->prepare("SELECT SUM(target) AS year_target FROM tbl_progdetails WHERE indicator='$ind' AND year='$year'");
+    $query_target->execute();
+	$row_target = $query_target->fetch();
+    $totalRows_target = $query_target->rowCount();
+
+    if($totalRows_target > 0){
+		$target = $row_target["year_target"];
+	}
+    
+	return $target; 
+}
+
+function get_strategic_plan_yearly_achieved($ind, $year){
+    global $db;
+	$achieved = 0;
+	$eyear = $year + 1;
+	$startdate = $year."-07-01";
+	$enddate = $eyear."-06-30";
+	
+    $query_opid =  $db->prepare("SELECT d.id as opid FROM tbl_project_details d INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE g.indicator='$ind'");
+    $query_opid->execute();
+	$totalRows_achieved = $query_opid->rowCount();
+	
+	while($row_opid = $query_opid->fetch()){
+		$opid = $row_opid["opid"];
+		$query_achieved =  $db->prepare("SELECT sum(achieved) AS achieved FROM tbl_monitoringoutput WHERE output_id='$opid' AND (date_created >=  '" . $startdate . "' AND  date_created <=  '" . $enddate . "')");
+		$query_achieved->execute();
+		$row_achieved = $query_achieved->fetch();
+		
+		$opachieved = 0;
+		if($row_achieved){
+			$opachieved = $row_achieved["achieved"];
+		}
+		$achieved = $achieved + $opachieved;
+	}
 
     if($totalRows_achieved > 0){
-        return $achieved; 
+		return $achieved;
     }else{
         return false;
     }
+}
+
+
+// update strategic plan
+function update_strategic_plan(){
+    global $db;
+    $query_updatesp = $db->prepare("SELECT * FROM tbl_strategicplan");
+    $query_updatesp->execute();
+	
+    while($row_updatesp = $query_updatesp->fetch()){
+		$stid = $row_updatesp['id'];
+		$starting_year = $row_updatesp['starting_year'];
+		$active = $row_updatesp['current_plan'];
+		$years = $row_updatesp['years'];
+		$cyear = date("Y");
+		$eyear = ($starting_year + $years) - 1;
+										
+		if($starting_year <= $cyear && $eyear >= $cyear && $active == 0){		
+			$update_query = $db->prepare("UPDATE tbl_strategicplan set current_plan = 1 where id='$stid'");
+			$update_query->execute();
+		}
+	}
+	return true;
 }

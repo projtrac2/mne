@@ -92,6 +92,7 @@ function getMilestoneForm(projid, outputid) {
       $("#milestoneForm").html(response);
       $("#newitem").val("newItem");
       $("#tag-form-submit").val("Add New Milestone");
+	  $('.selectpicker').selectpicker();
     }
   });
 }
@@ -111,6 +112,7 @@ function getMilestoneEditForm(mileid) {
         $("#newitem").val("editItem");
         $("#tag-form-submit").val("Edit Milestone");
         $("#addModal").html('<i class="fa fa-plus"></i> Edit Milestone');
+		$('.selectpicker').selectpicker();
       }
     });
   }
@@ -181,16 +183,18 @@ function endaddingactivities(projid) {
 			data: { projid: projid, finishAddItem: "finishAddItem" },
 			dataType: "json",
 			success: function(response) {
+        console.log(response);
 				$("#finishAddItemBtn").button("reset");
+        $(".modal").each(function() {
+          $(this).modal("hide");
+        });
 				if (response.success == true) {
 				  alert(response.messages);
-				  $(".modal").each(function() {
-					$(this).modal("hide");
-				  });
+				  
 				  location.reload(true);
 				} else {
 				  alert(response.messages);
-				  location.reload(true);
+				  // location.reload(true);
 				}
 			}
         });

@@ -29,9 +29,7 @@ function change_duration(opid = null) {
       opduration = parseInt(opduration);
       if (opduration > 0) {
         if (opduration > hopduration) {
-          alert(
-            `You cannot go higher than te initial defined duration of ${hopduration}`
-          );
+          alert(`You cannot go higher than te initial defined duration of ${hopduration}`);
           $(`#opduration${opid}`).val(hopduration);
           // get_op_target_div(opid, target_plan = 1, hopduration);
         } else {
@@ -195,12 +193,9 @@ function amountfunding(rowno) {
         $("#amountfunding" + rowno).val("");
         $("#source_span_" + rowno).html(
           commaSeparateNumber(parseFloat(ceilingval))
-        );
-        console.log(ceilingval);
-        console.log("hey the you cannot exceed the valuer ");
+        ); 
       }
-    } else {
-      console.log("Add a value that s greater than 0");
+    } else { 
       $("#source_span_" + rowno).html(
         commaSeparateNumber(parseFloat(ceilingval))
       );
@@ -208,8 +203,7 @@ function amountfunding(rowno) {
   } else {
     $("#source_span_" + rowno).html(
       commaSeparateNumber(parseFloat(ceilingval))
-    );
-    console.log("hello you do not have funds to add to ");
+    ); 
   }
 }
 
@@ -379,9 +373,7 @@ function financierDifference(rowno) {
 
 function category_fund_validate(rowno) {
   var source_categoryrow = $("#source_categoryrow" + rowno).val();
-  var source_category_val = parseFloat(
-    $("#source_category_valrow" + rowno).val()
-  );
+  var source_category_val = parseFloat($("#source_category_valrow" + rowno).val());
   var amount_contribute_id = $(".amount_funding_valrow" + source_categoryrow);
   var amount_contribute_val = 0;
 
@@ -394,11 +386,7 @@ function category_fund_validate(rowno) {
     });
 
     var diff = source_category_val - amount_contribute_val;
-    if (diff >= 0) {
-      return diff;
-    } else {
-      return false;
-    }
+    return diff  >= 0 ? diff: false;
   } else {
     return false;
   }
@@ -451,16 +439,6 @@ function del_targets_div(opid) {
 }
 
 function target_state_distribution(opid, stateid) {
-  // var loc_hand = locations_handler();
-  // if (loc_hand) {
-  //   var con_handler = confirm("Do you wish to alter the value of state");
-  //   if (con_handler) {
-
-  //   } else {
-
-  //   }
-  // }
-
   var state_ceil = $(`#ceilinglocation_target${stateid}${opid}`).val();
   var optotaltarget = $(`#optotaltarget${opid}`).val();
   if (state_ceil != "") {

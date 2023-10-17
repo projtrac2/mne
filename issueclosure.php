@@ -62,4 +62,3 @@ try{
     $result = flashMessage("An error occurred: " .$ex->getMessage());
 	echo $result;
 }
-?>

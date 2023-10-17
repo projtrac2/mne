@@ -1,15 +1,7 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-	$pageTitle = "PROJECTS CONCLUDED EVALUATIONS";
 	try {
 		$query_conclEvaluation = $db->prepare("SELECT p.projid, p.projname, c.variable_category AS cat, c.date_created AS date, c.id, i.indicator_name, c.survey_type, c.formkey FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON c.projid=p.projid inner join tbl_indicator i on i.indid=c.indid GROUP BY c.formkey ORDER BY c.id ASC");
 		$query_conclEvaluation->execute();
@@ -24,8 +16,8 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
 						</div>

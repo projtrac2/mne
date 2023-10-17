@@ -3,8 +3,6 @@ require 'authentication.php';
 
 try {
 
-	
-
 	if (isset($_GET["projid"]) && !empty($_GET["projid"])) {
 		$projid = $_GET["projid"];
 

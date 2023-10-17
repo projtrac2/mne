@@ -1,587 +1,859 @@
 <?php
-include_once 'includes/head-alt.php';
+require('includes/head.php');
 
-$crud_permissions = $role_group != 2 ? true : false;
-
-if ($crud_permissions) {
-    $msg = 'You have no rights to access this page.';
-    $results =
-        "<script type=\"text/javascript\">
-        swal({
-        title: \"Permission Denied!\",
-        text: \" $msg\",
-        type: 'Error',
-        timer: 5000,
-        icon:'error',
-        showConfirmButton: false });
-        setTimeout(function(){
-            window.history.back();
-        }, 5000);
-    </script>";
-}
-
-function generate_key($str_length)
-{
-    $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-    $pass = array();
-    $alphaLength = strlen($alphabet) - 1;
-    for ($i = 0; $i < $str_length; $i++) {
-        $n = rand(0, $alphaLength);
-        $pass[] = $alphabet[$n];
-    }
-    return implode($pass);
-}
-
-
-try {
-
-    $results = "";
-    $editFormAction = $_SERVER['PHP_SELF'];
-    if (isset($_SERVER['QUERY_STRING'])) {
-        $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-    }
-
-
-    $key_unique = time() . generate_key(6);
-
-    if (isset($_GET['progid'])) {
-        $progid = $_GET['progid'];
-    }
-
-    if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprojectfrm")) {
-        //upload random name/number
-        $projname = $_POST['projname'];
-        $progid = $_POST['progid'];
-        $projcode = $_POST['projcode'];
-        $projbudget = 0;
-        $projimplmethod = $_POST['projimplmethod'];
-        $bigfour = $_POST['bigfour'];
-        $projfscyear = $_POST['projfscyear1'];
-        $projduration = $_POST['projduration1'];
-        $projmapping = $_POST['projmapping'];
-        $projinspection = $_POST['projinspection'];
-        $projevaluation = $_POST['projevaluation'];
-        $projlevel1 = implode(",", $_POST['projcommunity']);
-        $projlevel2 = implode(",", $_POST['projlga']);
-        $projlevel3 = implode(",", $_POST['projstate']);
-        $projstartdate = $_POST['projectStartingYear'] . "-07-01";
-        $projenddate = $_POST['projendyearDate'];
-        $projtype = "New";
-        $datecreated = date("Y-m-d");
-        $createdby = $user_name;
-        $projapprovestatus = 0;
-
-        $insertSQL = $db->prepare("INSERT INTO `tbl_projects`(progid, projcode, projname, projtype, projbudget, projfscyear, projduration, projmapping, projinspection,projevaluation, projcommunity, projlga, projstate, projcategory, projbigfouragenda, projstartdate, projenddate, user_name, date_created) VALUES(:progid, :projcode, :projname, :projtype, :projbudget, :projfscyear, :projduration, :projmapping, :projinspection,:projevaluation,  :projlevel1, :projlevel2, :projlevel3, :projimplmethod, :bigfour, :projstartdate, :projenddate, :createdby, :datecreated)");
-        //add the data into the database
-        $result  = $insertSQL->execute(array(":progid" => $progid, ":projcode" => $projcode, ":projname" => $projname, ":projtype" => $projtype, ":projbudget" => $projbudget, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":projmapping" => $projmapping, ":projinspection" => $projinspection, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projlevel3" => $projlevel3,  ":projimplmethod" => $projimplmethod, ":bigfour" => $bigfour, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
-
-        if ($result) {
-            $last_id = $db->lastInsertId(); // get the project id   
-            // add attachment files  
-            $catid = $last_id;
-            if (isset($_POST['attachmentpurpose'])) {
-                $countP = count($_POST["attachmentpurpose"]);
-                $stage = 1;
-                for ($cnt = 0; $cnt < $countP; $cnt++) {
-                    if (!empty($_FILES['pfiles']['name'][$cnt])) {
-                        $purpose = $_POST["attachmentpurpose"][$cnt];
-                        $filename = basename($_FILES['pfiles']['name'][$cnt]);
-                        $catid = $catid + 1;
-                        $ext = substr($filename, strrpos($filename, '.') + 1);
-                        if (($ext != "exe") && ($_FILES["pfiles"]["type"][$cnt] != "application/x-msdownload")) {
-                            $newname = $last_id . "_" . $stage . "_" . $filename;
-                            $filepath = "uploads/main-project/" . $newname;
-                            if (!file_exists($filepath)) {
-                                if (move_uploaded_file($_FILES['pfiles']['tmp_name'][$cnt], $filepath)) {
-                                    $fname = $newname;
-                                    $mt = $filepath;
-                                    $filecategory = "Project Planning";
-                                    $qry1 = $db->prepare("INSERT INTO tbl_files (projid, projstage, filename, ftype, floc, fcategory, reason, uploaded_by, date_uploaded)
-                                     VALUES (:projid, :stage, :filename, :ftype, :floc,:fcategory,:reason,:uploaded_by, :date_uploaded)");
-                                    $qry1->execute(array(
-                                        ":projid" => $last_id, ":stage" => $stage, ":filename" => $filename, ":ftype" => $ext, ":floc" => $mt, ":fcategory" => $filecategory, ":reason" => $purpose, ":uploaded_by" => $createdby, ":date_uploaded" => $datecreated
-                                    ));
-                                } else {
-                                    echo "file culd not be  allowed";
-                                }
-                            } else {
-                                $type = 'error';
-                                $msg = 'File you are uploading already exists, try another file!!';
-
-                                $results = "<script type=\"text/javascript\">
-                                    swal({
-                                    title: \"Error!\",
-                                    text: \" $msg \",
-                                    type: 'Danger',
-                                    timer: 10000,
-                                    showConfirmButton: false });
-                                </script>";
-                            }
-                        } else {
-                            $type = 'error';
-                            $msg = 'This file type is not allowed, try another file!!';
-
-                            $results = "<script type=\"text/javascript\">
-                                swal({
-                                title: \"Error!\",
-                                text: \" $msg \",
-                                type: 'Danger',
-                                timer: 10000,
-                                showConfirmButton: false });
-                            </script>";
-                        }
-                    }
-                }
-            }
-
-            // add implementors 
-            if (isset($_POST['projleadimplementor'])) {
-                $projleadimplementor = $_POST['projleadimplementor'];
-                $projimplementingpartner = implode(",", $_POST['projimplementingpartner']);
-                $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojpartner`(projid, lead_implementer, implementing_partner)  VALUES(:projid, :lead_implementer, :implementing_partner)");
-                $result1  = $insertSQL1->execute(array(":projid" => $last_id, ":lead_implementer" => $projleadimplementor, ":implementing_partner" => $projimplementingpartner));
-            }
-
-            // project funding 
-            for ($i = 0; $i < count($_POST['amountfunding']); $i++) {
-                $sourcecatergory = $_POST['finance'][$i];
-                $amountfunding = $_POST['amountfunding'][$i];
-                $insertSQL1 = $db->prepare("INSERT INTO `tbl_projfunding`(progid, projid, sourcecategory, amountfunding, created_by, date_created) VALUES(:progid, :projid, :sourcecatergory, :amountfunding, :created_by, :date_created)");
-                $result1  = $insertSQL1->execute(array(":progid" => $progid, ":projid" => $last_id, ":sourcecatergory" => $sourcecatergory, ":amountfunding" => $amountfunding, ":created_by" => $createdby, ":date_created" => $datecreated));
-            }
-
-            for ($i = 0; $i < count($_POST['outputIdsTrue']); $i++) {
-                $outputid = $_POST['outputIdsTrue'][$i];
-                $indicatorid = $_POST['indicatorid'][$i];
-                $opyear = "output_years" . $outputid;
-                $topyear = "target_year"  . $outputid;
-
-                $insertSQL1 = $db->prepare("UPDATE `tbl_project_details` SET  projid = :projid  WHERE id=:outputid ");
-                $result1  = $insertSQL1->execute(array(":projid" => $last_id, ":outputid" => $outputid));
-
-                $updateSQL2 = $db->prepare("UPDATE `tbl_output_disaggregation` SET  projid = :projid  WHERE outputid=:outputid ");
-                $upresult2  = $updateSQL2->execute(array(":projid" => $last_id, ":outputid" => $outputid));
-
-                for ($j = 0; $j < count($_POST[$opyear]); $j++) {
-                    $target = $_POST[$topyear][$j];
-                    $qyear = $_POST[$opyear][$j];
-                    $insertSQL2 = $db->prepare("INSERT INTO `tbl_project_output_details`(projoutputid, progid, projid, indicator, year, target) VALUES(:outputid, :progid, :projid,:indicatorid, :qyear, :target)");
-                    $result2  = $insertSQL2->execute(array(":outputid" => $outputid, ":progid" => $progid, ":projid" => $last_id, ":indicatorid" => $indicatorid, ":qyear" => $qyear, ":target" => $target));
-                }
-
-                if (isset($_POST['ben_diss']) && !empty($_POST['ben_diss'])) {
-                    $ben_diss = $_POST['ben_diss'][$i];
-
-                    if ($ben_diss == 1) {
-                        $outputstate = "outputstate" . $outputid;
-                        for ($j = 0; $j < count($_POST[$outputstate]); $j++) {
-                            $outputstate_val = $_POST[$outputstate][$j];
-                            $outputlocation = "outputlocation" . $outputstate_val . $outputid;
-                            $outputlocationtarget = "outputlocationtarget"  . $outputstate_val . $outputid;
-                            for ($p = 0; $p < count($_POST[$outputlocation]); $p++) {
-                                $outputlocationtarget_val = $_POST[$outputlocationtarget][$p];
-                                $outputlocation_val = $_POST[$outputlocation][$p];
-                                $type = 3;
-                                $insertSQL2 = $db->prepare("INSERT INTO `tbl_project_results_level_disaggregation`(projid, projoutputid,opstate, name, value, type) VALUES(:projid, :outputid,:opstate, :outputlocation, :outputlocationtarget, :type)");
-                                $result2  = $insertSQL2->execute(array(":projid" => $last_id, ":outputid" => $outputid, ":opstate" => $outputstate_val, ":outputlocation" => $outputlocation_val, ":outputlocationtarget" => $outputlocationtarget_val, ":type" => $type));
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            $query_rsProject_details = $db->prepare("SELECT SUM(budget) as budget FROM `tbl_project_details` WHERE projid ='$last_id'");
-            $query_rsProject_details->execute();
-            $row_rsProject_details = $query_rsProject_details->fetch();
-            $totalRows_rsProject_details = $query_rsProject_details->rowCount();
-            $projcost = ($totalRows_rsProject_details > 0) ? $row_rsProject_details['budget'] : 0;
-
-            $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projcost=:projcost WHERE projid=:projid");
-            $approveItemQuery->execute(array(":projcost" => $projcost, ':projid' => $last_id));
-
-            if ($result1) {
-                if (isset($_POST['report'])) {
-                    $results = "<script type=\"text/javascript\">
-                    </script>";
-
-                    $msg = 'The Project was successfully added.';
-                    $results = "
-                    <script type=\"text/javascript\">
-                        swal({
-                        title: \"Success!\",
-                        text: \" $msg\",
-                        type: 'Success',
-                        timer: 2000, 
-                        showConfirmButton: false });
-                        setTimeout(function(){ 
-                            var pdfPage = window.open('add-projects-pdf?projid=$last_id');
-                            $(pdfPage).bind('beforeunload',function(){ 
-                                window.location.href = 'add-project?progid=$progid';
-                            });  
-                        }, 2000);
-                    </script>";
-                } else {
-                    $msg = 'The Project was successfully added.';
-                    $results = "<script type=\"text/javascript\">
-                        swal({
-                        title: \"Success!\",
-                        text: \" $msg\",
-                        type: 'Success',
-                        timer: 2000, 
-                        showConfirmButton: false });
-                        setTimeout(function(){
-                                window.location.href = 'add-project?progid=$progid';
-                            }, 2000);
-                    </script>";
-                }
-            }
-        } else {
-            echo "could not enter";
+if ($permission) {
+    function generate_key($str_length)
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = array();
+        $alphaLength = strlen($alphabet) - 1;
+        for ($i = 0; $i < $str_length; $i++) {
+            $n = rand(0, $alphaLength);
+            $pass[] = $alphabet[$n];
         }
+        return implode($pass);
     }
 
-    //get the project name 
-    $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid='$progid'");
-    $query_rsProgram->execute();
+    $program_type = $planid = $progid = $projid = $projcode = $projname = $projdescription = $projtype = $projendyear = "";
+    $projbudget = $projfscyear = $projduration = $projevaluation = $projimpact  = $projimpact = "";
+    $project_budget = 0;
+    $projcommunity = $projlga = $projlocation = "";
+    $projcategory = $projstatus = "";
+    $progname =  $program_start_date = $program_end_date =  $program_duration = $projectendYearDate = $target_beneficiaries = "";
+    $key_unique = generate_key(10);
+
+    if (isset($_GET['projid'])) {
+        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid = $projid_array[1];
+
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
+        $query_rsProjects->execute(array(":projid" => $projid));
+        $row_rsProgjects = $query_rsProjects->fetch();
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+
+        if ($totalRows_rsProjects > 0) {
+            $progid = $row_rsProgjects['progid'];
+            $projcode = $row_rsProgjects['projcode'];
+            $projname = $row_rsProgjects['projname'];
+            $projdescription = $row_rsProgjects['projdesc'];
+            $projtype = $row_rsProgjects['projtype'];
+            $projbudget = $row_rsProgjects['projbudget'];
+            $projfscyear = $row_rsProgjects['projfscyear'];
+            $projduration = $row_rsProgjects['projduration'];
+            $projevaluation = $row_rsProgjects['projevaluation'];
+            $projcommunity = $row_rsProgjects['projcommunity'];
+            $projlga = $row_rsProgjects['projlga'];
+            $projlocation = $row_rsProgjects['projlocation'];
+            $projcategory = $row_rsProgjects['projcategory'];
+            $projstatus = $row_rsProgjects['projstatus'];
+            $projimpact = $row_rsProgjects['projimpact'];
+            $key_unique = $row_rsProgjects['key_unique'];
+            $target_beneficiaries = $row_rsProgjects['beneficiaries'];
+            $project_budget = $row_rsProgjects['projcost'];
+
+            $query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where id ='$projfscyear'");
+            $query_rsFscYear->execute();
+            $row_rsFscYear = $query_rsFscYear->fetch();
+            $projstartYear = $row_rsFscYear ? $row_rsFscYear['yr'] : "";
+
+            $Date = $projstartYear . "-07-01";
+            $projectendYearDate =  date('Y-m-d', strtotime($Date . ' + ' . $projduration . ' days'));
+        }
+    } else if (isset($_GET['progid'])) {
+        $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
+        $progid_array = explode("progid54321", $decode_progid);
+        $progid = $progid_array[1];
+    }
+
+    $query_rsBudget = $db->prepare("SELECT SUM(budget) as budget FROM tbl_progdetails WHERE progid=:progid");
+    $query_rsBudget->execute(array(":progid" => $progid));
+    $row_rsPBudget = $query_rsBudget->fetch();
+    $programs_budget = $row_rsPBudget['budget'] != null ? $row_rsPBudget['budget'] : 0;
+
+    $query_rsProjectBudget = $db->prepare("SELECT  projcost FROM tbl_projects WHERE progid=:progid");
+    $query_rsProjectBudget->execute(array(":progid" => $progid));
+    $row_rsProjectBudget = $query_rsProjectBudget->fetch();
+    $project_program_budget = $row_rsProjectBudget['projcost']  ? $row_rsProjectBudget['projcost'] : 0;
+
+
+    $program_budget = ($programs_budget - $project_program_budget) + $project_budget;
+
+
+    $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid=:progid");
+    $query_rsProgram->execute(array(":progid" => $progid));
     $row_rsProgram = $query_rsProgram->fetch();
     $totalRows_rsProgram = $query_rsProgram->rowCount();
+    if ($totalRows_rsProgram > 0) {
+        $progname = $row_rsProgram['progname'];
+        $program_start_year = $row_rsProgram['syear'];
+        $program_duration_years = $row_rsProgram['years'];
+        $program_type = $row_rsProgram['program_type'];
+        $planid = $row_rsProgram['strategic_plan'];
 
-    $progname = $row_rsProgram['progname'];
-    $syear = $row_rsProgram['syear'];
-    $years = $row_rsProgram['years'];
+        $program_end_year = $program_start_year + $program_duration_years;
 
-    //get  funding 
-    $query_rsFunding =  $db->prepare("SELECT * FROM tbl_myprogfunding WHERE progid ='$progid'");
-    $query_rsFunding->execute();
-    $row_rsFunding = $query_rsFunding->fetch();
-    $totalRows_rsFunding = $query_rsFunding->rowCount();
-
-    //get subcounty  
-    $query_rsComm =  $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY id ASC");
-    $query_rsComm->execute();
-    $row_rsComm = $query_rsComm->fetch();
-    $totalRows_rsComm = $query_rsComm->rowCount();
-
-    //get mapping type 
-    $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
-    $query_rsMapType->execute();
-    $row_rsMapType = $query_rsMapType->fetch();
-    $totalRows_rsMapType = $query_rsMapType->rowCount();
-
-    //get project implementation methods 
-    $query_rsProjImplMethod =  $db->prepare("SELECT DISTINCT id, method FROM tbl_project_implementation_method");
-    $query_rsProjImplMethod->execute();
-    $row_rsProjImplMethod = $query_rsProjImplMethod->fetch();
-    $totalRows_rsProjImplMethod = $query_rsProjImplMethod->rowCount();
-
-    $query_rsPartner =  $db->prepare("SELECT * FROM tbl_financiers WHERE active=1");
-    $query_rsPartner->execute();
-    $row_rsPartner = $query_rsPartner->fetch();
-
-    $query_mainfunder =  $db->prepare("SELECT company_name FROM tbl_company_settings");
-    $query_mainfunder->execute();
-    $row_mainfunder = $query_mainfunder->fetch();
-    $maincompany = $row_mainfunder['company_name'];
-
-    $query_Years = $db->prepare("SELECT DISTINCT year FROM `tbl_progdetails` WHERE progid ='$progid' ORDER BY year ASC");
-    $query_Years->execute();
-    $row_Years = $query_Years->fetch();
-    $totalRows_Years = $query_Years->rowCount();
-    $financialYear = [];
-
-    if ($totalRows_Years > 0) {
-        do {
-            $year = $row_Years['year'];
-            $query_Output = $db->prepare("SELECT * FROM `tbl_progdetails` WHERE progid ='$progid' and year ='$year'");
-            $query_Output->execute();
-            $row_Output = $query_Output->fetch();
-            do {
-                $progtarget = $row_Output['target'];
-                $outputid = $row_Output['output'];
-                $indicator = $row_Output['indicator'];
-
-                $query_Projtarget = $db->prepare("SELECT SUM(target) as projtarget FROM `tbl_project_output_details` WHERE progid = '$progid' and year = '$year' and  indicator = '$indicator'");
-                $query_Projtarget->execute();
-                $row_Projtarget = $query_Projtarget->fetch();
-                $projtarget = $row_Projtarget['projtarget'];
-                $remainingTarget = $progtarget - $projtarget;
-
-                if ($remainingTarget > 0) {
-                    $financialYear[] = $year;
-                }
-            } while ($row_Output = $query_Output->fetch()); //loop output 
-
-        } while ($row_Years = $query_Years->fetch()); //loop year 
+        $program_start_date = "01-07-$program_start_year";
+        $program_end_date = "30-06-$program_end_year";
+        $program_duration_difference = strtotime($program_end_date) - strtotime($program_start_date);
+        $program_duration = abs(round($program_duration_difference / 86400)) + 1;
     }
-} catch (PDOException $ex) {
-    $results = "An error occurred: " . $ex->getMessage();
-}
 
 
+    function get_financial_years($progid, $year_id)
+    {
+        global $db;
+        $query_Years = $db->prepare("SELECT DISTINCT year FROM `tbl_progdetails` WHERE progid =:progid ORDER BY year ASC");
+        $query_Years->execute(array(":progid" => $progid));
+        $row_Years = $query_Years->fetch();
+        $totalRows_Years = $query_Years->rowCount();
+        $finacial_years = "";
+        if ($totalRows_Years > 0) {
+            do {
+                $year = $row_Years['year'];
+                $query_rsYear =  $db->prepare("SELECT * FROM tbl_fiscal_year where yr ='$year'");
+                $query_rsYear->execute();
+                $row_rsYear = $query_rsYear->fetch();
 
-?>
+                $yrstartdate = $row_rsYear["sdate"];
+                $yrenddate = $row_rsYear["edate"];
+                $currdatetime = date("Y-m-d H:i:s");
 
-<!DOCTYPE html>
-<html>
+                // if ($currdatetime <= $yrenddate) {
+                $finyear = $row_rsYear['year'];
+                $finyearid = $row_rsYear['id'];
+                $yr = $row_rsYear["yr"];
+                $selected = $finyearid == $year_id ? 'selected' : '';
+                $finacial_years .=  '<option value="' . $finyearid . '" ' . $selected . '>' . $finyear . '</option>';
+                // }
+            } while ($row_Years = $query_Years->fetch());
+        }
+        return $finacial_years;
+    }
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <title>Result-Based Monitoring &amp; Evaluation System: Add Project</title>
-    <!-- Favicon-->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    function get_implimentation_method($imp_id)
+    {
+        global $db;
+        $query_rsProjImplMethod =  $db->prepare("SELECT DISTINCT id, method FROM tbl_project_implementation_method");
+        $query_rsProjImplMethod->execute();
+        $row_rsProjImplMethod = $query_rsProjImplMethod->fetch();
+        $totalRows_rsProjImplMethod = $query_rsProjImplMethod->rowCount();
+        $options = "";
+        if ($totalRows_rsProjImplMethod > 0) {
+            do {
+                $implementation_id = $row_rsProjImplMethod['id'];
+                $method = $row_rsProjImplMethod['method'];
+                $selected = $imp_id == $implementation_id ? "selected" : "";
+                $options .= '<option value="' . $implementation_id . '" ' . $selected . '>' . $method . '</option>';
+            } while ($row_rsProjImplMethod = $query_rsProjImplMethod->fetch());
+        }
+        return $options;
+    }
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    function get_level1($projcommunity)
+    {
+        global $db;
+        $query_rsComm =  $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY id ASC");
+        $query_rsComm->execute();
+        $row_rsComm = $query_rsComm->fetch();
+        $totalRows_rsComm = $query_rsComm->rowCount();
 
-    <!--CUSTOM MAIN STYLES-->
-    <link href="css/custom.css" rel="stylesheet" />
+        if ($totalRows_rsComm) {
+            $options = '';
+            $id = [];
+            $projcommunity = explode(',', $projcommunity);
+            do {
+                $comm = $row_rsComm['id'];
+                $state =    $row_rsComm['state'];
+                $query_ward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:comm AND active=1");
+                $query_ward->execute(array(":comm" => $comm));
+                while ($row = $query_ward->fetch()) {
+                    $projlga = $row['id'];
+                    $query_rsLocations = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:id");
+                    $query_rsLocations->execute(array(":id" => $projlga));
+                    $total_locations = $query_rsLocations->rowCount();
+                    if ($total_locations > 0) {
+                        if (!in_array($comm, $id)) {
+                            $selected = in_array($comm, $projcommunity) ? 'selected' : "";
+                            $options .= '<option value="' . $comm . '" ' . $selected . '>' . $state . '</option>';
+                        }
+                        $id[] = $row_rsComm['id'];
+                    }
+                }
+            } while ($row_rsComm = $query_rsComm->fetch());
+        }
+        return $options;
+    }
 
-    <!-- Bootstrap Core Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
+    function get_level2($projcommunity, $projlga)
+    {
+        global $db;
+        $data = '';
+        $ward = explode(",", $projlga);
+        $community = explode(",", $projcommunity);
+        if (count($community) > 0) {
+            for ($j = 0; $j < count($community); $j++) {
+                $query_Community = $db->prepare("SELECT id, state FROM tbl_state WHERE id='$community[$j]'");
+                $query_Community->execute();
+                $row_community = $query_Community->fetch();
+                $level1 = $row_community['state'];
 
-    <!-- Waves Effect Css -->
-    <link href="projtrac-dashboard/plugins/node-waves/waves.css" rel="stylesheet" />
+                $data .= '
+                <optgroup label="' . $level1 . '"> ';
+                $query_ward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent='$community[$j]'");
+                $query_ward->execute();
+                while ($row = $query_ward->fetch()) {
+                    $level2 = $row['id'];
+                    $state = $row['state'];
 
-    <!-- Animation Css -->
-    <link href="projtrac-dashboard/plugins/animate-css/animate.css" rel="stylesheet" />
-
-    <!-- Bootstrap Material Datetime Picker Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
-
-    <!-- Bootstrap DatePicker Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css" rel="stylesheet" />
-
-    <!--WaitMe Css-->
-    <link href="projtrac-dashboard/plugins/waitme/waitMe.css" rel="stylesheet" />
-
-    <!-- Multi Select Css -->
-    <link href="projtrac-dashboard/plugins/multi-select/css/multi-select.css" rel="stylesheet">
-
-    <!-- Bootstrap Spinner Css -->
-    <link href="projtrac-dashboard/plugins/jquery-spinner/css/bootstrap-spinner.css" rel="stylesheet">
-
-    <!-- Bootstrap Tagsinput Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
-
-    <!-- Bootstrap Select Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
-    <!-- JQuery DataTable Css -->
-    <link href="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
-
-    <!-- Custom Css -->
-    <link href="projtrac-dashboard/css/style.css" rel="stylesheet">
-
-    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
-    <link href="projtrac-dashboard/css/themes/all-themes.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
-    <script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
-    <link href="css/left_menu.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"> -->
-    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/3.3.0/js/jquery.tooltipster.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="style.css" rel="stylesheet">
-    <script src="ckeditor/ckeditor.js"></script>
-    <script language='JavaScript' type='text/javascript' src='JScript/CalculatedField.js'></script>
-    <link rel="stylesheet" href="css/addprojects.css">
-    <style>
-        @media (min-width: 1200px) {
-            .modal-lg {
-                width: 90%;
-                height: 100%;
+                    $query_rsLocations = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:id");
+                    $query_rsLocations->execute(array(":id" => $level2));
+                    $total_locations = $query_rsLocations->rowCount();
+                    if ($total_locations > 0) {
+                        $selected = in_array($level2, $ward) ? 'selected' : "";
+                        $data .= '<option value="' . $level2 . '" ' . $selected . '> ' . $state . '</option>';
+                    }
+                }
+                $data .= '
+                    <optgroup>';
             }
         }
-    </style>
-    <script type="text/javascript">
-        $(document).ready(function() {
-            disable_refresh();
-            $("#beneficiary").hide();
-            $("#indirectbenname").hide();
-            $("#indirectbeneficiary").hide();
-            $("#projindirectBenfTypey").hide();
-            $(".account").click(function() {
-                var X = $(this).attr('id');
-
-                if (X == 1) {
-                    $(".submenus").hide();
-                    $(this).attr('id', '0');
-                } else {
-
-                    $(".submenus").show();
-                    $(this).attr('id', '1');
-                }
-
-            });
-
-            //Mouseup textarea false
-            $(".submenus").mouseup(function() {
-                return false
-            });
-            $(".account").mouseup(function() {
-                return false
-            });
-
-
-            //Textarea without editing.
-            $(document).mouseup(function() {
-                $(".submenus").hide();
-                $(".account").attr('id', '');
-            });
-
-        });
-        // function disable refreshing functionality
-        function disable_refresh() {
-            //
-            return (window.onbeforeunload = function(e) {
-                return "You cannot refresh the page";
-            });
-        }
-    </script>
-</head>
-
-<body class="theme-blue">
-    <!-- Page Loader --
-    <div class="page-loader-wrapper">
-        <div class="loader">
-            <div class="preloader">
-                <div class="spinner-layer pl-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
-            <p>Please wait...</p>
-        </div>
-    </div>
-    <!-- #END# Page Loader -->
-    <!-- Overlay For Sidebars -->
-    <div class="overlay"></div>
-    <!-- #END# Overlay For Sidebars -->
-    <!-- Top Bar -->
-    <nav class="navbar" style="height:69px; padding-top:-10px">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-                <a href="javascript:void(0);" class="bars"></a>
-                <img src="images/logo.png" alt="logo" width="239" height="39">
-            </div>
-
-        </div>
-    </nav>
-    <!-- #Top Bar -->
-    <section>
-        <!-- Left Sidebar -->
-        <aside id="leftsidebar" class="sidebar">
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="image">
-                    <img src="images/user.png" width="48" height="48" alt="User" />
-                </div>
-                <?php
-                include_once("includes/user-info.php");
-                ?>
-            </div>
-            <!-- #User Info -->
-            <!-- Menu -->
-            <?php
-            echo $results;
-            include_once("includes/sidebar.php");
-            ?>
-            <!-- #Menu -->
-            <!-- Footer -->
-            <div class="legal">
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-                    ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-                </div>
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-                    Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
-                </div>
-            </div>
-            <!-- #Footer -->
-        </aside>
-        <!-- #END# Left Sidebar -->
-    </section>
-
-    <!-- <div class="section"> -->
-    <?php
-    if (!$crud_permissions) {
-        include_once('add-project-inner.php');
+        return $data;
     }
-    ?>
-    <!--</section> -->
 
-    <!-- Bootstrap Core Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script>
+    function get_outputs($progid, $indicator)
+    {
+        global $db;
+        $query_rsIndicator =  $db->prepare("SELECT g.id, i.indicator_name FROM tbl_progdetails g INNER JOIN tbl_indicator i ON i.indid = g.indicator where indicator =:indicator AND progid=:progid ");
+        $query_rsIndicator->execute(array("indicator" => $indicator, "progid" => $progid));
+        $count_rsIndicator = $query_rsIndicator->fetch();
+        $options = "";
+        if ($count_rsIndicator > 0) {
+            while ($row_rsIndicator = $query_rsIndicator->fetch()) {
+                $projoutput = $row_rsIndicator['indicator_name'];
+                $opid = $row_rsIndicator['id'];
+                $options .= '<option value="' . $opid . '">' . $projoutput . '</option>';
+            }
+        }
+    }
 
-    <!-- Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script>
+    $stage = 0;
+    $query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE projstage=:stage and projid=:projid");
+    $query_rsFile->execute(array(":stage" => $stage, ":projid" => $projid));
+    $row_rsFile = $query_rsFile->fetch();
+    $totalRows_rsFile = $query_rsFile->rowCount();
 
-    <!-- Multi Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/multi-select/js/jquery.multi-select.js"></script>
-
-    <!-- Slimscroll Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-
-    <!-- Waves Effect Plugin Js -->
-    <script src="projtrac-dashboard/plugins/node-waves/waves.js"></script>
-
-    <!-- Autosize Plugin Js -->
-    <script src="projtrac-dashboard/plugins/autosize/autosize.js"></script>
-
-    <!-- Moment Plugin Js -->
-    <script src="projtrac-dashboard/plugins/momentjs/moment.js"></script>
-
-    <!-- Sparkline Chart Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-sparkline/jquery.sparkline.js"></script>
-
-    <!-- Bootstrap Colorpicker Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.js"></script>
-
-    <!-- Input Mask Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-
-    <!-- Jquery Spinner Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-
-    <!-- Bootstrap Tags Input Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.js"></script>
-
-    <!-- noUISlider Plugin Js -->
-    <script src="projtrac-dashboard/plugins/nouislider/nouislider.js"></script>
-
-
-    <!-- Bootstrap Material Datetime Picker Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
-
-    <!-- Bootstrap Datepicker Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-
-    <!-- Dropzone Plugin Js -->
-    <script src="projtrac-dashboard/plugins/dropzone/dropzone.js"></script>
+    if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprojectfrm")) {
+        $planid = $_POST['planid'];
+        $program_type =  $_POST['program_type'];
+        $strategicplanid = base64_encode("strplan1{$planid}");
+        $redirect_url = ($program_type == 1) ? "strategic-plan-projects.php?plan=" . $strategicplanid : "all-programs";
+        $msg = 'Project Successfully Added';
+        $results = "<script type=\"text/javascript\">
+            swal({
+                title: \"Success!\",
+                text: \" $msg\",
+                type: 'Success',
+                timer: 2000,
+                'icon':'success',
+            showConfirmButton: false });
+            setTimeout(function(){
+                window.location.href = '$redirect_url';
+            }, 2000);
+        </script>";
+    }
 
 
-    <!-- <script src="projtrac-dashboard/js/admin.js"></script> -->
-    <!--  <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script> -->
-    <script src="projtrac-dashboard/js/pages/forms/advanced-form-elements.js"></script>
+    $query_rsSites =  $db->prepare("SELECT state_id FROM tbl_project_sites WHERE projid =:projid GROUP BY state_id");
+    $query_rsSites->execute(array(":projid" => $projid));
+    $totalRows_rsSites = $query_rsSites->rowCount();
+?>
+    <link rel="stylesheet" href="css/addprojects.css">
+    <!-- start body  -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                <h4 class="contentheader">
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
+                    <div class="btn-group" style="float:right">
+                        <div class="btn-group" style="float:right">
+                            <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+                                Go Back
+                            </button>
+                        </div>
+                    </div>
+                </h4>
+            </div>
+            <div class="row clearfix">
+                <div class="block-header">
+                    <?= $results; ?>
+                </div>
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="stepwizard" style="margin-bottom:15px">
+                                <div class="stepwizard-row setup-panel bg-light-blue" style="margin-top:10px">
+                                    <div class="stepwizard-step">
+                                        <a href="#step-1" type="button" data-toggle="tab" class="btn btn-primary btn-circle">
+                                            <i class="fa fa-info-circle" aria-hidden="true"></i>
+                                        </a>
+                                        <p>Project Details</p>
+                                    </div>
+                                    <div class="stepwizard-step">
+                                        <a href="#step-3" type="button" data-toggle="tab" class="btn btn-default btn-circle disabled">
+                                            <i class="fa fa-bullseye fa-3x" aria-hidden="true"></i>
+                                        </a>
+                                        <p>Documents</p>
+                                    </div>
+                                    <div class="stepwizard-step">
+                                        <a href="#step-4" type="button" data-toggle="tab" onclick="display_finish()" class="btn btn-default btn-circle disabled">
+                                            <i class="fa fa-bullseye fa-3x" aria-hidden="true"></i>
+                                        </a>
+                                        <p>Finish</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="body">
+                            <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">ADD PROJECT DETAILS</legend>
+                                <form role="form" id="project_details" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label class="control-label">Program Name*:</label>
+                                        <div class="form-line">
+                                            <input type="hidden" name="progid" id="progid" class="form-control" value="<?= $progid ?>">
+                                            <input type="text" name="program_name" id="prog" value="<?= $progname ?>" placeholder="Please enter name of your project" class="form-control" style="border:#CCC thin solid; border-radius: 5px" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                        <label class="control-label">Program Start Year*:</label>
+                                        <div class="form-line">
+                                            <input type="text" name="progstartyear" id="progstartyear" value="<?= $program_start_year ?>" placeholder="" class="form-control" style="border:#CCC thin solid; border-radius: 5px" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                        <label class="control-label">Program End Year*:</label>
+                                        <div class="form-line">
+                                            <input type="text" name="progendyear" id="progendyear" value="<?= $program_end_year ?>" placeholder="" class="form-control" style="border:#CCC thin solid; border-radius: 5px" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                        <label class="control-label">Program Duration*:</label>
+                                        <div class="form-line">
+                                            <input type="hidden" name="program_duration" value="<?= $program_duration ?>">
+                                            <input type="text" name="progduration" id="progduration" value="<?= $program_duration_years ?>" placeholder="" class=" form-control" style="border:#CCC thin solid; border-radius: 5px" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <label class="control-label">Project Code (Eg. 2018/12/AB23)*:</label>
+                                        <span id="gt" style="display:none; color:#fff; background-color:#F44336; padding:5px"> Code Exists </span>
+                                        <div class="form-line">
+                                            <input type="text" name="projcode" onblur="validate_projcode()" id="projcode" value="<?= $projcode ?>" placeholder="Enter Project Code" class="form-control" style="border:#CCC thin solid; border-radius: 5px" required="required">
+                                            <span id="projcodemsg" style="color:red"> </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                                        <zlabel class="control-label">Project Name *:</zlabel>
+                                        <div class="form-line">
+                                            <input type="text" name="projname" id="projname" placeholder="Enter Project Name" value="<?= $projname ?>" class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <label class="control-label">Project Description :</label>
+                                        <div class="form-line">
+                                            <input type="text" name="projdescription" id="projdescription" value="<?= $projdescription ?>" placeholder="Enter Project description" class="form-control" style="border:#CCC thin solid; border-radius: 5px">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label class="control-label">Project Start Financial Year *:</label>
+                                        <div class="form-line">
+                                            <select name="projfscyear1" id="projfscyear1" onchange="project_duration_validate()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required="required">
+                                                <option value="">.... Select Year from list ....</option>
+                                                <?= get_financial_years($progid, $projfscyear) ?>
+                                            </select>
+                                            <span id="projfscyearmsg1" style="color:red"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label for="projduration">Project Duration (Days) *:</label>(<span id="projdurationmsg" style="color:darkgoldenrod"><?= $program_duration ?></span>)
+                                        <div class="form-input">
+                                            <input type="number" name="projduration1" min="0" value="<?= $projduration ?>" onkeyup="project_duration_validate()" onchange="project_duration_validate()" id="projduration1" placeholder="Enter" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label for="projendyear">Project End Financial Year *:</label>
+                                        <input type="text" name="projendyear" id="projendyear" value="<?= $projectendYearDate ?>" class="form-control" disabled>
+                                        <span id="" style="color:red"></span>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label for="project_budget">Project Budget *:<span class="text-danger">(Ksh. <?= number_format($program_budget) ?>)</span></label>
+                                        <input type="number" name="project_budget" min="1" id="project_budget" value="<?= $project_budget ?>" onchange="calculate_project_budget()" onkeyup="calculate_project_budget()" class="form-control" required>
+                                        <input type="hidden" name="program_budget_ceiling" id="program_budget_hidden" value="<?= $program_budget ?>">
+                                        <span id="" style="color:red"></span>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <label for="beneficiary">Target Beneficiaries *:</label>
+                                        <input type="text" name="beneficiary" id="beneficiary" value="<?= $target_beneficiaries ?>" class="form-control">
+                                        <span id="" style="color:red"></span>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label for="" class="control-label">Outcome Evaluation Required? *:</label>
+                                        <div class="form-line">
+                                            <input name="projevaluation" type="radio" value="1" onchange="show_impact(1)" <?= $projevaluation == 1 && $projid != "" ? "checked" : "" ?> id="evaluation1" class="with-gap radio-col-green evaluation" required="required" />
+                                            <label for="evaluation1">YES</label>
+                                            <input name="projevaluation" type="radio" value="0" onchange="show_impact(0)" <?= $projevaluation == 0 && $projid != "" ? "checked" : "" ?> id="evaluation2" class="with-gap radio-col-red evaluation" required="required" />
+                                            <label for="evaluation2">NO</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="impact_div">
+                                        <label for="" class="control-label">Impact Evaluation Required? *:</label>
+                                        <div class="form-line">
+                                            <input name="impact" type="radio" value="1" id="impact1" <?= $projimpact == 1 && $projid != "" ? "checked" : "" ?> class="with-gap radio-col-green impact" />
+                                            <label for="impact1">YES</label>
+                                            <input name="impact" type="radio" value="0" id="impact2" <?= $projimpact == 0 && $projid != "" ? "checked" : "" ?> class="with-gap radio-col-red impact" />
+                                            <label for="impact2">NO</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label for="" class="control-label">Project Sites Required? *:</label>
+                                        <div class="form-line">
+                                            <input name="project_sites" type="radio" value="1" onchange="hide_project_site_table(1)" <?= $totalRows_rsSites > 0 && $projid != "" ? "checked" : "" ?> id="project_sites1" class="with-gap radio-col-green project_site" required="required" />
+                                            <label for="project_sites1">YES</label>
+                                            <input name="project_sites" type="radio" value="0" onchange="hide_project_site_table(0)" <?= $totalRows_rsSites == 0 && $projid != "" ? "checked" : "" ?> id="project_sites2" class="with-gap radio-col-red project_site" required="required" />
+                                            <label for="project_sites2">NO</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                        <label class="control-label">Implementation Method *:</label>
+                                        <div class="form-line">
+                                            <select name="projimplmethod" id="projimplmethod" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                <option value="">.... Select the method ....</option>
+                                                <?= get_implimentation_method($projcategory) ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        function calculate_project_budget() {
+                                            var project_budget = $("#project_budget").val();
+                                            var program_budget = $("#program_budget_hidden").val();
+                                            if (program_budget != '' && project_budget != '') {
+                                                program_budget = parseFloat(program_budget);
+                                                project_budget = parseFloat(project_budget);
+                                                console.log(program_budget, project_budget);
+                                                if (project_budget > 0 && program_budget > 0) {
+                                                    if (project_budget > program_budget) {
+                                                        $('#project_budget').val("");
+                                                        error_alert("You cannot exceed program budget");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    </script>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label class="control-label">Project <?= $level1label ?>*:</label>
+                                        <div class="form-line">
+                                            <select name="projcommunity[]" id="projcommunity" onchange="get_conservancy()" data-actions-box="true" class="form-control show-tick selectpicker" title="Choose Multipe" multiple style="border:#CCC thin solid; border-radius:5px; width:98%; padding-left:50px" required>
+                                                <?= get_level1($projcommunity) ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label class="control-label">Project <?= $level2label ?>*:</label>
+                                        <div class="form-line">
+                                            <select name="projlga[]" id="projlga" class="form-control show-tick selectpicker" multiple data-actions-box="true" title="Choose Multipe" style="border:#CCC thin solid; border-radius:5px; width:98%; padding-right:0px" required>
+                                                <?php
+                                                if ($projid == "") {
+                                                ?>
+                                                    <option value="" style="padding-right:0px">.... Select <?= $level1label ?> First ....</option>
+                                                <?php
+                                                }
+                                                ?>
+                                                <?= get_level2($projcommunity, $projlga) ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <fieldset class="scheduler-border" id="project_site_table">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Project Sites </legend>
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="projoutputTable">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped table-hover" id="project_sites_table" style="width:100%">
+                                                    <thead>
+                                                        <tr>
+                                                            <th width="5%">#</th>
+                                                            <th width="40%"><?= $level2label ?></th>
+                                                            <th width="50%">Sites </th>
+                                                            <th width="5%">
+                                                                <button type="button" name="addplus" id="add_project_site" onclick="add_site_row()" class="btn btn-success btn-sm">
+                                                                    <span class="glyphicon glyphicon-plus">
+                                                                    </span>
+                                                                </button>
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="project_sites_table_body">
+                                                        <tr></tr>
+                                                        <?php
 
-    <!-- Demo Js -->
-    <script src="projtrac-dashboard/js/demo.js"></script>
+                                                        function get_sites($projid, $state_id)
+                                                        {
+                                                            global $db;
+                                                            $query_rsSites =  $db->prepare("SELECT * FROM tbl_project_sites WHERE projid =:projid AND state_id=:state_id");
+                                                            $query_rsSites->execute(array(":projid" => $projid, ":state_id" => $state_id));
+                                                            $totalRows_rsSites = $query_rsSites->rowCount();
+                                                            $sites = [];
+                                                            if ($totalRows_rsSites > 0) {
+                                                                while ($row_rsSites = $query_rsSites->fetch()) {
+                                                                    $sites[] = $row_rsSites['site'];
+                                                                }
+                                                            }
+                                                            return implode(",", $sites);
+                                                        }
 
-    <!-- validation cdn files  -->
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-steps/1.1.0/jquery.steps.js"></script>
-</body>
+                                                        function get_states($stid, $projlga)
+                                                        {
+                                                            global $db;
+                                                            $projlga = explode(",", $projlga);
+                                                            $count = count($projlga);
+                                                            $states  = '';
+                                                            for ($i = 0; $i < $count; $i++) {
+                                                                $state_id = $projlga[$i];
+                                                                $query_rsSites =  $db->prepare("SELECT * FROM tbl_state WHERE id=:state_id");
+                                                                $query_rsSites->execute(array(":state_id" => $state_id));
+                                                                $totalRows_rsSites = $query_rsSites->rowCount();
+                                                                if ($totalRows_rsSites > 0) {
+                                                                    $row_rsSites = $query_rsSites->fetch();
+                                                                    $state   = $row_rsSites['state'];
+                                                                    $selected = $stid == $state_id ? "selected" : "";
+                                                                    $states .= '<option value="' . $state_id . '"  ' . $selected . '>' . $state . '</option>';
+                                                                }
+                                                            }
+                                                            return $states;
+                                                        }
 
-</html>
+
+
+                                                        if ($totalRows_rsSites > 0) {
+                                                            $rowno = 0;
+                                                            while ($row_rsSites = $query_rsSites->fetch()) {
+                                                                $rowno++;
+                                                                $state_id = $row_rsSites['state_id'];
+                                                                $states = get_states($state_id, $projlga);
+                                                                $sites = get_sites($projid, $state_id);
+                                                        ?>
+                                                                <tr id="siterow<?= $rowno ?>">
+                                                                    <td><?= $rowno ?></td>
+                                                                    <td>
+                                                                        <select name="lvid[]" id="lvidrow<?= $rowno ?>" class="form-control lvidstates" required="required">
+                                                                            <option value="">Select <?= $level2label ?> from list</option>
+                                                                            <?= $states ?>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text" name="site[]" id="siterow<?= $rowno ?>" value="<?= $sites ?>" placeholder="Enter" class="form-control" required />
+                                                                    </td>
+                                                                    <td>
+                                                                        <button type="button" name="addplus" id="add_project_site" onclick='delete_row_sites("siterow<?= $rowno ?>")' class="btn btn-danger btn-sm">
+                                                                            <span class="glyphicon glyphicon-minus">
+                                                                            </span>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            <?php
+                                                            }
+                                                        } else {
+                                                            ?>
+                                                            <tr id="removeSTr" class="text-center">
+                                                                <td colspan="5">Add Project Sites!!</td>
+                                                            </tr>
+                                                        <?php
+                                                        }
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <ul class="list-inline text-center">
+                                            <li><button class="btn btn-success btn-sm" id="project_details_id" type="submit"><?= $totalRows_rsSites > 0 ? "Edit" : "Save" ?></button></li>
+                                        </ul>
+                                        <ul class="list-inline pull-right">
+                                            <input type="hidden" name="key_unique" id="p_key_unique" value="<?= $key_unique ?>">
+                                            <input type="hidden" name="project_id" id="project_id" class="project_id" value="<?= $projid ?>">
+                                            <input type="hidden" name="sites_list" id="sites_list" class="sites_list">
+                                            <input type="hidden" name="insert_project" id="insert_project">
+                                            <li><button class="btn btn-primary nextBtn btn-sm " type="button">Next</button> </li>
+                                        </ul>
+                                    </div>
+                                </form>
+                            </fieldset>
+                            <fieldset class="scheduler-border row setup-content" id="step-3">
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FILES</legend>
+                                <form role="form" id="files_details" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <?php
+                                    if ($totalRows_rsFile > 0) {
+                                    ?>
+                                        <div class="row clearfix " id="rowcontainerrow">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <div class="card">
+                                                    <div class="header">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                            <h5 style="color:#FF5722"><strong> FILES </strong></h5>
+                                                        </div>
+                                                    </div>
+                                                    <div class="body">
+                                                        <div class="body table-responsive">
+                                                            <table class="table table-bordered" style="width:100%">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width:2%">#</th>
+                                                                        <th style="width:68%">Purpose</th>
+                                                                        <th style="width:28%">Attachment</th>
+                                                                        <th style="width:2%">
+                                                                            Delete
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="attachment_table">
+                                                                    <?php
+                                                                    $counter = 0;
+                                                                    do {
+                                                                        $pdfname = $row_rsFile['filename'];
+                                                                        $filecategory = $row_rsFile['fcategory'];
+                                                                        $ext = $row_rsFile['ftype'];
+                                                                        $filepath = $row_rsFile['floc'];
+                                                                        $fid = $row_rsFile['fid'];
+                                                                        $attachmentPurpose = $row_rsFile['reason'];
+                                                                        $counter++;
+                                                                    ?>
+                                                                        <tr id="mtng<?= $fid ?>">
+                                                                            <td>
+                                                                                <?= $counter ?>
+                                                                            </td>
+                                                                            <td>
+                                                                                <?= $attachmentPurpose ?>
+                                                                                <input type="hidden" name="fid[]" id="fid" class="" value="<?= $fid  ?>">
+                                                                                <input type="hidden" name="ef[]" id="t" class="eattachment_purpose" value="<?= $attachmentPurpose  ?>">
+                                                                            </td>
+                                                                            <td>
+                                                                                <?= $pdfname ?>
+                                                                                <input type="hidden" name="adft[]" id="fid" class="eattachment_file" value="<?= $pdfname  ?>">
+                                                                            </td>
+                                                                            <td>
+                                                                                <button type="button" class="btn btn-danger btn-sm" onclick='delete_attachment("mtng<?= $fid ?>")'>
+                                                                                    <span class="glyphicon glyphicon-minus"></span>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    <?php
+                                                                    } while ($row_rsFile = $query_rsFile->fetch());
+                                                                    ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
+                                    <div class="row clearfix " id="">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="card">
+                                                <div class="header">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                        <h5 style="color:#FF5722"><strong> Add new file/s </strong></h5>
+                                                    </div>
+                                                </div>
+                                                <div class="body">
+                                                    <div class="body table-responsive">
+                                                        <table class="table table-bordered" style="width:100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width:2%">#</th>
+                                                                    <th style="width:68%">Attachment</th>
+                                                                    <th style="width:28%">Purpose</th>
+                                                                    <th style="width:2%">
+                                                                        <button type="button" name="addplus1" onclick="add_row_files_edit();" title="Add another document" class="btn btn-success btn-sm">
+                                                                            <span class="glyphicon glyphicon-plus">
+                                                                            </span>
+                                                                        </button>
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="meetings_table_edit">
+                                                                <tr></tr>
+                                                                <tr id="add_new_file" class="text-c
+                                                                enter">
+                                                                    <td colspan="4"> Add file </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <ul class="list-inline text-center">
+                                            <input type="hidden" name="insert_project_files" id="insert_project_files">
+                                            <input type="hidden" name="key_unique" id="p_key_unique" value="<?= $key_unique ?>">
+                                            <input type="hidden" name="project_id" id="project_files" class="project_id" value="<?= $projid ?>">
+                                            <input type="hidden" name="files_id" id="files_id" class="files_id" value="<?= $projid != "" ? 1 : "" ?>">
+                                            <input type="hidden" name="progid" id="file_progid" value="<?= $progid ?>">
+                                            <li><button class="btn btn-success btn-sm" id="project_details_id" type="submit"><?= $projid != "" ? "Edit" : "Save" ?></button></li>
+                                        </ul>
+                                        <ul class="list-inline pull-right">
+                                            <li><button type="button" class="btn btn-warning prev-step">Previous</button></li>
+                                            <li><button class="btn btn-primary nextBtn btn-sm" onclick="display_finish()" type="button">Next</button> </li>
+                                        </ul>
+                                    </div>
+                                </form>
+                            </fieldset>
+                            <fieldset class="scheduler-border row setup-content" id="step-4">
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FINISH</legend>
+                                <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <div class="row clearfix " id="">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="card">
+                                                <div class="body">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <fieldset class="scheduler-border">
+                                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">1.0) Project Details</legend>
+                                                                <div class="table-responsive">
+                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th width="5%">#</th>
+                                                                                <th width="35%">Field</th>
+                                                                                <th width="60%">Value</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td>1</td>
+                                                                                <td>Programe Name</td>
+                                                                                <td id="progs"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>2</td>
+                                                                                <td>Project Code</td>
+                                                                                <td id="projcodes"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>3</td>
+                                                                                <td>Project Name</td>
+                                                                                <td id="projName"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>6</td>
+                                                                                <td>Implementation Method</td>
+                                                                                <td id="implementation"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>7</td>
+                                                                                <td>Financial Year </td>
+                                                                                <td id="projfscyears"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>9</td>
+                                                                                <td>Project Duration </td>
+                                                                                <td id="projdurations"></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <td>10</td>
+                                                                                <td>Evaluation Required?</td>
+                                                                                <td id="projeval"></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="table-responsive">
+                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th width="20%"><?= $level1label ?>/s</th>
+                                                                                <th width="20%"><?= $level2label ?>/s</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td id="projcommunitys"></td>
+                                                                                <td id="projlgas"></td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row clearfix " id="">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="card">
+                                                <div class="body">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <fieldset class="scheduler-border">
+                                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">4.0) Files</legend>
+                                                                <div class="table-responsive">
+                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th width="5%">#</th>
+                                                                                <th width="35%">Attachment Purpose</th>
+                                                                                <th width="60%">File Name</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="files_attached">
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row clearfix " id="">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <ul class="list-inline text-center">
+                                                <input type="hidden" name="MM_insert" value="addprojectfrm">
+                                                <input type="hidden" name="username" value="<?= $user_name ?>">
+                                                <input type="hidden" name="program_type" value="<?= $program_type ?>">
+                                                <input type="hidden" name="planid" value="<?= $planid ?>">
+                                                <li><button type="button" class="btn btn-warning prev-step">Previous</button></li>
+                                                <li><button class="btn btn-success" id="submit_project" type="submit"><?= $projid != "" ? "Edit" : "Save" ?></button></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                            </fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </section>
+    <!-- end body  -->
+<?php
+} else {
+    $results =  restriction();
+    echo $results;
+}
+require('includes/footer.php');
+?>
+<!-- validation cdn files  -->
+<script>
+    const param = '<?= $projevaluation == 1 && $projid != "" ? 1 : 0 ?>';
+</script>
+<script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-steps/1.1.0/jquery.steps.js"></script>
+<script src="assets/js/projects/index.js"></script>

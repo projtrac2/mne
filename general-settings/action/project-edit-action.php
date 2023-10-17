@@ -1,7 +1,6 @@
 <?php
 
-include_once "controller.php";
-include_once '../../system-labels.php';
+include_once "controller.php"; 
 try {
 	$valid['success'] = array('success' => false, 'messages' => array());
 
@@ -10,6 +9,8 @@ try {
 		$projid = $_POST['projid'];
 
 		$progid = $_POST['progid'];
+		$projectstartdate = date('Y-m-d', strtotime($_POST['projstartYears'])); 
+		$projectenddate = date('Y-m-d', strtotime($_POST['projendYears']));
 		$approved = $_POST['approveitem'];
 		$projcost = $_POST['projcost']; // cost of each output 
 		$projoutputduration = $_POST['opduration']; //output duration 
@@ -169,8 +170,8 @@ try {
 			$stage = 2;
 			$sumCost = array_sum($_POST['projcost']);
 
-			$approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projcost=:projcost, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-			$results = $approveItemQuery->execute(array(':projcost' => $sumCost, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
+			$approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projcost=:projcost, projstartdate=:projstartdate, projenddate=:projenddate, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+			$results = $approveItemQuery->execute(array(':projcost' => $sumCost, ":projstartdate" => $projectstartdate, ":projenddate" => $projectenddate, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
 
 			$valid['success'] = true;
 			$valid['messages'] = "Successfully Approved";

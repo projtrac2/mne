@@ -2,8 +2,6 @@
 require 'authentication.php';
 
 try {
-
-	
  
 	if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 		$progid = $_GET["prg"];

@@ -1,6 +1,4 @@
 <?php
-
-
 include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 include_once("../../includes/system-labels.php");
@@ -129,19 +127,16 @@ if (isset($_POST['get_method'])) {
 	$data = '';
 	if (isset($_POST['method']) && !empty($_POST['method'])) {
 		$method = $_POST['method'];
-		$outcome_type = $_POST['outcome_type'];
-
+		$results_type = $_POST['results_type'];
+	
 		$prefix = "";
 		$measurement_variable = "";
-		if ($outcome_type == 3) {
-			$prefix = "impact";
+		if ($results_type == 1) {
+			$prefix = "direct_impact_";
 			$measurement_variable = "Impact Measurement Variable";
-		} else if ($outcome_type == 1) {
-			$prefix = "direct_outcome";
-			$measurement_variable = "Direct Measurement Variable";
-		} else if ($outcome_type == 2) {
-			$prefix = "indirect_outcome";
-			$measurement_variable = "Indirect Measurement Variable";
+		} elseif ($results_type == 2) {
+			$prefix = "direct_outcome_";
+			$measurement_variable = "Outcome Measurement Variable";
 		}
 
 		if ($method == 1) {
@@ -184,16 +179,16 @@ if (isset($_POST['delete'])) {
 	$indicator = get_indicator_by_indid($indid);
 	if ($indicator) {
 		$delete_indicator = $db->prepare("DELETE FROM tbl_indicator WHERE indid =:indid ");
-		$response1        = $delete_indicator->execute(array(":indid" => $indid));
+		$response1 = $delete_indicator->execute(array(":indid" => $indid));
 
 		$delete_indicator_measurement_variables = $db->prepare("DELETE FROM tbl_indicator_measurement_variables WHERE indicatorid=:indid");
-		$response2        =  $delete_indicator_measurement_variables->execute(array(":indid" => $indid));
+		$response2 =  $delete_indicator_measurement_variables->execute(array(":indid" => $indid));
 
 		$delete_measurement_variables_disaggregation_type = $db->prepare("DELETE FROM tbl_indicator_measurement_variables_disaggregation_type WHERE indicatorid=:indid");
-		$response2        =  $delete_measurement_variables_disaggregation_type->execute(array(":indid" => $indid));
+		$response2 =  $delete_measurement_variables_disaggregation_type->execute(array(":indid" => $indid));
 
 		$delete_indicator_disaggregations = $db->prepare("DELETE FROM tbl_indicator_disaggregations WHERE indicatorid=:indid");
-		$response2        =  $delete_indicator_disaggregations->execute(array(":indid" => $indid));
+		$response2 =  $delete_indicator_disaggregations->execute(array(":indid" => $indid));
 
 		if ($response1 && $response2) {
 			echo json_encode(array('success' => true, "msg" => "Success Deleting Checklist checklist"));
@@ -221,344 +216,187 @@ if (isset($_GET['more'])) {
 		$indicator_dept = $indicator['indicator_dept'];
 		$dissagragated = $indicator['indicator_disaggregation'];
 		$data_source = $indicator['indicator_data_source'];
+		$ind_beneficiaries = $indicator['indicator_beneficiary'];
 		$ind_dir = ($inddir == 1) ? "Upward" : "Downward";
-
 		$measurement_unit = get_measurement_unit($indunit);
-
 		$unit = ($measurement_unit) ? $measurement_unit['unit'] : "";
-
 		$calculation_method = get_indicator_calculation_method($calculationmethod);
 		$calc_method = ($calculation_method) ? $calculation_method['method'] : "";
-
-
 		$source_of_data = $calculation  = $direction = $category = "";
+		$result_sector = get_department($indicator_sector);
+		$result_department = get_department($indicator_dept);
+		$sector = ($result_sector)  ? $department = $result_sector['sector'] : "N/A";
+		$department = ($result_department)  ? $department = $result_department['sector'] : "N/A";
+		$query_indunit = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id='$unit' LIMIT 1");
+		$query_indunit->execute();
+		$row_indunit = $query_indunit->fetch();
+		$ms_unit = (!empty($row_indunit))  ?  $row_indunit["unit"] : '';
+
+		$projwaypoints = $indicator ? $indicator['indicator_mapping_type'] : "";
+
+		//get indicator
+		if($projwaypoints==0){
+			$mappingtype= "Not Applicable";
+		}else{
+			$query_rsMapping = $db->prepare("SELECT * FROM tbl_map_type WHERE id='$projwaypoints' ");
+			$query_rsMapping->execute();
+			$row_rsMapping = $query_rsMapping->fetch();
+			$totalRows_rsMapping = $query_rsMapping->rowCount();
+			
+			$mappingtype= $row_rsMapping["type"];
+		}
 
 		if ($indicator_category == "Output") {
-			if ($dissagragated == 1) {
-				$type = 0;
-				$query_diss_type = $db->prepare("SELECT * FROM tbl_indicator_measurement_variables_disaggregation_type WHERE indicatorid=:indid  ");
-				$query_diss_type->execute(array(":indid" => $indid));
-
-				$query_dataSource =  $db->prepare("SELECT * FROM tbl_data_source  WHERE id='$data_source'");
-				$query_dataSource->execute();
-				$row_dataSource = $query_dataSource->fetch();
-				$source_data = $row_dataSource['source'];
-
-				$source_of_data .= '<li class="list-group-item"><strong>Source of Data: </strong>' . $source_data . ' </li> ';
-
-				$category .= '  
+			$category .= '<div class="row clearfix"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"></div></div>';
+		} else {
+			$calculation .= '<li class="list-group-item"><strong>Calculation Method: </strong>' . $calc_method . ' </li> ';
+			$direction .= '<li class="list-group-item"><strong>Indicator Direction: </strong>' . $ind_dir . ' </li> ';
+			$beneficiaries .= '<li class="list-group-item"><strong>Beneficiaries: </strong>' . $ind_beneficiaries . ' </li> ';
+			$category .= '  
 				<div class="row clearfix">
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="card">   
-							<div class="body">
 								<div class="header"> 
-									<li class="list-group-item list-group-item list-group-item-action active">Disaggregation Types</li>
+									<li class="list-group-item list-group-item list-group-item-action active"> Direct Measurement Variable/s</li>
 								</div>';
-								$options = ' 
-								<ul class="list-group">';
-									$count = 1;
-									while ($row = $query_diss_type->fetch()) {
-										$disaggregation_type = $row['disaggregation_type'];
-										$query_diss = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id=:disaggregation_type  ");
-										$query_diss->execute(array(":disaggregation_type" => $disaggregation_type));
-										$row_diss = $query_diss->fetch();
-										$options .= '<li class="list-group-item">' . $count++ . ". " . $row_diss['category'] . '</li>';
+			$data = '
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<ul>';
+			$query_measurement_variables = $db->prepare("SELECT * FROM  tbl_indicator_measurement_variables WHERE indicatorid = '$indid' AND  category='2' ORDER BY id");
+			$query_measurement_variables->execute();
+			$row_measurement_variables = $query_measurement_variables->fetch();
+
+			if ($calculationmethod == 1) {
+				$variable = $row_measurement_variables['measurement_variable'];
+				$data .=
+					' <li class="list-group-item"><strong>Summation Measurement variables: </strong>' . $variable . ' </li> ';
+			} else if ($calculationmethod == 2) {
+				do {
+					$variable = $row_measurement_variables['measurement_variable'];
+					$type = $row_measurement_variables['type'];
+
+					if ($type == 'n') {
+						$data .=
+							'<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li> ';
+					} else if ($type == 'd') {
+						$data .=
+							'<li class="list-group-item"><strong>Denominator Measurement variables: </strong>' . $variable . ' </li> ';
+					}
+				} while ($row_measurement_variables = $query_measurement_variables->fetch());
+			} else if ($calculationmethod == 3) {
+				$variable = $row_measurement_variables['measurement_variable'];
+				$data .= '<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li>';
+			}
+			$data .= "
+				</ul>
+			</div>";
+			$category .= $data;
+
+
+			$query_rsInd_Direct_Outcome_Type = $db->prepare("SELECT * FROM tbl_indicator_measurement_variables_disaggregation_type WHERE indicatorid= '$indid' and type=2 ORDER BY id");
+			$query_rsInd_Direct_Outcome_Type->execute();
+			$row_rsInd_Direct_Outcome_Type = $query_rsInd_Direct_Outcome_Type->fetch();
+			$indInd_Direct_Outcome_Typecount = $query_rsInd_Direct_Outcome_Type->rowCount();
+			if ($indInd_Direct_Outcome_Typecount > 0) {
+				$category .= '
+				<div class="row clearfix">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="header"> 
+							<li class="list-group-item list-group-item list-group-item-action active">Direct Disaggregation </li>
+						</div>
+						<div class="body table-responsive">
+							<table class="table table-bordered table-striped table-hover" id="direct_outcome_table" style="width:100%">
+								<thead>
+									<tr>
+										<th width="10%">#</th>
+										<th width="30%">Dissagragation Type </th>
+										<th width="30%">Parent</th>
+										<th width="30%">Disaggregations</th>  
+									</tr>
+								</thead>  
+								<tbody id="direct_outcome_table_body">';
+									if ($indInd_Direct_Outcome_Typecount > 0) {
+										$rowno = 0;
+										do {
+											$rowno++;
+											$direct_outcome_dissagragated_type = $row_rsInd_Direct_Outcome_Type['disaggregation_type'];
+											$direct_outcome_dissagragated_parent = $row_rsInd_Direct_Outcome_Type['parent'];
+
+											$query_rsInd_type = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id='$direct_outcome_dissagragated_type'");
+											$query_rsInd_type->execute();
+											$row_rsInd_type = $query_rsInd_type->fetch();
+											$dir_outcome_options = $row_rsInd_type['category'];
+
+
+											$query_rsInd_parent = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id= '$direct_outcome_dissagragated_parent'");
+											$query_rsInd_parent->execute();
+											$row_rsInd_parent = $query_rsInd_parent->fetch();
+											$dir_parent_options = $row_rsInd_parent['category'];
+
+
+											$query_rsInd_type_diss = $db->prepare("SELECT * FROM tbl_indicator_disaggregations WHERE indicatorid=:indicatorid AND disaggregation_type=:disaggregation_type ORDER BY id ASC");
+											$query_rsInd_type_diss->execute(array(":indicatorid" => $indid, ":disaggregation_type" => $direct_outcome_dissagragated_type));
+											$row_rsInd_type_diss = $query_rsInd_type_diss->fetch();
+											$data_diss = [];
+
+											do {
+												$data_diss[] = $row_rsInd_type_diss['disaggregation'];
+											} while ($row_rsInd_type_diss = $query_rsInd_type_diss->fetch());
+
+											$category .= '
+											<tr id="direct' . $rowno . '">
+												<td>' . $rowno . '</td> 
+												<td> 
+												' . $dir_outcome_options . '
+												</td> 
+												<td> 
+													' . $dir_parent_options . '
+												</td> 
+												<td>
+												' . implode(",", $data_diss) . '
+												</td>  
+											</tr>';
+										} while ($row_rsInd_Direct_Outcome_Type = $query_rsInd_Direct_Outcome_Type->fetch());
 									}
-									$options .= '</ul>';
-									$category .= $options;
-									$category .= ' 
-							</div>
+									$category .= '
+								</tbody>
+							</table>
 						</div>
 					</div>
 				</div>';
 			} else {
-				$category .= '<div class="row clearfix"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"></div></div>';
+				$category .= '
+				<div class="row clearfix">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					
+					</div>
+				</div>';
 			}
-
-
-		} else if ($indicator_category == "Impact") {
-			$calculation .= '<li class="list-group-item"><strong>Calculation Method: </strong>' . $calc_method . ' </li> ';
-			$direction .= '<li class="list-group-item"><strong>Indicator Direction: </strong>' . $ind_dir . ' </li> ';
-			$data = '';
-			$query_measurement_variables = $db->prepare("SELECT * FROM  tbl_indicator_measurement_variables WHERE indicatorid = '$indid' AND  category='1' ORDER BY id");
-			$query_measurement_variables->execute();
-			$row_measurement_variables = $query_measurement_variables->fetch();
-
-			$category .= '  
-				<div class="row clearfix">
-					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="card">   
-							<div class="body">
-								<div class="header"> 
-									<li class="list-group-item list-group-item list-group-item-action active">Measurement Variable/s</li>
-								</div>';
-								$data .= '
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<ul>';
-										if ($calculationmethod == 1) {
-											$variable = $row_measurement_variables['measurement_variable'];
-											$data .=
-												' <li class="list-group-item"><strong>Summation Measurement variables: </strong>' . $variable . ' </li> ';
-										} else if ($calculationmethod == 2) {
-											do {
-												$variable = $row_measurement_variables['measurement_variable'];
-												$type = $row_measurement_variables['type'];
-
-												if ($type == 'n') {
-													$data .=
-														'<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li> ';
-												} else if ($type == 'd') {
-													$data .=
-														'<li class="list-group-item"><strong>Denominator Measurement variables: </strong>' . $variable . ' </li> ';
-												}
-											} while ($row_measurement_variables = $query_measurement_variables->fetch());
-										} else if ($calculationmethod == 3) {
-											$variable = $row_measurement_variables['measurement_variable'];
-											$data .=
-												'<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li>';
-										}
-										$data .= "
-									</ul>
-								</div>";
-									$category .= $data;
-									if ($dissagragated == 1) {
-										$category .= '  
-										<div class="row clearfix">
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<div class="header"> 
-												<li class="list-group-item list-group-item list-group-item-action active">Disaggregations </li>
-											</div>
-												<div class="table-responsive">
-													<table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
-														<thead>
-															<tr>
-																<th width="10%">#</th>
-																<th width="30%">Dissagragation Type </th>
-																<th width="30%">Parent</th>
-																<th width="30%">Disaggregations</th>  
-															</tr>
-														</thead>
-														<tbody id="impact_table_body">';
-															$query_rsIndType = $db->prepare("SELECT * FROM tbl_indicator_measurement_variables_disaggregation_type WHERE indicatorid= '$indid' and type=1 ORDER BY id");
-															$query_rsIndType->execute();
-															$row_rsIndType = $query_rsIndType->fetch();
-															$indIndTypecount = $query_rsIndType->rowCount();
-
-															if ($indIndTypecount > 0) {
-																$rowno = 0;
-																do {
-																	$rowno++;
-
-																	$impact_dissagragated_type = $row_rsIndType['disaggregation_type'];
-																	$impact_dissagragated_parent = $row_rsIndType['parent'];
-
-																	$query_rsInd_type = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id='$impact_dissagragated_type'");
-																	$query_rsInd_type->execute();
-																	$row_rsInd_type = $query_rsInd_type->fetch();
-																	$total_rsp = $query_rsInd_type->rowCount();
-																	$dissagragated_type = ($total_rsp > 0) ? $row_rsInd_type['category'] : '';
-
-																	$query_rsInd_parent = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id='$impact_dissagragated_parent'");
-																	$query_rsInd_parent->execute();
-																	$row_rsInd_parent = $query_rsInd_parent->fetch();
-																	$total_rs = $query_rsInd_parent->rowCount();
-																	$parent = ($total_rs > 0) ? $row_rsInd_parent['category'] : '';
-
-
-																	$query_rsInd_type_diss = $db->prepare("SELECT * FROM tbl_indicator_disaggregations WHERE indicatorid=:indicatorid AND disaggregation_type=:disaggregation_type");
-																	$query_rsInd_type_diss->execute(array(":indicatorid" => $indid, ":disaggregation_type" => $impact_dissagragated_type));
-																	$row_rsInd_type_diss = $query_rsInd_type_diss->fetch();
-																	$data_diss = [];
-
-																	do {
-																		$data_diss[] = $row_rsInd_type_diss['disaggregation'];
-																	} while ($row_rsInd_type_diss = $query_rsInd_type_diss->fetch());
-
-
-																	$category .=
-																		' <tr id="">
-																														<td>' . $rowno . '</td> 
-																														<td> 
-																															' . $dissagragated_type . '
-																														</td> 
-																														<td>
-																															' . $parent . '
-																														</td> 
-																														<td>
-																														' . implode(",", $data_diss) . '
-																														</td> 
-																													</tr>';
-																} while ($row_rsIndType = $query_rsIndType->fetch());
-															}
-															$category .=
-														'</tbody>
-													</table>
-												</div>
-											</div> 		
-										</div>';
-									} else {
-										$category .= '<div class="row clearfix"><div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"></div></div>';
-									}
-									$category .= ' 
-							</div>
-						</div>
-					</div>
-				</div>';
-		} else if ($indicator_category == "Outcome") {
-			$calculation .= '<li class="list-group-item"><strong>Calculation Method: </strong>' . $calc_method . ' </li> ';
-			$direction .= '<li class="list-group-item"><strong>Indicator Direction: </strong>' . $ind_dir . ' </li> ';
-			$category .= '  
-				<div class="row clearfix">
-					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="card">   
-							<div class="body">
-								<div class="header"> 
-									<li class="list-group-item list-group-item list-group-item-action active"> Direct Measurement Variable/s</li>
-								</div>';
-									$data = '
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<ul>';
-										$query_measurement_variables = $db->prepare("SELECT * FROM  tbl_indicator_measurement_variables WHERE indicatorid = '$indid' AND  category='2' ORDER BY id");
-										$query_measurement_variables->execute();
-										$row_measurement_variables = $query_measurement_variables->fetch();
-
-										if ($calculationmethod == 1) {
-											$variable = $row_measurement_variables['measurement_variable'];
-											$data .=
-												' <li class="list-group-item"><strong>Summation Measurement variables: </strong>' . $variable . ' </li> ';
-										} else if ($calculationmethod == 2) {
-											do {
-												$variable = $row_measurement_variables['measurement_variable'];
-												$type = $row_measurement_variables['type'];
-
-												if ($type == 'n') {
-													$data .=
-														'<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li> ';
-												} else if ($type == 'd') {
-													$data .=
-														'<li class="list-group-item"><strong>Denominator Measurement variables: </strong>' . $variable . ' </li> ';
-												}
-											} while ($row_measurement_variables = $query_measurement_variables->fetch());
-										} else if ($calculationmethod == 3) {
-											$variable = $row_measurement_variables['measurement_variable'];
-											$data .=
-												'<li class="list-group-item"><strong>Numerator Measurement variables: </strong>' . $variable . ' </li>';
-										}
-										$data .= "
-																</ul>
-															</div>";
-										$category .= $data;
-
-
-										$query_rsInd_Direct_Outcome_Type = $db->prepare("SELECT * FROM tbl_indicator_measurement_variables_disaggregation_type WHERE indicatorid= '$indid' and type=2 ORDER BY id");
-										$query_rsInd_Direct_Outcome_Type->execute();
-										$row_rsInd_Direct_Outcome_Type = $query_rsInd_Direct_Outcome_Type->fetch();
-										$indInd_Direct_Outcome_Typecount = $query_rsInd_Direct_Outcome_Type->rowCount();
-										if ($indInd_Direct_Outcome_Typecount > 0) {
-											$category .= '
-											<div class="row clearfix">
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<div class="header"> 
-														<li class="list-group-item list-group-item list-group-item-action active">Direct Disaggregation </li>
-													</div>
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover" id="direct_outcome_table" style="width:100%">
-															<thead>
-																<tr>
-																	<th width="10%">#</th>
-																	<th width="30%">Dissagragation Type </th>
-																	<th width="30%">Parent</th>
-																	<th width="30%">Disaggregations</th>  
-																</tr>
-															</thead>  
-															<tbody id="direct_outcome_table_body">';
-																if ($indInd_Direct_Outcome_Typecount > 0) {
-																	$rowno = 0;
-																	do {
-																		$rowno++;
-																		$direct_outcome_dissagragated_type = $row_rsInd_Direct_Outcome_Type['disaggregation_type'];
-																		$direct_outcome_dissagragated_parent = $row_rsInd_Direct_Outcome_Type['parent'];
-
-																		$query_rsInd_type = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id='$direct_outcome_dissagragated_type'");
-																		$query_rsInd_type->execute();
-																		$row_rsInd_type = $query_rsInd_type->fetch();
-																		$dir_outcome_options = $row_rsInd_type['category'];
-
-
-																		$query_rsInd_parent = $db->prepare("SELECT * FROM tbl_indicator_disaggregation_types WHERE id= '$direct_outcome_dissagragated_parent'");
-																		$query_rsInd_parent->execute();
-																		$row_rsInd_parent = $query_rsInd_parent->fetch();
-																		$dir_parent_options = $row_rsInd_parent['category'];
-
-
-																		$query_rsInd_type_diss = $db->prepare("SELECT * FROM tbl_indicator_disaggregations WHERE indicatorid=:indicatorid AND disaggregation_type=:disaggregation_type");
-																		$query_rsInd_type_diss->execute(array(":indicatorid" => $indid, ":disaggregation_type" => $direct_outcome_dissagragated_type));
-																		$row_rsInd_type_diss = $query_rsInd_type_diss->fetch();
-																		$data_diss = [];
-
-																		do {
-																			$data_diss[] = $row_rsInd_type_diss['disaggregation'];
-																		} while ($row_rsInd_type_diss = $query_rsInd_type_diss->fetch());
-
-																		$category .= '
-																												<tr id="direct' . $rowno . '">
-																													<td>' . $rowno . '</td> 
-																													<td> 
-																													' . $dir_outcome_options . '
-																													</td> 
-																													<td> 
-																														' . $dir_parent_options . '
-																													</td> 
-																													<td>
-																													' . implode(",", $data_diss) . '
-																													</td>  
-																												</tr>';
-																	} while ($row_rsInd_Direct_Outcome_Type = $query_rsInd_Direct_Outcome_Type->fetch());
-																}
-																$category .= '
-															</tbody>
-														</table>
-													</div>
-												</div>
-											</div>';
-										} else {
-											$category .= '
-											<div class="row clearfix">
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												
-												</div>
-											</div>';
-										}
-								$category .= ' 
-							</div>
-						</div>
-					</div>
-				</div>';
+			$category .= '
+				</div>
+			</div>';
 		}
-
 
 		$indicatordetails  = '
 		<div class="row clearfix">
 			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<div class="card">  
 					<div class="header"> 
-						<li class="list-group-item list-group-item list-group-item-action active">Indicator Name: ' . $indname . ' </li>
+						<li class="list-group-item list-group-item list-group-item-action active">Indicator Name: ' . $ms_unit . " of " . $indname . ' </li>
 					</div>
 					<div class="body"> 
-						<div class="col-md-6"> 
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"> 
 							<ul class="list-group"> 
 								<li class="list-group-item"><strong>Indicator Code: </strong>' . $indcode . ' </li>
-								' . $source_of_data . ' 
+								<li class="list-group-item"><strong>Ministry: </strong>' . $sector . ' </li>
+								<li class="list-group-item"><strong>Department: </strong>' . $department . ' </li> 
+								<li class="list-group-item"><strong>Mapping Type: </strong>' . $mappingtype . ' </li>
+								' . $source_of_data . '  
 								' . $calculation . ' 
-							</ul>
-						</div>
-						<div class="col-md-6"> 
-							<ul class="list-group">
-								<li class="list-group-item"><strong>Measurement Unit: </strong>' . $unit . ' </li> 
 								' . $direction . '
+								' . $beneficiaries . ' 
 							</ul>
 						</div>
-						<div class="col-md-12">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<li class="list-group-item list-group-item list-group-item-action active">Indicator Description:</li>
 							' . $inddesc . '
 						</div>

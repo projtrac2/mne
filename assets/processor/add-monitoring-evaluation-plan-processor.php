@@ -1,7 +1,13 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 include_once "controller.php";
+
+$datecreated  = date("Y-m-d");
 if (isset($_POST['get_risks'])) {
     $risk_type = $_POST['get_risks'];
+	
     $query_rsRisk =  $db->prepare("SELECT * FROM tbl_projrisk_categories");
     $query_rsRisk->execute();
     $row_rsRisk = $query_rsRisk->fetch();
@@ -10,8 +16,8 @@ if (isset($_POST['get_risks'])) {
 
     if ($totalRows_rsRisk > 0) {
         do {
-            $type = explode(',',$row_rsRisk['type']); 
-            if(in_array(3, $type)) {
+            $type = explode(',', $row_rsRisk['type']);
+            if (in_array($risk_type, $type)) {
                 $input .= '<option value="' . $row_rsRisk['rskid'] . '">' . $row_rsRisk['category'] . ' </option>';
             }
         } while ($row_rsRisk = $query_rsRisk->fetch());
@@ -23,19 +29,19 @@ if (isset($_POST['get_risks'])) {
 
 if (isset($_POST['impact_indicator'])) {
     $indid = $_POST['impact_indicator'];
-
+	
     $query_indicator =  $db->prepare("SELECT * FROM `tbl_indicator`   WHERE indid=:indid ");
     $query_indicator->execute(array(":indid" => $indid));
     $row_indicator = $query_indicator->fetch();
     $unitid = $row_indicator['indicator_unit'];
     $calcid = $row_indicator['indicator_calculation_method'];
- 
+
     $query_Indicator_cal = $db->prepare("SELECT * FROM tbl_indicator_calculation_method WHERE id =:calcid ");
-    $query_Indicator_cal->execute(array(':calcid'=>$calcid));
+    $query_Indicator_cal->execute(array(':calcid' => $calcid));
     $row_cal = $query_Indicator_cal->fetch();
     $calc_method = $row_cal['method'];
 
- 
+
     $query_rsIndType = $db->prepare("SELECT * FROM tbl_indicator_beneficiaries WHERE indicatorid= '$indid'");
     $query_rsIndType->execute();
     $row_rsIndType = $query_rsIndType->fetch();
@@ -83,30 +89,516 @@ if (isset($_POST['impact_indicator'])) {
     echo json_encode(array("impact_calc_method" => $calc_method, "unitofmeasure" => $unitofmeasure));
 }
 
+//======================================== START ADD IMPACT DETAILS ============================================
+if (isset($_POST['addimpact'])) {
+    if (isset($_POST['impact']) && !empty($_POST['impact'])) {
+        $impact = $_POST['impact'];
+		$projid = $_POST['projid'];
+		$indid  = $_POST['impactIndicator'];
+		$data_source  = $_POST['impactdataSource'];
+		$evaluation_frequency  = $_POST['impact_frequency'];
+		$number_of_evaluations  = $_POST['evaluationNumberFreq'];
+		$responsible  = $_POST['impactresponsible'];
+		$report_user = implode(",", $_POST['impactreportUser']);
+		$reporting_timeline  = implode(",", $_POST['impactReportingFreq']);
+		$createdby  = $_POST['user_name'];
+
+		$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_impact_details`(projid, impact, indid, data_source, evaluation_frequency, number_of_evaluations, responsible, report_user, reporting_timeline, added_by, date_added) VALUES(:projid, :impact, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :responsible, :report_user, :reporting_timeline, :added_by, :date_added)");
+		$result1  = $insertSQL1->execute(array(":projid" => $projid, ":impact" => $impact, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":responsible" => $responsible, ":report_user" => $report_user, ":reporting_timeline" => $reporting_timeline, ":added_by" => $createdby, ":date_added" => $datecreated));
+		$resultstypeid = $db->lastInsertId();
+
+		if (isset($_POST['impactrisk'])) {
+			for ($i = 0; $i < count($_POST['impactrisk']); $i++) {
+				$riskid = $_POST['impactrisk'][$i];
+				$assumption = $_POST['impact_assumptions'][$i];
+				$type = 1;
+				$insertSQL1 = $db->prepare("INSERT INTO `tbl_projectrisks`(projid, rskid, type, resultstypeid, assumption) VALUES(:projid, :rskid, :type, :resultstypeid, :assumption)");
+				$result1  = $insertSQL1->execute(array(":projid" => $projid, ":rskid" => $riskid, ":type" => $type, ":resultstypeid" => $resultstypeid, ":assumption" => $assumption));
+			}
+		}
+
+		$mainquestion = $_POST['impactmainquestion'];
+		$questiontype = 1;
+		$answertype = $_POST['impactmainanswertype'];
+		$mainanswerlabels = $_POST['impact_main_answer_labels'];
+		$resultstype = 1;
+
+
+		if ($data_source == 1) {
+			$insertmainquestion = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+			$result1  = $insertmainquestion->execute(array(":projid" => $projid, ":question" => $mainquestion, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $mainanswerlabels));
+			
+			for ($j = 0; $j < count($_POST['impactquestions']); $j++) {
+				if(!empty($_POST['impactquestions'][$j]) && !empty($_POST['impactanswertype'][$j])){
+					$question = $_POST['impactquestions'][$j];
+					$answertype = $_POST['impactanswertype'][$j];
+					$answerlabels = $_POST['impact_other_answer_label'][$j];
+					$questiontype = 2;
+
+					$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+					$result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
+				}
+			}
+		}
+
+
+		if ($result1) {
+			$query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
+			$query_timeline->execute();
+			$row_timeline = $query_timeline->fetch();
+			$time = $row_timeline["time"];
+			$unit = $row_timeline["units"];
+
+			// today's date
+			$Date = date("Y-m-d");
+			// Add days to date and display it
+			$duedate = date('Y-m-d', strtotime($Date . ' + ' . $time . ' ' . $unit));
+
+			$query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
+			$query_rsteam->execute();
+			$row_rsteam = $query_rsteam->fetch();
+			$totalRows_rsteam = $query_rsteam->rowCount();
+			$title = $row_rsteam['title'];
+			$fullname = $title . "." . $row_rsteam['fullname'];
+			$receipient = $row_rsteam['email'];
+
+			$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+			$query_url->execute();
+			$row_url = $query_url->fetch();
+			$url = $row_url["main_url"];
+			$org = $row_url["company_name"];
+			$org_email = $row_url["email_address"];
+
+			$urlextention = "view-project-survey";
+			if ($data_source == 2) {
+				$urlextention = "evaluation-secondary-data-source";
+			}
+
+			function send_email()
+			{
+				require 'PHPMailer/PHPMailerAutoload.php';
+				$detailslink = '<a href="' . $url . $urlextention . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
+
+				$mainmessage = ' Dear ' . $fullname . ',
+				<p>Please note you have been assigned to carry out project impact baseline survey as per the details below:</p>
+				<p>Project Code:' . $projcode . '<br>
+				Project Name: ' . $projname . '<br>
+				Expected due date: ' . $duedate . '</p>
+				<p>Prepare the required resources. </p>';
+				$title = "Project Impact Baseline Survey";
+				$subject = "Project Impact Baseline Survey";
+				$receipientName = $fullname;
+
+				include("assets/processor/email-body.php");
+				include("assets/processor/email-conf-settings.php");
+			}
+			
+			$msg = 'Project Impact evaluation data successfully added';
+		}
+
+        if ($result1) {
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+//======================================== END ADD IMPACT DETAILS ===============================================
+
+//======================================== START EDIT IMPACT DETAILS ============================================
+if (isset($_POST['editimpact'])) {
+    if (isset($_POST['impactid']) && !empty($_POST['impactid'])) {
+        $impactid = $_POST['impactid'];
+        $impact = $_POST['impact'];
+		$projid = $_POST['projid'];
+		$indid  = $_POST['impactIndicator'];
+		$data_source  = $_POST['impactdataSource'];
+		$evaluation_frequency  = $_POST['impact_frequency'];
+		$number_of_evaluations  = $_POST['evaluationNumberFreq'];
+		$responsible  = $_POST['impactresponsible'];
+		$mainanswerlabels = $_POST['impact_main_answer_labels'];
+		$report_user = implode(",", $_POST['impactreportUser']);
+		$reporting_timeline  = implode(",", $_POST['impactReportingFreq']);
+		$createdby  = $_POST['user_name'];
+
+		$insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_impact_details`  SET projid = :projid, impact = :impact, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, responsible = :responsible, report_user = :report_user, reporting_timeline = :reporting_timeline, changed_by = :added_by, date_changed = :date_added WHERE id = :impactid");
+		$result1  = $insertSQL1->execute(array(":projid" => $projid, ":impact" => $impact, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":responsible" => $responsible, ":report_user" => $report_user, ":reporting_timeline" => $reporting_timeline, ":added_by" => $createdby, ":date_added" => $datecreated, ":impactid" => $impactid));
+
+		if (isset($_POST['impactrisk'])) {
+			$deleteQuery = $db->prepare("DELETE FROM tbl_projectrisks WHERE projid=:projid AND resultstypeid=:impactid");
+			$results1 = $deleteQuery->execute(array(':projid' => $projid, ':impactid' => $impactid));
+			
+			for ($i = 0; $i < count($_POST['impactrisk']); $i++) {
+				$riskid = $_POST['impactrisk'][$i];
+				$assumption = $_POST['impact_assumptions'][$i];
+				$type = 1;
+				$insertSQL1 = $db->prepare("INSERT INTO `tbl_projectrisks`(projid, rskid, type, resultstypeid, assumption) VALUES(:projid, :rskid, :type, :resultstypeid, :assumption)");
+				$result1  = $insertSQL1->execute(array(":projid" => $projid, ":rskid" => $riskid, ":type" => $type, ":resultstypeid" => $impactid, ":assumption" => $assumption));
+			}
+		}
+
+		$mainquestion = $_POST['impactmainquestion'];
+		$questiontype = 1;
+		$answertype = $_POST['impactmainanswertype'];
+		$resultstype = 1;
+		
+		$deleteQuery = $db->prepare("DELETE FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstypeid=:impactid");
+		$results1 = $deleteQuery->execute(array(':projid' => $projid, ':impactid' => $impactid));
+
+		if ($data_source == 1) {
+			$insertmainquestion = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+			$result1  = $insertmainquestion->execute(array(":projid" => $projid, ":question" => $mainquestion, ":resultstype" => $resultstype, ":resultstypeid" => $impactid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $mainanswerlabels));
+				
+			for ($j = 0; $j < count($_POST['impactquestions']); $j++) {
+				$question = $_POST['impactquestions'][$j];
+				$answertype = $_POST['impactanswertype'][$j];
+				$answerlabels = $_POST['impact_other_answer_label'][$j];
+				$questiontype = 2;
+
+				if(!empty($question)){
+					$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+					$result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $impactid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
+				}
+			}
+		}
+
+
+		if ($result1) {
+			$query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
+			$query_timeline->execute();
+			$row_timeline = $query_timeline->fetch();
+			$time = $row_timeline["time"];
+			$unit = $row_timeline["units"];
+
+			// today's date
+			$Date = date("Y-m-d");
+			// Add days to date and display it
+			$duedate = date('Y-m-d', strtotime($Date . ' + ' . $time . ' ' . $unit));
+
+			$query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
+			$query_rsteam->execute();
+			$row_rsteam = $query_rsteam->fetch();
+			$totalRows_rsteam = $query_rsteam->rowCount();
+			$title = $row_rsteam['title'];
+			$fullname = $title . "." . $row_rsteam['fullname'];
+			$receipient = $row_rsteam['email'];
+
+			$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+			$query_url->execute();
+			$row_url = $query_url->fetch();
+			$url = $row_url["main_url"];
+			$org = $row_url["company_name"];
+			$org_email = $row_url["email_address"];
+
+			$urlextention = "view-project-survey";
+			if ($data_source == 2) {
+				$urlextention = "evaluation-secondary-data-source";
+			}
+
+			function send_email()
+			{
+				require 'PHPMailer/PHPMailerAutoload.php';
+				$detailslink = '<a href="' . $url . $urlextention . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
+
+				$mainmessage = ' Dear ' . $fullname . ',
+				<p>Please note you have been assigned to carry out project impact baseline survey as per the details below:</p>
+				<p>Project Code:' . $projcode . '<br>
+				Project Name: ' . $projname . '<br>
+				Expected due date: ' . $duedate . '</p>
+				<p>Prepare the required resources. </p>';
+				$title = "Project Impact Baseline Survey";
+				$subject = "Project Impact Baseline Survey";
+				$receipientName = $fullname;
+
+				include("assets/processor/email-body.php");
+				include("assets/processor/email-conf-settings.php");
+			}
+			
+			$msg = 'Project Impact evaluation data successfully added';
+		}
+
+        if ($result1) {
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+
+//======================================== EDIT EDIT IMPACT DETAILS ============================================
+
+
+//======================================== START ADD outcome DETAILS ============================================
+
+if (isset($_POST['addoutcome'])) {
+    if (isset($_POST['outcome']) && !empty($_POST['outcome'])) {
+        $outcome = $_POST['outcome'];
+		$projid = $_POST['projid'];
+		$indid  = $_POST['outcomeIndicator'];
+		$data_source  = $_POST['outcomedataSource'];
+		$evaluation_frequency  = $_POST['outcome_frequency'];
+		$number_of_evaluations  = $_POST['evaluationNumberFreq'];
+		$responsible  = $_POST['outcomeresponsible'];
+		$mainanswerlabels = $_POST['outcome_main_answer_labels'];
+		$report_user = implode(",", $_POST['outcomereportUser']);
+		$reporting_timeline  = implode(",", $_POST['outcomeReportingFreq']);
+		$createdby  = $_POST['user_name'];
+		$parentimpact  = 0;
+		if(isset($_POST['parentimpact']) && !empty($_POST['parentimpact'])){
+			$parentimpact  = $_POST['parentimpact'];
+		}
+
+		$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_outcome_details`(projid, impactid, outcome, indid, data_source, evaluation_frequency, number_of_evaluations, responsible, report_user, reporting_timeline, added_by, date_added) VALUES(:projid, :parentimpact, :outcome, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :responsible, :report_user, :reporting_timeline, :added_by, :date_added)");
+		$result1  = $insertSQL1->execute(array(":projid" => $projid, ":parentimpact" => $parentimpact, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":responsible" => $responsible, ":report_user" => $report_user, ":reporting_timeline" => $reporting_timeline, ":added_by" => $createdby, ":date_added" => $datecreated));
+		$resultstypeid = $db->lastInsertId();
+
+		if (isset($_POST['outcomerisk'])) {
+			$deleteQuery = $db->prepare("DELETE FROM tbl_projectrisks WHERE projid=:projid AND resultstypeid=:resultstypeid");
+			$results1 = $deleteQuery->execute(array(':projid' => $projid, ':resultstypeid' => $resultstypeid));
+			for ($i = 0; $i < count($_POST['outcomerisk']); $i++) {
+				$riskid = $_POST['outcomerisk'][$i];
+				$assumption = $_POST['outcome_assumptions'][$i];
+				$type = 2;
+				$insertSQL1 = $db->prepare("INSERT INTO `tbl_projectrisks`(projid, rskid, type, resultstypeid, assumption) VALUES(:projid, :rskid, :type, :resultstypeid, :assumption)");
+				$result1  = $insertSQL1->execute(array(":projid" => $projid, ":rskid" => $riskid, ":type" => $type, ":resultstypeid" => $resultstypeid, ":assumption" => $assumption));
+			}
+		}
+				
+		$answertype = $_POST['outcomemainanswertype'];
+		$mainquestion = $_POST['outcomemainquestion'];
+		$questiontype = 1;
+		$resultstype = 2;
+
+		if ($data_source == 1) {
+			$insertmainquestion = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+			$result1  = $insertmainquestion->execute(array(":projid" => $projid, ":question" => $mainquestion, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $mainanswerlabels));
+			
+			for ($j = 0; $j < count($_POST['outcomeotherquestions']); $j++) {
+				$question = $_POST['outcomeotherquestions'][$j];
+				$answertype = $_POST['outcomeotheranswertype'][$j];
+				$answerlabels = $_POST['outcome_other_answer_label'][$j];
+				$questiontype = 2;
+
+				$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+				$result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
+			}
+		}
+
+
+		if ($result1) {
+			$query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
+			$query_timeline->execute();
+			$row_timeline = $query_timeline->fetch();
+			$time = $row_timeline["time"];
+			$unit = $row_timeline["units"];
+
+			// today's date
+			$Date = date("Y-m-d");
+			// Add days to date and display it
+			$duedate = date('Y-m-d', strtotime($Date . ' + ' . $time . ' ' . $unit));
+
+			$query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
+			$query_rsteam->execute();
+			$row_rsteam = $query_rsteam->fetch();
+			$totalRows_rsteam = $query_rsteam->rowCount();
+			$title = $row_rsteam['title'];
+			$fullname = $title . "." . $row_rsteam['fullname'];
+			$receipient = $row_rsteam['email'];
+
+			$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+			$query_url->execute();
+			$row_url = $query_url->fetch();
+			$url = $row_url["main_url"];
+			$org = $row_url["company_name"];
+			$org_email = $row_url["email_address"];
+
+			$urlextention = "view-project-survey";
+			if ($data_source == 2) {
+				$urlextention = "evaluation-secondary-data-source";
+			}
+
+			function send_email()
+			{
+				require 'PHPMailer/PHPMailerAutoload.php';
+				$detailslink = '<a href="' . $url . $urlextention . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
+
+				$mainmessage = ' Dear ' . $fullname . ',
+				<p>Please note you have been assigned to carry out project outcome baseline survey as per the details below:</p>
+				<p>Project Code:' . $projcode . '<br>
+				Project Name: ' . $projname . '<br>
+				Expected due date: ' . $duedate . '</p>
+				<p>Prepare the required resources. </p>';
+				$title = "Project Outcome Baseline Survey";
+				$subject = "Project Outcome Baseline Survey";
+				$receipientName = $fullname;
+
+				include("assets/processor/email-body.php");
+				include("assets/processor/email-conf-settings.php");
+			}
+			
+			$msg = 'Project Outcome evaluation data successfully added';
+		}
+
+        if ($result1) {
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+//================================== END ADD OUTCOME DETAILS ================================================
+
+
+
+//======================================== START EDIT outcome DETAILS ============================================
+
+if (isset($_POST['editoutcome'])) {
+    if (isset($_POST['outcomeid']) && !empty($_POST['outcomeid'])) {
+        $outcomeid = $_POST['outcomeid'];
+        $outcome = $_POST['outcome'];
+		$projid = $_POST['projid'];
+		$indid  = $_POST['outcomeIndicator'];
+		$data_source  = $_POST['outcomedataSource'];
+		$evaluation_frequency  = $_POST['outcome_frequency'];
+		$number_of_evaluations  = $_POST['evaluationNumberFreq'];
+		$responsible  = $_POST['outcomeresponsible'];
+		$mainanswerlabels = $_POST['outcome_main_answer_labels'];
+		$report_user = implode(",", $_POST['outcomereportUser']);
+		$reporting_timeline  = implode(",", $_POST['outcomeReportingFreq']);
+		$createdby  = $_POST['user_name'];	
+		$parentimpact  = 0;
+		if(isset($_POST['parentimpact']) && !empty($_POST['parentimpact'])){
+			$parentimpact  = $_POST['parentimpact'];
+		}	
+
+		$insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_outcome_details`  SET projid = :projid, impactid = :parentimpact, outcome = :outcome, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, responsible = :responsible, report_user = :report_user, reporting_timeline = :reporting_timeline, changed_by = :changed_by, date_changed = :date_added WHERE id = :outcomeid");
+		$result1  = $insertSQL1->execute(array(":projid" => $projid, ":parentimpact" => $parentimpact, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":responsible" => $responsible, ":report_user" => $report_user, ":reporting_timeline" => $reporting_timeline, ":changed_by" => $createdby, ":date_added" => $datecreated, ":outcomeid" => $outcomeid));
+		
+
+		if (isset($_POST['outcomerisk'])) {
+			$deleteQuery = $db->prepare("DELETE FROM tbl_projectrisks WHERE projid=:projid AND resultstypeid=:resultstypeid");
+			$results1 = $deleteQuery->execute(array(':projid' => $projid, ':resultstypeid' => $outcomeid));
+			for ($i = 0; $i < count($_POST['outcomerisk']); $i++) {
+				$riskid = $_POST['outcomerisk'][$i];
+				$assumption = $_POST['outcome_assumptions'][$i];
+				$type = 2;
+				$insertSQL1 = $db->prepare("INSERT INTO `tbl_projectrisks`(projid, rskid, type, resultstypeid, assumption) VALUES(:projid, :rskid, :type, :resultstypeid, :assumption)");
+				$insertSQL1->execute(array(":projid" => $projid, ":rskid" => $riskid, ":type" => $type, ":resultstypeid" => $outcomeid, ":assumption" => $assumption));
+			}
+		}
+
+		$mainquestion = $_POST['outcomemainquestion'];
+		$questiontype = 1;
+		$answertype = $_POST['outcomemainanswertype'];
+		$resultstype = 2;
+		
+		$deleteQuery = $db->prepare("DELETE FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstypeid=:outcomeid");
+		$results1 = $deleteQuery->execute(array(':projid' => $projid, ':outcomeid' => $outcomeid));
+
+		if ($data_source == 1) {
+			$insertmainquestion = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+			$insertmainquestion->execute(array(":projid" => $projid, ":question" => $mainquestion, ":resultstype" => $resultstype, ":resultstypeid" => $outcomeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $mainanswerlabels));
+			
+			for ($j = 0; $j < count($_POST['outcomeotherquestions']); $j++) {
+				$question = $_POST['outcomeotherquestions'][$j];
+				$answertype = $_POST['outcomeotheranswertype'][$j];
+				$answerlabels = $_POST['outcome_other_answer_label'][$j];
+				$questiontype = 2;
+
+				if(!empty($question)){
+					$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, resultstype, resultstypeid, questiontype, answertype, answerlabels) VALUES(:projid, :question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels)");
+					$insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $outcomeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
+				}
+			}
+		}
+
+		if ($result1) {
+			$query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
+			$query_timeline->execute();
+			$row_timeline = $query_timeline->fetch();
+			$time = $row_timeline["time"];
+			$unit = $row_timeline["units"];
+
+			// today's date
+			$Date = date("Y-m-d");
+			// Add days to date and display it
+			$duedate = date('Y-m-d', strtotime($Date . ' + ' . $time . ' ' . $unit));
+
+			$query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
+			$query_rsteam->execute();
+			$row_rsteam = $query_rsteam->fetch();
+			$totalRows_rsteam = $query_rsteam->rowCount();
+			$title = $row_rsteam['title'];
+			$fullname = $title . "." . $row_rsteam['fullname'];
+			$receipient = $row_rsteam['email'];
+
+			$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+			$query_url->execute();
+			$row_url = $query_url->fetch();
+			$url = $row_url["main_url"];
+			$org = $row_url["company_name"];
+			$org_email = $row_url["email_address"];
+
+			$urlextention = "view-project-survey";
+			if ($data_source == 2) {
+				$urlextention = "evaluation-secondary-data-source";
+			}
+
+			function send_email()
+			{
+				require 'PHPMailer/PHPMailerAutoload.php';
+				$detailslink = '<a href="' . $url . $urlextention . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
+
+				$mainmessage = ' Dear ' . $fullname . ',
+				<p>Please note you have been assigned to carry out project outcome baseline survey as per the details below:</p>
+				<p>Project Code:' . $projcode . '<br>
+				Project Name: ' . $projname . '<br>
+				Expected due date: ' . $duedate . '</p>
+				<p>Prepare the required resources. </p>';
+				$title = "Project Outcome Baseline Survey";
+				$subject = "Project Outcome Baseline Survey";
+				$receipientName = $fullname;
+
+				include("assets/processor/email-body.php");
+				include("assets/processor/email-conf-settings.php");
+			}
+			
+			$msg = 'Project Outcome evaluation data successfully added';
+		}
+
+        if ($result1) {
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+//================================== END EDIT OUTCOME DETAILS ================================================
+
+
+//================================== START ADD OUTPUT DETAILS ================================================
+
+
 if (isset($_POST['addoutput'])) {
     if (isset($_POST['opid'])) {
         $output = $_POST['opid'];
         $projid = $_POST['projid'];
         $outputIndicator  = $_POST['output_indicator'];
         $outputMonitorigFreq = $_POST['outputMonitorigFreq'];
-        //$outputReportingTimeline = implode(",", $_POST['outputReportingTimeline']);
-        $datecreated = date("Y-m-d");
-        $createdby = $_POST['user_name'];
-        $createdby = 1;
-		$stage = 10;
+        $responsible = $_POST['responsible'];
+        $daysbefore = $_POST['daysbefore'];
+        $daysafter = $_POST['daysafter'];
 		
-		$query_proj = $db->prepare("SELECT projevaluation FROM tbl_projects WHERE projid =:projid ");
-		$query_proj->execute(array(":projid" => $projid));
-		$row_proj = $query_proj->fetch();
-		$projevaluation = $row_proj['projevaluation'];
-		
-		if($projevaluation == 0){
-			$query_update = $db->prepare("UPDATE tbl_projects SET projstage = :stage WHERE projid = :projid");
-			$query_update->execute(array(":stage" => $stage, ":projid" => $projid));
+		$outcomeid  = 0;
+		if(isset($_POST['parentoutcome']) && !empty($_POST['parentoutcome'])){
+			$outcomeid = $_POST['parentoutcome'];
 		}
 
-        $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_outputs_mne_details`(projid, outputid, indicator, monitoring_frequency, date_created, created_by) VALUES(:projid, :output, :indicator,  :monitoring_frequency, :date_added,:added_by)");
-        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":output" => $output,":indicator" => $outputIndicator,  ":monitoring_frequency" => $outputMonitorigFreq, ":date_added" => $datecreated, ":added_by" => $createdby));
+        $datecreated = date("Y-m-d");
+        $createdby = $_POST['user_name'];
+        $mnecode = "AB123" . $projid . $output;
+        $next_mon_date = next_monitoring_date($projid, $output, $outputMonitorigFreq);
+
+
+
+        $sql = $db->prepare("INSERT INTO `tbl_project_outputs_mne_details`(projid, outcomeid, outputid, indicator, responsible,monitoring_frequency, daysbefore, daysafter, next_monitoring_date, mne_code, date_created, created_by) VALUES(:projid, :outcomeid, :output, :indicator,:responsible,:monitoring_frequency, :daysbefore, :daysafter, :next_monitoring_date, :mnecode, :date_added,:added_by)");
+        $result1  = $sql->execute(array(":projid" => $projid, ":outcomeid" => $outcomeid, ":output" => $output, ":indicator" => $outputIndicator, ":responsible" => $responsible, ":monitoring_frequency" => $outputMonitorigFreq, ":daysbefore" => $daysbefore, ":daysafter" => $daysafter, ":next_monitoring_date" => $next_mon_date, ":mnecode" => $mnecode, ":date_added" => $datecreated, ":added_by" => $createdby));
 
         if (isset($_POST['outputrisk'])) {
             for ($i = 0; $i < count($_POST['outputrisk']); $i++) {
@@ -118,37 +610,33 @@ if (isset($_POST['addoutput'])) {
             }
         }
 
-        if (isset($_POST['forest'])) {
-            for ($i = 0; $i < count($_POST['forest']); $i++) {
-                $opstate = $_POST['forest'][$i];
-                $team = $_POST['team' . $opstate];
-                $diss_val = $_POST['diss_id' . $opstate];
-                $var_count = count($diss_val);
-
-                for ($jp = 0; $jp < $var_count; $jp++) {
-                    $diss_id = $diss_val[$jp];
-                    $member = $team[$jp];
-                    $insertSQL1 = $db->prepare("UPDATE tbl_output_disaggregation SET responsible = :responsible WHERE  projid=:projid  AND outputid=:outputid AND  id=:id ");
-                    $result1  = $insertSQL1->execute(array(":responsible" => $member, ":projid" => $projid, ":outputid" => $output, ":id" => $diss_id));
-                }
-            }
-        }
-
-        if (isset($_POST['ind_forest'])) { 
-            $diss_val = $_POST['diss_id'];
-            for ($jp = 0; $jp < count($diss_val); $jp++) {
-                $diss_id = $diss_val[$jp];
-                $team = $_POST['team' . $diss_id];
-                $member = implode(',', $team);
-                $insertSQL1 = $db->prepare("UPDATE tbl_output_disaggregation SET responsible = :responsible  WHERE  projid=:projid  AND outputid=:outputid AND  id=:id ");
-                $result1  = $insertSQL1->execute(array(":responsible" => $member, ":projid" => $projid, ":outputid" => $output , ":id" => $diss_id));
-            }
-        }
         if ($result1) {
             echo json_encode(array("msg" => true));
         }
     }
 }
+
+function next_monitoring_date($projid, $outputid, $frequency_id)
+{
+    global $db;
+    $query_monitoringfreq =  $db->prepare("SELECT frequency, days FROM tbl_datacollectionfreq WHERE fqid = :fqid");
+    $query_monitoringfreq->execute(array(":fqid" => $frequency_id));
+    $row_monitoringfreq = $query_monitoringfreq->fetch();
+    $totalRows_monitoringfreq = $query_monitoringfreq->rowCount();
+
+    $next_mon_date = "";
+    if ($totalRows_monitoringfreq > 0) {
+        $monfreq = $row_monitoringfreq['days'];
+        $query_task_startdate =  $db->prepare("SELECT MIN(sdate) as earliestopdate FROM tbl_task WHERE projid = :projid and outputid=:outputid");
+        $query_task_startdate->execute(array(":projid" => $projid, ":outputid" => $outputid));
+        $row_task_startdate = $query_task_startdate->fetch();
+        $task_startdate = $row_task_startdate['earliestopdate'];
+        $next_mon_date = date("Y-m-d", strtotime($task_startdate . ' + ' . $monfreq));
+    }
+
+    return $next_mon_date;
+}
+
 
 if (isset($_POST['get_output_details'])) {
     $projid = $_POST['projid'];
@@ -158,260 +646,85 @@ if (isset($_POST['get_output_details'])) {
     $row_rsDetails = $query_rsDetails->fetch();
     $totalRows_rsDetails = $query_rsDetails->rowCount();
 
-    if ($totalRows_rsDetails > 0) { 
-        $monitoringfreq = $row_rsDetails['monitoring_frequency']; 
-        $reporting_timeline = explode(",",$row_rsDetails['reporting_timeline']); 
+    $success = false;
+    $moni = '<option value="">No Frequency Found</option>';
+    $responsible_input = '<option value="">... Select Personnel Found ...</option>';
+    $risks = $monitoringfreq = $responsible = '';
+
+    if ($totalRows_rsDetails > 0) {
+        $success = true;
+        $monitoringfreq = $row_rsDetails['monitoring_frequency'];
+        $responsible = $row_rsDetails['responsible'];
         $opid = $row_rsDetails['outputid'];
 
         $query_rsOPRisk =  $db->prepare("SELECT * FROM tbl_projectrisks WHERE projid=:projid AND outputid=:outputid");
         $query_rsOPRisk->execute(array(":projid" => $projid, ":outputid" => $outputid));
         $row_rsOPRisk = $query_rsOPRisk->fetch();
         $totalRows_rsOPRisk = $query_rsOPRisk->rowCount();
- 
 
         if ($totalRows_rsOPRisk > 0) {
             $rowno = 0;
-            $risks = '';
             do {
                 $type = 3;
                 $riskid = $row_rsOPRisk['rskid'];
                 $assumption = $row_rsOPRisk['assumption'];
                 $rowno++;
-                $query_rsRisk =  $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories where type=:type");
-                $query_rsRisk->execute(array(":type" => $type));
-                $row_rsRisk = $query_rsRisk->fetch();
+                $query_rsRisk = $db->prepare("SELECT * FROM tbl_projrisk_categories");
+                $query_rsRisk->execute();
                 $totalRows_rsRisk = $query_rsRisk->rowCount();
 
+                $input = '<option value="">No Risks Found</option>';
                 if ($totalRows_rsRisk > 0) {
                     $input = '<option value="">... Select from list ...</option>';
-                    do {
-                        if ($riskid == $row_rsRisk['rskid']) {
-                            $input .= '<option value="' . $row_rsRisk['rskid'] . '" selected>' . $row_rsRisk['category'] . ' </option>';
-                        } else {
-                            $input .= '<option value="' . $row_rsRisk['rskid'] . '">' . $row_rsRisk['category'] . ' </option>';
+                    while ($row_rsRisk = $query_rsRisk->fetch()) {
+                        $risktype = explode(',', $row_rsRisk["type"]);
+                        if (in_array($type, $risktype)) {
+                            $selected = ($riskid == $row_rsRisk['rskid']) ? "selected" : "";
+                            $input .= '<option value="' . $row_rsRisk['rskid'] . '" ' . $selected . '>' . $row_rsRisk['category'] . ' </option>';
                         }
-                    } while ($row_rsRisk = $query_rsRisk->fetch());
-                } else {
-                    $input .= '<option value="">No Risks Found</option>';
+                    }
                 }
 
-                $risks .= '<tr id="outputrow' . $rowno . '">
-                <td>' . $rowno . '</td>
-                <td>
-                    <select  data-id="' . $rowno . '" name="outputrisk[]" id="outputriskrow' . $rowno . '" class="form-control  selected_output" required="required">
-                    ' . $input . '
-                    </select>
-                </td>
-                <td>
-                <input type="text" name="output_assumptions[]"  id="output_assumptionsrow' . $rowno . '" value="' . $assumption . '"  placeholder="Enter"  class="form-control"  required/>
-                </td>
-                <td>';
-                if ($rowno == 1) {
-                } else {
-                    $risks .= '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_output("outputrow' . $rowno . '")>
+                $risks .= '
+                <tr id="outputrow' . $rowno . '">
+                    <td>' . $rowno . '</td>
+                    <td>
+                        <select  data-id="' . $rowno . '" name="outputrisk[]" id="outputriskrow' . $rowno . '" class="form-control  selected_output" required="required">
+                        ' . $input . '
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="output_assumptions[]"  id="output_assumptionsrow' . $rowno . '" value="' . $assumption . '"  placeholder="Enter"  class="form-control"  required/>
+                    </td>
+                    <td>';
+                if ($rowno != 1) {
+                    $risks .= '
+                    <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_output("outputrow' . $rowno . '")>
                         <span class="glyphicon glyphicon-minus"></span> 
-                        </button>';
+                    </button>';
                 }
-
-
-                $risks .= '</td>
+                $risks .= '
+                    </td>
                 </tr>';
             } while ($row_rsOPRisk = $query_rsOPRisk->fetch());
         }
- 
-        $query_rsdissegragations = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid='$outputid' AND locations IS NOT NULL");
-        $result = $query_rsdissegragations->execute();
-        $row_rsdissegragations = $query_rsdissegragations->fetch();
-        $totalRows_rsdissegragations = $query_rsdissegragations->rowCount();
-        
-        $data = '';
-        if ($totalRows_rsdissegragations > 0) {
-            $st = 0;
-            do {
-                $row = 0;
-                $st++;
-                $opstate = $row_rsdissegragations['outputstate'];
-                $oprow = $opstate . $st;
-                $locations = explode(",", $row_rsdissegragations['locations']);
-
-                $query_rsForest = $db->prepare("SELECT id, state FROM tbl_state WHERE  id='$opstate' LIMIT 1");
-                $query_rsForest->execute();
-                $row_rsForest = $query_rsForest->fetch();
-                $forest = $row_rsForest['state'];
-
-                $data .= '
-                <tr>
-                    <td>' . $st . '</td>
-                    <td colspan="4"> <strong>
-                        ' . $forest . ' ' . $level3label . ' </strong> 
-                        <input type="hidden" name="forest[]" id="forest' . $st . '"   value="' . $opstate . '"  />
-                    </td> 
-                </tr>';
-
-                $query_rsproject_dissegragations = $db->prepare("SELECT * FROM tbl_project_results_level_disaggregation  WHERE projoutputid	='$opid' AND projid='$projid' AND opstate='$opstate' ");
-                $result = $query_rsproject_dissegragations->execute();
-                $row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch();
-                $totalRows_rsproject_dissegragations = $query_rsproject_dissegragations->rowCount();
-
-                do {
-                    $rowno = $opstate . $st . $row;
-                    $team = '<option value="" >...Select from list...</option>';
-                    $locationName = $row_rsproject_dissegragations['name'];
-                    $id = $row_rsproject_dissegragations['id'];
-                    $responsible = $row_rsproject_dissegragations['responsible'];
-
-                    $row++;
-                    $query_rsMembers = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid=:projid");
-                    $query_rsMembers->execute(array(":projid" => $projid));
-                    $row_rsMembers = $query_rsMembers->fetch();
-                    $totalRows_rsMembers = $query_rsMembers->rowCount();
-
-                    do {
-                        $ptid = $row_rsMembers['ptid'];
-                        $query_rsTeam = $db->prepare("SELECT *  FROM tbl_projteam2 WHERE ptid=:ptid ");
-                        $query_rsTeam->execute(array(":ptid" => $ptid));
-                        $row_rsTeam = $query_rsTeam->fetch();
-                        $totalRows_rsTeam = $query_rsTeam->rowCount();
-                        if ($responsible == $row_rsTeam['ptid']) {
-                            $team .= '<option value="' . $row_rsTeam['ptid'] . '" selected>' . $row_rsTeam['fullname'] . '</option>';
-                        } else {
-                            $team .= '<option value="' . $row_rsTeam['ptid'] . '">' . $row_rsTeam['fullname'] . '</option>';
-                        }
-                    } while ($row_rsMembers = $query_rsMembers->fetch());
-
-                    $data .= '
-                        <tr id=""> 
-                            <td>' . $st . "." . $row . '</td> 
-                            <td>
-                            ' . $locationName . '
-                                <input type="hidden" name="diss_id' . $opstate . '[]"  id="diss_id' . $rowno . '" class="form-control" value="' . $row_rsproject_dissegragations['id'] . '"  required />
-                            </td>
-                            <td>
-                            <select name="team' . $opstate . '[]"  id="team' . $rowno . '" class="form-control" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                    ' . $team . '
-                                </select>
-                            </td>  
-                        </tr>';
-                } while ($row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch());
-            } while ($row_rsdissegragations = $query_rsdissegragations->fetch());
-        }else{
-            $query_opresponsible = $db->prepare("SELECT id, responsible, outputstate FROM tbl_output_disaggregation WHERE projid = '$projid' and outputid = '$opid' ");
-            $query_opresponsible->execute();
-            $row_opresponsible = $query_opresponsible->fetch();
-            $rowCount_opresponsible = $query_opresponsible->rowCount();
-             
-            $rowno = 0;
-            if($rowCount_opresponsible >0){
-                do  {
-                    $team = '<option value="" >...Select from list...</option>';
-                    $responsible = explode(',',$row_opresponsible['responsible']);
-                    $diss_id = $row_opresponsible['id'];
-                    $projstate = $row_opresponsible['outputstate'];
- 
-                    $query_rsForest = $db->prepare("SELECT id, state FROM tbl_state WHERE  id='$projstate' LIMIT 1");
-                    $query_rsForest->execute();
-                    $row_rsForest = $query_rsForest->fetch();
-                    $locationName = $row_rsForest['state'];
-                    
-                    $rowno++;
-                    $query_rsMembers = $db->prepare("SELECT * FROM tbl_projteam2 ");
-                    $query_rsMembers->execute(array(":projid" => $projid));
-                    $row_rsMembers = $query_rsMembers->fetch();
-                    $totalRows_rsMembers = $query_rsMembers->rowCount();
-
-                    do {
-                        $ptid = $row_rsMembers['ptid'];
-                        if (in_array($row_rsMembers['ptid'], $responsible)) {
-                            $team .= '<option value="' . $row_rsMembers['ptid'] . '" selected>' . $row_rsMembers['fullname'] . '</option>';
-                        } else {
-                            $team .= '<option value="' . $row_rsMembers['ptid'] . '">' . $row_rsMembers['fullname'] . '</option>';
-                        }
-                    } while ($row_rsMembers = $query_rsMembers->fetch());
-
-                    $data .= '
-                        <tr id=""> 
-                            <td>' .  $rowno . '</td> 
-                            <td>
-                                ' . $locationName . '
-                                <input type="hidden" name="diss_id[]"  id="diss_id' . $rowno . '" class="form-control" value="' . $diss_id . '"  required />
-                                <input type="hidden" name="ind_forest[]" id="ind_forest' . $rowno . '" class="form-control" value=""  required />
-                            </td>
-                            <td>
-                            <select name="team'.$diss_id.'[]" data-live-search="true" id="team' . $rowno . '" class="form-control  selectpicker" multiple="multiple" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                    ' . $team . '
-                                </select>
-                            </td>
-                        </tr>';
-                } while($row_opresponsible = $query_opresponsible->fetch());
-            }else{
-                $data .="not found";
-            }
-        } 
-
-    $query_rs_level1 =  $db->prepare("SELECT fq.level as level1 FROM tbl_datacollectionfreq as fq INNER JOIN tbl_project_details as p ON p.workplan_interval=fq.fqid WHERE p.id=:opid");
-    $query_rs_level1->execute(array(":opid" => $opid));
-    $row_rs_level1 = $query_rs_level1->fetch();
-    $totalRows_rs_level = $query_rs_level1->rowCount();
-    $level =  $row_rs_level1['level1']; 
-
-    $query_rs_frequency1 =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where level <= :level");
-    $query_rs_frequency1->execute(array(":level" => $level));
-    $row_rs_frequency1 = $query_rs_frequency1->fetch();
-    $totalRows_rs_frequency1 = $query_rs_frequency1->rowCount();
-
-    $moni = '<option value="">... Select Monitoring Frequency ...</option>';
-    if ($totalRows_rs_frequency1 > 0) {
-        do {
-            if($monitoringfreq == $row_rs_frequency1['fqid'] ){
-                $moni .= '<option value="' . $row_rs_frequency1['fqid'] . '" selected>' . $row_rs_frequency1['frequency'] . ' </option>';
-            }else{
-                $moni .= '<option value="' . $row_rs_frequency1['fqid'] . '">' . $row_rs_frequency1['frequency'] . ' </option>';
-            }
-        } while ($row_rs_frequency1 = $query_rs_frequency1->fetch());
-    } else {
-        $moni .= '<option value="">No Frequency Found</option>';
-    } 
-
-         
-    $query_rs_level =  $db->prepare("SELECT  level FROM tbl_datacollectionfreq  WHERE fqid=:fqid");
-    $query_rs_level->execute(array(":fqid" => $monitoringfreq));
-    $row_rs_level = $query_rs_level->fetch();
-    $totalRows_rs_level = $query_rs_level->rowCount();
-    $level =  $row_rs_level['level']; 
-
-    $query_rs_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where level >=:level");
-    $query_rs_frequency->execute(array(":level" => $level));
-    $row_rs_frequency = $query_rs_frequency->fetch();
-    $totalRows_rs_frequency = $query_rs_frequency->rowCount();
-
-    $input = '<option value="">... Select from list ...</option>';
-    if ($totalRows_rs_frequency > 0) {
-        do {
-            if(in_array($row_rs_frequency['fqid'], $reporting_timeline)){
-            $input .= '<option value="' . $row_rs_frequency['fqid'] . '" selected>' . $row_rs_frequency['frequency'] . ' </option>';
-            }else{
-                $input .= '<option value="' . $row_rs_frequency['fqid'] . '">' . $row_rs_frequency['frequency'] . ' </option>'; 
-            }
-        } while ($row_rs_frequency = $query_rs_frequency->fetch());
-    } else {
-        $input .= '<option value="">No Frequency Found</option>';
-    } 
-
-        echo json_encode(array("monitoringfreq" => $moni, "reporting_timeline" => $input, "risks" => $risks, "op_diss_state" => $data));
     }
+
+    echo json_encode(array("monitoringfreq" => $monitoringfreq, "responsible" => $responsible, "risks" => $risks, "detailscount" => $totalRows_rsDetails));
 }
 
 if (isset($_POST['editoutput'])) {
     $opid = $_POST['opid'];
-    $projid = $_POST['projid'];  
-    $outputMonitorigFreq = $_POST['outputMonitorigFreq'];  
-    // $outputReportingTimeline = implode(",", $_POST['outputReportingTimeline']);
+    $projid = $_POST['projid'];
+    $outputMonitorigFreq = $_POST['outputMonitorigFreq'];
+    $responsible = $_POST['responsible'];
     $datecreated = date("Y-m-d");
-    // $createdby = $_POST['user_name'];
-
-    $createdby = 1;
-    $insertSQL1 = $db->prepare("UPDATE tbl_project_outputs_mne_details SET  monitoring_frequency=:monitoring_frequency, date_changed=:date_added, changed_by=:added_by WHERE outputid=:opid ");
-    $result1  = $insertSQL1->execute(array( ":monitoring_frequency" => $outputMonitorigFreq, ":date_added" => $datecreated, ":added_by" => $createdby, ":opid" => $opid));
+    $createdby = $_POST['user_name'];
+    $daysbefore = $_POST['daysbefore'];
+    $daysafter = $_POST['daysafter'];
+    $next_mon_date = next_monitoring_date($projid, $opid, $outputMonitorigFreq);
+    $insertSQL1 = $db->prepare("UPDATE tbl_project_outputs_mne_details SET responsible=:responsible, monitoring_frequency=:monitoring_frequency,daysbefore=:daysbefore, daysafter=:daysafter, next_monitoring_date=:next_monitoring_date, date_changed=:date_added, changed_by=:added_by WHERE outputid=:opid ");
+    $result1  = $insertSQL1->execute(array(":responsible" => $responsible, ":monitoring_frequency" => $outputMonitorigFreq, ":daysbefore" => $daysbefore, ":daysafter" => $daysafter, ':next_monitoring_date' => $next_mon_date, ":date_added" => $datecreated, ":added_by" => $createdby, ":opid" => $opid));
 
     if (isset($_POST['outputrisk'])) {
         $deleteQuery = $db->prepare("DELETE FROM `tbl_projectrisks` WHERE outputid=:opid");
@@ -424,33 +737,6 @@ if (isset($_POST['editoutput'])) {
             $insertSQL1 = $db->prepare("INSERT INTO `tbl_projectrisks`(projid, outputid, rskid, type, assumption) VALUES(:projid, :outputid, :rskid, :type, :assumption )");
             $result1  = $insertSQL1->execute(array(":projid" => $projid, ":rskid" => $riskid, ":outputid" => $opid, ":type" => $type, ":assumption" => $assumption));
         }
-
-        if (isset($_POST['forest'])) {
-            var_dump("Disaggregated");
-            return;
-            for ($i = 0; $i < count($_POST['forest']); $i++) {
-                $opstate = $_POST['forest'][$i];
-                $team = $_POST['team' . $opstate];
-                $diss_val = $_POST['diss_id' . $opstate];
-                for ($jp = 0; $jp < count($diss_val); $jp++) {
-                    $diss_id = $diss_val[$jp];
-                    $member = $team[$jp];
-                    $insertSQL1 = $db->prepare("UPDATE tbl_project_results_level_disaggregation SET responsible = :responsible  WHERE  projid=:projid  AND projoutputid=:outputid AND  id=:id ");
-                    $result1  = $insertSQL1->execute(array(":responsible" => $member, ":projid" => $projid, ":outputid" => $opid, ":id" => $diss_id));
-                }
-            }
-        }
-
-        if (isset($_POST['ind_forest'])) { 
-            $diss_val = $_POST['diss_id'];
-            for ($jp = 0; $jp < count($diss_val); $jp++) {
-                $diss_id = $diss_val[$jp];
-                $team = $_POST['team' . $diss_id];
-                $member = implode(',', $team);
-                $insertSQL1 = $db->prepare("UPDATE tbl_output_disaggregation SET responsible = :responsible  WHERE  projid=:projid  AND outputid=:outputid AND  id=:id ");
-                $result1  = $insertSQL1->execute(array(":responsible" => $member, ":projid" => $projid, ":outputid" => $opid, ":id" => $diss_id));
-            }
-        }
     }
     echo json_encode(array("msg" => true));
 }
@@ -458,10 +744,10 @@ if (isset($_POST['editoutput'])) {
 if (isset($_POST["deleteItem"])) {
     $itemid = $_POST['itemId'];
     $responsible = NULL;
-    $report_user =NULL;
+    $report_user = NULL;
     $insertSQL1 = $db->prepare("UPDATE tbl_projects SET mne_responsible = :responsible, mne_report_users=:reportUsers WHERE  projid=:projid");
-    $result1  = $insertSQL1->execute(array(":responsible" => $responsible, ":reportUsers"=>$report_user, ":projid" => $itemid));
- 
+    $result1  = $insertSQL1->execute(array(":responsible" => $responsible, ":reportUsers" => $report_user, ":projid" => $itemid));
+
     $deleteQueryR = $db->prepare("DELETE FROM `tbl_projectrisks` WHERE projid=:itemid");
     $resultsR = $deleteQueryR->execute(array(':itemid' => $itemid));
 
@@ -473,7 +759,7 @@ if (isset($_POST["deleteItem"])) {
 
     $deleteQueryE = $db->prepare("DELETE FROM `tbl_project_outputs_mne_details` WHERE projid=:itemid");
     $results = $deleteQueryE->execute(array(':itemid' => $itemid));
-  
+
 
     if ($results === TRUE) {
         if ($results === TRUE) {
@@ -491,120 +777,13 @@ if (isset($_POST["deleteItem"])) {
     echo json_encode($valid);
 }
 
-if (isset($_POST['get_impact_table'])) {
-    $progid = $_POST['progid'];
-    $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid='$progid'");
-    $query_rsProgram->execute();
-    $row_rsProgram = $query_rsProgram->fetch();
-    $totalRows_rsProgram = $query_rsProgram->rowCount();
-    $kpi = $row_rsProgram['kpi'];
-    $sectorid = $row_rsProgram['projsector'];
-
-    $ME1 = '
-    <div class="col-md-12">
-        <label for="impactName" class="control-label">Impact *:</label>
-        <div class="form-input">
-            <input type="text" name="impactName" id="impactName" placeholder="Enter Project Impact" class="form-control">
-        </div>
-    </div>
-    <div class="col-md-12">
-        <label for="impactIndicator" class="control-label">Indicator *:</label>
-        <div class="form-line">
-            <select name="impactIndicator" onchange="get_impact_ind_details()" id="impactIndicator" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                <option value="">.... Select from list ....</option>';
-                    $query_indicator =  $db->prepare("SELECT * FROM `tbl_indicator` WHERE `indicator_category` = 'Impact' AND indicator_sector = '$sectorid' AND `active` = '1'");
-                    $query_indicator->execute();
-                    $row_indicator = $query_indicator->fetch();
-                    do {
-                        $ME1 .= ' <option value="' . $row_indicator['indid'] . '">' . $row_indicator['indicator_name'] . '</option>';
-                    } while ($row_indicator = $query_indicator->fetch());
-
-                    $ME1 .= '  
-            </select>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <label for="impact_calc_method" class="control-label">Result Type *:</label>
-        <div class="form-input">
-            <input type="text" name="impact_calc_method" readonly id="impact_calc_method" placeholder="Enter Result Type" class="form-control" required="required">
-        </div>
-    </div>
-    <div class="col-md-4">
-        <label for="impactTarget" class="control-label">Units of Measure <span id="impunit"></span>*:</label>
-        <div class="form-input">
-            <input type="text" name="unitofmeasure" readonly id="unitofmeasure" placeholder="Enter Impact Target" class="form-control" required="required">
-        </div>
-    </div>  
-    <div class="col-md-4">
-        <label class="control-label">Assessment Date (Years) *:</label>
-        <div class="form-line">
-            <input type="hidden" name="impactEvaluation" id="impactEvaluation">
-            <input type="number" name="impactEvaluationFreq" onkeyup="impact_Evaluation()" onchange="impact_Evaluation()" id="impactEvaluationFreq" class="form-control" placeholder="Enter Number of Year" required="required">
-        </div>
-    </div>
-    <div class="col-md-12">
-        <label class="control-label">Source of Data *:</label>
-        <div class="form-line">
-            <input type="text" name="impactdataSource"  id="impactdataSource" placeholder="Enter Impact Source of data" class="form-control" required="required">
-        </div>
-    </div> 
-    <div class="col-md-12">
-        <label class="control-label">Impact Risks and Assumptions </label>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
-                <thead>
-                    <tr>
-                        <th width="5%">#</th>
-                        <th width="30%">Impact Risks</th>
-                        <th width="60%">Assumption/s</th>
-                        <th width="5%">
-                            <button type="button" name="addplus" id="addplus" onclick="add_row_impact();" class="btn btn-success btn-sm">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="impact_table_body">
-                    <tr id="row0">
-                        <td> 1 </td>
-                        <td>
-                            <select data-id="0" name="impactrisk[]" id="impactriskrow0" class="form-control  selected_impact" required="required">';
-                                $query_rsRisk =  $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories where type=:type");
-                                $query_rsRisk->execute(array(":type" => 1));
-                                $row_rsRisk = $query_rsRisk->fetch();
-                                $totalRows_rsRisk = $query_rsRisk->rowCount();
-                                $input = '<option value="">... Select from list ...</option>';
-                                if ($totalRows_rsRisk > 0) {
-                                    do {
-                                        $input .= '<option value="' . $row_rsRisk['rskid'] . '">' . $row_rsRisk['category'] . ' </option>';
-                                    } while ($row_rsRisk = $query_rsRisk->fetch());
-                                } else {
-                                    $input .= '<option value="">No Risks Found</option>';
-                                }
-                                $ME1 .= $input;
-                                $ME1 .= '
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" name="impact_assumptions[]" id="impact_assumptionsrow0" placeholder="Enter" class="form-control"  required />
-                        </td>
-                        <td>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>';
-    echo $ME1;
-}
-
 if (isset($_POST['get_locations'])) {
     $opid = $_POST['opid'];
     $projid = $_POST['projid'];
- 
+
     $query_rsdissegragations = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid='$opid' AND locations IS NOT NULL");
     $result = $query_rsdissegragations->execute();
-    $row_rsdissegragations = $query_rsdissegragations->fetch();  
+    $row_rsdissegragations = $query_rsdissegragations->fetch();
     $totalRows_rsdissegragations = $query_rsdissegragations->rowCount();
     $data = '';
     if ($totalRows_rsdissegragations > 0) {
@@ -642,20 +821,16 @@ if (isset($_POST['get_locations'])) {
 
                 if ($value > 0) {
                     $row++;
-                    $query_rsMembers = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid=:projid");
-                    $query_rsMembers->execute(array(":projid" => $projid));
-                    $row_rsMembers = $query_rsMembers->fetch();
-                    $totalRows_rsMembers = $query_rsMembers->rowCount();
+                    $query_rsTeam = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE directorate=42");
+                    $query_rsTeam->execute();
+                    $row_rsTeam = $query_rsTeam->fetch();
+                    $totalRows_rsTeam = $query_rsTeam->rowCount();
 
-                    do {
-                        $ptid = $row_rsMembers['ptid'];
-                        $query_rsTeam = $db->prepare("SELECT *  FROM tbl_projteam2 WHERE ptid=:ptid ");
-                        $query_rsTeam->execute(array(":ptid" => $ptid));
-                        $row_rsTeam = $query_rsTeam->fetch();
-                        $totalRows_rsTeam = $query_rsTeam->rowCount();
-
-                        $team .= '<option value="' . $row_rsTeam['ptid'] . '">' . $row_rsTeam['fullname'] . '</option>';
-                    } while ($row_rsMembers = $query_rsMembers->fetch());
+                    if ($totalRows_rsTeam > 0) {
+                        do {
+                            $team .= '<option value="' . $row_rsTeam['userid'] . '">' . $row_rsTeam['fullname'] . '</option>';
+                        } while ($row_rsTeam = $query_rsTeam->fetch());
+                    }
 
                     $data .= '
                     <tr id=""> 
@@ -672,43 +847,37 @@ if (isset($_POST['get_locations'])) {
                     </tr>';
                 }
             } while ($row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch());
-
         } while ($row_rsdissegragations = $query_rsdissegragations->fetch());
-
-    }else{
+    } else {
         $query_rsproject_dissegragations = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid	='$opid' AND projid='$projid'");
         $result = $query_rsproject_dissegragations->execute();
         $row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch();
         $totalRows_rsproject_dissegragations = $query_rsproject_dissegragations->rowCount();
 
-        if($totalRows_rsproject_dissegragations > 0){
-            $row =0;
-            do { 
+        if ($totalRows_rsproject_dissegragations > 0) {
+            $row = 0;
+            do {
                 $team = '<option value="" >...Select from list...</option>';
-                $forest = $row_rsproject_dissegragations['outputstate']; 
+                $forest = $row_rsproject_dissegragations['outputstate'];
                 $diss_id = $row_rsproject_dissegragations['id'];
 
                 $query_rsForest = $db->prepare("SELECT id, state FROM tbl_state WHERE  id='$forest' LIMIT 1");
                 $query_rsForest->execute();
                 $row_rsForest = $query_rsForest->fetch();
                 $locationName = $row_rsForest['state'];
- 
-                    $row++;
-                    $query_rsMembers = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid=:projid");
-                    $query_rsMembers->execute(array(":projid" => $projid));
-                    $row_rsMembers = $query_rsMembers->fetch();
-                    $totalRows_rsMembers = $query_rsMembers->rowCount();
 
-                    do {
-                        $ptid = $row_rsMembers['ptid'];
-                        $query_rsTeam = $db->prepare("SELECT *  FROM tbl_projteam2 WHERE ptid=:ptid ");
-                        $query_rsTeam->execute(array(":ptid" => $ptid));
-                        $row_rsTeam = $query_rsTeam->fetch();
-                        $totalRows_rsTeam = $query_rsTeam->rowCount();
-                        $team .= '<option value="' . $row_rsTeam['ptid'] . '">' . $row_rsTeam['fullname'] . '</option>';
-                    } while ($row_rsMembers = $query_rsMembers->fetch());
+                $row++;
+                $query_rsMembers = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE directorate=42");
+                $query_rsMembers->execute();
+                $totalRows_rsMembers = $query_rsMembers->rowCount();
 
-                    $data .= '
+                if ($totalRows_rsMembers > 0) {
+                    while ($row_rsMembers = $query_rsMembers->fetch()) {
+                        $team .= '<option value="' . $row_rsMembers['userid'] . '">' . $row_rsMembers['fullname'] . '</option>';
+                    }
+                }
+
+                $data .= '
                     <tr id=""> 
                         <td>' . $row . '</td> 
                         <td>
@@ -717,30 +886,28 @@ if (isset($_POST['get_locations'])) {
                         <input type="hidden" name="ind_forest[]" id="ind_forest' . $row . '" class="form-control" value=""  required />
                         </td>
                         <td> 
-                        <select name="team'.$diss_id.'[]"  id="team' . $row . '" class="form-control selectpicker" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                        <select name="team' . $diss_id . '[]"  id="team' . $row . '" class="form-control selectpicker" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
                                 ' . $team . '
                             </select>
                         </td>  
-                    </tr>'; 
+                    </tr>';
             } while ($row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch());
         }
     }
     echo $data;
 }
 
-
 if (isset($_POST['get_frequency'])) {
     $opid = $_POST['get_frequency'];
-      
-    $query_rs_level =  $db->prepare("SELECT fq.level as level1 FROM tbl_datacollectionfreq as fq INNER JOIN tbl_project_details as p ON p.workplan_interval=fq.fqid WHERE p.id=:opid");
+
+    /* $query_rs_level =  $db->prepare("SELECT fq.level as level1 FROM tbl_datacollectionfreq as fq INNER JOIN tbl_project_details as p ON p.workplan_interval=fq.fqid WHERE p.id=:opid");
     $query_rs_level->execute(array(":opid" => $opid));
     $row_rs_level = $query_rs_level->fetch();
     $totalRows_rs_level = $query_rs_level->rowCount();
-    $level =  $row_rs_level['level1']; 
+    $level =  $row_rs_level['level1']; */
 
- 
-    $query_rs_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where level <=:level");
-    $query_rs_frequency->execute(array(":level" => $level));
+    $query_rs_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where status =1");
+    $query_rs_frequency->execute();
     $row_rs_frequency = $query_rs_frequency->fetch();
     $totalRows_rs_frequency = $query_rs_frequency->rowCount();
 
@@ -762,7 +929,7 @@ if (isset($_POST['get_reportingtimeline'])) {
     $query_rs_level->execute(array(":fqid" => $fqid));
     $row_rs_level = $query_rs_level->fetch();
     $totalRows_rs_level = $query_rs_level->rowCount();
-    $level =  $row_rs_level['level']; 
+    $level =  $row_rs_level['level'];
 
     $query_rs_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where level >=:level");
     $query_rs_frequency->execute(array(":level" => $level));
@@ -783,26 +950,26 @@ if (isset($_POST['get_reportingtimeline'])) {
 
 
 
-if(isset($_POST['get_limits'])){
-        $type = $_POST['type'];
-        $valid = []; 
-        $valid['success'] = true; 
+if (isset($_POST['get_limits'])) {
+    $type = $_POST['type'];
+    $valid = [];
+    $valid['success'] = true;
 
-        if($type ==1){
-            $query_rs_limit =  $db->prepare("SELECT * FROM tbl_datacollection_settings WHERE type=1");
-            $query_rs_limit->execute();
-            $row_rs_limit = $query_rs_limit->fetch();
-            $totalRows_rs_limit = $query_rs_limit->rowCount();
-            $impact_assessment = $row_rs_limit['fvalue']; 
-            $valid['assessment'] = $impact_assessment;
-        }else if($type ==2){
-            $query_rs_limit =  $db->prepare("SELECT * FROM tbl_datacollection_settings WHERE type=2");
-            $query_rs_limit->execute();
-            $row_rs_limit = $query_rs_limit->fetch();
-            $totalRows_rs_limit = $query_rs_limit->rowCount();
-            $outcome_evaluation = $row_rs_limit['fvalue']; 
-            $valid['assessment'] = $outcome_evaluation; 
-        } 
-     
+    if ($type == 1) {
+        $query_rs_limit =  $db->prepare("SELECT * FROM tbl_datacollection_settings WHERE type=1");
+        $query_rs_limit->execute();
+        $row_rs_limit = $query_rs_limit->fetch();
+        $totalRows_rs_limit = $query_rs_limit->rowCount();
+        $impact_assessment = $row_rs_limit['fvalue'];
+        $valid['assessment'] = $impact_assessment;
+    } else if ($type == 2) {
+        $query_rs_limit =  $db->prepare("SELECT * FROM tbl_datacollection_settings WHERE type=2");
+        $query_rs_limit->execute();
+        $row_rs_limit = $query_rs_limit->fetch();
+        $totalRows_rs_limit = $query_rs_limit->rowCount();
+        $outcome_evaluation = $row_rs_limit['fvalue'];
+        $valid['assessment'] = $outcome_evaluation;
+    }
+
     echo json_encode($valid);
 }

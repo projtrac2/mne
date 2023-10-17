@@ -1,10 +1,6 @@
 var manageItemTable;
 const url = "ajax/strategicplan/view-kra";
 
-// $(document).ready(function () {
-//   manageItemTable = $("#manageItemTable").DataTable({});
-// });
-
 function more(itemId = null) {
   if (itemId) {
     $("#itemId").remove();
@@ -50,7 +46,7 @@ function removeItem(itemId = null) {
                 $(this).modal("hide");
               });
               swal({
-                title: "Edit Key Result Areas!",
+                title: "Delete Key Result Areas!",
                 text: response.messages,
                 icon: "success",
               });
@@ -87,7 +83,10 @@ function addKRA() {
       $("#addkra").find(".text-danger").remove();
       $("#addkra").closest(".form-input").addClass("has-success");
     }
+
+
     if (kra) {
+      $("#tag-form-submit").prop("disabled", true);
       $.ajax({
         url: url,
         type: "post",
@@ -104,7 +103,7 @@ function addKRA() {
               text: response.messages,
               icon: "success",
             });
-            
+
             setTimeout(function () { window.location.reload(true); }, 3000);
           }
         },
@@ -155,6 +154,7 @@ function editItem(itemId = null) {
               $("#editeditname").closest(".form-input").addClass("has-success");
             }
             if (kra) {
+              $("#tag-form-submit").prop("disabled", true);
               var form = $(this);
               var formData = new FormData(this);
               $.ajax({

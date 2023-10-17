@@ -1,26 +1,18 @@
 <?php
-$ind = (isset($_GET['ind'])) ? base64_decode($_GET['ind']) : header("Location: all-indicators.php");
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
+$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php"); 
+$indid_array = explode("opid", $decode_indid);
+$ind = $indid_array[1];
 
 require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
 	require('functions/department.php');
 	require('functions/measurement-unit.php');
-	$pageTitle = "Add Output Indicator";
-
 	try {
 		$indicator = get_indicator_by_indid($ind);
 		$measurement_units = get_measurement_units();
 		$departments = get_departments();
-		($indicator) ?  "" : header("Location: view-indicators.php"); // check if indicator is in db
-		// get all the variables here
+		($indicator) ?  "" : header("Location: view-indicators.php");
 		$indcode = $indicator['indicator_code'];
 		$indname = $indicator['indicator_name'];
 		$inddesc = $indicator['indicator_description'];
@@ -56,12 +48,12 @@ if ($permission) {
 
 			if ($ind == $indid || $indcount == 0) {
 				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_unit=:indunit, indicator_sector=:indsector, indicator_dept=:inddept, indicator_baseline_level=:baselinelevel, indicator_mapping_type=:mapping_type, updated_by=:user, date_updated=:date WHERE indid=:indid");
-				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept,":baselinelevel"=>$baselinelevel, ":mapping_type"=>$mapping_type, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
+				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept, ":baselinelevel" => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
 
 				if ($result) {
 					$msg = 'Indicator successfully updated.';
 					$results =
-					"<script type=\"text/javascript\">
+						"<script type=\"text/javascript\">
 						swal({
 							title: \"Success!\",
 							text: \" $msg\",
@@ -76,7 +68,7 @@ if ($permission) {
 				} else {
 					$msg = 'Failed!! This Indicator was not updated!!';
 					$results =
-					"<script type=\"text/javascript\">
+						"<script type=\"text/javascript\">
 						swal({
 							title: \"Error!\",
 							text: \" $msg\",
@@ -119,11 +111,12 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
+					<?= $icon ?>
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-						</div>
+						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -221,17 +214,18 @@ if ($permission) {
 										<div class="form-line">
 											<select name="mapping_type" id="mapping_type" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
 												<option value="" selected="selected" class="selection">....Select Mapping Type....</option>
+												
 												<?php
-											    $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
-											    $query_rsMapType->execute();
-											    $row_rsMapType = $query_rsMapType->fetch();
-											    $totalRows_rsMapType = $query_rsMapType->rowCount();
-													do {
-														$selected = $row_rsMapType['id'] == $mapping_type ? "selected" : "";
-														?>
-														<option value="<?=$row_rsMapType['id']?>" <?=$selected?>><?=$row_rsMapType['type']?></option>
-														<?php
-													} while ($row_rsMapType = $query_rsMapType->fetch());
+												$query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type where status=1");
+												$query_rsMapType->execute();
+												$selected = $mapping_type == 0 ? "selected" : "";
+												echo '<option value="0" '.$selected.'>Not Applicable</option>';
+												while ($row_rsMapType = $query_rsMapType->fetch()) {
+													$selected = $row_rsMapType['id'] == $mapping_type ? "selected" : "";
+												?>
+													<option value="<?= $row_rsMapType['id'] ?>" <?= $selected ?>><?= $row_rsMapType['type'] ?></option>
+												<?php
+												}
 												?>
 											</select>
 										</div>

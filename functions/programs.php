@@ -7,7 +7,7 @@ function get_programs($type, $objid = NULL){
     }else if($type == 2) {
         $query_rsprograms = $db->prepare("SELECT * FROM `tbl_programs` WHERE strategic_obj IS NULL ORDER BY `syear` ASC");
     }else if($type == 3 && $objid != NULL){ 
-        $query_rsprograms = $db->prepare("SELECT * FROM `tbl_programs` WHERE strategic_obj = '$objid' ORDER BY `syear` ASC");
+        $query_rsprograms = $db->prepare("SELECT * FROM `tbl_programs` WHERE strategic_obj = '$objid' AND program_type=1 ORDER BY `syear` ASC");
     }else{
 	    $query_rsprograms = $db->prepare("SELECT * FROM `tbl_programs` ORDER BY `syear` ASC");
     }

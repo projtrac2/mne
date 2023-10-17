@@ -1,6 +1,7 @@
 <?php
+session_start();
 $projid = (isset($_GET['projid'])) ? $_GET['projid'] : "";
-
+$user_name = $_SESSION['MM_Username'];
  
 //include_once 'projtrac-dashboard/resource/session.php';
 
@@ -8,6 +9,12 @@ include_once '../projtrac-dashboard/resource/Database.php';
 include_once '../projtrac-dashboard/resource/utilities.php';
 require_once __DIR__ . '../../vendor/autoload.php';
 require '../system-labels.php';
+
+
+	$query_logged_in_user =  $db->prepare("SELECT title, fullname FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid=$user_name");
+	$query_logged_in_user->execute(array(":stid" => $stid));
+	$row_user = $query_logged_in_user->fetch();
+	$printedby = $row_user["title"].".".$row_user["fullname"];
  
 try { 
     $logo = 'logo.jpg';
@@ -398,7 +405,8 @@ try {
     $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
     
-   $mpdf->SetFooter('Uasin Gishu County {PAGENO}');
+	$mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
+	$mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County');
    $mpdf->Output();
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

@@ -134,7 +134,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-priorities-item.php",
+      url: "general-settings/selected-items/fetch-selected-priorities-item",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",

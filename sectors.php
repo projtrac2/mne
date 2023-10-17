@@ -1,14 +1,7 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-    $pageTitle = "Project Sectors";
     try {
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
@@ -164,8 +157,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -233,9 +226,9 @@ if ($permission) {
                                     </div>
                                 </fieldset>
                             </form>
-
+                            <!-- js-basic-example dataTable -->
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                <table class="table table-bordered table-striped table-hover ">
                                     <thead>
                                         <tr id="colrow">
                                             <th width="10%" height="35">
@@ -268,12 +261,12 @@ if ($permission) {
                                                         <ul class="dropdown-menu">
                                                             <li>
                                                                 <a type="button" id="edit_location" href="sectors.php?edit=1&amp;sctid=<?php echo $row_rsAllSectors['stid']; ?>">
-                                                                    <i class="fa fa-plus-square"></i> Edit
+                                                                    <i class="fa fa-pencil"></i> Edit
                                                                 </a>
                                                             </li>
                                                             <li>
                                                                 <a type="button" id="edit_location" href="sectors.php?del=1&amp;sctid=<?php echo $row_rsAllSectors['stid']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                    <i class="fa fa-plus-square"></i> Delete
+                                                                    <i class="fa fa-trash"></i> Delete
                                                                 </a>
                                                             </li>
                                                         </ul>
@@ -294,26 +287,26 @@ if ($permission) {
                                                     </td>
                                                     <td width="80%">
                                                         <div align="left">&nbsp;&nbsp;<?php echo $row_rsAllDepts['sector']; ?></div>
-                                                    </td> 
+                                                    </td>
                                                     <td width="5%">
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-                                                            Options <span class="caret"></span>
-                                                        </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a type="button" id="edit_location" href="sectors.php?edit=1&amp;sctid=<?php echo $row_rsAllDepts['stid']; ?>">
-                                                                    <i class="fa fa-plus-square"></i> Edit
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a type="button" id="edit_location" href="sectors.php?del=1&amp;sctid=<?php echo $row_rsAllDepts['stid']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                    <i class="fa fa-plus-square"></i> Delete
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
+                                                        <div class="btn-group">
+                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
+                                                                Options <span class="caret"></span>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <a type="button" id="edit_location" href="sectors.php?edit=1&amp;sctid=<?php echo $row_rsAllDepts['stid']; ?>">
+                                                                        <i class="fa fa-pencil"></i> Edit
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a type="button" id="edit_location" href="sectors.php?del=1&amp;sctid=<?php echo $row_rsAllDepts['stid']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
+                                                                        <i class="fa fa-trash"></i> Delete
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             <?php } while ($row_rsAllDepts = $query_rsAllDepts->fetch()); ?>
                                         <?php } while ($row_rsAllSectors = $query_rsAllSectors->fetch()); ?>

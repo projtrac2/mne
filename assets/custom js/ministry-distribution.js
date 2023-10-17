@@ -8,7 +8,7 @@ $(document).ready(function() {
 	manageItemTable = $('#manageItemTable').DataTable({
 		"paging": false,
 		"bFilter": false, //hide Search bar
-		'ajax': 'assets/processor/fetch-ministry-distribution-items.php?fnd=' + fndid,
+		'ajax': 'assets/processor/fetch-ministry-distribution-items?fnd=' + fndid,
 		'order': []
 	});	
 });
@@ -26,7 +26,7 @@ function editItem(itemId = null) {
 		$('.div-result').addClass('div-hide');
 
 		$.ajax({
-			url: 'general-settings/fetch-selected-item.php',
+			url: 'general-settings/fetch-selected-item',
 			type: 'post',
 			data: {itemId: itemId},
 			dataType: 'json',
@@ -311,7 +311,7 @@ $("#tag-form-submit").click(function(e) {
       var formData = $("#form").serialize();
       $.ajax({
         type: "post",
-        url: "assets/processor/departmental-funds-distribution-processor.php",
+        url: "assets/processor/departmental-funds-distribution-processor",
         data: formData,
         dataType: "json",
         success: function(response) {

@@ -1,42 +1,198 @@
 <?php
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 if ($permission) {
-	$pageTitle = "Financial Dashboard";
 	try {
-		$current_year = '';
+		$query_stratplan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");
+		$query_stratplan->execute();
+		$row_stratplan = $query_stratplan->fetch();
+		$totalRows_stratplan = $query_stratplan->rowCount();
+
+		$stplan = $plan = $vision = $mission = $noyears = $styear =  $total_strategic_plan_years = $strategic_plan_start_year = 0;
+		$financial_year_details ="";
+		if ($totalRows_stratplan > 0) {
+			$stplan = $row_stratplan["id"];
+			$plan = $row_stratplan["plan"];
+			$vision = $row_stratplan["vision"];
+			$mission = $row_stratplan["mission"];
+			$noyears = $row_stratplan["years"];
+			$styear = $row_stratplan["starting_year"];
+			$total_strategic_plan_years = $row_stratplan["years"];
+			$strategic_plan_start_year = $row_stratplan["starting_year"];
+		} 
+
 		$current_date = date("Y-m-d");
 		$month =  date('m');
-		if ($month  < 7) {
-			$current_year =  date("Y") - 1;
-		} else {
-			$current_year =  date("Y");
-		}
+		$current_year =  ($month  < 7)  ? date("Y") - 1 : date("Y");
+
 
 		$nextyear = $current_year + 1;
 		$last_year = $current_year - 1;
 		$currfinyear = $current_year . "/" . $nextyear;
 		$prevfinyear = $last_year . "/" . $current_year;
 
-		$query_stratplan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");
-		$query_stratplan->execute();
-		$row_stratplan = $query_stratplan->fetch();
-		$totalRows_stratplan = $query_stratplan->rowCount();
 
-		$stplan = $row_stratplan["id"];
-		$plan = $row_stratplan["plan"];
-		$vision = $row_stratplan["vision"];
-		$mission = $row_stratplan["mission"];
-		$noyears = $row_stratplan["years"];
-		$styear = $row_stratplan["starting_year"];
+		function current_financial_year($currentfinyear)
+		{
+			global $db;
+			$query_crfinyear =  $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr='$currentfinyear'");
+			$query_crfinyear->execute();
+			$row_crfinyear = $query_crfinyear->fetch();
+			$currentfinyearid = $row_crfinyear["id"];
 
-		$total_strategic_plan_years = $row_stratplan["years"];
-		$strategic_plan_start_year = $row_stratplan["starting_year"];
+			$query_crfinyear_budget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projfscyear = $currentfinyearid AND g.program_type=1");
+			$query_crfinyear_budget->execute();
+			$row_crfinyear_budget = $query_crfinyear_budget->fetch();
+			$budget_total = $row_crfinyear_budget["totalbudget"];
+			$budget_total = $budget_total > 0 ?  $budget_total : 0;
+			$totalcrfybudget = number_format($budget_total, 2);
+
+			$query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE b.finyear=$currentfinyear AND g.program_type=1");
+			$query_crfinyearalloc->execute();
+			$row_crfinyearalloc = $query_crfinyearalloc->fetch();
+			$totalcrfinyearalloc = $row_crfinyearalloc["totalamt"];
+			$totalcrfinyearalloc = $row_crfinyearalloc && $totalcrfinyearalloc > 0 ?  $totalcrfinyearalloc : 0;
+			$totalcrfinyearallocation = number_format($totalcrfinyearalloc, 2);
+
+			$crfinyearrate = 0;
+			if ($row_crfinyearalloc) {
+				$crfinyearrate = $totalcrfinyearalloc > 0 &&  $budget_total ?  round(($totalcrfinyearalloc / $budget_total) * 100, 2) : 0;
+			}
+			return array("totalcrfybudget" => $totalcrfybudget, "crfinyearrate" => $crfinyearrate, "totalcrfinyearamt" => $totalcrfinyearallocation, "totalcrfinyearallocation" => $totalcrfinyearalloc);
+		}
+
+		// previous financial year detail
+		function previous_financial_year($previousfinyear)
+		{
+			global $db;
+
+			$query_crfinyear =  $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr='$previousfinyear'");
+			$query_crfinyear->execute();
+			$row_crfinyear = $query_crfinyear->fetch();
+			$previousfinyearid = $row_crfinyear["id"];
+
+			$query_pvfinyearbudget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE program_type=1 AND p.projfscyear = $previousfinyearid");
+			$query_pvfinyearbudget->execute();
+			$row_pvfinyearbudget = $query_pvfinyearbudget->fetch();
+			$total_budget = $row_pvfinyearbudget["totalbudget"];
+			$total_budget = $total_budget > 0 ?  $total_budget : 0;
+			$totalpvfybudget = number_format($total_budget, 2); 
+
+			$query_pvfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE program_type=1 AND b.finyear=$previousfinyear");
+			$query_pvfinyearalloc->execute();
+			$row_pvfinyearalloc = $query_pvfinyearalloc->fetch();
+			$totalpvfinyearalloc = $row_pvfinyearalloc["totalamt"];
+			$totalpvfinyearalloc = $totalpvfinyearalloc > 0 ?  $totalpvfinyearalloc : 0;
+
+			$pvfinyearrate = 0;
+
+			$pvfinyearrate = $totalpvfinyearalloc > 0 &&  $total_budget > 0 ? round(($totalpvfinyearalloc / $total_budget) * 100, 2) : 0;
+			$totalpvfinyearallocation = number_format($totalpvfinyearalloc, 2);
+
+			return array("totalpvfinyearalloc" => $totalpvfinyearallocation, "pvfinyearrate" => $pvfinyearrate, "totalpvfybudget" => $totalpvfybudget, 'totalpvfinyearallocation' => $totalpvfinyearalloc);
+		}
+
+		function fund_sources()
+		{
+			global $db, $strategic_plan_start_year, $total_strategic_plan_years;
+			$start_year = $strategic_plan_start_year;
+			$query_rsFunding_type =  $db->prepare("SELECT id, type FROM tbl_funding_type");
+			$query_rsFunding_type->execute();
+			$totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
+			$data = [];
+			if ($totalRows_rsFunding_type > 0) {
+				while ($row_rsFunding_type = $query_rsFunding_type->fetch()) {
+					$organization = $row_rsFunding_type['type'];
+					$financier_id = $row_rsFunding_type['id'];
+					$amount_contributed = [];
+					for ($i = 0; $i < $total_strategic_plan_years; $i++) {
+						$query_finyearamtgrants = $db->prepare("SELECT sum(amount) AS totalamt FROM tbl_financiers f  INNER JOIN tbl_financier_type t on f.type = t.id  INNER JOIN tbl_funding_type s on s.category = t.id INNER JOIN tbl_funds p on p.funder = f.id WHERE t.id = '$financier_id' AND p.financial_year=:financial_year_id");
+						$query_finyearamtgrants->execute(array(":financial_year_id" => $start_year));
+						$row_finyearamtgrants = $query_finyearamtgrants->fetch();
+						$total_amount = !is_null($row_finyearamtgrants["totalamt"]) ? $row_finyearamtgrants["totalamt"] : 0;
+						array_push($amount_contributed, $total_amount);
+						$start_year++;
+					}
+					$information = array("name" => (string)$organization, "data" => $amount_contributed);
+					array_push($data, $information);
+				}
+			}
+			return json_encode($data);
+		}
+
+		function budget_vs_expenditure_per_year()
+		{
+			global $db, $strategic_plan_start_year, $total_strategic_plan_years;
+			$start_year = $strategic_plan_start_year;
+			$totalannualbdg =  $totalannualexp = [];
+			for ($i = 0; $i < $total_strategic_plan_years; $i++) {
+				$end_year = $start_year + 1;
+				$start_date = date("Y-m-d", strtotime($start_year . "07-01"));
+				$end_date = date("Y-m-d", strtotime($end_year . "06-30"));
+				$query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE g.program_type=1 AND b.finyear=:finyear");
+				$query_crfinyearalloc->execute(array(":finyear" => $start_year));
+				$row_crfinyearalloc = $query_crfinyearalloc->fetch();
+				$totalannualbudget =  !is_null($row_crfinyearalloc["totalamt"]) ? $row_crfinyearalloc["totalamt"] : 0;
+
+				$query_annualexpenditure = $db->prepare("SELECT sum(amount_requested) AS totalexpend FROM tbl_payments_request r inner join tbl_payments_disbursed d on d.request_id=r.request_id inner join tbl_projects p on p.projid=r.projid inner join tbl_programs g on g.progid=p.progid WHERE g.program_type=1 AND r.status=3 AND r.date_requested >=:start_date AND r.date_requested <=:end_date");
+				$query_annualexpenditure->execute(array(":start_date" => $start_date, ":end_date" => $end_date));
+				$row_annualexpenditure = $query_annualexpenditure->fetch();
+				$totalannualexpenditure = !is_null($row_annualexpenditure["totalexpend"]) ? $row_annualexpenditure["totalexpend"] : 0;
+
+				$query_annual_contractor_expenditure = $db->prepare("SELECT sum(requested_amount) AS totalexpend FROM tbl_contractor_payment_requests r inner join tbl_payments_disbursed d on d.request_id=r.request_id inner join tbl_projects p on p.projid=r.projid inner join tbl_programs g on g.progid=p.progid WHERE g.program_type=1 AND r.status=3 AND r.created_at >=:start_date AND r.created_at <= :end_date");
+				$query_annual_contractor_expenditure->execute(array(":start_date" => $start_date, ":end_date" => $end_date));
+				$row_annual_contractor_expenditure = $query_annual_contractor_expenditure->fetch();
+				$total_annual_contractor_expenditure = !is_null($row_annual_contractor_expenditure["totalexpend"]) ? $row_annual_contractor_expenditure["totalexpend"] : 0;
+				$totalannualexpenditure = $totalannualexpenditure + $total_annual_contractor_expenditure;
+				array_push($totalannualbdg, (float)$totalannualbudget);
+				array_push($totalannualexp, (float)$totalannualexpenditure);
+				$start_year++;
+			}
+			return array("totalannualbdg" => $totalannualbdg, "totalannualexp" => $totalannualexp);
+		}
+		function department_utilization_rate()
+		{
+			global $db, $strategic_plan_start_year, $total_strategic_plan_years;
+			$start_year = $strategic_plan_start_year;
+			$query_depertments = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent IS NOT NULL");
+			$query_depertments->execute();
+			$total_departments = $query_depertments->rowCount();
+			$department_utilization_rate = [];
+
+			if ($total_departments > 0) {
+				while ($row_departments = $query_depertments->fetch()) {
+					$stid = $row_departments['stid'];
+					$sector = $row_departments['sector'];
+					$utilization_rate = [];
+					for ($i = 0; $i < $total_strategic_plan_years; $i++) {
+						$end_year = $start_year + 1;
+						$start_date = date("Y-m-d", strtotime($start_year . "07-01"));
+						$end_date = date("Y-m-d", strtotime($end_year . "06-30"));
+						$query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE g.program_type=1 AND b.finyear=:finyear AND g.projsector=:sector_id");
+						$query_crfinyearalloc->execute(array(":finyear" => $start_year, ":sector_id" => $stid));
+						$row_crfinyearalloc = $query_crfinyearalloc->fetch();
+						$totalannualbudget =  !is_null($row_crfinyearalloc["totalamt"]) ? $row_crfinyearalloc["totalamt"] : 0;
+
+						$query_annualexpenditure = $db->prepare("SELECT sum(amount_requested) AS totalexpend FROM tbl_payments_request r inner join tbl_payments_disbursed d on d.request_id=r.request_id inner join tbl_projects p on p.projid=r.projid inner join tbl_programs g on g.progid=p.progid WHERE g.program_type=1 AND r.status=3 AND g.projsector=:sector_id AND r.date_requested >=:start_date AND r.date_requested <=:end_date");
+						$query_annualexpenditure->execute(array(":sector_id" => $stid, ":start_date" => $start_date, ":end_date" => $end_date));
+						$row_annualexpenditure = $query_annualexpenditure->fetch();
+						$totalannualexpenditure = !is_null($row_annualexpenditure["totalexpend"]) ? $row_annualexpenditure["totalexpend"] : 0;
+
+						$query_annual_contractor_expenditure = $db->prepare("SELECT sum(requested_amount) AS totalexpend FROM tbl_contractor_payment_requests r inner join tbl_payments_disbursed d on d.request_id=r.request_id inner join tbl_projects p on p.projid=r.projid inner join tbl_programs g on g.progid=p.progid WHERE g.program_type=1 AND r.status=3 AND g.projsector=:sector_id AND r.created_at >=:start_date AND r.created_at <= :end_date");
+						$query_annual_contractor_expenditure->execute(array(":sector_id" => $stid, ":start_date" => $start_date, ":end_date" => $end_date));
+						$row_annual_contractor_expenditure = $query_annual_contractor_expenditure->fetch();
+						$total_annual_contractor_expenditure = !is_null($row_annual_contractor_expenditure["totalexpend"]) ? $row_annual_contractor_expenditure["totalexpend"] : 0;
+						$totalannualexpenditure = $totalannualexpenditure + $total_annual_contractor_expenditure;
+
+						$expenditure_rate = $totalannualbudget > 0 && $totalannualexpenditure ? (($totalannualexpenditure / $totalannualbudget) * 100) : 0;
+						array_push($utilization_rate, round($expenditure_rate, 2));
+						$start_year++;
+					}
+					$information = array("name" => (string)$sector, "data" => $utilization_rate);
+					array_push($department_utilization_rate, $information);
+				}
+			}
+			return json_encode($department_utilization_rate);
+		}
 
 		function financial_years(int $total_strategic_plan_years, int $strategic_plan_start_year)
 		{
@@ -48,274 +204,29 @@ if ($permission) {
 				array_push($financial_years, $financial_year);
 				array_push($years, $year);
 			}
-
 			return array("financial_years" => $financial_years, "years" => $years);
 		}
 
 		$financial_year_details = financial_years($total_strategic_plan_years, $strategic_plan_start_year);
 		$strategic_plan_financial_years = json_encode($financial_year_details['financial_years']);
 		$strategic_plan_years = json_encode($financial_year_details['years']);
+		$funds_details = fund_sources();
 
-		function get_financial_year($year)
-		{
-			global $db;
-			$query_crfinyear =  $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr='$year'");
-			$query_crfinyear->execute();
-			$row_crfinyear = $query_crfinyear->fetch();
-			$count_crfinyear = $query_crfinyear->rowCount();
-
-			if ($count_crfinyear > 0) {
-				return $row_crfinyear;
-			} else {
-				return false;
-			}
-		}
-
-		function current_financial_year($current_financial_year_id)
-		{
-			global $db;
-			$query_crfinyearalloc = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects  WHERE projfscyear = '$current_financial_year_id'");
-			$query_crfinyearalloc->execute();
-			$row_crfinyearalloc = $query_crfinyearalloc->fetch();
-			$totalcrfybudget = number_format($row_crfinyearalloc["totalbudget"], 2);
-
-			$query_crfinyearamtmain = $db->prepare("SELECT sum(p.amount) AS totalamt FROM tbl_financiers f  INNER JOIN tbl_financier_type t on f.type = t.id  INNER JOIN tbl_funding_type s on s.category = t.id INNER JOIN tbl_funds p on p.funder = f.id WHERE p.financial_year= '$current_financial_year_id'");
-			$query_crfinyearamtmain->execute();
-			$row_crfinyearamtmain = $query_crfinyearamtmain->fetch();
-			$totalcrfinyearamount = $row_crfinyearamtmain["totalamt"];
+		$current_financial_year_budget = current_financial_year($current_year);
+		$last_financial_year_budget = previous_financial_year($last_year);
+		$department_utilization = department_utilization_rate();
 
 
-			$totalcrfinyearamt = number_format($totalcrfinyearamount, 2);
-			$crfinyearrate = 0;
-			if ($totalcrfinyearamount != 0) {
-				$crfinyearrate = round(($totalcrfinyearamount / $row_crfinyearalloc["totalbudget"]) * 100, 1);
-			}
-			return array("totalcrfybudget" => $totalcrfybudget, "crfinyearrate" => $crfinyearrate, "totalcrfinyearamt" => $totalcrfinyearamt, "totalcrfinyearamount" => $totalcrfinyearamount);
-		}
-
-		// previous financial year detail
-		function previous_financial_year($pvfinyearid)
-		{
-			global $db;
-			$query_pvfinyearalloc = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects  WHERE projfscyear = '$pvfinyearid'");
-			$query_pvfinyearalloc->execute();
-			$row_pvfinyearalloc = $query_pvfinyearalloc->fetch();
-
-			$query_pvfinyearamtmain = $db->prepare("SELECT sum(p.amount) AS totalamt FROM tbl_financiers f  INNER JOIN tbl_financier_type t on f.type = t.id  INNER JOIN tbl_funding_type s on s.category = t.id INNER JOIN tbl_funds p on p.funder = f.id WHERE p.financial_year='$pvfinyearid'");
-			$query_pvfinyearamtmain->execute();
-			$row_pvfinyearamtmain = $query_pvfinyearamtmain->fetch();
-			$totalpvfinyearamount = $row_pvfinyearamtmain["totalamt"];
-
-			$totalpvfinyearamt = number_format($totalpvfinyearamount, 2);
-			$pvfinyearrate = 0;
-
-			if ($totalpvfinyearamount > 0) {
-				$pvfinyearrate = round(($totalpvfinyearamount / $row_pvfinyearalloc["totalbudget"]) * 100, 1);
-			}
-
-			$totalpvfybudget = number_format($row_pvfinyearalloc["totalbudget"], 2);
-			return array("totalpvfinyearamt" => $totalpvfinyearamt, "pvfinyearrate" => $pvfinyearrate, "totalpvfybudget" => $totalpvfybudget, 'totalpvfinyearamount' => $totalpvfinyearamount);
-		}
-
-		$current_financial_year_details = get_financial_year($current_year);
-		$current_financial_year_budget = $current_financial_year_details ? current_financial_year($current_financial_year_details['id']) : 0;
-
-		$last_financial_year_details = get_financial_year($last_year);
-		$last_financial_year_budget = $last_financial_year_details ? previous_financial_year($last_financial_year_details['id']) : 0;
-
-
-		function get_funds_source()
-		{
-			global $db;
-			$query_rsFunding_type =  $db->prepare("SELECT id, type FROM tbl_funding_type");
-			$query_rsFunding_type->execute();
-			$row_rsFunding_type = $query_rsFunding_type->fetchAll();
-			$totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
-
-			if ($totalRows_rsFunding_type > 0) {
-				return $row_rsFunding_type;
-			} else {
-				return false;
-			}
-		}
-
-		function get_funds_source_amount($financier_id, $financial_year_id)
-		{
-			global $db;
-			$query_finyearamtgrants = $db->prepare("SELECT sum(amount) AS totalamt FROM tbl_financiers f  INNER JOIN tbl_financier_type t on f.type = t.id  INNER JOIN tbl_funding_type s on s.category = t.id INNER JOIN tbl_funds p on p.funder = f.id WHERE t.id = '$financier_id' AND p.financial_year='$financial_year_id'");
-			$query_finyearamtgrants->execute();
-			$row_finyearamtgrants = $query_finyearamtgrants->fetch();
-			$total_amount = $row_finyearamtgrants["totalamt"];
-			return $total_amount;
-		}
-
-		function get_years(int $strategic_plan_years, int $strategic_plan_start_year)
-		{
-			$years = array();
-			for ($i = 0; $i < $strategic_plan_years; $i++) {
-				$year = $strategic_plan_start_year++;
-				array_push($years, $year);
-			}
-			return $years;
-		}
-
-
-		// get financial contribution by different financier type categories 
-		function fund_sources(int $total_strategic_plan_years, int $strategic_plan_start_year)
-		{
-			$data = array();
-			$funding_types = get_funds_source();
-			foreach ($funding_types as $funding_type) {
-				$organization = $funding_type['type'];
-				$financier_id = $funding_type['id'];
-				$amount_contributed = array();
-				for ($i = 0; $i < $total_strategic_plan_years; $i++) {
-					$year = $strategic_plan_start_year++;
-					$financial_year_details = get_financial_year($year);
-					$financial_year_id = ($financial_year_details) ? $financial_year_details['id'] : 0;
-					$amount = get_funds_source_amount($financier_id, $financial_year_id);
-					array_push($amount_contributed, $amount != null ? $amount : 0);
-				}
-				$information = array("name" => (string)$organization, "data" => $amount_contributed);
-				array_push($data, $information);
-			}
-			return json_encode($data);
-		}
-
-		$funds_details = fund_sources($total_strategic_plan_years, $strategic_plan_start_year);
-
-
-		function annual_budget(int $current_financial_year_id)
-		{
-			global $db;
-			$query_annualbudget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects WHERE projfscyear = '$current_financial_year_id'");
-			$query_annualbudget->execute();
-			$row_annualbudget = $query_annualbudget->fetch();
-			$totalannualbudget = $row_annualbudget["totalbudget"];
-			$ttannualbudget = 0;
-			if (!empty($totalannualbudget) || $totalannualbudget != '') {
-				$ttannualbudget = $totalannualbudget / 1000000;
-			}
-			return $ttannualbudget;
-		}
-
-		function annual_expenditure(int $fnyearid)
-		{
-			global $db;
-			$query_annualexpenditure = $db->prepare("SELECT sum(amountpaid) AS totalexpend FROM tbl_payments_disbursed d inner join tbl_payments_request r on r.id=d.reqid inner join tbl_projects p on p.projid=r.projid WHERE p.projfscyear = '$fnyearid'");
-			$query_annualexpenditure->execute();
-			$row_annualexpenditure = $query_annualexpenditure->fetch();
-			$totalannualexpenditure = $row_annualexpenditure["totalexpend"];
-			$ttannualexpenditure = 0;
-			if (!empty($totalannualexpenditure) || $totalannualexpenditure != '') {
-				$ttannualexpenditure = $totalannualexpenditure / 1000000;
-			}
-			return $ttannualexpenditure;
-		}
-
-		function budget_vs_expenditure(int $total_strategic_plan_years, int $strategic_plan_start_year)
-		{
-			$totalannualbdg =  $totalannualexp = array();
-			for ($i = 0; $i < $total_strategic_plan_years; $i++) {
-				$year = $strategic_plan_start_year++;
-				$current_financial_year_details = get_financial_year($year);
-
-				if ($current_financial_year_details) {
-					$current_financial_year_id = $current_financial_year_details['id'];
-					$ttannualbudget = annual_budget($current_financial_year_id);
-					$ttannualexpenditure = annual_expenditure($current_financial_year_id);
-					array_push($totalannualbdg, (float)$ttannualbudget);
-					array_push($totalannualexp, (float)$ttannualexpenditure);
-				}
-			}
-			return array("totalannualbdg" => $totalannualbdg, "totalannualexp" => $totalannualexp,);
-		}
-
-		$budget_expenditure = budget_vs_expenditure($total_strategic_plan_years, $strategic_plan_start_year);
+		$budget_expenditure = budget_vs_expenditure_per_year();
 		$totalannualbdg = json_encode($budget_expenditure['totalannualbdg']);
 		$totalannualexp = json_encode($budget_expenditure['totalannualexp']);
 
-		function get_departments()
-		{
-			global $db;
-			$query_depertments = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=0");
-			$query_depertments->execute();
-			$departments = $query_depertments->fetchAll();
-			$total_departments = $query_depertments->rowCount();
-			if ($total_departments > 0) {
-				return $departments;
-			} else {
-				return false;
-			}
-		}
-
-		function get_department_progam_budget($stid, $year)
-		{
-			global $db;
-			$query_program_department_budget = $db->prepare("SELECT SUM(g.budget) as budget FROM `tbl_programs` as p INNER JOIN tbl_progdetails as g ON g.progid = p.progid WHERE projsector = $stid AND g.year = '$year'");
-			$query_program_department_budget->execute();
-			$rows_department_budget = $query_program_department_budget->fetch();
-			$budget = $rows_department_budget["budget"];
-			$ttannual_budget = 0;
-			if (!empty($budget) || $budget != '') {
-				$ttannual_budget = $budget;
-			}
-			return $ttannual_budget;
-		}
-
-		function get_project_department_expenditure(int $stid, int $fnyearid)
-		{
-			global $db;
-			$query_annualexpenditure = $db->prepare("SELECT sum(amountpaid) AS totalexpend FROM tbl_payments_disbursed d 
-			inner join tbl_payments_request r on r.id=d.reqid 
-			inner join tbl_projects p on p.projid=r.projid 
-			inner join tbl_programs g on p.progid = g.progid
-			WHERE g.projsector = $stid AND  p.projfscyear = '$fnyearid'");
-			$query_annualexpenditure->execute();
-			$row_annualexpenditure = $query_annualexpenditure->fetch();
-			$totalannualexpenditure = $row_annualexpenditure["totalexpend"];
-			$ttannualexpenditure = 0;
-			if (!empty($totalannualexpenditure) || $totalannualexpenditure != '') {
-				$ttannualexpenditure = $totalannualexpenditure;
-			}
-			return $ttannualexpenditure;
-		}
-
-		function get_department_fund_utilization_rate(int $total_strategic_plan_years, int $strategic_plan_start_year)
-		{
-			$departments = get_departments();
-			$department_utilization_rate = array();
-			foreach ($departments as $department) {
-				$stid = $department['stid'];
-				$sector = $department['sector'];
-				$utilization_rate = array();
-				$incriment_strategic_plan_start_year = $strategic_plan_start_year;
-				for ($i = 0; $i < $total_strategic_plan_years; $i++) {
-					$year = $incriment_strategic_plan_start_year++;
-					$current_financial_year_details = get_financial_year($year);
-					if ($current_financial_year_details) {
-						$current_financial_year_id = $current_financial_year_details['id'];
-						$budget = get_department_progam_budget($stid, $year);
-						$expenditure = get_project_department_expenditure($stid, $current_financial_year_id);
-						$expenditure_rate = 0;
-						if ($budget != 0 && $expenditure != 0) {
-							$expenditure_rate = (($expenditure / $budget) * 100);
-						}
-						array_push($utilization_rate, $expenditure_rate);
-					} else {
-						array_push($utilization_rate, 0);
-					}
-				}
-				$information = array("name" => (string)$sector, "data" => $utilization_rate);
-				array_push($department_utilization_rate, $information);
-			}
-			return json_encode($department_utilization_rate);
-		}
-
-		$department_utilization = get_department_fund_utilization_rate($total_strategic_plan_years, $strategic_plan_start_year);
+	
+ 
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		print($result);
+		// print($result);
+		var_dump($ex->getMessage());
 	}
 ?>
 	<!-- start body  -->
@@ -323,8 +234,8 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?> 
 					<div class="btn-group" style="float:right; margin: right 10px;">
 						<div class="btn-group" style="float:right">
 						</div>
@@ -352,9 +263,8 @@ if ($permission) {
 											<i class="material-icons">verified_user</i>
 										</div>
 										<div class="content" style="width:80%">
-											<div class="text"><?= $prevfinyear ?> FINANCIAL YEAR
-												<h5 class="font-light" style="color:#673AB7"><i><strong>B:</strong> Ksh.<?= $last_financial_year_budget['totalpvfybudget'] ?></i></h5>
-												<h5 class="font-light"><i><strong>A:</strong> Ksh.<?= $last_financial_year_budget['totalpvfinyearamt'] ?></i></h5>
+											<div class="text"><?= $prevfinyear ?> FIN YEAR
+												<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $last_financial_year_budget['totalpvfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $last_financial_year_budget['totalpvfinyearalloc'] ?></i></h5>
 											</div>
 											<span class="text-danger"><?= $last_financial_year_budget['pvfinyearrate'] ?>%</span>
 											<div class="progress" style="height: 10px">
@@ -366,7 +276,7 @@ if ($permission) {
 								<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
 									<div class="info-box bg-light-blue hover-expand-effect" style="height:130px">
 										<?php
-										if ($last_financial_year_budget['totalpvfinyearamount'] > $current_financial_year_budget['totalcrfinyearamount']) {
+										if ($last_financial_year_budget['totalpvfinyearallocation'] > $current_financial_year_budget['totalcrfinyearallocation']) {
 										?>
 											<div class="icon" style="color:red; width:20%">
 												<i class="material-icons">
@@ -385,9 +295,8 @@ if ($permission) {
 										}
 										?>
 										<div class="content">
-											<div class="text"><?= $currfinyear ?> FINANCIAL YEAR
-												<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $current_financial_year_budget['totalcrfybudget'] ?></i></h5>
-												<h5 class="font-light"><i><strong>A:</strong> Ksh.<?= $current_financial_year_budget['totalcrfinyearamt'] ?></i></h5>
+											<div class="text"><?= $currfinyear ?> FIN YEAR
+												<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $current_financial_year_budget['totalcrfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $current_financial_year_budget['totalcrfinyearamt'] ?></i></h5>
 											</div>
 											<span class="text-danger"><?= $current_financial_year_budget['crfinyearrate'] ?>%</span>
 											<div class="progress" style="height: 10px">
@@ -448,7 +357,7 @@ if ($permission) {
 			</div>
 	</section>
 	<!-- end body  -->
-<?php
+<?php 
 } else {
 	$results =  restriction();
 	echo $results;
@@ -456,10 +365,9 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script src="assets/plugins/echarts/echarts-all.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
 
-<script>
+<script>  
 	let financial_years = '<?= $strategic_plan_financial_years ?>';
 	financial_years = JSON.parse(financial_years);
 	let fyears = '<?= $strategic_plan_years ?>';

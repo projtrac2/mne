@@ -4,13 +4,14 @@ include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 require('../../functions/indicator.php');
 require('../../functions/department.php');
+require('../../includes/system-labels.php');
 
 // get department
 if (isset($_POST['get_department'])) {
     $dept = $_POST['sector_id'];
     $departments = get_department_child($dept);
     if ($departments) {
-        $department = '<option value="">Select Division</option>';
+        $department = '<option value="">Select '.$ministrylabel.'</option>';
         for ($i = 0; $i < count($departments); $i++) {
             $department .= '<option value="' . $departments[$i]['stid'] . '"> ' . $departments[$i]['sector'] . '</option>';
         }
@@ -26,9 +27,20 @@ if (isset($_POST['leaveid'])) {
     $ptid = $_POST["ptid"];
 
     $currentYear = date("Y");
-    $query_rsLeaveDays =  $db->prepare("SELECT * FROM tbl_employee_leave_bal WHERE category='$leaveid' AND staff = '$ptid' AND year='$currentYear' ORDER BY id ASC");
+	$nextYear = $currentYear + 1;
+	$currentfinyr = $currentYear.'/'. $nextYear;
+    $query_rsLeaveDays =  $db->prepare("SELECT * FROM tbl_employees_leave_categories WHERE id='$leaveid'");
     $query_rsLeaveDays->execute();
     $row_rsLeaveDays = $query_rsLeaveDays->fetch();
+	
+    $query_remLeaveDays =  $db->prepare("SELECT * FROM tbl_employee_leave_bal WHERE category='$leaveid' AND staff = '$ptid' AND year='$currentYear' ORDER BY id ASC");
+    $query_remLeaveDays->execute();
+    $row_remLeaveDays = $query_remLeaveDays->fetch();
+	
+	$balforward = 0;
+	if($row_remLeaveDays){
+		$balforward = $row_remLeaveDays["balforward"];
+	}
 
     $query_rsEmpDetails =  $db->prepare("SELECT title, fullname FROM tbl_projteam2 WHERE ptid = '$ptid'");
     $query_rsEmpDetails->execute();
@@ -38,16 +50,16 @@ if (isset($_POST['leaveid'])) {
 
     echo '
 		<div class="col-md-12">
-			<label>Employee Name : <font color="indigo">' . $row_rsEmpDetails["title"] . '. ' . $row_rsEmpDetails["fullname"] . '</font></label>
+			<label>Employee name : <font color="indigo">' . $row_rsEmpDetails["title"] . '. ' . $row_rsEmpDetails["fullname"] . '</font></label>
 		</div>
 		<div class="col-md-4">
-			<label>Balance Brought Forward: <font color="indigo">' . $row_rsLeaveDays["balforward"] . ' Days</font></label>
+			<label>Balance brought forward: <font color="indigo">' . $balforward . ' days</font></label>
 		</div>
 		<div class="col-md-4">
-			<label>Days For Year ' . $row_rsLeaveDays["year"] . ': <font color="indigo">' . $row_rsLeaveDays["days"] . ' Days</font></label>
+			<label>Days for the year ' . $currentfinyr . ': <font color="indigo">' . $row_rsLeaveDays["days"] . ' days</font></label>
 		</div>
 		<div class="col-md-4">
-			<label>Remaining Leave Days : <font color="indigo">' . $row_rsLeaveDays["totaldays"] . ' Days</font></label>
+			<label>Remaining Leave days : <font color="indigo">' . $row_remLeaveDays["totaldays"] . ' days</font></label>
 		</div>
 		<input type="hidden" name="catid" id="catid" value="' . $leaveid . '"/>
 		<input type="hidden" name="remleavedays" id="catid" value="' . $row_rsLeaveDays["totaldays"] . '"/>
@@ -101,6 +113,21 @@ if ($_POST["action"] == "department") {
         }
     } else {
         echo '<option value="">... Department Not Defined ...</option>';
+    }
+}
+
+if ($_POST["action"] == "directorate") {
+    $output = array();
+    $statement = $db->prepare("SELECT * FROM tbl_sectors WHERE parent = '" . $_POST["stid"] . "'");
+    $statement->execute();
+    $rowcount = $statement->rowCount();
+    if ($rowcount > 0) {
+        echo '<option value="">... Select Directorate ...</option>';
+        while ($row = $statement->fetch()) {
+            echo '<option value="' . $row['stid'] . '">' . $row['sector'] . '</option>';
+        }
+    } else {
+        echo '<option value="">... Directorate Not Defined ...</option>';
     }
 }
 

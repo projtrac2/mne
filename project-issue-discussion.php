@@ -1,17 +1,11 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
 	try {
+
+		$currentPage = $_SERVER["PHP_SELF"];
 		$projisd = $_GET['issueid'];
+
 		if (isset($projisd) && !empty($projisd)) {
 			if (isset($_GET['ds'])) {
 				$discstatus = $_GET['ds'];
@@ -33,26 +27,35 @@ if ($permission) {
 
 				for ($cnt = 0; $cnt < $totals; $cnt++) {
 					if (!empty($_FILES['files']['name'][$cnt])) {
-						//Check if the file is JPEG image and it's size is less than 350Kb
-						$filename = basename($_FILES['files']['name'][$cnt]);
+						$filename = basename($_FILES['file']['name'][$cnt]);
 						$catid = $catid + 1;
 						$ext = substr($filename, strrpos($filename, '.') + 1);
-						if (($ext != "exe") && ($_FILES["files"]["type"][$cnt] != "application/x-msdownload")) {
+						if (($ext != "exe") && ($_FILES["file"]["type"][$cnt] != "application/x-msdownload")) {
 							$newname = $catid . "_" . $filename;
 							$filepath = "uploads/discussions/" . $newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
-								if (move_uploaded_file($_FILES['files']['tmp_name'][$cnt], $filepath)) {
+								if (move_uploaded_file($_FILES['file']['tmp_name'][$cnt], $filepath)) {
 									//successful upload
 									$fname = $newname;
-									$mt = $filepath; //floc
-									$sql = $db->prepare("INSERT INTO tbl_projissues_discussions (parent, projid,  issueid, owner, comment, floc, date_created)  VALUES(:parent, :projid, :issueid, :owner,:comment, :floc, :date_created)");
-									$sql->execute(array(":parent" => $parent, ":projid" => $projid, ":issueid" => $issueid, ":owner" => $user_name, ":comment" => $comments, ":floc" => $mt, ":date_created" => $date_created));
+									$sql = $db->prepare("INSERT INTO tbl_projissues_discussions (parent, projid, issueid, owner, comment, floc, date_created)  VALUES(:parent, :projid, :issueid, :owner, :comment, :floc, :date_created)");
+									$sql->execute(array(":parent" => $parent, ":projid" => $projid, ":issueid" => $issueid, ":owner" => $user_name, ":comment" => $comments, ":floc" => $filepath, ":date_created" => $date_created));
 								}
 							} else {
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
+									swal({
+									title: \"Error!\",
+									text: \" $msg \",
+									type: 'Danger',
+									timer: 10000,
+									showConfirmButton: false });
+								</script>";
+							}
+						} else {
+							$msg = 'This file type is not allowed, try another file!!';
+							$results = "<script type=\"text/javascript\">
 								swal({
 								title: \"Error!\",
 								text: \" $msg \",
@@ -60,10 +63,10 @@ if ($permission) {
 								timer: 10000,
 								showConfirmButton: false });
 							</script>";
-							}
-						} else {
-							$msg = 'This file type is not allowed, try another file!!';
-							$results = "<script type=\"text/javascript\">
+						}
+
+						$msg = 'File you are uploading already exists, try another file!!';
+						$results = "<script type=\"text/javascript\">
 							swal({
 							title: \"Error!\",
 							text: \" $msg \",
@@ -71,25 +74,24 @@ if ($permission) {
 							timer: 10000,
 							showConfirmButton: false });
 						</script>";
-						}
-
-						$msg = 'File you are uploading already exists, try another file!!';
-						$results = "<script type=\"text/javascript\">
-						swal({
-						title: \"Error!\",
-						text: \" $msg \",
-						type: 'Danger',
-						timer: 10000,
-						showConfirmButton: false });
-					</script>";
 					}
 				}
 			}
 			//query table issues 
-			$query_projissue = $db->prepare("SELECT * FROM `tbl_projissues` i  inner join tbl_project_details d on d.id=i.opid inner join tbl_progdetails o on o.id=d.outputid INNER JOIN tbl_projrisk_categories c on c.rskid=i.risk_category INNER JOIN tbl_projects p on p.projid =i.projid WHERE i.id ='$projisd' ");
+			$query_projissue = $db->prepare("SELECT i.id, i.origin, p.projid, p.projname AS projname,p.projcategory, category, observation, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate FROM `tbl_projissues` i INNER JOIN tbl_projrisk_categories c on c.rskid=i.risk_category INNER JOIN tbl_projects p on p.projid =i.projid WHERE i.id ='$projisd'");
 			$query_projissue->execute();
 			$row_projissue = $query_projissue->fetch();
 			$rows_account = $query_projissue->rowCount();
+
+
+			$query_issue_output = $db->prepare("SELECT output FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid INNER JOIN tbl_projrisk_categories c ON c.rskid=i.risk_category inner join tbl_project_details d on d.id=i.output_id inner join tbl_progdetails o on o.id=d.outputid WHERE i.id='$projisd'");
+			$query_issue_output->execute();
+			$row_issue_output = $query_issue_output->fetch();
+
+			$output = "No defined";
+			if ($row_issue_output) {
+				$output = $row_issue_output['output'];
+			}
 
 			$projid = $row_projissue['projid'];
 			$issue = $row_projissue['category'];
@@ -98,11 +100,7 @@ if ($permission) {
 			$projname = $row_projissue["projname"];
 			$created_by  = $row_projissue["created_by"]; //owner  
 			$owner  = $user_name;
-			$output = $row_projissue["output"];
 			$formid = $row_projissue["formid"];
-			$projcategory = $row_projissue["projcategory"];
-
-
 
 			//get active module 
 			$query_rsRelated = $db->prepare("SELECT * FROM `tbl_projissues_discussions` WHERE issueid ='$projisd' and parent = 0 and (status = 1 or status = 2)");
@@ -132,7 +130,7 @@ if ($permission) {
 					$pstatus = $row_rsRelated['status'];
 					$parentid = $row_rsRelated['id'];
 				} else {
-					header("location:projectissuesanalysis");
+					header("location:projectissueslist.php");
 				}
 			} else {
 				$pstatus = $row_rsRelated['status'];
@@ -170,83 +168,41 @@ if ($permission) {
 			$row_discussionstatus = $query_discussionstatus->fetch();
 			$pstatus = $row_discussionstatus['status'];
 		} else {
-			header("location:projectissuesanalysis.php");
+			header("location:projectissueslist.php");
 		}
 
 
-		$query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = '$projid'");
-		$query_rsMlsProg->execute();
-		$row_rsMlsProg = $query_rsMlsProg->fetch();
-
-		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
-
-		$percent2 = round($prjprogress, 2);
+		include_once('projects-functions.php');
+		$percent2 =  get_project_percentage($projid);
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		print($result);
 	}
 ?>
-	<!-- start body  -->
+	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/style.css">
 	<section class="content">
 		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:-60px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+				<h4 class="contentheader" style="color:#FFF">
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-						</div>
 					</div>
 				</h4>
 			</div>
 			<div class="row clearfix">
 				<div class="block-header">
 					<?= $results; ?>
-					<div class="header" style="padding-bottom:0px">
-						<div class="button-demo" style="margin-top:-15px; padding-left:-10px">
-							<a href="myprojectdash.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-9px">Details</a>
-							<a href="myprojectmilestones.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
-							<a href="myprojectworkplan.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Work Plan</a>
-							<a href="myprojectfinancialplan.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
-							<a href="myproject-key-stakeholders.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
-							<?php if ($projcategory == '2') { ?>
-								<div class="dropdown">
-									<button type="button" class="btn bg-grey waves-effect dropdown-toggle" data-toggle="dropdown">
-										Issues
-									</button>
-									<div class="dropdown-menu">
-										<a class="dropdown-item" href="projectissueslist.php?proj=<?= $projid ?>">Issues Log</a>
-										<a class="dropdown-item" href="#">Issues Analysis</a>
-										<a class="dropdown-item" href="#">Issues Escalated</a>
-									</div>
-								</div>
-							<?php } else { ?>
-								<div class="btn-group" style="background-color: transparent; border-color: transparent; box-shadow: none;">
-									<button type="button" class="btn bg-grey waves-effect dropdown-toggle" style="margin-top:10px; margin-left:-9px" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										<span class="sr-only">Project Issues</span>
-										<span class="caret"></span>
-									</button>
-									<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-										<li style="width:100%"><a href="projectissueslist.php?proj=<?= $projid ?>">Issues Log</a></li>
-										<li style="width:100%"><a href="projectissuesanalysis.php?proj=<?= $projid ?>">Issues Analysis</a></li>
-										<li style="width:100%"><a href="#">Issues Escalated</a></li>
-									</ul>
-								</div>
-							<?php } ?>
-							<a href="myprojectfiles.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
-							<a href="projreports.php?projid=<?php echo $projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Progress Report</a>
-						</div>
-					</div>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 						<h4>
-							<div class="col-md-12" style="background-color:#F7F7F7; border:#F7F7F7 thin solid; border-radius:2px; margin-bottom:5px; height:25px"><i class="fa fa-bar-chart" aria-hidden="true"></i> Project Issues Analysis</div>
 							<div class="col-md-8" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
-								Project Name: <font color="white"><?= $projname ?></font>
+								Project Name: <font color="white"><?php echo $projname; ?></font>
 							</div>
 							<div class="col-md-4" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
-								<div class="barBg" style="margin-top:0px; width:100%; border-radius:1px">
-									<div class="bar hundred cornflowerblue">
-										<div id="label" class="barFill" style="margin-top:0px; border-radius:1px"><?php echo $percent2 ?>%</div>
+								<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
+									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?=$percent2?>" aria-valuemin="0" aria-valuemax="100" style="width: <?=$percent2?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
+										<?=$percent2?>%
 									</div>
 								</div>
 							</div>
@@ -256,76 +212,87 @@ if ($permission) {
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="card">
 						<div class="body">
-							<div class="header">
-								<div class="clearfix" style="margin-top:5px">
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:15px">
-										<h4 class="pull-center">Discussions Board<?php if ($pstatus == 2) { ?><a href="projectissuesanalysis?proj=<?= $projid ?>" type="button" class="btn btn-success" style="float:right">Back to Issues</a><?php } elseif ($pstatus == 1 && ($issueownerid == $user_name)) { ?><a href="project-issue-discussion?issueid=<?= $projisd ?>&ds=2" type="button" class="btn btn-warning" style="float:right">Close Discussion</a><?php } ?></h4>
-									</div>
-									<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
-										<p> <strong>Issue Category:</strong> <?= $issue ?></p>
-										<p> <strong>Issue Description:</strong> <?php echo $issuedesc; ?></p>
-										<p> <strong>Project Output: </strong><?php echo $output; ?></p>
-										<p> <strong>Issue Status: </strong>
+							<div class="clearfix" style="margin-top:5px">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:15px">
+									<h4 class="pull-center">
+										Discussions Board 
+										<?php
+										if ($pstatus == 2) {
+											?><a href="projectissueslist.php?proj=<?= $projid ?>" type="button" class="btn btn-success" style="float:right">Back to Issues</a>
 											<?php
-											if ($issuestatus == 2) {
-												$issuestatus = "Issue Under Analysis";
-											} elseif ($issuestatus == 3) {
-												$issuestatus = "Issue Analysed";
-											} elseif ($issuestatus == 4) {
-												$issuestatus = "Issue Escalated";
-											} elseif ($issuestatus == 5) {
-												$issuestatus = "Issue Closed";
-											} elseif ($issuestatus == 4) {
-												$issuestatus = "Issue Resolved";
-											}
-											echo $issuestatus;
-											?>
-										</p>
-									</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-										<p> <strong>Recorded By:</strong> <?= $issueby ?></p>
-										<p> <strong>Date Recorded:</strong> <?= $daterecorded ?></p>
-										<p> <strong>Issue Owner: </strong><?= $issueowner ?></p>
-										<p> <strong>Date Assigned Owner:</strong> <?= $issueownerdate ?></p>
-									</div>
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
-										<div class="row clearfix ">
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<div class="card">
-													<div class="header bg-grey">
-														<strong> Issue Files </strong>
-													</div>
-													<div class="body">
-														<div class="body table-responsive">
-															<table class="table table-bordered" style="width:100%">
-																<thead>
-																	<tr>
-																		<th style="width:2%">#</th>
-																		<th style="width:40%">File Name</th>
-																		<th style="width:10%">File Type</th>
-																		<th style="width:38%">Purpose</th>
-																		<th style="width:10%">Action</th>
-																	</tr>
-																</thead>
-																<tbody>
-																	<?php
-																	$counter = 0;
+										} elseif ($pstatus == 1 && ($issueownerid == $user_name)  || ($role_group == 4 && $designation == 1)) {
+										?>
+											<a href="project-issue-discussion?issueid=<?= $projisd ?>&ds=2" type="button" class="btn btn-warning" style="float:right">Close Discussion</a>
+										<?php 
+										} 
+										?>
+									</h4>
+								</div>
+								<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+									<p> <strong>Issue Category:</strong> <?= $issue ?></p>
+									<p> <strong>Issue Description:</strong> <?php echo $issuedesc; ?></p>
+									<p> <strong>Project Output: </strong><?php echo $output; ?></p>
+									<p> <strong>Issue Status: </strong>
+										<?php
+										if ($issuestatus == 2) {
+											$issuestatus = "Issue Under Analysis";
+										} elseif ($issuestatus == 3) {
+											$issuestatus = "Issue Analysed";
+										} elseif ($issuestatus == 4) {
+											$issuestatus = "Issue Escalated";
+										} elseif ($issuestatus == 5) {
+											$issuestatus = "Issue Closed";
+										} elseif ($issuestatus == 4) {
+											$issuestatus = "Issue Resolved";
+										}
+										echo $issuestatus;
+										?>
+									</p>
+								</div>
+								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+									<p> <strong>Recorded By:</strong> <?= $issueby ?></p>
+									<p> <strong>Date Recorded:</strong> <?= $daterecorded ?></p>
+									<p> <strong>Issue Owner: </strong><?= $issueowner ?></p>
+									<p> <strong>Date Assigned Owner:</strong> <?= $issueownerdate ?></p>
+								</div>
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
+									<div class="row clearfix ">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<div class="card">
+												<div class="header bg-grey">
+													<strong> Issue Files </strong>
+												</div>
+												<div class="body">
+													<div class="body table-responsive">
+														<table class="table table-bordered" style="width:100%">
+															<thead>
+																<tr>
+																	<th style="width:2%">#</th>
+																	<th style="width:40%">File Name</th>
+																	<th style="width:10%">File Type</th>
+																	<th style="width:38%">Purpose</th>
+																	<th style="width:10%">Action</th>
+																</tr>
+															</thead>
+															<tbody>
+																<?php
+																$counter = 0;
 
-																	$query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE fcategory=:cat and projid=:projid");
-																	$query_rsFile->execute(array(":cat" => $formid, ":projid" => $projid));
-																	$row_rsFile = $query_rsFile->fetch();
-																	$totalRows_rsFile = $query_rsFile->rowCount();
+																$query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE form_id=:formid and projid=:projid");
+																$query_rsFile->execute(array(":formid" => $formid, ":projid" => $projid));
+																$row_rsFile = $query_rsFile->fetch();
+																$totalRows_rsFile = $query_rsFile->rowCount();
 
-																	if ($totalRows_rsFile > 0) {
-																		do {
-																			$pdfname = $row_rsFile['filename'];
-																			$type = $row_rsFile['ftype'];
-																			$filepath = $row_rsFile['floc'];
-																			$attachmentPurpose = $row_rsFile['reason'];
-																			$action =  '<a href="' . $filepath . '" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a>';
+																if ($totalRows_rsFile > 0) {
+																	do {
+																		$pdfname = $row_rsFile['filename'];
+																		$type = $row_rsFile['ftype'];
+																		$filepath = $row_rsFile['floc'];
+																		$attachmentPurpose = $row_rsFile['reason'];
+																		$action =  '<a href="' . $filepath . '" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a>';
 
-																			$counter++;
-																			echo '<tr>
+																		$counter++;
+																		echo '<tr>
 													<td>
 													  ' . $counter . '
 													</td>
@@ -342,28 +309,28 @@ if ($permission) {
 													' . $action . '  
 													</td>
 												</tr>';
-																		} while ($row_rsFile = $query_rsFile->fetch());
-																	}
+																	} while ($row_rsFile = $query_rsFile->fetch());
+																}
 
-																	$query_photos = $db->prepare("SELECT * FROM tbl_project_photos WHERE fcategory=:cat and projid=:projid");
-																	$query_photos->execute(array(":cat" => $formid, ":projid" => $projid));
-																	$row_photos = $query_photos->fetch();
-																	$totalRows_photos = $query_photos->rowCount();
+																$query_photos = $db->prepare("SELECT * FROM tbl_project_photos WHERE fcategory=:cat and projid=:projid");
+																$query_photos->execute(array(":cat" => $formid, ":projid" => $projid));
+																$row_photos = $query_photos->fetch();
+																$totalRows_photos = $query_photos->rowCount();
 
-																	if ($totalRows_photos > 0) {
-																		do {
-																			$pdfname = $row_photos['filename'];
-																			$type = $row_photos['ftype'];
-																			$filepath = $row_photos['floc'];
-																			$attachmentPurpose = $row_photos['description'];
-																			$action =  '<a class="thumbnail fancybox" rel="ligthbox" style="margin-bottom:0px" href="' . $filepath . '">
+																if ($totalRows_photos > 0) {
+																	do {
+																		$pdfname = $row_photos['filename'];
+																		$type = $row_photos['ftype'];
+																		$filepath = $row_photos['floc'];
+																		$attachmentPurpose = $row_photos['description'];
+																		$action =  '<a class="thumbnail fancybox" rel="ligthbox" style="margin-bottom:0px" href="' . $filepath . '">
 														<div class="text-center">
 															<small class="text-muted">View Photo</small>
 														</div>
 													</a>';
 
-																			$counter++;
-																			echo '<tr>
+																		$counter++;
+																		echo '<tr>
 													<td>
 													  ' . $counter . '
 													</td>
@@ -380,134 +347,147 @@ if ($permission) {
 													' . $action . '  
 													</td>
 												</tr>';
-																		} while ($row_photos = $query_photos->fetch());
-																	}
-																	?><script type="text/javascript">
-																		$(document).ready(function() {
-																			$(".fancybox").fancybox({
-																				openEffect: "none",
-																				closeEffect: "none"
-																			});
+																	} while ($row_photos = $query_photos->fetch());
+																}
+																?><script type="text/javascript">
+																	$(document).ready(function() {
+																		$(".fancybox").fancybox({
+																			openEffect: "none",
+																			closeEffect: "none"
 																		});
-																	</script>
-																</tbody>
-															</table>
-														</div>
+																	});
+																</script>
+															</tbody>
+														</table>
 													</div>
 												</div>
 											</div>
 										</div>
 									</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-										<p> <strong>Total Comments:</strong> <?php echo $totalRows_issuediscussion - 1; ?></p>
-									</div>
+								</div>
+								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+									<p> <strong>Total Comments:</strong> <?php echo $totalRows_issuediscussion - 1; ?></p>
 								</div>
 							</div>
-							<div class="body">
-								<div class="row">
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-										<div class="m-b-0">
-											<div class="chat-main-box right-panel v-scroll">
-												<!-- .chat-right-panel -->
-												<div class="chat-right-aside">
-													<div class="chat-rbox">
-														<ul class="timeline">
-															<?php
-															$counter = 0;
-															do {
-																$counter++;
-																$postid = $row_issuediscussion['id'];
-																$poster = $row_issuediscussion["title"] . "." . $row_issuediscussion["fullname"];
-																$issuecomment = $row_issuediscussion['comment'];
-																$avatar = $row_issuediscussion['avatar'];
-																$date = $row_issuediscussion['date_created'];
-																$designation = $row_issuediscussion['designation'];
-																if ($counter & 1) {
-															?>
-																	<li class="timeline-inverted">
-																	<?php
-																} else {
-																	?>
-																	<li>
-																	<?php
-																}
-																	?>
-																	<div class="timeline-badge success click-to-top">
-																		<img class="img-responsive" alt="user" src="<?= $avatar ?>" alt="img" data-toggle="tooltip" title="Posted By: <?= $poster ?>;  Designation: <?= $designation ?>">
-																		<span> text</span>
-																	</div>
-																	<div class="timeline-panel">
-																		<div class="timeline-body">
-																			<p class="more"><?= $issuecomment; ?></p>
-																			<span style="color:red" class="pull-right"><small><?= $date ?></small></span>
-																		</div>
-																	</div>
-																	</li>
+						</div>
+						<div class="body">
+							<div class="row">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="m-b-0">
+										<div class="chat-main-box right-panel v-scroll">
+											<!-- .chat-right-panel -->
+											<div class="chat-right-aside">
+												<div class="chat-rbox">
+													<ul class="timeline">
+														<?php
+														$counter = 0;
+														do {
+															$counter++;
+															$postid = $row_issuediscussion['id'];
+															$poster = $row_issuediscussion["title"] . "." . $row_issuediscussion["fullname"];
+															$issuecomment = $row_issuediscussion['comment'];
+															$avatar = $row_issuediscussion['avatar'];
+															$date = $row_issuediscussion['date_created'];
+															$designation = $row_issuediscussion['designation'];
+															if ($counter & 1) {
+														?>
+																<li class="timeline-inverted">
 																<?php
-															} while ($row_issuediscussion = $query_issuediscussion->fetch());
+															} else {
 																?>
-														</ul>
-													</div>
+																<li>
+																<?php
+															}
+																?>
+																<div class="timeline-badge success click-to-top">
+																	<img class="img-responsive" alt="user" src="<?= $avatar ?>" alt="img" data-toggle="tooltip" title="Posted By: <?= $poster ?>;  Designation: <?= $designation ?>">
+																	<span> text</span>
+																</div>
+																<div class="timeline-panel">
+																	<div class="timeline-body">
+																		<p class="more"><?= $issuecomment; ?></p>
+																		<span style="color:red" class="pull-right"><small><?= $date ?></small></span>
+																	</div>
+																</div>
+																</li>
+															<?php
+														} while ($row_issuediscussion = $query_issuediscussion->fetch());
+															?>
+													</ul>
 												</div>
-												<!-- .chat-right-panel -->
 											</div>
-											<?php
-											if ($pstatus == 2) {
-											?>
-												<form action="" method="post">
-													<div style="margin-top:10px">
-														<input type="hidden" name="projid" value="<?php echo $projid ?>">
-														<input type="hidden" name="issueid" value="<?php echo $projisd ?>">
-														<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
-															<textarea placeholder="Type your message here" class="form-control " name="comments" disabled>
+											<!-- .chat-right-panel -->
+										</div>
+										<?php
+										if ($pstatus == 2) {
+										?>
+											<!--<form action="" method="post">
+						<div style="margin-top:10px">
+							<input type="hidden" name="projid" value="<?php //echo $projid
+																		?>">
+							<input type="hidden" name="issueid" value="<?php //echo $projisd
+																		?>">
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+								<textarea placeholder="Type your message here" class="form-control " name="comments" disabled>
 									You cannot contribute any longer to this Discussion 
 								</textarea>
-														</div>
-														<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 text-right">
-															<span id="counter"></span>
-															<button disabled class="btn btn-secondary btn-circle btn-sm" data-toggle="tooltip" data-placement="top" title="Attach file">
-																<i class="fa fa-paperclip" aria-hidden="true"></i>
-																<input id="file" type="file" hidden multiple name="files" disabled>
-															</button>
-															<button type="submit" class="btn btn-info btn-lg" disabled>Send</button>
-														</div>
+							</div>
+							<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 text-right">
+								<!--<span id="counter"></span>
+								<button disabled class="btn btn-secondary btn-circle btn-sm" data-toggle="tooltip" data-placement="top" title="Attach file">
+									<i class="fa fa-paperclip" aria-hidden="true"></i>
+									<input id="file" type="file" hidden multiple name="file" disabled> 
+								</button>
+								<button type="submit" class="btn btn-info btn-lg" disabled>Send</button>-
+							</div>
+						</div>
+					</form>-->
+										<?php
+										} else {
+										?>
+											<form action="" method="post" enctype="multipart/form-data">
+												<div style="margin-top:10px">
+													<input type="hidden" name="projid" value="<?php echo $projid ?>">
+													<input type="hidden" name="issueid" value="<?php echo $projisd ?>">
+													<input type="hidden" name="username" value="<?php echo $owner ?>">
+													<input type="hidden" name="parent" value="<?php echo $parentid ?>">
+													<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+														<textarea placeholder="Type your message here" class="form-control " name="comments"></textarea>
 													</div>
-												</form>
-											<?php
-											} else {
-											?>
-												<form action="" method="post" enctype="multipart/form-data">
-													<div style="margin-top:10px">
-														<input type="hidden" name="projid" value="<?php echo $projid ?>">
-														<input type="hidden" name="issueid" value="<?php echo $projisd ?>">
-														<input type="hidden" name="username" value="<?php echo $owner ?>">
-														<input type="hidden" name="parent" value="<?php echo $parentid ?>">
-														<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
-															<textarea placeholder="Type your message here" class="form-control " name="comments"></textarea>
-														</div>
-														<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 text-right">
-															<span id="counter"></span>
-															<label class="btn btn-secondary btn-circle btn-sm" data-toggle="tooltip" data-placement="top" title="Attach file">
-																<i class="fa fa-paperclip" aria-hidden="true"></i>
-																<input id="file" type="file" hidden multiple name="files">
-															</label>
-															<button type="submit" class="btn btn-info btn-lg" name="send">Post</button>
-														</div>
+													<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 text-right">
+														<span id="counter"></span>
+														<label class="btn btn-secondary btn-circle btn-sm" data-toggle="tooltip" data-placement="top" title="Attach file">
+															<i class="fa fa-paperclip" aria-hidden="true"></i>
+															<input type="file" name="file" id="file" multiple>
+														</label>
+														<button type="submit" class="btn btn-info btn-lg" name="send">Post</button>
 													</div>
-												</form>
-											<?php
-											}
-											?>
-										</div>
+												</div>
+											</form>
+										<?php
+										}
+										?>
 									</div>
 								</div>
 							</div>
-
 						</div>
+						<!--</div> -->
 					</div>
 				</div>
 			</div>
+		</div>
 	</section>
+
+
+	<script src="assets/js/jquery.min.js"></script>
+	<!-- Bootstrap tether Core JavaScript -->
+	<script src="assets/js/popper.min.js"></script>
+	<script src="assets/js/bootstrap.min.js"></script>
+	<!-- slimscrollbar scrollbar JavaScript -->
+	<script src="assets/js/jquery.slimscroll.js"></script>
+	<!--Custom JavaScript -->
+	<script src="assets/js/custom.min.js"></script>
+	<script src="assets/js/chat.js"></script>
 	<!-- end body  -->
 <?php
 } else {

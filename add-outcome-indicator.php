@@ -1,16 +1,8 @@
 <?php
-require('functions/strategicplan.php');
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
+require('functions/strategicplan.php'); 
 require('includes/head.php');
 
 if ($permission) {
-	$pageTitle = "Add Outcome Indicator";
 	require('functions/indicator.php');
 	require('functions/department.php');
 	require('functions/datasources.php');
@@ -18,7 +10,7 @@ if ($permission) {
 	require('functions/calculationmethods.php');
 
 	try {
-		$currentYear = get_current_year();
+		//$currentYear = get_current_year();
 		$departments = get_departments();
 		$data_sources = get_data_sources();
 		$measurement_units = get_measurement_units();
@@ -35,6 +27,7 @@ if ($permission) {
 			$unit = $_POST['indunit'];
 			$indsector = $_POST['indsector'];
 			$inddept = $_POST['inddept'];
+			$beneficiary = $_POST['beneficiary'];
 			$user = $_POST['user_name'];
 			$current_date = date("Y-m-d");
 			$source_data = 0;
@@ -49,24 +42,24 @@ if ($permission) {
 
 			if ($indcount == 0) {
 				try {
-					$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_sector, indicator_dept, indicator_data_source, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :indsector, :inddept,:source_data, :user, :date)");
-					$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ':source_data' => $source_data, ':user' => $user, ':date' => $current_date));
+					$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_sector, indicator_dept, indicator_data_source, indicator_beneficiary, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :indsector, :inddept, :source_data, :beneficiary, :user, :date)");
+					$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ':source_data' => $source_data, ':beneficiary' => $beneficiary, ':user' => $user, ':date' => $current_date));
 					if ($result) {
 						$last_id = $db->lastInsertId();
 						if (isset($_POST['inddirectBenfType'])) {
 							if (isset($_POST['indcalculation'])) {
 								$category = 2;
 								if ($indcalculation == 1) {
-									if (isset($_POST['direct_outcomeaggragate'])) {
-										$aggragate = $_POST['direct_outcomeaggragate'];
+									if (isset($_POST['direct_outcome_aggragate'])) {
+										$aggragate = $_POST['direct_outcome_aggragate'];
 										$type = "n";
 										$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 										$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $aggragate, ":category" => $category,   ":type" => $type));
 									}
 								} else if ($indcalculation == 2) {
-									if (isset($_POST['direct_outcomedenominator'])) {
-										$denominator = $_POST['direct_outcomedenominator'];
-										$numerator = $_POST['direct_outcomenumerator'];
+									if (isset($_POST['direct_outcome_denominator'])) {
+										$denominator = $_POST['direct_outcome_denominator'];
+										$numerator = $_POST['direct_outcome_numerator'];
 										$type = "n";
 										$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 										$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $numerator,  ":category" => $category,  ":type" => $type));
@@ -75,8 +68,8 @@ if ($permission) {
 										$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $denominator, ":category" => $category,   ":type" => $type));
 									}
 								} else if ($indcalculation == 3) {
-									if (isset($_POST['direct_outcomenumerator'])) {
-										$numerator = $_POST['direct_outcomenumerator'];
+									if (isset($_POST['direct_outcome_numerator'])) {
+										$numerator = $_POST['direct_outcome_numerator'];
 										$type = "n";
 										$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 										$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $numerator, ":category" => $category,   ":type" => $type));
@@ -163,12 +156,12 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
+				<?=$icon?>
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-
-						</div>
+						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -183,45 +176,43 @@ if ($permission) {
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add New Indicator</legend>
 
-									<div class="col-md-3">
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 										<label>Indicator Code *:</label>
 										<div class="form-line">
-											<input type="text" class="form-control" name="indcode" id="indcode" style="border:#CCC thin solid; border-radius: 5px" required onBlur="checkAvailability()">
+											<input type="text" class="form-control" name="indcode" id="indcode" style="border:#CCC thin solid; border-radius: 5px" required onBlur="checkAvailability()" placeholder="Enter outcome indicator code">
 										</div>
 									</div>
 
-									<div class="col-md-7" id="code-availability-status">
-										<p><img src="assets/images/LoaderIcon.gif" id="loaderIcon" style="display:none" /></p>
+									<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12" id="code-availability-status">
+										<p id="loaderIcon" style="display:none" /></p>
 									</div>
 
-									<div class="col-md-12 row">
-										<div class="col-md-4">
-											<label>Unit of Measure
-												<a type="button" data-toggle="modal" data-target="#adddetailsModal" onclick='adddetails("unit")' id="outputItemModalBtnrow"> (Add new)</a>
-												*:
-											</label>
-											<div class="form-line">
-												<select name="indunit" id="indunit" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" false required>
-													<option value="" selected="selected" class="selection">....Select Unit....</option>
-													<?php
-													for ($i = 0; $i < count($measurement_units); $i++) {
-													?>
-														<option value="<?php echo $measurement_units[$i]['id'] ?>"><?php echo $measurement_units[$i]['unit'] ?></option>
-													<?php
-													}
-													?>
-												</select>
-											</div>
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<label>Outcome Indicator *:</label>
+										<div>
+											<input name="indname" type="text" class="form-control" id="indname" placeholder="Enter outcome indicator name" style="border:#CCC thin solid; border-radius: 5px" required />
 										</div>
-										<div class="col-md-8">
-											<label>Change to be measured *:</label>
-											<div>
-												<input name="indname" type="text" class="form-control" id="indname" placeholder="Enter change to be measured" style="border:#CCC thin solid; border-radius: 5px" required />
-											</div>
+									</div>
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+										<label>Unit of Measure
+											<a type="button" data-toggle="modal" data-target="#adddetailsModal" onclick='adddetails("unit")' id="outputItemModalBtnrow"> (Add new)</a>
+											*:
+										</label>
+										<div class="form-line">
+											<select name="indunit" id="indunit" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" false required>
+												<option value="" selected="selected" class="selection">....Select Unit....</option>
+												<?php
+												for ($i = 0; $i < count($measurement_units); $i++) {
+												?>
+													<option value="<?php echo $measurement_units[$i]['id'] ?>"><?php echo $measurement_units[$i]['unit'] ?></option>
+												<?php
+												}
+												?>
+											</select>
 										</div>
 									</div>
 
-									<div class="col-md-6" id="direction">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="direction">
 										<label class="control-label">Desired progress direction *:</label>
 										<div class="form-line">
 											<select name="inddirection" id="inddirection" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" false required="required">
@@ -232,7 +223,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 										<label>Indicator <?= $ministrylabel ?>*:</label>
 										<div class="form-line">
 											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
@@ -248,7 +239,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 										<label>Indicator <?= $departmentlabel ?>*:</label>
 										<div class="form-line" id="inddeparment">
 											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
@@ -257,7 +248,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 										<label class="control-label">Further Disaggregations ? *:</label>
 										<div class="form-line">
 											<select name="inddirectBenfType" id="inddirectBenfType" onchange="outcome_direct_dissagragation_change()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" false required="required">
@@ -269,7 +260,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6" id="indcalculationdiv">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="indcalculationdiv">
 										<label class="control-label">Calculation Method*:</label>
 										<div class="form-line">
 											<select name="indcalculation" id="indcalculation" onchange="indcalculation_change()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" false required="required">
@@ -285,7 +276,14 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-12" id="outcome_direct_disagregation">
+									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="indcalculationdiv">
+										<label class="control-label">Beneficiary*:</label>
+										<div class="form-line">
+											<input name="beneficiary" type="text" class="form-control" placeholder="Define the beneficiary" style="border:#CCC thin solid; border-radius: 5px" required />
+										</div>
+									</div>
+
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="outcome_direct_disagregation">
 										<label class="control-label">Disaggregations *:</label>
 										<div class="table-responsive">
 											<table class="table table-bordered table-striped table-hover" id="direct_outcome_table" style="width:100%">
@@ -320,7 +318,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-12">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<label class="control-label">Indicator Description/Definition : <font align="left" style="background-color:#eff2f4"> </font></label>
 										<p align="left">
 											<textarea name="inddesc" cols="45" rows="4" class="txtboxes" id="inddesc" style="height:50px; width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
@@ -400,13 +398,13 @@ if ($permission) {
 										<form class="form-horizontal" id="addform" action="" method="POST">
 											<br />
 											<div id="unitsof_measure">
-												<div class="col-md-12" id="indirectbeneficiary">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Measurement Unit *:</label>
 													<div class="form-input">
 														<input type="text" name="unit" id="unit" placeholder="Enter" class="form-control">
 													</div>
 												</div>
-												<div class="col-md-12" id="indirectbeneficiary">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Measurement Unit Description *:</label>
 													<div class="form-input">
 														<textarea name="unitdescription" id="unitdescription" cols="" rows="" class="form-control">
@@ -415,13 +413,13 @@ if ($permission) {
 												</div>
 											</div>
 											<div id="diss_type">
-												<div class="col-md-6" id="indirectbeneficiary">
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Add Disaggregation Type*:</label>
 													<div class="form-input">
 														<input type="text" name="diss_type_name" id="diss_type_name" placeholder="Enter" class="form-control">
 													</div>
 												</div>
-												<div class="col-md-6">
+												<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 													<label class="control-label" title="">Disaggregation Category*:</label>
 													<div class="form-line">
 														<select name="disaggregation_cat" id="disaggregation_cat" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" false required="required">
@@ -431,7 +429,7 @@ if ($permission) {
 														</select>
 													</div>
 												</div>
-												<div class="col-md-12" id="indirectbeneficiary">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Disaggregation Type Description *:</label>
 													<div class="form-input">
 														<textarea name="disdescription" id="disdescription" cols="" rows="" class="form-control">
@@ -440,7 +438,7 @@ if ($permission) {
 												</div>
 											</div>
 											<div class="modal-footer">
-												<div class="col-md-12 text-center" id="">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center" id="">
 													<input type="hidden" name="addnew" id="addnew" value="addnew">
 													<input type="hidden" name="type_diss" id="type_diss" value="">
 													<input type="hidden" name="dissegration_category" id="dissegration_category" value="">

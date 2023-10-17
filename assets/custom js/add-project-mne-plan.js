@@ -10,18 +10,19 @@ $(document).ready(function () {
         }
     });
 
-    $(".questions").hide();
+    $(".impactquestions").hide();
+    $(".outcomequestions").hide();
 
-	$("#editoutcomedataSource").on("change", function () {
+    $("#editoutcomedataSource").on("change", function () {
         var source = $(this).val("");
         if (source == 1) {
             $(".editquestions").show();
         } else {
-			$(".editquestions").hide();	
-			$('.querry').removeAttr('required');
-		}
+            $(".editquestions").hide();
+            $('.querry').removeAttr('required');
+        }
     });
-	
+
     //Mouseup textarea false
     $(".submenus").mouseup(function () {
         return false;
@@ -62,7 +63,7 @@ $(document).ready(function () {
         } else if (addoutput == "editoutput") {
             message = "Record Successfully Edited";
         }
-         
+
         $.ajax({
             type: "post",
             url: "assets/processor/add-monitoring-evaluation-plan-processor",
@@ -81,6 +82,7 @@ $(document).ready(function () {
                 } else {
                     alert("Error");
                 }
+                $("#tag-form-submit").removeAttr("disabled");
             }
         });
     });
@@ -88,39 +90,77 @@ $(document).ready(function () {
     get_limits(type = 1);
 });
 
-function add_questions(){
-	var source = $("#outcomedataSource").val();
-	console.log(source);
-	if (source == 1) {
-		$(".questions").show();
-	} else {
-		$(".questions").hide();	
-		$('.querry').removeAttr('required');
-	}
+function add_impact_questions() {
+    var source = $("#impactdataSource").val();
+    if (source == 1) {
+		const input = document.getElementById('impactmainquestion');
+		input.setAttribute('required', '');
+        $(".impactquestions").show();
+    } else {
+        $(".impactquestions").hide();
+        $('.impactquerry').removeAttr('required');
+        $('#impactmainquestion').removeAttr('required');
+    }
 }
 
-    function get_outcome_details(){
-        var outcome_id= $("#outcomeIndicator").val();
-        if(outcome_id !=""){
-            $.ajax({
-                type: "post",
-                url: "ajax/monitoring/index",
-                data: {
-                    outcome_details: "get_outcome_details", 
-                    outcome_id:outcome_id,
-                },
-                dataType: "json",
-                success: function (response) {
-                    if(response.success){
-                        $("#outcom_calc_method").val(response.outcom_calc_method);
-                        $("#outcomeunitofmeasure").val(response.outcomeunitofmeasure);
-                    }else{ 
-                        swal("Error!", "Could not find outcome details!", "error");
-                    }
-                }
-            });
-        } 
+function add_outcome_questions() {
+    var source = $("#outcomedataSource").val();
+    if (source == 1) {
+		const input = document.getElementById('outcomemainquestion');
+		input.setAttribute('required', '');
+        $(".outcomequestions").show();
+    } else {
+        $(".outcomequestions").hide();
+        $('.querry').removeAttr('required');
+        $('#outcomemainquestion').removeAttr('required');
     }
+}
+
+function get_outcome_details() {
+    var outcome_id = $("#outcomeIndicator").val();
+    if (outcome_id != "") {
+        $.ajax({
+            type: "post",
+            url: "ajax/monitoring/index",
+            data: {
+                outcome_details: "get_outcome_details",
+                outcome_id: outcome_id,
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#outcom_calc_method").val(response.outcom_calc_method);
+                    $("#outcomeunitofmeasure").val(response.outcomeunitofmeasure);
+                } else {
+                    swal("Error!", "Could not find outcome details!", "error");
+                }
+            }
+        });
+    }
+}
+
+function get_impact_details() {
+    var impact_id = $("#impactIndicator").val();
+    if (impact_id != "") {
+        $.ajax({
+            type: "post",
+            url: "ajax/monitoring/index",
+            data: {
+                impact_details: "get_impact_details",
+                impact_id: impact_id,
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#impact_calc_method").val(response.impact_calc_method);
+                    $("#impactunitofmeasure").val(response.impactunitofmeasure);
+                } else {
+                    swal("Error!", "Could not find impact details!", "error");
+                }
+            }
+        });
+    }
+}
 
 function get_limits(type = null) {
     $.ajax({
@@ -240,7 +280,7 @@ function add_row_impact() {
         "<td>" +
         '<input type="text" name="impact_assumptions[]"  id="impact_assumptionsrow' +
         $row +
-        '"   placeholder="Enter"  class="form-control"  required/>' +
+        '"   placeholder="Enter impact risk assumption"  class="form-control"  required/>' +
         "</td>" +
         "<td>" +
         '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_impact("row' +
@@ -283,7 +323,7 @@ $(document).on("change", ".selected_impact", function (e) {
         var getVal = $(v).val();
         if (getVal && $.trim(select_funding_arr.indexOf(getVal)) != -1) {
             tralse = false;
-            alert("You canot select Risk " + selectedText + " more than once ");
+            alert("You cannot select Risk " + selectedText + " more than once ");
             var rw = $(v).attr("data-id");
             var impact_assumptions = "#impact_assumptionsrow" + rw;
             $(v).val("");
@@ -297,7 +337,7 @@ $(document).on("change", ".selected_impact", function (e) {
         return false;
     }
 });
-
+/* 
 function get_impact_risks(rowno) {
     $.ajax({
         type: "post",
@@ -309,7 +349,7 @@ function get_impact_risks(rowno) {
             $("#impact_assumptionsrow" + rowno).val("");
         }
     });
-}
+} */
 
 function get_impact_ind_details() {
     var indicator = $("#impactIndicator").val();
@@ -410,6 +450,9 @@ function impact_indsum_target(rowno) {
     }
 }
 
+
+// ===================================== Add multiple outcome evaluation risks =============================================
+
 function add_row_outcome() {
     $outcomerowno = $("#outcome_table_body tr").length;
     $outcomerowno = $outcomerowno + 1;
@@ -465,7 +508,73 @@ function numbering_outcome() {
     });
 }
 
-// Add multiple evaluation questions
+// =============================================== Add multiple impact evaluation questions =================================================
+
+function add_row_impact_question() {
+    $questionrowno = $("#impact_questions_table_body tr").length;
+    $questionrowno = $questionrowno + 1;
+    let randno = Math.floor((Math.random() * 1000) + 1);
+    let $row = $questionrowno + "" + randno;
+    $("#impact_questions_table_body tr:last").after(
+        '<tr id="impactquestionrow' +
+        $row +
+        '">' +
+        "<td>" +
+        $row +
+        "</td>" +
+        "<td>" +
+        '<input type="text" name="impactquestions[]" id="impactquestions' +
+        $row +
+        '" placeholder="Enter any other impact evaluation question" class="form-control impactquerry" required/>' +
+        "</td>" +
+        "<td>" +
+        '<select data-id="0" name="impactanswertype[]" id="impactanswertype' +
+        $row +
+        '" class="form-control" required="required">' +
+        '<option value="">... Select ...</option>' +
+        '<option value="1">Number</option>' +
+        '<option value="2">Mutiple Choices</option>' +
+        '<option value="3">Checkboxes</option>' +
+        '<option value="4">Dropdown</option>' +
+        '<option value="6">Text</option>' +
+        '<option value="6">File Upload</option>' +
+        '</select>' +
+        "</td>" +
+        "<td>" +
+        '<input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label' +
+        $row +
+        '" placeholder="Enter comma seperated labels" class="form-control impactquerry" required/>' +
+        "</td>" +
+        "<td>" +
+        '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_impact_question("impactquestionrow' +
+        $row +
+        '")>' +
+        '<span class="glyphicon glyphicon-minus"></span>' +
+        "</button>" +
+        "</td>" +
+        "</tr>"
+    );
+    numbering_impact_questions();
+}
+
+// function to delete row 
+function delete_row_impact_question(rowno) {
+    $("#" + rowno).remove();
+    numbering_impact_questions();
+}
+
+// auto numbering table rows on delete and add new for financier table
+function numbering_impact_questions() {
+    $("#impact_questions_table_body tr").each(function (idx) {
+        $(this)
+            .children()
+            .first()
+            .html(idx + 1);
+    });
+}
+
+
+// ===================================== Add multiple outcome evaluation questions =============================================
 
 function add_row_question() {
     $questionrowno = $("#questions_table_body tr").length;
@@ -480,9 +589,27 @@ function add_row_question() {
         $row +
         "</td>" +
         "<td>" +
-        '<input type="text" name="questions[]" id="questions' +
+        '<input type="text" name="outcomeotherquestions[]" id="questions' +
         $row +
-        '" placeholder="Enter evaluation question" class="form-control querry" required/>' +
+        '" placeholder="Enter any other outcome evaluation question" class="form-control querry" required/>' +
+        "</td>" +
+        "<td>" +
+        '<select data-id="0" name="outcomeotheranswertype[]" id="answertype' +
+        $row +
+        '" class="form-control" required="required">' +
+        '<option value="">... Select ...</option>' +
+        '<option value="1">Number</option>' +
+        '<option value="2">Mutiple Choices</option>' +
+        '<option value="3">Checkboxes</option>' +
+        '<option value="4">Dropdown</option>' +
+        '<option value="6">Text</option>' +
+        '<option value="6">File Upload</option>' +
+        '</select>' +
+        "</td>" +
+        "<td>" +
+        '<input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label' +
+        $row +
+        '" placeholder="Enter comma seperated labels" class="form-control impactquerry" required/>' +
         "</td>" +
         "<td>" +
         '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_question("questionrow' +
@@ -524,7 +651,7 @@ $(document).on("change", ".selected_outcome", function (e) {
         var getVal = $(v).val();
         if (getVal && $.trim(select_outcome_arr.indexOf(getVal)) != -1) {
             tralse = false;
-            alert("You canot select Risk " + selectedText + " more than once ");
+            alert("You cannot select Risk " + selectedText + " more than once ");
             var rw = $(v).attr("data-id");
             var outcome_assumptions = "#outcome_assumptionsrow" + rw;
             $(v).val("");
@@ -538,6 +665,19 @@ $(document).on("change", ".selected_outcome", function (e) {
         return false;
     }
 });
+
+function get_impact_risks(rowno) {
+    $.ajax({
+        type: "post",
+        url: "assets/processor/add-monitoring-evaluation-plan-processor",
+        data: "get_risks=1",
+        dataType: "html",
+        success: function (response) {
+            $("#impactriskrow" + rowno).html(response);
+            $("#impact_assumptionsrow" + rowno).val("");
+        }
+    });
+}
 
 function get_outcome_risks(rowno) {
     $.ajax({
@@ -634,12 +774,12 @@ function outcome_indsum_target(rowno) {
 
 
 function add_row_output() {
-    $outputrowno = $("#output_table_body tr").length;
+    $outputrowno = $("#output_risk_table_body tr").length;
     $outputrowno = $outputrowno + 1;
     let randno = Math.floor((Math.random() * 1000) + 1);
     let $row = $outputrowno + "" + randno;
 
-    $("#output_table_body tr:last").after(
+    $("#output_risk_table_body tr:last").after(
         '<tr id="outputrow' +
         $row +
         '">' +
@@ -681,7 +821,7 @@ function delete_row_output(rowno) {
 
 // auto numbering table rows on delete and add new for financier table
 function numbering_output() {
-    $("#output_table_body tr").each(function (idx) {
+    $("#output_risk_table_body tr").each(function (idx) {
         $(this)
             .children()
             .first()
@@ -701,7 +841,7 @@ $(document).on("change", ".selected_output", function (e) {
         var getVal = $(v).val();
         if (getVal && $.trim(select_output_arr.indexOf(getVal)) != -1) {
             tralse = false;
-            alert("You canot select Risk " + selectedText + " more than once ");
+            alert("You cannot select Risk " + selectedText + " more than once ");
             var rw = $(v).attr("data-id");
             var output_assumptions = "#output_assumptionsrow" + rw;
             $(v).val("");
@@ -770,7 +910,7 @@ function getopdetails(opid) {
     var ben_diss = $("#ben_diss" + opid).val();
 
 
-    $("#output_table_body").html(
+    $("#output_risk_table_body").html(
         '<tr id="row0">' +
         '<td> 1 </td>' +
         '<td>' +
@@ -817,21 +957,16 @@ function getopdetails(opid) {
         },
         dataType: "json",
         success: function (response) {
-            var monitoringfreq = response.monitoringfreq;
-            var reporting_timeline = response.reporting_timeline;
-            var risks = response.risks;
-            var opid = response.opid;
-
-            $("#outputMonitorigFreq").html(monitoringfreq);
-            $("#outputReportingTimeline").html(reporting_timeline);
-            $(".selectpicker").selectpicker("refresh");
-
-            $("#output_table_body").html(risks);
-            $(`#op_table_body`).html(response.op_diss_state);
-            $("#addoutput").val("editoutput");
-            $("#addoutput").attr("name", "editoutput");
-            $("#modal-title").html('<i class="fa fa-edit"></i> Edit Output Details');
-            $('.selectpicker').selectpicker('refresh');
+            console.log(response);
+            $("#outputMonitorigFreq").val(response.monitoringfreq);
+            $("#responsible_m").val(response.responsible); 
+			if ( response.detailscount > 0 ) {
+				$("#output_risk_table_body").html(response.risks); 
+				$("#addoutput").val("editoutput");
+				$("#addoutput").attr("name", "editoutput");
+				$("#modal-title").html('<i class="fa fa-edit"></i> Edit Output Details');
+				$('.selectpicker').selectpicker('refresh');
+			}
         }
     });
 }
@@ -958,41 +1093,48 @@ function output_val() {
 
     if (data.includes(false)) {
         alert("Insert output Data for: " + number);
-
         return false;
     } else {
-
         return true;
     }
 }
 
-function formVal() {
-    let impact_handler = impact_form_fields();
-    if (impact_handler) {
-        let impact_ind_handler = impact_indform_fields();
-        if (impact_ind_handler) {
-            let outcome_handler = outcome_form_fields();
-            if (outcome_handler) {
-                let output_handler = output_val();
-                if (output_handler) {
-                    outcome_indf_handler = outcome_indform_fields();
-                    if (outcome_indf_handler) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
+function mne_budget_distribution() {
+    var mne_budget = $("#mne_budget").val();
+    var msg = false;
+    if (mne_budget != "") {
+        var budget_contribution = 0;
+        $(".sub_totals").each(function () {
+            if ($(this).val() != "") {
+                budget_contribution += parseFloat($(this).val());
             }
-        } else {
-            return false;
+        });
+        mne_budget = parseFloat(mne_budget);
+        if (mne_budget == budget_contribution) {
+            msg = true;
+        } else{
+            msg = false;
+            alert("Ensure you have distributed the m&e funds ");
         }
-    } else {
-        return false;
     }
+    return msg;
+}
+
+
+function formVal() {
+    var msg = false;
+    let outcome_handler = outcome_form_fields();
+    if (outcome_handler) {
+        let output_handler = output_val();
+        if (output_handler) {
+            outcome_indf_handler = outcome_indform_fields();
+            if (outcome_indf_handler) {
+                var mne_budget = mne_budget_distribution();
+                msg = (mne_budget) ? true : false;
+            }
+        }
+    }
+    return msg;
 }
 
 function get_op_diss(opid) {
@@ -1008,5 +1150,19 @@ function get_op_diss(opid) {
                 $(".selectpicker").selectpicker("refresh");
             }
         });
+    }
+}
+
+
+function question_data_type() {
+    var source = $("#impactdataSource").val();
+    if (source == 1) {
+		const input = document.getElementById('impactmainquestion');
+		input.setAttribute('required', '');
+        $(".impactquestions").show();
+    } else {
+        $(".impactquestions").hide();
+        $('.impactquerry').removeAttr('required');
+        $('#impactmainquestion').removeAttr('required');
     }
 }

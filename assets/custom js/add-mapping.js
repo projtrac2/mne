@@ -1,21 +1,4 @@
-var coords = [];
-var finalCoordinates = [];
-var watchID = null;
-var geoLoc;
-var dis = 10;
-var map, infoWindow;
-var start;
-var point;
-var dest;
 
-// var dis = $('#distance').val();
-var polylineOptions = {
-    strokeColor: "#C83939",
-    strokeOpacity: 1,
-    strokeWeight: 4
-};
-var colors = ["#00FF00", "#4682B4", "#FFFF00", "#FF00FF", "#00FFFF"];
-var polylines = [];
 
 $(document).ready(function () {
     getcurrent_location_static();
@@ -26,7 +9,7 @@ $(document).ready(function () {
 function get_map_coordinates() {
     $.ajax({
         type: "POST",
-        url: "assets/processor/add-project-map-assign-process.php",
+        url: "assets/processor/add-project-map-assign-process",
         data: "get_coordinates",
         dataType: "json",
         success: function (response) {
@@ -38,213 +21,12 @@ function get_map_coordinates() {
             }
         }
     });
-}
+} 
 
 
 
-// ////
-// static location mapping functions 
-//////
-// function to get the current position of the project 
-function getcurrent_location_static() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-            lat = position.coords.latitude;
-            lng = position.coords.longitude;
-            //get the latitude ad longitude 
-            $("#lat").val(lat);
-            $('#lng').val(lng);
-        }, function () {
-            handleLocationError(true);
-            console.log("Browser browser supports geolocation but cannot get position")
-        });
-    } else {
-        // Browser doesn't support Geolocation
-        handleLocationError(false);
-        console.log("Browser doesn't support Geolocation")
-    }
-}
-
-// function to handle errors 
-function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-    console.log("errors found");
-}
 
 
-////////
-// Area Mapping 
-////////
-// instantiate area map 
-function checkposition() {
-    $("#start").hide();
-    var optn = {
-        enableHighAccuracy: true,
-        timeout: Infinity,
-        maximumAge: 0
-    };
-    if (navigator.geolocation) {
-        watchID = navigator.geolocation.watchPosition(success_area, fail, optn);
-    } else {
-        $("#msg").html("Not supported");
-    }
-}
-
-//functio to handle all the errors 
-function fail(error) {
-    var errorType = {
-        0: "Unknown Error",
-        1: "Permission denied by the user",
-        2: "Position of the user not available",
-        3: "Request timed out"
-    };
-    var errMsg = errorType[error.code];
-    if (error.code == 0 || error.code == 2) {
-        errMsg = errMsg + " - " + error.message;
-    }
-    alert(errMsg);
-}
-
-// getcoordinates for area map
-function success_area(position) {
-    var lat = position.coords.latitude;
-    var lng = position.coords.longitude;
-    var pos = {
-        lat,
-        lng
-    }
-
-    finalCoordinates.push(pos);
-    if (finalCoordinates.length < 2) {
-        get_area_coords(finalCoordinates);
-    } else {
-        // check if the last coordinates and the first coordinates match 
-        target = finalCoordinates[0];
-        crd = finalCoordinates[finalCoordinates.length - 1];
-
-        if (target.lat === crd.lat && target.lng === crd.lng) {
-            $("#msg").html('Congratulation, you have completed the task ');
-            navigator.geolocation.clearWatch(watchID);
-            get_area_coords(finalCoordinates);
-        }
-    }
-}
-
-//function to create the form to be submitted 
-function get_area_coords(coords) {
-    for (var i = 0; i < coords.length; i++) {
-        var lat = coords[i].lat;
-        var lng = coords[i].lng;
-        add_row_table("area", lat, lng);
-    }
-}
-// ///////////
-// waypoints 
-/////////////
-function check_position() {
-    var optn = {
-        enableHighAccuracy: true,
-        timeout: Infinity,
-        maximumAge: 0
-    };
-    if (navigator.geolocation) {
-        watchID = navigator.geolocation.watchPosition(success_way, fail, optn);
-    } else {
-        $("#msg").html("Not supported");
-    }
-}
-
-
-function success_way(position) {
-    var lat = position.coords.latitude;
-    var lng = position.coords.longitude;
-    var pos = {
-        lat,
-        lng
-    }
-    finalCoordinates.push(pos);
-    target = finalCoordinates[0];
-    crd = finalCoordinates[finalCoordinates.length - 1];
-    if (finalCoordinates.length < 2) {
-        getcoords(finalCoordinates);
-    } else {
-        var service = new google.maps.DistanceMatrixService();
-        service.getDistanceMatrix({
-            origins: [target],
-            destinations: [crd],
-            travelMode: 'DRIVING',
-        }, function (response, status) {
-            if (status == 'OK') {
-                var origins = response.originAddresses;
-                var destinations = response.destinationAddresses;
-                for (var i = 0; i < origins.length; i++) {
-                    var results = response.rows[i].elements;
-                    for (var j = 0; j < results.length; j++) {
-                        var element = results[j];
-                        var distance = element.distance.value;
-                        var remaining = (dis - distance) / 1000;
-                        if (distance == dis) {
-                            $("#msg").html('Congratulation, you reach the target');
-                            navigator.geolocation.clearWatch(watchID);
-                            getcoords(finalCoordinates);
-                        } else {
-                            $("#msg").html("You are remaining with" + remaining + "Km");
-                        }
-                    }
-                }
-            }
-        });
-
-    }
-}
-
-//function to create the form to be submitted 
-function getcoords(coords) {
-    var container = $('<div />');
-    for (var i = 0; i < coords.length; i++) {
-        var lat = coords[i].lat;
-        var lat = coords[i].lng;
-        console.log(lat);
-        add_row_table("waypoint", lat, lng);
-    }
-    $('#submit').show();
-}
-
-
-///////
-// adding rows from data 
-//////
-
-// function to add new rowfor financiers
-function add_row_table(mtype, lat, lng) {
-    $("#removeTr").remove(); //new change
-    var table_id = "#" + mtype + "_table_body tr";
-    $rowno = $(table_id).length;
-    $rowno = $rowno + 1;
-    $(table_id).after(
-        '<tr id="row' +
-        $rowno +
-        '">' +
-        "<td></td>" +
-        "<td>" +
-        '<input type="text" name="lat[]" id="hidrow' + $rowno + '"  class="form-control" readonly value="' + lat + '" style="width:85%; float:right" required />' +
-        "</td>" +
-        "<td>" +
-        '<input type="text" name="lng[]" id="hidrow' + $rowno + '"  class="form-control" readonly value="' + lng + '" style="width:85%; float:right" required />' +
-        "</td>" +
-        "</tr>"
-    );
-    numbering_table();
-}
-
-// auto numbering table rows on delete and add new for financier table
-function numbering_table() {
-    $("#assign_table_body tr").each(function (idx) {
-        $(this)
-            .children()
-            .first()
-            .html(idx);
-    });
-}
 
 // /////////
 // view more 
@@ -259,7 +41,7 @@ function more(itemId, stid) {
         $(".div-result").addClass("div-hide");
 
         $.ajax({
-            url: "general-settings/selected-items/fetch-team-item.php",
+            url: "general-settings/selected-items/fetch-team-item",
             type: "post",
             data: { itemId: itemId, stid: stid, more_info: "more_info" },
             dataType: "html",
@@ -276,7 +58,7 @@ function more(itemId, stid) {
 function projectInfo(id) {
     $.ajax({
         type: "POST",
-        url: "process.php",
+        url: "process",
         data: "data=" + id,
         dataType: "html",
         success: function (response) {
@@ -299,7 +81,7 @@ function static_map(projid, stid) {
     });
 
     // Change this depending on the name of your PHP or XML file
-    downloadUrl('markers/stationary-markers.php?projid=' + projid + "&state=" + stid, null, function (data) {
+    downloadUrl('markers/stationary-markers?projid=' + projid + "&state=" + stid, null, function (data) {
         var xml = data.responseXML;
         var markers = xml.documentElement.getElementsByTagName('marker');
 
@@ -340,7 +122,7 @@ function area_map(projid, stid) {
     infoWindow = new google.maps.InfoWindow();
 
     // Change this depending on the name of your PHP or XML file
-    downloadUrl('markers/stationary-markers.php?projid=' + projid + "&state=" + stid, null, function (data) {
+    downloadUrl('markers/stationary-markers?projid=' + projid + "&state=" + stid, null, function (data) {
         var xml = data.responseXML;
         var markers = xml.documentElement.getElementsByTagName('marker');
         if (window.poly) window.poly.setMap(null);
@@ -386,7 +168,7 @@ function waypoint_map(projid, stid) {
         }));
     infoWindow = new google.maps.InfoWindow();
     // Change this depending on the name of your PHP or XML file
-    downloadUrl('markers/stationary-markers.php?projid=' + projid + "&state=" + stid, null, function (data) {
+    downloadUrl('markers/stationary-markers?projid=' + projid + "&state=" + stid, null, function (data) {
         var xml = data.responseXML;
         var markers = xml.documentElement.getElementsByTagName('marker');
         var count = 0;

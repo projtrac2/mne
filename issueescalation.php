@@ -45,45 +45,33 @@ try{
 		$query_url->execute();		
 		$row_url = $query_url->fetch();	
 		
+		$url = $row_url["main_url"];		
+					
+		$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+		$query_url->execute();		
+		$row_url = $query_url->fetch();
 		$url = $row_url["main_url"];
+		$org = $row_url["company_name"];
+		$org_email = $row_url["email_address"];
 		
-		// link back to the system 
-		$issuelink = '<a href="'.$url.'project-escalated-issue?issueid='.$rskid.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">More Details </a>';
-		
-		require 'PHPMailer/PHPMailerAutoload.php';
-
-		$mail = new PHPMailer;
-		$subject = "Project Issue Escalation";
-		
-		if($rows_userowner > 0){			
+		if($rows_userowner > 0){
+			require 'PHPMailer/PHPMailerAutoload.php';
 			$receipientName = $row["title"].'. '.$row["fullname"]; // The receipients names 
 			$receipient = $row["email"];
-			//$receipient = "denkytheka@gmail.com";
-			require_once("issue-escalation-email.php");
 			
-			//Server settings
-			//$mail->SMTPDebug = 2;                                       // Enable verbose debug output
-			$mail->isSMTP();                                            // Set mailer to use SMTP
-			$mail->Host       = 'smtp.ionos.es';  // Specify main and backup SMTP servers
-			$mail->SMTPAuth   = true;                                   // Enable SMTP authentication
-			$mail->Username   = 'info@odesatv.es';                     // SMTP username
-			$mail->Password   = 'Test@2021#';                               // SMTP password
-			$mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
-			$mail->Port       = 587;                                    // TCP port to connect to
-
-			//Recipients
-			$mail->setFrom('info@odesatv.es', 'Projtrac Systems Ltd');
-			$mail->addAddress($receipient, $receipientName);
-
-			//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
-			//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
-			$mail->isHTML(True);                                  // Set email format to HTML
-
-			$mail->Subject = $subject; 
-			$mail->Body    = $body;
-			$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-
-			$mail->send();
+			//email body
+			$detailslink = '<a href="'.$url.'project-escalated-issue?issueid='.$rskid.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">More Details </a>';
+		
+			$mainmessage = ' 
+			<p>Dear '.$receipientName. ',</p>
+			<p>This is to notify you that the issue with the details below has been escalated to you</p><P>Issue: '.$issue.'. <br> Project Name: '.$project.' <br> Issue Severity: '.$severity.' <br> Date escalated: '.$emaildate.'</p>
+			<p>Click the link below for more details</p>';
+			
+			$title = "Project issue escalation to CO";
+			$subject = "Project Issue Escalation";
+			
+			include("assets/processor/email-body.php");
+			include("email-conf-settings.php");
 		}
 			
 		echo json_encode("success");
@@ -93,4 +81,3 @@ try{
     $result = flashMessage("An error occurred: " .$ex->getMessage());
 	echo $result;
 }
-?>

@@ -1,14 +1,8 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-    $pageTitle = "Contractors"; 
+
     try {
         if ((isset($_GET["del"])) && ($_GET["del"] == "1")) {
             if (isset($_GET['ctid'])) {
@@ -59,12 +53,12 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <?php
-                            if ($file_rights->add) {
+                            if (in_array("create", $page_actions)) {
                             ?>
                                 <a href="add-contractor.php" class="btn btn-success" style="height:27px; ; margin-top:-1px; vertical-align:center">Add New Contractor</a>
                             <?php
@@ -142,13 +136,17 @@ if ($permission) {
                                                                     </a>
                                                                 </li>
                                                                 <?php
-                                                                if ($file_rights->edit && $file_rights->delete_permission) {
+                                                                if (in_array("update", $page_actions)) {
                                                                 ?>
-                                                                    <li>
+                                                                    <li> 
                                                                         <a title="Edit Contractor" href="add-contractor.php?edit=1&contrid=<?php echo $row_rsContrList['contrid']; ?>">
                                                                             <i class="fa fa-pencil"></i> Edit
                                                                         </a>
                                                                     </li>
+                                                                <?php
+                                                                }
+                                                                if (in_array("update", $page_actions)) {
+                                                                ?>
                                                                     <li>
                                                                         <a title="Delete Contractor" href="view-contractors.php?del=1&amp;ctid=<?php echo $row_rsContrList['contrid']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
                                                                             <i class="fa fa-trash"></i> Delete

@@ -1,14 +1,7 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-    $pageTitle = "Project Locations";
     try {
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
@@ -31,7 +24,7 @@ if ($permission) {
                     title: \"Success!\",
                     text: \" $msg\",
                     type: 'Success',
-                    timer: 5000, 
+                    timer: 5000,
                     showConfirmButton: false });
                     setTimeout(function(){
                             window.location.href = 'locations.php';
@@ -89,7 +82,7 @@ if ($permission) {
                         title: \"Success!\",
                         text: \" $msg\",
                         type: 'Success',
-                        timer: 5000, 
+                        timer: 5000,
                         showConfirmButton: false });
                         setTimeout(function(){
                                 window.location.href = 'locations.php';
@@ -111,163 +104,114 @@ if ($permission) {
             }
         }
 
-        $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE location='0' and parent IS NULL");
-        $query_rsState->execute();
-        $row_rsState = $query_rsState->fetch();
-
-        $query_rsAllLocations = $db->prepare("SELECT id,state FROM tbl_state WHERE location='0' and parent IS NULL and id<>'1' ORDER BY state ASC");
+        $query_rsAllLocations = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL and id<>'1' ORDER BY state ASC");
         $query_rsAllLocations->execute();
         $row_rsAllLocations = $query_rsAllLocations->fetch();
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-        print($result);
-    }
+
 ?>
 
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
-                    <div class="btn-group" style="float:right">
+        <!-- start body  -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <?= $icon ?>
+                        <?= $pageTitle ?>
                         <div class="btn-group" style="float:right">
-                            <?php
-                            if ($action_permission) {
-                            ?>
-
-                            <?php
-                            }
-                            ?>
+                            <div class="btn-group" style="float:right">
+                            </div>
                         </div>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- ============================================================== -->
-                            <!-- Start Page Content -->
-                            <!-- ============================================================== -->
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="body">
+                                <!-- ============================================================== -->
+                                <!-- Start Page Content -->
+                                <!-- ============================================================== -->
 
-                            <form role="form" id="<?= $formName ?>" name="<?= $formName ?>" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?php echo $action; ?> Location (If adding Level-2/Level-3, first Select Parent Location .i.e Level-1/Level-2)</legend>
-                                    <div class="col-md-4">
-                                        <label class="control-label">Level-1 *:</label>
-                                        <div class="form-line">
-                                            <select name="subcounty" class="form-control" id="subcounty" required="required" style="border:#CCC thin solid; border-radius:5px">
-                                                <option value="">.... Select Level-1 ....</option>
-                                                <?php
-                                                do {
-                                                    if ($row_rsState['id'] == '0') {
-                                                        $SCounty = "Level-1";
-                                                    } else {
-                                                        $SCounty = $row_rsState['state'];
+                                <form role="form" id="<?= $formName ?>" name="<?= $formName ?>" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?php echo $action; ?> Location (If adding Level-2, first Select Parent Location .i.e Level-1/Level-2)</legend>
+                                        <div class="col-md-4">
+                                            <label class="control-label">Level-1 *:</label>
+                                            <div class="form-line">
+                                                <select name="subcounty" class="form-control" id="subcounty" required="required" style="border:#CCC thin solid; border-radius:5px">
+                                                    <option value="">.... Select Level-1 ....</option>
+                                                    <?php
+                                                    $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
+                                                    $query_rsState->execute();
+                                                    $rows_rsState = $query_rsState->rowCount();
+                                                    if ($rows_rsState > 0) {
+                                                        while ($row_rsState = $query_rsState->fetch()) {
+                                                            if ($row_rsState['id'] == '0') {
+                                                                $SCounty = "Level-1";
+                                                            } else {
+                                                                $SCounty = $row_rsState['state'];
+                                                            }
+                                                    ?>
+                                                            <option value="<?php echo $row_rsState['id'] ?>"><?php echo $row_rsState['state']; ?></option>
+                                                    <?php
+                                                        }
                                                     }
-                                                ?>
-                                                    <option value="<?php echo $row_rsState['id'] ?>"><?php echo $row_rsState['state']; ?></option>
-                                                <?php
-                                                } while ($row_rsState = $query_rsState->fetch());
-                                                ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="projduration">Level-2 *:</label><span id="dept" style="color:darkgoldenrod"></span>
-                                        <div class="form-line">
-                                            <div class="myward">
-                                                <select name="wards" class="form-control" id="wards" required="required" style="border:#CCC thin solid; border-radius:5px">
-                                                    <option value="">.... Select Level-1 first ....</option>
+                                                    ?>
                                                 </select>
                                             </div>
-                                            <div class="myward2"></div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <span id="error"></span>
-                                        <label for="projduration">Level-3 *:</label><span id="error" style="color:darkgoldenrod"></span>
-                                        <div class="form-line">
-                                            <div class="locations">
-                                                <input type="text" name="location" class="form-control" id="location" required="required" style="height:35px; width:98%" />
+                                        <div class="col-md-4">
+                                            <label for="projduration">Level-2 *:</label><span id="dept" style="color:darkgoldenrod"></span>
+                                            <div class="form-line">
+                                                <div class="myward">
+                                                    <select name="wards" class="form-control" id="wards" required="required" style="border:#CCC thin solid; border-radius:5px">
+                                                        <option value="">.... Select Level-1 first ....</option>
+                                                    </select>
+                                                </div>
+                                                <div class="myward2"></div>
                                             </div>
-                                            <div class="myward2"></div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <ul class="list-inline" align="center">
-                                            <li>
-                                                <input name="<?= $submitValue ?>" type="submit" class="btn btn-success" id="submit" value="<?= $submitValue ?>" style="margin-bottom:10px" />
-                                                <input type="hidden" name="<?= $submitAction ?>" value="<?= $formName ?>" />
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </fieldset>
-                            </form>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                    <thead>
-                                        <tr id="colrow">
-                                            <th width="10%" height="35">
-                                                <div align="center"><strong id="colhead">SN</strong></div>
-                                            </th>
-                                            <th width="85%">
-                                                <div align="center"><strong id="colhead">Level-1/Level-2/Level-3 Name</strong></div>
-                                            </th>
-                                            <th width="5%" align="center" data-orderable="false">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $sn = 0;
-                                        do {
-                                            $sn++;
-                                        ?>
-                                            <tr id="rowlines" style="background-color:#e8eef7">
-                                                <td width="10%" height="35">
-                                                    <div align="center"><?php echo $sn; ?></div>
-                                                </td>
-                                                <td width="80%">
-                                                    <div align="left">&nbsp;&nbsp;<?php echo $row_rsAllLocations['state']; ?></div>
-                                                </td> 
-                                                <td width="5%">
-                                                        <div class="btn-group">
-                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-                                                                Options <span class="caret"></span>
-                                                            </button>
-                                                            <ul class="dropdown-menu">
-                                                                <li>
-                                                                    <a type="button" id="edit_location" href="editlocations?edit=1&amp;stid=<?php echo $row_rsAllLocations['id']; ?>">
-                                                                        <i class="fa fa-plus-square"></i> Edit
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllLocations['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                        <i class="fa fa-plus-square"></i> Delete
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </td>
+                                        <div class="col-md-12">
+                                            <ul class="list-inline" align="center">
+                                                <li>
+                                                    <input name="<?= $submitValue ?>" type="submit" class="btn btn-success" id="submit" value="<?= $submitValue ?>" style="margin-bottom:10px" />
+                                                    <input type="hidden" name="<?= $submitAction ?>" value="<?= $formName ?>" />
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                                <!-- js-basic-example dataTable -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover ">
+                                        <thead>
+                                            <tr id="colrow">
+                                                <th width="10%" height="35">
+                                                    <div align="center"><strong id="colhead">SN</strong></div>
+                                                </th>
+                                                <th width="85%">
+                                                    <div align="center"><strong id="colhead">Level-1/Level-2</strong></div>
+                                                </th>
+                                                <th width="5%" align="center" data-orderable="false">Action</th>
                                             </tr>
+                                        </thead>
+                                        <tbody>
                                             <?php
-                                            $ward = $row_rsAllLocations['id'];
-
-                                            $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE location='0' and parent='$ward' ORDER BY id ASC");
-                                            $query_rsAllWards->execute();
-                                            $row_rsAllWards = $query_rsAllWards->fetch();
-                                            do { ?>
-                                                <tr id="rowlines" style="background-color:#f9fbfc; border-bottom:#000 thin dashed">
+                                            $sn = 0;
+                                            $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
+                                            $query_rsState->execute();
+                                            $rows_rsState = $query_rsState->rowCount();
+                                            while ($row_rsState = $query_rsState->fetch()) {
+                                                $sn++;
+                                            ?>
+                                                <tr id="rowlines" style="background-color:#e8eef7">
                                                     <td width="10%" height="35">
-                                                        <div align="center"><b> . </b></div>
+                                                        <div align="center"><?php echo $sn; ?></div>
                                                     </td>
                                                     <td width="80%">
-                                                        <div align="left">&nbsp;&nbsp;-- <?php echo $row_rsAllWards['state']; ?></div>
+                                                        <div align="left">&nbsp;&nbsp;<?php echo $row_rsState['state']; ?></div>
                                                     </td>
                                                     <td width="5%">
                                                         <div class="btn-group">
@@ -276,13 +220,13 @@ if ($permission) {
                                                             </button>
                                                             <ul class="dropdown-menu">
                                                                 <li>
-                                                                    <a type="button" id="edit_location" href="editlocations?edit=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>">
-                                                                        <i class="fa fa-plus-square"></i> Edit
+                                                                    <a type="button" id="edit_location" href="edit-locations.phpedit=1&amp;stid=<?php echo $row_rsState['id']; ?>">
+                                                                        <i class="fa fa-pencil"></i> Edit
                                                                     </a>
                                                                 </li>
                                                                 <li>
-                                                                    <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                        <i class="fa fa-plus-square"></i> Delete
+                                                                    <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsState['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
+                                                                        <i class="fa fa-trash"></i> Delete
                                                                     </a>
                                                                 </li>
                                                             </ul>
@@ -290,64 +234,105 @@ if ($permission) {
                                                     </td>
                                                 </tr>
                                                 <?php
-                                                $loc = $row_rsAllWards['id'];
-
-                                                $query_rsAllLocs = $db->prepare("SELECT * FROM `tbl_state` WHERE location='1' and parent='$loc' ORDER BY id ASC");
-                                                $query_rsAllLocs->execute();
-                                                $row_rsAllLocs = $query_rsAllLocs->fetch();
-                                                do {
-                                                    if (empty($row_rsAllLocs['state']) || $row_rsAllLocs['state'] == '') {
-                                                        $projloc = "Location Not Defined";
-                                                    } else {
-                                                        $projloc = $row_rsAllLocs['state'];
-                                                    }
+                                                $ward = $row_rsState['id'];
+                                                $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE parent='$ward' ORDER BY id ASC");
+                                                $query_rsAllWards->execute();
+                                                $rows_rsAllWards = $query_rsAllWards->rowCount();
+                                                if ($rows_rsAllWards > 0) {
+                                                    while ($row_rsAllWards = $query_rsAllWards->fetch()) {
                                                 ?>
-
-                                                    <tr id="rowlines">
-                                                        <td width="10%" height="35">
-                                                            <div align="center"><b> . </b></div>
-                                                        </td>
-                                                        <td width="85%">
-                                                            <div align="left">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---- <?php echo $projloc; ?></div>
-                                                        </td>
-                                                        <td width="5%">
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
-                                                                    <li>
-                                                                        <a type="button" id="edit_location" href="editlocations?edit=1&amp;stid=<?php echo $row_rsAllLocs['id']; ?>">
-                                                                            <i class="fa fa-plus-square"></i> Edit
+                                                        <tr id="rowlines" style="background-color:#f9fbfc; border-bottom:#000 thin dashed">
+                                                            <td width="10%" height="35">
+                                                                <div align="center"><b> . </b></div>
+                                                            </td>
+                                                            <td width="80%">
+                                                                <div align="left">&nbsp;&nbsp;-- <?php echo $row_rsAllWards['state']; ?></div>
+                                                            </td>
+                                                            <td width="5%">
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
+                                                                        Options <span class="caret"></span>
+                                                                    </button>
+                                                                    <ul class="dropdown-menu">
+                                                                        <li>
+                                                                            <a type="button" id="edit_location" href="edit-locations.php?edit=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>">
+                                                                                <i class="fa fa-pencil"></i> Edit
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#myModal" onclick="add_state(<?= $projid ?>)">
+                                                                            <i class="fa fa-check-square-o"></i> Edit
                                                                         </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllLocs['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                            <i class="fa fa-plus-square"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php } while ($row_rsAllLocs = $query_rsAllLocs->fetch()); ?>
-                                            <?php } while ($row_rsAllWards = $query_rsAllWards->fetch()); ?>
-                                        <?php } while ($row_rsAllLocations = $query_rsAllLocations->fetch()); ?>
-                                    </tbody>
-                                </table>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
+                                                                                <i class="fa fa-trash"></i> Delete
+                                                                            </a>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                <?php
+                                                    }
+                                                }
+                                                ?>
+                                            <?php
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- ============================================================== -->
+                                <!-- End PAge Content -->
+                                <!-- ============================================================== -->
                             </div>
-
-
-                            <!-- ============================================================== -->
-                            <!-- End PAge Content -->
-                            <!-- ============================================================== -->
                         </div>
                     </div>
                 </div>
+        </section>
+        <!-- end body  -->
+        <!-- Modal Request Payment -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:#03A9F4">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h3 class="modal-title" align="center">
+                            <font color="#FFF"><span id="locationName"></span> Add Locations</font>
+                        </h3>
+                    </div>
+                    <form class="tagForm" action="" method="post" id="state_form" enctype="multipart/form-data">
+                        <div class="row clearfix">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <div class="modal-body">
+                                    <label for="base_val" id=""> <span id="label_name"></span> *:</label>
+                                    <div class="form-input">
+                                        <input type="number" name="state_id" id="state_id" value="" placeholder="Enter Value" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="row clearfix">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                    <input type="hidden" name="add_state" id="add_state" class="form-control" value="new">
+                                    <input type="hidden" name="parent_id" id="parent_id" class="form-control" value="0">
+                                    <input name="submit" type="submit" class="btn btn-success waves-effect waves-light" id="tag-form-base-submit" value="Save" />
+                                    <button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-    </section>
-    <!-- end body  -->
+        </div>
+        <!-- #END# Modal Request Payment -->
 <?php
+    } catch (PDOException $ex) {
+        $result = "An error occurred: " . $ex->getMessage();
+        print($result);
+    }
 } else {
     $results =  restriction();
     echo $results;

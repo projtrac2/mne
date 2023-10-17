@@ -1,13 +1,6 @@
-<?php 
-$Id = 6;
-$subId = 47;
-    $pageName  = "Projects Inspection Checklists Topics";
-
-    require('includes/head.php');
-    require('includes/header.php'); 
-    // get the functions selecting data 
-    require('functions/inspection.php');  
-
+<?php  
+    require('includes/head.php'); 
+    require('functions/inspection.php');
     try{
         // get al active topics 
         $topics = get_inpectection_checklist_topics(); 

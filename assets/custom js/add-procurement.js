@@ -12,12 +12,12 @@ function sweet_alert(err, msg) {
     title: err,
     text: msg,
     type: "Error",
-	icon: 'warning',
-	dangerMode: true,
+    icon: 'warning',
+    dangerMode: true,
     timer: 15000,
     showConfirmButton: false
   });
-  setTimeout(function() {}, 15000);
+  setTimeout(function () { }, 15000);
 }
 
 // function to calculate remaining budget
@@ -288,7 +288,6 @@ function max_min_date(opid, msid) {
   if (mile_tstart.length > 0) {
     var mileStart = Math.min(...mile_tstart);
     var newsDate = convert_date(new Date(mileStart));
-    console.log(newsDate);
     $(mile_mstart_id).val(newsDate);
   } else {
     $(mile_mstart_id).val("");
@@ -305,7 +304,6 @@ function max_min_date(opid, msid) {
   if (mile_tend.length > 0) {
     var tend = Math.max(...mile_tend);
     var neweDate = convert_date(new Date(tend));
-    console.log(neweDate);
     $(mile_mend_id).val(neweDate);
   } else {
     $(mile_mend_id).val("");
@@ -314,23 +312,24 @@ function max_min_date(opid, msid) {
 
 // to check internet connection
 function checkNetConnection() {
-  jQuery.ajaxSetup({ async: false });
-  re = "";
-  r = Math.round(Math.random() * 10000);
-  $.get(
-    "https://1.bp.blogspot.com/-LtDtdVE1roA/UmAavs_T_iI/AAAAAAAADNY/g0L-HAPlkTY/s1600/0060.png", //logo
-    { subins: r },
-    function(d) {
-      re = true; 
-    }
-  ).error(function() {
-    sweet_alert("You have lost Internet Connection");
-    re = false;
-  });
-  return re;
+  // jQuery.ajaxSetup({ async: false });
+  // re = "";
+  // r = Math.round(Math.random() * 10000);
+  // $.get(
+  //   "https://1.bp.blogspot.com/-LtDtdVE1roA/UmAavs_T_iI/AAAAAAAADNY/g0L-HAPlkTY/s1600/0060.png", //logo
+  //   { subins: r },
+  //   function (d) {
+  //     re = true;
+  //   }
+  // ).fail(function () {
+  //   sweet_alert("You have lost Internet Connection");
+  //   re = false;
+  // });
+  // return re;
+  return true;
 }
 
-setInterval(function() {
+setInterval(function () {
   var conn = checkNetConnection();
   if (conn) {
     $("#tag-form-submit").removeClass("btn-danger");
@@ -341,53 +340,65 @@ setInterval(function() {
   }
 }, 3000);
 
-$("#tag-form-submit").click(function(e) {
+$("#tag-form-submit").click(function (e) {
   e.preventDefault();
-  var internet_handler = checkNetConnection();
-
-  if (internet_handler) {
-    $("#form").validate({
-      ignore: [],
-      errorPlacement: function(error, element) {
-        var lastError = $(element).data("lastError"),
-          newError = $(error).text();
-
-        $(element).data("lastError", newError);
-
-        if (newError !== "" && newError !== lastError) {
-          $(element).after('<div class="red">The field is Required</div>');
-        }
-      },
-      success: function(label, element) {
-        $(element)
-          .next(".red")
-          .remove();
-      }
-    });
-    var isValid = true;
-    var curInputs = $("#form").find("input, select");
-    for (var i = 0; i < curInputs.length; i++) {
-      if (!$(curInputs[i]).valid()) {
-        isValid = false;
-      }
-    }
-    if (isValid) {
-      var formData = $("#form").serialize();
-      $.ajax({
-        type: "post",
-        url: "assets/processor/add-procurement-details-process",
-        data: formData,
-        dataType: "json",
-        success: function(response) {
-          sweet_alert("Success", response);
-          window.location.href = "add-project-procurement-details";
+  var percentage = validate_percentage();
+  console.log(percentage);
+  if (percentage) {
+    swal({
+      title: "Confirmation",
+      text: "Please confirm whether you have entered correct data!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then((willDelete) => {
+        if (willDelete) {
+          var internet_handler = checkNetConnection();
+          if (internet_handler) {
+            $("#form").validate({
+              ignore: [],
+              errorPlacement: function (error, element) {
+                var lastError = $(element).data("lastError"),
+                  newError = $(error).text();
+                $(element).data("lastError", newError);
+                if (newError !== "" && newError !== lastError) {
+                  $(element).after('<div class="red">The field is Required</div>');
+                }
+              },
+              success: function (label, element) {
+                $(element)
+                  .next(".red")
+                  .remove();
+              }
+            });
+            var isValid = true;
+            var curInputs = $("#form").find("input, select");
+            for (var i = 0; i < curInputs.length; i++) {
+              if (!$(curInputs[i]).valid()) {
+                isValid = false;
+              }
+            }
+            if (isValid) {
+              var formData = $("#form").serialize();
+              $.ajax({
+                type: "post",
+                url: "assets/processor/add-procurement-details-process",
+                data: formData,
+                dataType: "json",
+                success: function (response) {
+                  sweet_alert("Success", response);
+                  window.location.href = "add-project-procurement-details";
+                }
+              });
+            }
+          }
         }
       });
-    }
   }
 });
 
-$(".careted").click(function(e) {
+$(".careted").click(function (e) {
   e.preventDefault();
   $(this)
     .find("i")
@@ -397,7 +408,47 @@ $(".careted").click(function(e) {
 // function disable refreshing functionality
 function disable_refresh() {
   //
-  return (window.onbeforeunload = function(e) {
+  return (window.onbeforeunload = function (e) {
     return "you can not refresh the page";
   });
+}
+
+
+function validate_percentage() {
+  var payment_plan = $("#payment_method").val();
+  var parameter = true;
+  if (payment_plan != "") {
+
+    if (payment_plan == "1") {
+      var milestone = [];
+      var selected = [];
+      $('.milestones').each(function (k, v) {
+        // selected.push($(this).val());
+        // console.log($(this).val());
+        // input: checked
+        // console.log(k);
+        console.log(v);
+      });
+
+      if (milestone.includes(false)) {
+        parameter = false;
+        alert("Sorry, atleast select one milestone");
+      }
+    }
+
+    if (payment_plan == "3") {
+      var percentage = 0;
+      $(".percent").each(function (k, v) {
+        percentage += $(v).val() != "" ? parseFloat($(v).val()) : 0;
+      });
+      if (percentage != 100) {
+        alert("Sorry! the total percentage shoule be equal to 100%");
+        parameter = false;
+      }
+    }
+  } else {
+    alert("Sorry you can't have more than 100%");
+    parameter = false;
+  }
+  return parameter;
 }

@@ -43,7 +43,7 @@ $(document).ready(function () {
     var form_data = $(this).serialize();
     $.ajax({
       type: "POST",
-      url: "assets/processor/savechecklistscore.php",
+      url: "assets/processor/savechecklistscore",
       data: form_data,
       dataType: "json",
       success: function (data) {
@@ -115,7 +115,7 @@ function GetTaskChecklist(tkid = null, pmtid = null) {
     let lev4id = $("#lev4id").val();
     $.ajax({
       type: "post",
-      url: "assets/processor/gettaskchecklist.php",
+      url: "assets/processor/gettaskchecklist",
       data: {
         tskid: tkid,
         pmtid: pmtid,
@@ -154,7 +154,7 @@ function remove() {
   if (data) {
     $.ajax({
       type: "post",
-      url: "assets/processor/gettaskchecklist.php",
+      url: "assets/processor/gettaskchecklist",
       data: {
         delete: "delete",
         formid: data

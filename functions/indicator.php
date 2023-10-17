@@ -78,7 +78,7 @@
     function get_impact_indicators(){
         global $db; 
         // get impact indicators
-        $query_rsImpactIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Impact' AND indicator_type=2 AND active = '1' ORDER BY indid");
+        $query_rsImpactIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='IMPACT' AND indicator_type=2 AND active = '1' ORDER BY indid");
         $query_rsImpactIndicators->execute();
         $row_rsImpactIndicators = $query_rsImpactIndicators->fetchAll();
         $totalRows_rsImpactIndicators = $query_rsImpactIndicators->rowCount();

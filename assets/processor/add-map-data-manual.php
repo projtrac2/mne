@@ -1,7 +1,6 @@
 <?php
 
-include_once '../projtrac-dashboard/resource/Database.php';
-include_once '../projtrac-dashboard/resource/utilities.php';
+include_once "controller.php";
 
 function disaggregation($outputid)
 {
@@ -149,16 +148,17 @@ if (isset($_POST['submit_coords'])) {
       $result[] = $sql->execute($params);
    }
 
-   if (!in_array(false, $result)) {
+   if ($result) {
+      $query_rsProjects = $db->prepare("SELECT *  FROM tbl_projects WHERE deleted='0' and projid=:projid");
+      $query_rsProjects->execute(array(":projid" => $projid));
+      $row_rsProjects = $query_rsProjects->fetch();
+      $totalRows_rsProjects = $query_rsProjects->rowCount();
+      $projstate = $row_rsProjects['projlocation'];
+      $state = explode(",", $projstate);
       $handler = [];
-      $query_rsproject_val = $db->prepare("SELECT *  FROM tbl_project_mapping WHERE projid='$projid' ");
-      $query_rsproject_val->execute();
-      $row_rsproject_val = $query_rsproject_val->fetch();
-      $totalRows_rsproject_val = $query_rsproject_val->rowCount();
-
-      do {
-         $query_rsMap = $db->prepare("SELECT *  FROM tbl_markers WHERE mapid=:mapid");
-         $query_rsMap->execute(array(":mapid" => $row_rsproject_val['id']));
+      for ($i = 0; $i < count($state); $i++) {
+         $query_rsMap = $db->prepare("SELECT * FROM tbl_markers WHERE state=:state");
+         $query_rsMap->execute(array(":state" => $state[$i]));
          $row_rsMap = $query_rsMap->fetch();
          $totalRows_rsMap = $query_rsMap->rowCount();
 
@@ -167,17 +167,16 @@ if (isset($_POST['submit_coords'])) {
          } else {
             $handler[] = false;
          }
-      } while ($row_rsproject_val = $query_rsproject_val->fetch());
- 
-return;
+      }
+
       if (!in_array(false, $handler)) {
          $mapped = 1;
-         $sql = "UPDATE tbl_projects SET mapped=:mapped, projstage=:projstage WHERE projid=:projid";
+         $sql = "UPDATE tbl_projects SET mapped=:mapped WHERE projid=:projid";
          $stmt = $db->prepare($sql);
-         $result = $stmt->execute(array(':mapped' => $mapped, ':projstage'=>4,  ':projid' => $projid));
-         echo json_encode(array("msg" => true));
+         $result = $stmt->execute(array(':mapped' => $mapped, ':projid' => $projid));
+         echo true;
       } else {
-         echo json_encode(array("msg" => true));
+         echo false;
       }
    }
 }

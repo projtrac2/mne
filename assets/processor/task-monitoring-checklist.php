@@ -1,5 +1,9 @@
 <?php
 try {
+
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
     //include_once 'projtrac-dashboard/resource/session.php';
     include_once '../../projtrac-dashboard/resource/Database.php';
     include_once '../../projtrac-dashboard/resource/utilities.php';
@@ -33,7 +37,7 @@ try {
     }
 
     if (isset($_POST['getMonitoringChecklist'])) {
-        $taskid = $_POST['taskid'];
+        $taskid = $_POST['taskid']; 
         echo ' 
         <fieldset class="scheduler-border">
             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">TASK MONITORING CHECKLIST</legend>

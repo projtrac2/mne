@@ -9,21 +9,14 @@ try {
     if (isset($_POST['approveitem'])) {
 		$progid = $_POST['progid'];
 		$finyear = $_POST['finyear'];
-		$createdby = 1;
+		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
+		$budget = $_POST['progadpbudget'];
 		
-		for ($i = 0; $i < count($_POST['opbudget']); $i++) {
-			$opid = $_POST['opid'][$i];			
-			$indid = $_POST['indid'][$i];
-			$budget = $_POST['opbudget'][$i];
-			$target = $_POST['optarget'][$i];
-			
-			$insertSQL1 = $db->prepare("INSERT INTO `tbl_programs_based_budget`(progid, opid, indid, finyear, budget, target, created_by, date_created) VALUES(:progid, :opid, :indid, :finyear, :budget, :target, :createdby, :datecreated)");
-			$result1  = $insertSQL1->execute(array(":progid" => $progid, ":opid" => $opid, ":indid" => $indid, ":finyear" => $finyear, ":budget" => $budget, ":target" => $target, ":createdby" => $createdby, ":datecreated" => $datecreated));
-			$last_id = $db->lastInsertId(); 
-		}
+		$insertSQL1 = $db->prepare("INSERT INTO `tbl_programs_based_budget`(progid, finyear, budget, created_by, date_created) VALUES(:progid, :finyear, :budget, :createdby, :datecreated)");
+		$result1  = $insertSQL1->execute(array(":progid" => $progid, ":finyear" => $finyear, ":budget" => $budget, ":createdby" => $createdby, ":datecreated" => $datecreated));
  
-        if($last_id){
+        if($result1){
 			$valid['success'] = true;
 			$valid['messages'] = "Successfully Approved";
 		} else {
@@ -34,27 +27,17 @@ try {
     }
 
     if (isset($_POST['editpbbitem'])) {
+		$pbbid = $_POST['pbbid'];
 		$progid = $_POST['progid'];
 		$finyear = $_POST['finyear'];
 		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
-
-		// delete tbl_programs_based_budget table 
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_programs_based_budget` WHERE progid=:progid AND finyear=:finyear");
-		$results = $deleteQuery->execute(array(':progid' => $progid, ':finyear' => $finyear));
+		$budget = $_POST['progadpbudget'];
 		
-		for ($i = 0; $i < count($_POST['opbudget']); $i++) {
-			$opid = $_POST['opid'][$i];			
-			$indid = $_POST['indid'][$i];
-			$budget = $_POST['opbudget'][$i];
-			$target = $_POST['optarget'][$i];
-			
-			$insertSQL1 = $db->prepare("INSERT INTO `tbl_programs_based_budget`(progid, opid, indid, finyear, budget, target, created_by, date_created) VALUES(:progid, :opid, :indid, :finyear, :budget, :target, :createdby, :datecreated)");
-			$result1  = $insertSQL1->execute(array(":progid" => $progid, ":opid" => $opid, ":indid" => $indid, ":finyear" => $finyear, ":budget" => $budget, ":target" => $target, ":createdby" => $createdby, ":datecreated" => $datecreated));
-			$last_id = $db->lastInsertId(); 
-		}
+		$insertSQL1 = $db->prepare("UPDATE `tbl_programs_based_budget` SET budget=:budget, created_by=:createdby, date_created=:datecreated WHERE id=:pbbid AND progid=:progid AND finyear=:finyear");
+		$result1  = $insertSQL1->execute(array(":budget" => $budget, ":createdby" => $createdby, ":datecreated" => $datecreated, ":pbbid" => $pbbid, ":progid" => $progid, ":finyear" => $finyear));
  
-        if($last_id){
+        if($result1){
 			$valid['success'] = true;
 			$valid['messages'] = "Successfully Updated";
 		} else {
@@ -77,6 +60,9 @@ try {
 		
 		for ($i = 0; $i < count($_POST['optargetq1']); $i++) {			
 			$pbbid = $_POST['pbbid'][$i];
+			if(empty($pbbid)){
+				$pbbid = 0;
+			}
 			$opid = $_POST['opid'][$i];			
 			$indid = $_POST['indid'][$i];
 			$target1 = $_POST['optargetq1'][$i];
@@ -142,6 +128,9 @@ try {
 		
 		for ($i = 0; $i < count($_POST['optargetq1']); $i++) {			
 			$pbbid = $_POST['pbbid'][$i];
+			if(empty($pbbid)){
+				$pbbid = 0;
+			}
 			$opid = $_POST['opid'][$i];			
 			$indid = $_POST['indid'][$i];
 			$target1 = $_POST['optargetq1'][$i];

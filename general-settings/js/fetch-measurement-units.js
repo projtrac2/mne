@@ -1,8 +1,17 @@
 var manageItemTable;
-var url1 = "general-settings/selected-items/fetch-selected-measurement-unit.php";
 
 $(document).ready(function () {
- 
+  // manage Project Main Menu  data table
+  manageItemTable = $("#manageItemTable").DataTable({
+    ajax: "general-settings/selected-items/fetch-selected-measurement-units",
+    order: [],
+    'columnDefs': [{
+      // 'targets': [4],
+      'orderable': false,
+    }]
+  });
+
+
 
   $("#submitItemForm").on("submit", function (event) {
     event.preventDefault();
@@ -61,9 +70,9 @@ $(document).ready(function () {
         success: function (response) {
           if (response) {
             $("#submitItemForm")[0].reset();
-            // reload the titles table 
+            // reload the titles table
             manageItemTable.ajax.reload(null, true);
-            alert("Record successfully saved");
+            swal("Record successfully saved");
             $(".modal").each(function () {
               $(this).modal("hide");
             });
@@ -91,7 +100,7 @@ $(document).ready(function () {
         .removeClass("has-success");
     }); // /add Project Main Menu  modal btn clicked
 
-  // remove Project Main Menu 
+  // remove Project Main Menu
 }); // document.ready fucntion
 
 function editItem(itemId = null) {
@@ -107,7 +116,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url:url1,
+      url: "general-settings/selected-items/fetch-selected-measurement-unit",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -230,7 +239,7 @@ function editItem(itemId = null) {
   }
 } // /edit Project Main Menu  function
 
-// remove Project Main Menu 
+// remove Project Main Menu
 function removeItem(itemId = null) {
   if (itemId) {
     // remove Project Main Menu  button clicked
@@ -239,7 +248,7 @@ function removeItem(itemId = null) {
       .bind("click", function () {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/measurement-units-action.php",
+          url: "general-settings/action/measurement-units-action",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -261,9 +270,38 @@ function removeItem(itemId = null) {
               }, 3000);
             } // /error
           } // /success function
-        }); // /ajax fucntion to remove the Project Main Menu 
+        }); // /ajax fucntion to remove the Project Main Menu
         return false;
       }); // /remove Project Main Menu  btn clicked
   } // /if Project Main Menu id
 } // /remove Project Main Menu  function
- 
+
+function clearForm(oForm) {
+  // var frm_elements = oForm.elements;
+  // console.log(frm_elements);
+  // for(i=0;i<frm_elements.length;i++) {
+  // field_type = frm_elements[i].type.toLowerCase();
+  // switch (field_type) {
+  //    case "text":
+  //    case "password":
+  //    case "textarea":
+  //    case "hidden":
+  //    case "select-one":
+  //      frm_elements[i].value = "";
+  //      break;
+  //    case "radio":
+  //    case "checkbox":
+  //      if (frm_elements[i].checked)
+  //      {
+  //          frm_elements[i].checked = false;
+  //      }
+  //      break;
+  //    case "file":
+  //     if(frm_elements[i].options) {
+  //     frm_elements[i].options= false;
+  //     }
+  //    default:
+  //        break;
+  //     } // /switch
+  // } // for
+}

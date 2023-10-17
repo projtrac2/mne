@@ -1,23 +1,17 @@
 <?php
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 if ($permission) {
-	$pageTitle = "Programs Budget Adjustment";
 	try {
 		//get financial years 
 		$year = date("Y");
+		$month = date("m");
 		$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year where yr='$year'");
 		$query_rsYear->execute();
 		$row_rsYear = $query_rsYear->fetch();
 		$yearid = $row_rsYear["id"];
 
 		// get adps
-		$query_gadpyr =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a inner join tbl_fiscal_year y on y.id=a.financial_year inner join tbl_projects p on p.projid=a.projid inner join tbl_programs g on g.progid=p.progid inner join tbl_strategicplan s on s.id=g.strategic_plan WHERE current_plan=1 GROUP BY a.financial_year ORDER BY y.yr DESC");
+		$query_gadpyr =  $db->prepare("SELECT *, y.id AS yrid FROM tbl_annual_dev_plan a inner join tbl_fiscal_year y on y.id=a.financial_year inner join tbl_projects p on p.projid=a.projid inner join tbl_programs g on g.progid=p.progid inner join tbl_strategicplan s on s.id=g.strategic_plan WHERE current_plan=1 GROUP BY a.financial_year ORDER BY y.yr ASC");
 		$query_gadpyr->execute();
 		$row_gadpyr = $query_gadpyr->fetchAll();
 		$gadpyr_rows_count = $query_gadpyr->rowCount();
@@ -27,22 +21,15 @@ if ($permission) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
 ?>
-	<style>
-		.modal-lg {
-			max-width: 100% !important;
-			width: 90%;
-		}
-	</style>
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
+					<?= $icon ?>
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-							<?= $url_link ?>
 						</div>
 					</div>
 				</h4>
@@ -69,19 +56,24 @@ if ($permission) {
 											$linkclassbadge = "bg-green";
 											$classstatus = "active";
 											$classstatusin = " in active";
-										} else {
+										} elseif ($adpyr < $year) {
+											$link = "menu" . $adpfyid;
+											$linkclass = "-down bg-orange";
+											$linkclassbadge = "bg-orange";
+											$classstatus = "";
+											$classstatusin = "";
+										} elseif ($adpyr > $year) {
 											$link = "menu" . $adpfyid;
 											$linkclass = "-down bg-blue";
 											$linkclassbadge = "bg-blue";
 											$classstatus = "";
 											$classstatusin = "";
 										}
-
-								?>
-										<li <?php if ($adpyr == $year) { ?>class="active" <?php } ?>>
+										?>
+										<li <?php if ($adpyr == $year && ($month >= 7 && $month <= 12)) { ?>class="active" <?php } ?>>
 											<a data-toggle="tab" href="#<?= $link ?>"><i class="fa fa-caret-square-o<?= $linkclass ?>" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge <?= $linkclassbadge ?>">||</span></a>
 										</li>
-								<?php
+										<?php
 									}
 								}
 								?>
@@ -91,10 +83,7 @@ if ($permission) {
 							<!-- ============================================================== -->
 							<!-- Start Page Content -->
 							<!-- ============================================================== -->
-
-
 							<div class="table-responsive">
-
 								<div class="tab-content">
 									<?php
 									if ($gadpyr_rows_count > 0) {
@@ -102,6 +91,7 @@ if ($permission) {
 											$adpfyid = $adp["financial_year"];
 											$adpfy = $adp["year"];
 											$adpyr = $adp["yr"];
+											$yrid = $adp["yrid"];
 											$adp = $adpfy . " ADP";
 
 											if ($adpyr == $year) {
@@ -110,17 +100,23 @@ if ($permission) {
 												$linkclassbadge = "bg-green";
 												$classstatusin = " in active";
 												$color = "green";
-											} else {
+											} elseif ($adpyr < $year) {
+												$link = "menu" . $adpfyid;
+												$linkclass = "-down bg-orange";
+												$linkclassbadge = "bg-orange";
+												$classstatusin = "";
+												$color = "orange";
+											} elseif ($adpyr > $year) {
 												$link = "menu" . $adpfyid;
 												$linkclass = "-down bg-blue";
 												$linkclassbadge = "bg-blue";
 												$classstatusin = "";
 												$color = "blue";
 											}
-									?>
+											?>
 											<div id="<?= $link ?>" class="tab-pane fade<?= $classstatusin ?>">
 												<div style="color:#333; background-color:#EEE; width:100%; height:30px">
-													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:<?= $color ?>"></i> <?= $adp ?> Programs</h4>
+													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:<?= $color ?>"></i> <?= $adp; ?> Programs </h4>
 												</div>
 												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 													<thead>
@@ -142,9 +138,9 @@ if ($permission) {
 														$rows_count = $query_gadps->rowCount();
 
 														if ($rows_count > 0) {
+															$month = 8;
 															$sn = 0;
 															while ($row = $query_gadps->fetch()) {
-																$sn++;
 																$progid = $row['progid'];
 																$progname = $row["progname"];
 																$progsector = $row["projsector"];
@@ -156,14 +152,19 @@ if ($permission) {
 																$buttonunapprov = '';
 																$button = '';
 
+																$project_department = $row['projsector'];
+																$project_section = $row['projdept'];
+																$project_directorate = $row['directorate'];
+
+
 																//get program sector 
 																$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 																$query_year->execute(array(":adpyr" => $adpyr));
 																$rowyear = $query_year->fetch();
-																$year = $rowyear["id"];
+																$year_id = $rowyear["id"];
 
 																//get program budget
-																$query_prgbudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details d left join tbl_annual_dev_plan a on a.projid=d.projid WHERE d.progid ='$progid' AND d.year='$year'");
+																$query_prgbudget =  $db->prepare("SELECT SUM(amount) as budget FROM tbl_adp_projects_budget WHERE progid ='$progid' AND year='$adpfyid'");
 																$query_prgbudget->execute();
 																$row_prgbudget = $query_prgbudget->fetch();
 																$progbudget = number_format($row_prgbudget['budget'], 2);
@@ -174,7 +175,7 @@ if ($permission) {
 																$rowsector = $query_sector->fetch();
 																$sector = $rowsector["sector"];
 
-																//get program sector 
+																//get adjusted program based budget 
 																$query_sum = $db->prepare("SELECT SUM(budget) AS amount FROM `tbl_programs_based_budget` WHERE progid=:progid and finyear=:adpyr");
 																$query_sum->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																$rowsum = $query_sum->fetch();
@@ -200,16 +201,12 @@ if ($permission) {
 																$norows_pbbtargets = $query_pbbtargets->rowCount();
 
 																if ($norows_pbb > 0) {
-																	$buttonunapprov = '
-																		<li>
-																			<a type="button" data-toggle="modal" id="viewItemModalBtns" data-target="#viewItemModal" onclick="viewPADP(' . $progid . ', ' . $adpyr . ')"> <i class="fa fa-eye"></i> View Budget</a>
-																		</li>';
 																	if ($norows_pbbtargets > 0) {
-																		$buttonunapprov .= '
-																			<li>
-																				<a type="button" data-toggle="modal" id="viewQTargetsModalBtns" data-target="#viewQTargetsModal" onclick="viewPBB(' . $progid . ', ' . $adpyr . ')"> <i class="fa fa-eye"></i> View Quarterly Targets</a>
-																			</li>';
-																		if ($file_rights->add && $file_rights->edit) {
+																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
+																		$query_projects_count->execute();
+																		$count_projects_count = $query_projects_count->rowCount();
+																		//if (in_array("edit_quarterly_targets", $page_actions) && $count_projects_count == 0) {
+																		if ($count_projects_count == 0) {
 																			$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="editquarterlyTargetsModalBtn" data-target="#editquarterlyTargetsModal" onclick="editQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
@@ -218,18 +215,27 @@ if ($permission) {
 																			</li>';
 																		}
 																	} else {
-																		if ($file_rights->add && $file_rights->edit) {
-																			$buttonunapprov .= '
-																				<li>
-																					<a type="button" data-toggle="modal" id="editItemModalBtns" data-target="#editItemModal" onclick="editPADP(' . $progid . ', ' . $adpyr . ')"> <i class="glyphicon glyphicon-edit"></i> Edit Budget</a>
-																				</li>
-																				<li>
-																					<a type="button" data-toggle="modal" id="quarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="addQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
-																					<i class="fa fa-plus-square-o"></i> Add Quarterly Targets
-																					</a>
-																				</li>
-																				';
+																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 1");
+																		$query_projects_count->execute();
+																		$count_projects_count = $query_projects_count->rowCount();
+																		//if (in_array("edit_budget", $page_actions) && $count_projects_count == 0) {
+																		if ($count_projects_count == 0) {
+																			if ($month >= 7 && $month <= 12) {
+																				$buttonunapprov .= '
+																					<li>
+																						<a type="button" data-toggle="modal" id="editItemModalBtns" data-target="#editItemModal" onclick="editPADP(' . $progid . ', ' . $adpyr . ')"> <i class="glyphicon glyphicon-edit"></i> Edit Budget</a>
+																					</li>';
+																			}
 																		}
+
+																		//if (in_array("add_quarterly_targets", $page_actions)) {
+																			$buttonunapprov .= '
+																			<li>
+																				<a type="button" data-toggle="modal" id="quarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="addQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
+																				<i class="fa fa-plus-square-o"></i> Add Quarterly Targets
+																				</a>
+																			</li>';
+																		//}
 																	}
 																	$active = "<label class='label label-success'>Adjusted</label>";
 																	$button = '<!-- Single button -->
@@ -244,14 +250,17 @@ if ($permission) {
 																	</div>';
 																} else {
 																	$buttonunapprov = "";
-																	if ($file_rights->add && $file_rights->edit) {
-																		$buttonunapprov = '
-																	<li>
-																		<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approvePADP(' . $progid . ')">
-																		<i class="fa fa-check-square-o"></i> Add Approved Budget
-																		</a>
-																	</li>';
-																	}
+																	//if (in_array("add_budget", $page_actions)) {
+																		if ($month >= 7 && $month <= 12) {
+																			$buttonunapprov = '
+																			<li>
+																				<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approvePADP(' . $progid . ')">
+																				<i class="fa fa-check-square-o"></i> Add Approved Budget
+																				</a>
+																			</li>';
+																		}
+																	//}
+
 																	$active = "<label class='label label-danger'>Pending</label>";
 																	$button = '<!-- Single button -->
 																	<div class="btn-group">
@@ -260,22 +269,25 @@ if ($permission) {
 																		</button>
 																		<ul class="dropdown-menu">
 																			' . $buttonunapprov . '
-																			
 																			<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>      
 																		</ul> 
 																	</div>';
 																}
-														?>
-																<tr>
-																	<td align="center"><?php echo $sn; ?></td>
-																	<td><?php echo $progname; ?></td>
-																	<td><?php echo $progbudget; ?></td>
-																	<td><?php echo $amount  ?></td>
-																	<td><?php echo $ministry; ?></td>
-																	<td><?php echo $active; ?></td>
-																	<td><?php echo $button; ?></td>
-																</tr>
+																$filter_department = view_record($project_department, $project_section, $project_directorate);
+																if ($filter_department) {
+																	$sn++;
+																	?>
+																	<tr>
+																		<td align="center"><?php echo $sn; ?></td>
+																		<td><?php echo $progname; ?></td>
+																		<td><?php echo $progbudget; ?></td>
+																		<td><?php echo $amount  ?></td>
+																		<td><?php echo $ministry; ?></td>
+																		<td><?php echo $active; ?></td>
+																		<td><?php echo $button; ?></td>
+																	</tr>
 														<?php
+																}
 															} // /while 
 														}
 														?>
@@ -322,56 +334,27 @@ if ($permission) {
 	</div>
 	<!-- /.modal -->
 
-
-	<div class="modal fade" tabindex="-1" role="dialog" id="editItemModal">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#03A9F4">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" style="color:#fff" align="center"><i class="glyphicon glyphicon-trash"></i> Edit Approved Program Budget</h4>
-				</div>
-
-				<div class="modal-body" style="max-height:450px; overflow:auto;">
-					<div class="div-result">
-						<form class="form-horizontal" id="approveItemForm" action="general-settings/action/approve-PADP-action.php" method="POST">
-							<br />
-							<div class="col-md-12" id="editBody">
-
-							</div>
-							<div class="modal-footer approveItemFooter">
-								<div class="col-md-12 text-center">
-									<input type="hidden" name="approveitem" id="approveitem" value="1">
-									<input type="hidden" name="user_name" id="user_name" value="<? //=$user_name
-																								?>">
-									<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Approve" />
-									<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
-								</div>
-							</div>
-							<!-- /modal-footer -->
-						</form> <!-- /.form -->
-					</div>
-				</div> <!-- /modal-body -->
-			</div><!-- /.modal-content -->
-		</div><!-- /.modal-dialog -->
-	</div><!-- /.modal -->
-
 	<!-- Start Modal Item approve -->
 	<div class="modal fade" id="approveItemModal" tabindex="-1" role="dialog">
 		<div class="modal-dialog modal-lg">
 			<div class="modal-content">
 				<div class="modal-header" style="background-color:#03A9F4">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Approve Program</h4>
+					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Add Approve Program Budget</h4>
 				</div>
 				<div class="modal-body" style="max-height:450px; overflow:auto;">
 					<div class="div-result">
 						<form class="form-horizontal" id="approveItemForm" action="general-settings/action/approve-PADP-action.php" method="POST">
 							<br />
-							<div class="col-md-12" id="aproveBody">
+							<div class="row clearfix">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="card" id="aproveBody">
 
+									</div>
+								</div>
 							</div>
 							<div class="modal-footer approveItemFooter">
-								<div class="col-md-12 text-center">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 									<input type="hidden" name="approveitem" id="approveitem" value="1">
 									<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
 									<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Approve" />
@@ -398,8 +381,12 @@ if ($permission) {
 					<div class="div-result">
 						<form class="form-horizontal" id="editpbbItemForm" action="general-settings/action/adp-edit-action.php" method="POST">
 							<br />
-							<div class="col-md-12" id="editBody">
+							<div class="row clearfix">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="card" id="editBody">
 
+									</div>
+								</div>
 							</div>
 							<div class="modal-footer approveItemFooter">
 								<div class="col-md-12 text-center">
@@ -417,32 +404,6 @@ if ($permission) {
 		</div>
 	</div>
 
-	<!-- Start Edit Modal Item approve -->
-	<div class="modal fade" id="viewItemModal" tabindex="-1" role="dialog">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#03A9F4">
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Approved Program Budget/Target</h4>
-				</div>
-				<div class="modal-body" style="max-height:450px; overflow:auto;">
-					<div class="div-result">
-						<br />
-						<div class="col-md-12" id="viewBody">
-
-						</div>
-						<div class="modal-footer approveItemFooter">
-							<div class="col-md-12 text-center">
-								<input type="hidden" name="editpbbitem" id="editpbbitem" value="1">
-								<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
-							</div>
-						</div> <!-- /modal-footer -->
-					</div>
-				</div> <!-- /modal-body -->
-			</div>
-			<!-- /modal-content -->
-		</div>
-	</div>
 
 	<!-- Start Modal Add Quarterly Targets -->
 	<div class="modal fade" id="quarterlyTargetsModal" tabindex="-1" role="dialog">
@@ -560,13 +521,102 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 
+<script src="general-settings/js/fetch-programs.js"></script>
 <script>
 	$(document).ready(function() {
 		$('.tables').DataTable();
+
+
+		// submit approved pbb details  
+		$("#approveItemForm").submit(function(e) {
+			e.preventDefault();
+			var form_data = $(this).serialize();
+			//console.log(form_data);
+			$.ajax({
+				type: "post",
+				url: "assets/processor/padp-process",
+				data: form_data,
+				dataType: "json",
+				success: function(response) {
+					if (response) {
+						alert(response.messages);
+						$(".modal").each(function() {
+							$(this).modal("hide");
+						});
+					}
+					window.location.reload(true);
+				}
+			});
+		});
+
+		// submit editted approved pbb details  
+		$("#editpbbItemForm").submit(function(e) {
+			e.preventDefault();
+			var form_data = $(this).serialize();
+			//console.log(form_data);
+			$.ajax({
+				type: "post",
+				url: "assets/processor/padp-process",
+				data: form_data,
+				dataType: "json",
+				success: function(response) {
+					if (response) {
+						alert(response.messages);
+						$(".modal").each(function() {
+							$(this).modal("hide");
+						});
+					}
+					window.location.reload(true);
+				}
+			});
+		});
+
+		// submit program quarterly targets
+		$("#quarterlyTargetsForm").submit(function(e) {
+			e.preventDefault();
+			var form_data = $(this).serialize();
+			//console.log(form_data);
+			$.ajax({
+				type: "post",
+				url: "assets/processor/padp-process",
+				data: form_data,
+				dataType: "json",
+				success: function(response) {
+					if (response) {
+						alert(response.messages);
+						$(".modal").each(function() {
+							$(this).modal("hide");
+						});
+					}
+					window.location.reload(true);
+				}
+			});
+		});
+
+		// submit editted program quarterly targets
+		$("#editquarterlyTargetsForm").submit(function(e) {
+			e.preventDefault();
+			var form_data = $(this).serialize();
+			//console.log(form_data);
+			$.ajax({
+				type: "post",
+				url: "assets/processor/padp-process",
+				data: form_data,
+				dataType: "json",
+				success: function(response) {
+					if (response) {
+						alert(response.messages);
+						$(".modal").each(function() {
+							$(this).modal("hide");
+						});
+					}
+					window.location.reload(true);
+				}
+			});
+		});
 	});
 	// get the program budget/target div from db 
 	function approvePADP(progid = null) {
-		//console.log(progid);
 		if (progid) {
 			$.ajax({
 				type: "post",
@@ -585,7 +635,6 @@ require('includes/footer.php');
 
 	// get the program budget/target div from db 
 	function editPADP(progid = null, adpyr = null) {
-		//console.log(adpyr);
 		if (progid) {
 			$.ajax({
 				type: "post",
@@ -598,26 +647,6 @@ require('includes/footer.php');
 				dataType: "html",
 				success: function(response) {
 					$("#editBody").html(response);
-				}
-			});
-		}
-	}
-
-	// view the program budget/target 
-	function viewPADP(progid = null, adpyr = null) {
-		//console.log(adpyr);
-		if (progid) {
-			$.ajax({
-				type: "post",
-				url: "general-settings/action/adp-edit-action",
-				data: {
-					view_padp_div: "view_padp_div",
-					progid: progid,
-					adpyr: adpyr
-				},
-				dataType: "html",
-				success: function(response) {
-					$("#viewBody").html(response);
 				}
 			});
 		}
@@ -662,115 +691,4 @@ require('includes/footer.php');
 			});
 		}
 	}
-
-	// view the program budget/target 
-	function viewPBB(progid = null, adpyr = null) {
-		//console.log(adpyr);
-		if (progid) {
-			$.ajax({
-				type: "post",
-				url: "general-settings/action/adp-edit-action",
-				data: {
-					view_qtargets_div: "view_qtargets_div",
-					progid: progid,
-					adpyr: adpyr
-				},
-				dataType: "html",
-				success: function(response) {
-					$("#viewQTargetsBody").html(response);
-				}
-			});
-		}
-	}
-
-
-	// submit approved pbb details  
-	$("#approveItemForm").submit(function(e) {
-		e.preventDefault();
-		var form_data = $(this).serialize();
-		//console.log(form_data);
-		$.ajax({
-			type: "post",
-			url: "assets/processor/padp-process",
-			data: form_data,
-			dataType: "json",
-			success: function(response) {
-				if (response) {
-					alert(response.messages);
-					$(".modal").each(function() {
-						$(this).modal("hide");
-					});
-				}
-				window.location.reload(true);
-			}
-		});
-	});
-
-	// submit editted approved pbb details  
-	$("#editpbbItemForm").submit(function(e) {
-		e.preventDefault();
-		var form_data = $(this).serialize();
-		//console.log(form_data);
-		$.ajax({
-			type: "post",
-			url: "assets/processor/padp-process",
-			data: form_data,
-			dataType: "json",
-			success: function(response) {
-				if (response) {
-					alert(response.messages);
-					$(".modal").each(function() {
-						$(this).modal("hide");
-					});
-				}
-				window.location.reload(true);
-			}
-		});
-	});
-
-	// submit program quarterly targets
-	$("#quarterlyTargetsForm").submit(function(e) {
-		e.preventDefault();
-		var form_data = $(this).serialize();
-		//console.log(form_data);
-		$.ajax({
-			type: "post",
-			url: "assets/processor/padp-process",
-			data: form_data,
-			dataType: "json",
-			success: function(response) {
-				if (response) {
-					alert(response.messages);
-					$(".modal").each(function() {
-						$(this).modal("hide");
-					});
-				}
-				window.location.reload(true);
-			}
-		});
-	});
-
-	// submit editted program quarterly targets
-	$("#editquarterlyTargetsForm").submit(function(e) {
-		e.preventDefault();
-		var form_data = $(this).serialize();
-		//console.log(form_data);
-		$.ajax({
-			type: "post",
-			url: "assets/processor/padp-process",
-			data: form_data,
-			dataType: "json",
-			success: function(response) {
-				if (response) {
-					alert(response.messages);
-					$(".modal").each(function() {
-						$(this).modal("hide");
-					});
-				}
-				window.location.reload(true);
-			}
-		});
-	});
 </script>
-
-<script src="general-settings/js/fetch-programs.js"></script>

@@ -6,7 +6,7 @@ $(document).ready(function(){
 	if(X==1)
 	{
 	$(".submenus").hide();
-	$(this).attr('id', '0');	
+	$(this).attr('id', '0');
 	}
 	else
 	{
@@ -14,7 +14,7 @@ $(document).ready(function(){
 	$(".submenus").show();
 	$(this).attr('id', '1');
 	}
-		
+
 	});
 
 	//Mouseup textarea false
@@ -33,17 +33,17 @@ $(document).ready(function(){
 	$(".submenus").hide();
 	$(".account").attr('id', '');
 	});
-	
+
 	$('#assign-inspection-form').on('submit', function(event){
 		event.preventDefault();
 		var form_data = $(this).serialize();
 		$.ajax({
 			type: "POST",
-			url: "assets/processor/inspectorassignment.php",
+			url: "assets/processor/inspectorassignment",
 			data: form_data,
 			dataType: "json",
 			success:function(response)
-			{   
+			{
 				if(response){
 					alert('Record successfully saved');
 					window.location.reload();
@@ -61,7 +61,7 @@ function CallChecklistAssignment(msid)
 {
 	$.ajax({
 		type: 'post',
-		url: 'assets/processor/callchecklistassignment.php',
+		url: 'assets/processor/callchecklistassignment',
 		data: {msid:msid},
 		success: function (data) {
 			$('#checklistassignment').html(data);

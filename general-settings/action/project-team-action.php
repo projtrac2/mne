@@ -1,6 +1,10 @@
-<?php
+<?php 
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 include_once "controller.php";
-function send_email($projid, $ptid, $profession_id)
+function send_email($projid, $user_id, $profession_id)
 {
 	global $db;
 	$query_projmapping = $db->prepare("SELECT projname, projcode FROM `tbl_projects` WHERE projid=:projid");
@@ -9,12 +13,12 @@ function send_email($projid, $ptid, $profession_id)
 	$projname = $row_projmapping["projname"];
 	$projcode = $row_projmapping["projcode"];
 
-	$query_team = $db->prepare("SELECT * FROM `tbl_projteam2` WHERE ptid = '$ptid'");
-	$query_team->execute();
+	$query_team = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
+	$query_team->execute(array(":user_id" => $user_id));
 	$row_team = $query_team->fetch();
 	$fullname = $row_team['fullname'];
 	$receipient = $row_team['email'];
-	$receipient = "biwottech@gmail.com";
+	// $receipient = "biwottech@gmail.com";
 
 	// role 
 	$query_projrole = $db->prepare("SELECT * FROM `tbl_project_team_roles` WHERE id=:profession_id");
@@ -47,13 +51,12 @@ function send_email($projid, $ptid, $profession_id)
 		"page_url" => "myprojects.php",
 		"attachment" => ""
 	);
-	$mail_response = $mail->sendMail($data); 
+	$mail_response = $mail->sendMail($data);
 	return $mail_response;
 }
 
 // get add insoection checklist table 
 if (isset($_POST['getAddProjectTeam'])) {
-
 	$projid = $_POST['projid'];
 	$query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projid = :projid and p.deleted='0' and p.projplanstatus=1");
 	$query_rsProjects->execute(array(":projid" => $projid));
@@ -61,7 +64,7 @@ if (isset($_POST['getAddProjectTeam'])) {
 	$totalRows_rsProjects = $query_rsProjects->rowCount();
 	$Projdept = $row_rsProjects["sector"];
 
-	$query_departmentTeam =  $db->prepare("SELECT * FROM tbl_projteam2");
+	$query_departmentTeam =  $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid");
 	$query_departmentTeam->execute();
 	$row_departmentTeam = $query_departmentTeam->fetch();
 
@@ -71,11 +74,10 @@ if (isset($_POST['getAddProjectTeam'])) {
 			<h4>Please add project team member/s and their respective role/s</h4>
 		</div>
 		<style>
-			 .bootstrap-select .dropdown-menu {
+			.bootstrap-select .dropdown-menu {
 				margin: 15px 0 0; 
 				padding:15px;
-			 }
-			
+			}
 		</style>
 		<div class="body">
 			<input type="hidden" name="projid" id="projid"  value="' . $projid . '"> 
@@ -122,6 +124,8 @@ if (isset($_POST['getEditProjectTeam'])) {
 	$query_rsTeam = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid = :projid");
 	$query_rsTeam->execute(array(":projid" => $projid));
 	$row_rsTeam = $query_rsTeam->fetch();
+	$total_rsTeam = $query_rsTeam->rowCount();
+
 	echo ' 
 	<fieldset class="scheduler-border">
         <div class="header" style="background-color:#c7e1e8; border-radius:3px; padding:5px">
@@ -154,80 +158,214 @@ if (isset($_POST['getEditProjectTeam'])) {
 								</th>
 							</tr>
 						</thead>
-						<tbody id="member_table_body">';
+						<tbody id="member_table_body"> 
+						<tr>
+						</tr>
+						';
+
 	$rowno = 0;
-	do {
-		$memberid =  $row_rsTeam['ptid'];
-		$roleid =  $row_rsTeam['role'];
-
-		$query_rsRole = $db->prepare("SELECT *  FROM tbl_project_team_roles WHERE id = :role");
-		$query_rsRole->execute(array(":role" => $roleid));
-		$row_rsRole = $query_rsRole->fetch();
-		$role = $row_rsRole["role"];
-
-		$query_rsMembers = $db->prepare("SELECT *  FROM tbl_projteam2 where ptid=:member ");
-		$query_rsMembers->execute(array(":member" => $memberid));
-		$row_rsMembers = $query_rsMembers->fetch();
-
-		$ministry = $row_rsMembers['ministry'];
-		$query_rsMember = $db->prepare("SELECT *  FROM tbl_projteam2 where ministry='$ministry'");
-		$query_rsMember->execute();
-		$row_rsMember = $query_rsMember->fetch();
-
-		$query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 ");
-		$query_department->execute();
-		$row_department = $query_department->fetch();
-
-		$input = '';
-		$input .= '<option value="">Select Department</option>';
+	if ($total_rsTeam > 0) {
 		do {
-			$id = $row_department['stid'];
-			$sector = $row_department['sector'];
-			$selected = ($ministry == $id) ?  "selected" : "";
-			$input .= '<option value="' . $id . '" ' . $selected . '>' . $sector . '</option>';
-		} while ($row_department = $query_department->fetch());
+			$memberid =  $row_rsTeam['ptid'];
+			$roleid =  $row_rsTeam['role'];
 
-		$option = "";
-		do {
-			$ptid = $row_rsMember["ptid"];
-			$title = $row_rsMember["title"];
-			$firstname = $row_rsMember["firstname"];
-			$middlename = $row_rsMember["middlename"];
-			$lastname = $row_rsMember["lastname"];
-			$member = $title . "." . $firstname . " " . $middlename . " " . $lastname;
-			$selected = ($ptid == $memberid) ?  "selected" : "";
-			$option .= '<option value="' . $ptid . '" ' . $selected . '>' . $member . '</option>';
-		} while ($row_rsMember = $query_rsMember->fetch());
+			$query_rsRole = $db->prepare("SELECT *  FROM tbl_project_team_roles WHERE id = :role");
+			$query_rsRole->execute(array(":role" => $roleid));
+			$row_rsRole = $query_rsRole->fetch();
+			$role = $row_rsRole["role"];
 
-		$rowno++;
-		echo
-		'<tr id="row' . $rowno  . '">
-										<td>' . $rowno . '</td>
-										<td>
-											<select data-id="' . 	$rowno . '" name="role[]" id="rolerow' . $rowno . '" class="form-control validrole selectRole" required="required">
-												<option value="">Select Member Role</option>
-												<option value="' . $roleid . '" selected>' . $role . '</option>
-											</select>
-										</td>
-										<td>
-											<select data-id="' . 	$rowno . '" name="department[]" id="departmentrow' . $rowno . '" onchange="getmember(' . $rowno . ')" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
-												<option value="">Select Project Department </option>
-												' . $input . ' 
-											</select>
-										</td>
-										<td>
-											<select data-id="' . 	$rowno . '" name="member[]" id="memberrow' . $rowno . '" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
-												<option value="">Select Project Member </option>
-												' . $option . ' 
-											</select>
-										</td>
-										<td> 
-											<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_member("row' . $rowno . 	'")><span class="glyphicon glyphicon-minus"></span>
-											</button>
-										</td> 
-									</tr>';
-	} while ($row_rsTeam = $query_rsTeam->fetch());
+			$query_rsMembers = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:member");
+			$query_rsMembers->execute(array(":member" => $memberid));
+			$row_rsMembers = $query_rsMembers->fetch();
+
+			$ministry = $row_rsMembers['ministry'];
+			$query_rsMember = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.ministry='$ministry'");
+			$query_rsMember->execute();
+			$row_rsMember = $query_rsMember->fetch();
+
+			$query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 ");
+			$query_department->execute();
+			$row_department = $query_department->fetch();
+
+			$input = '';
+			$input .= '<option value="">Select Department</option>';
+			do {
+				$id = $row_department['stid'];
+				$sector = $row_department['sector'];
+				$selected = ($ministry == $id) ?  "selected" : "";
+				$input .= '<option value="' . $id . '" ' . $selected . '>' . $sector . '</option>';
+			} while ($row_department = $query_department->fetch());
+
+			$option = "";
+			do {
+				$userid = $row_rsMember["userid"];
+				$title = $row_rsMember["title"];
+				$firstname = $row_rsMember["firstname"];
+				$middlename = $row_rsMember["middlename"];
+				$lastname = $row_rsMember["lastname"];
+				$member = $title . "." . $firstname . " " . $middlename . " " . $lastname;
+				$selected = ($userid == $memberid) ?  "selected" : "";
+				$option .= '<option value="' . $userid . '" ' . $selected . '>' . $member . '</option>';
+			} while ($row_rsMember = $query_rsMember->fetch());
+
+			$rowno++;
+			echo
+			'<tr id="row' . $rowno  . '">
+				<td>' . $rowno . '</td>
+				<td>
+					<select data-id="' . 	$rowno . '" name="role[]" id="rolerow' . $rowno . '" class="form-control validrole selectRole" required="required">
+						<option value="">Select Member Role</option>
+						<option value="' . $roleid . '" selected>' . $role . '</option>
+					</select>
+				</td>
+				<td>
+					<select data-id="' . 	$rowno . '" name="department[]" id="departmentrow' . $rowno . '" onchange="getmember(' . $rowno . ')" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
+						<option value="">Select Project Department </option>
+						' . $input . ' 
+					</select>
+				</td>
+				<td>
+					<select data-id="' . 	$rowno . '" name="member[]" id="memberrow' . $rowno . '" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
+						<option value="">Select Project Member </option>
+						' . $option . ' 
+					</select>
+				</td>
+				<td> 
+					<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_member("row' . $rowno . 	'")><span class="glyphicon glyphicon-minus"></span>
+					</button>
+				</td> 
+			</tr>';
+		} while ($row_rsTeam = $query_rsTeam->fetch());
+	} else {
+		echo '<tr> <td colspan="3">No Record found</td></tr>';
+	}
 	echo '</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</fieldset> ';
+}
+
+//Update Team
+if (isset($_POST['getChangeProjTeam'])) {
+	$projid = $_POST['projid'];
+	$query_rsTeam = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid = :projid");
+	$query_rsTeam->execute(array(":projid" => $projid));
+	$row_rsTeam = $query_rsTeam->fetch();
+	$total_rsTeam = $query_rsTeam->rowCount();
+
+	echo ' 
+	<fieldset class="scheduler-border">
+		<div class="body">
+			<input type="hidden" name="projid" id="projid"  value="' . $projid . '"> 
+			<input type="hidden" name="department" id="dept"  value="">   
+			<input type="hidden" name="action" id="action"  value="2">
+			<style>
+				.bootstrap-select .dropdown-menu {
+					margin: 15px 0 0;
+					padding:15px;
+				}
+			</style>
+			<div  class="col-md-12">
+				<div class="table-responsive">
+					<table class="table table-bordered table-striped table-hover" id="member_table" style="width:100%">
+						<thead>
+							<tr>
+								<th width="3%">#</th>
+								<th width="25%">Role</th>
+								<th width="40%">Department</th>
+								<th width="27%">Member</th>
+								<th width="5%">
+									<button type="button" name="addplus" id="addplus_member" onclick="add_row_member();" class="btn btn-success btn-sm">
+										<span class="fa fa-plus-square">
+										</span>
+									</button>
+								</th>
+							</tr>
+						</thead>
+						<tbody id="member_table_body"> 
+						<tr>
+						</tr>
+						';
+
+						$rowno = 0;
+						if ($total_rsTeam > 0) {
+							do {
+								$memberid =  $row_rsTeam['ptid'];
+								$roleid =  $row_rsTeam['role'];
+
+								$query_rsRole = $db->prepare("SELECT *  FROM tbl_project_team_roles WHERE id = :role");
+								$query_rsRole->execute(array(":role" => $roleid));
+								$row_rsRole = $query_rsRole->fetch();
+								$role = $row_rsRole["role"];
+
+								$query_rsMembers = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:member");
+								$query_rsMembers->execute(array(":member" => $memberid));
+								$row_rsMembers = $query_rsMembers->fetch();
+
+								$ministry = $row_rsMembers['ministry'];
+								$query_rsMember = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.ministry='$ministry'");
+								$query_rsMember->execute();
+								$row_rsMember = $query_rsMember->fetch();
+
+								$query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 ");
+								$query_department->execute();
+								$row_department = $query_department->fetch();
+
+								$input = '';
+								$input .= '<option value="">Select Department</option>';
+								do {
+									$id = $row_department['stid'];
+									$sector = $row_department['sector'];
+									$selected = ($ministry == $id) ?  "selected" : "";
+									$input .= '<option value="' . $id . '" ' . $selected . '>' . $sector . '</option>';
+								} while ($row_department = $query_department->fetch());
+
+								$option = "";
+								do {
+									$userid = $row_rsMember["userid"];
+									$title = $row_rsMember["title"];
+									$firstname = $row_rsMember["firstname"];
+									$middlename = $row_rsMember["middlename"];
+									$lastname = $row_rsMember["lastname"];
+									$member = $title . "." . $firstname . " " . $middlename . " " . $lastname;
+									$selected = ($userid == $memberid) ?  "selected" : "";
+									$option .= '<option value="' . $userid . '" ' . $selected . '>' . $member . '</option>';
+								} while ($row_rsMember = $query_rsMember->fetch());
+
+								$rowno++;
+								echo
+								'<tr id="row' . $rowno  . '">
+									<td>' . $rowno . '</td>
+									<td>
+										<select data-id="' . 	$rowno . '" name="role[]" id="rolerow' . $rowno . '" class="form-control validrole selectRole" required="required">
+											<option value="">Select Member Role</option>
+											<option value="' . $roleid . '" selected>' . $role . '</option>
+										</select>
+									</td>
+									<td>
+										<select data-id="' . 	$rowno . '" name="department[]" id="departmentrow' . $rowno . '" onchange="getmember(' . $rowno . ')" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
+											<option value="">Select Project Department </option>
+											' . $input . ' 
+										</select>
+									</td>
+									<td>
+										<select data-id="' . 	$rowno . '" name="member[]" id="memberrow' . $rowno . '" class="form-control selectpicker validmember selectMember" data-live-search="true"  required="required">
+											<option value="">Select Project Member </option>
+											' . $option . ' 
+										</select>
+									</td>
+									<td> 
+										<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_member("row' . $rowno . 	'")><span class="glyphicon glyphicon-minus"></span>
+										</button>
+									</td> 
+								</tr>';
+							} while ($row_rsTeam = $query_rsTeam->fetch());
+						} else {
+							echo '<tr> <td colspan="3">No Record found</td></tr>';
+						}
+						echo '</tbody>
 					</table>
 				</div>
 			</div>
@@ -238,22 +376,26 @@ if (isset($_POST['getEditProjectTeam'])) {
 if (isset($_POST['getprojmember'])) {
 	$projid = $_POST['projid'];
 	$department = $_POST['department'];
-	$query_team = $db->prepare("SELECT * FROM `tbl_projteam2` where  ministry='$department' ");
+	$query_team = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE  p.ministry='$department' ");
 	$query_team->execute();
 	$row_team = $query_team->fetch();
+	$countrow_team = $query_team->rowCount();
 
 	$input = '';
-	$input .= '<option value="">Select Member</option>';
-	do {
-		$ptid = $row_team['ptid'];
-		$title = $row_team['title'];
-		$firstname = $row_team['firstname'];
-		$middlename = $row_team['middlename'];
-		$lastname = $row_team['lastname'];
-		$membername = $title . ". " . $firstname . " " . $middlename . " " . $lastname;
-		$input .= '<option value="' . $ptid . '">' . $membername . '</option>';
-	} while ($row_team = $query_team->fetch());
-
+	if($countrow_team > 0){
+		$input .= '<option value="">Select Member</option>';
+		do {
+			$userid = $row_team['userid'];
+			$title = $row_team['title'];
+			$firstname = $row_team['firstname'];
+			$middlename = $row_team['middlename'];
+			$lastname = $row_team['lastname'];
+			$membername = $title . ". " . $firstname . " " . $middlename . " " . $lastname;
+			$input .= '<option value="' . $userid . '">' . $membername . '</option>';
+		} while ($row_team = $query_team->fetch());
+	}else{
+		$input .= '<option value="">Select Department</option>';
+	}
 	echo $input;
 }
 
@@ -261,7 +403,6 @@ if (isset($_POST['get_department'])) {
 	$query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 ");
 	$query_department->execute();
 	$row_department = $query_department->fetch();
-
 	$input = '';
 	$input .= '<option value="">Select Department</option>';
 	do {
@@ -269,7 +410,6 @@ if (isset($_POST['get_department'])) {
 		$sector = $row_department['sector'];
 		$input .= '<option value="' . $id . '">' . $sector . '</option>';
 	} while ($row_department = $query_department->fetch());
-
 	echo $input;
 }
 
@@ -308,19 +448,15 @@ if (isset($_POST['addProjTeam'])) {
 			$insertSQL = $db->prepare("INSERT INTO tbl_projmembers (ptid, projid, role, dateentered, user_name) VALUES (:ptid, :projid, :role, :datecreated, :createdby)");
 			$results = $insertSQL->execute(array(':ptid' => $ptid, ':projid' => $projid, ':role' => $role[$i], ':datecreated' => $current_date, ':createdby' => $user_name));
 			send_email($projid, $ptid, $role[$i]);
-		} 
+		}
+
 		if ($results === TRUE) {
 			$query_projmapping = $db->prepare("SELECT projmapping, projstage FROM `tbl_projects` WHERE projid=:projid");
 			$query_projmapping->execute(array(":projid" => $projid));
 			$row_projmapping = $query_projmapping->fetch();
 			$projmapping = $row_projmapping["projmapping"];
 			$projstage = $row_projmapping["projstage"];
-
-			if ($projmapping == 1) {
-				$stage = 3;
-			} else {
-				$stage = 4;
-			}
+			$stage = 4;
 
 			$insertQuery = $db->prepare("UPDATE `tbl_projects` set projstage=:stage WHERE projid=:projid");
 			$insertQuery->execute(array(":stage" => $stage, ':projid' => $projid));
@@ -360,12 +496,7 @@ if (isset($_POST["editProjTeam"])) {
 		$row_projmapping = $query_projmapping->fetch();
 		$projmapping = $row_projmapping["projmapping"];
 
-		if ($projmapping == 1) {
-			$stage = 3;
-		} else {
-			$stage = 4;
-		}
-
+		$stage = 4;
 		$insertQuery = $db->prepare("UPDATE `tbl_projects` set projstage=:stage WHERE projid=:projid");
 		$insertQuery->execute(array(":stage" => $stage, ':projid' => $projid));
 
@@ -385,7 +516,7 @@ if (isset($_POST['deleteTeam'])) {
 	$results = $deleteQuery->execute(array(':projid' => $projid));
 
 	if ($results === TRUE) {
-		$stage = 2;
+		$stage = 3;
 		$approveItemQuery = $db->prepare("UPDATE `tbl_projects` set projstage=:stage WHERE projid=:projid");
 		$approveItemQuery->execute(array(":stage" => $stage, ':projid' => $projid));
 
@@ -404,12 +535,10 @@ if (isset($_POST['more'])) {
 	$query_rsTeam = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid = :projid");
 	$query_rsTeam->execute(array(":projid" => $projid));
 	$row_rsTeam = $query_rsTeam->fetch();
+	$total_rsTeam = $query_rsTeam->rowCount();
 
 	echo ' 
 	<fieldset class="scheduler-border">
-        <div class="card-header" style="background-color:#c7e1e8; border-radius:3px; padding:5px">
-			<h4>Please add project team member/s and their respective role/s</h4>
-		</div>
 		<div class="body">
 			<input type="hidden" name="action" id="action"  value="2">
 			<div  class="col-md-12">
@@ -424,38 +553,46 @@ if (isset($_POST['more'])) {
 						</thead>
 						<tbody id="member_table_body">';
 	$rowno = 0;
-	do {
-		$memberid =  $row_rsTeam['ptid'];
-		$roleid =  $row_rsTeam['role'];
+	if ($total_rsTeam > 0) {
+		do {
+			$memberid = $row_rsTeam['ptid'];
+			$roleid = $row_rsTeam['role'];
 
-		$query_rsRole = $db->prepare("SELECT *  FROM tbl_project_team_roles WHERE id = :role");
-		$query_rsRole->execute(array(":role" => $roleid));
-		$row_rsRole = $query_rsRole->fetch();
-		$role = $row_rsRole["role"];
+			$query_rsRole = $db->prepare("SELECT *  FROM tbl_project_team_roles WHERE id = :role");
+			$query_rsRole->execute(array(":role" => $roleid));
+			$row_rsRole = $query_rsRole->fetch();
+			$role = $row_rsRole["role"];
 
-		$query_rsMember = $db->prepare("SELECT *  FROM tbl_projteam2 where ptid=:member ");
-		$query_rsMember->execute(array(":member" => $memberid));
-		$row_rsMember = $query_rsMember->fetch();
+			$query_rsMember = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:member ");
+			$query_rsMember->execute(array(":member" => $memberid));
+			$row_rsMember = $query_rsMember->fetch();
+			$total_rsMember = $query_rsMember->rowCount();
 
-		$ptid = $row_rsMember["ptid"];
-		$title = $row_rsMember["title"];
-		$firstname = $row_rsMember["firstname"];
-		$middlename = $row_rsMember["middlename"];
-		$lastname = $row_rsMember["lastname"];
-		$member = $title . "." . $firstname . " " . $middlename . " " . $lastname;
+			$member = "";
+			if ($total_rsMember > 0) {
+				$userid = $row_rsMember["userid"];
+				$title = $row_rsMember["title"];
+				$firstname = $row_rsMember["firstname"];
+				$middlename = $row_rsMember["middlename"];
+				$lastname = $row_rsMember["lastname"];
+				$member = $title . "." . $firstname . " " . $middlename . " " . $lastname;
+			}
 
-		$rowno++;
-		echo
-		'<tr id="row">
-										<td>' . $rowno . '</td>
-										<td>
-										' . $role . '
-										</td>
-										<td>
-											' . $member . '
-										</td>
-									</tr>';
-	} while ($row_rsTeam = $query_rsTeam->fetch());
+			$rowno++;
+			echo
+			'<tr id="row">
+				<td>' . $rowno . '</td>
+				<td>
+				' . $role . '
+				</td>
+				<td>
+					' . $member . '
+				</td>
+			</tr>';
+		} while ($row_rsTeam = $query_rsTeam->fetch());
+	} else {
+		echo '<tr> <td colspan="3">No Record found</td></tr>';
+	}
 	echo '</tbody>
 					</table>
 				</div>

@@ -1,17 +1,8 @@
 <?php
 require('functions/strategicplan.php');
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
-
 require('includes/head.php');
 
 if ($permission) {
-	$pageTitle = "Add Contractor";
 	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -32,11 +23,6 @@ if ($permission) {
 		$query_rsBiztype->execute();
 		$row_rsBiztype = $query_rsBiztype->fetch();
 		$totalRows_rsBiztype = $query_rsBiztype->rowCount();
-
-		$query_rsCounty = $db->prepare("SELECT * FROM counties");
-		$query_rsCounty->execute();
-		$row_rsCounty = $query_rsCounty->fetch();
-		$totalRows_rsCounty = $query_rsCounty->rowCount();
 
 		$edit_form = false;
 		if ((isset($_GET["edit"])) && ($_GET["edit"] == "1")) {
@@ -241,7 +227,6 @@ if ($permission) {
 				}
 
 				$msg = 'Contractor Successfully Added';
-
 				$results = "<script type=\"text/javascript\">
 					swal({
 						title: \"Success!\",
@@ -267,7 +252,7 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
+					<?= $icon ?>
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">

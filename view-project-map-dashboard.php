@@ -1,14 +1,33 @@
 <?php
-$pageName = "Project Maps Dashboard";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 if ($permission) {
-    try {
+    try {			
+		$accesslevel = "";
+		$sector = 0;
+		
+		$sector_projects = '<option value="" >Select Project</option>';
+		$query_projects = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid = p.progid  WHERE g.projsector = :dept_id");
+		$query_projects->execute(array(":dept_id" => $ministry));
+		while ($row = $query_projects->fetch()) {
+			$projid = $row['projid'];
+			$sector_projects .= '<option value="' . $projid . '"> ' . $row['projname'] . '</option>';
+		}
+				
+		if(($role_group == 4 && $designation == 1) || ($role_group == 2 && $designation < 5) || ($role_group == 1)){
+			$accesslevel = "";	
+			$sector = 1;	
+			
+			$query_rsSectors = $db->prepare("SELECT * FROM tbl_sectors WHERE parent='0'");
+			$query_rsSectors->execute();
+			$totalRows_rsSectors = $query_rsSectors->rowCount();		
+		}elseif($role_group == 2 && $designation == 5){
+			$accesslevel = " AND g.projsector=$ministry";			
+		}elseif($role_group == 2 && $designation == 6){
+			$accesslevel = " AND g.projsector=$ministry AND g.projdept=$sector";			
+		}elseif($role_group == 2 && $designation > 6){
+			$accesslevel = " AND g.projsector=$ministry AND g.projdept=$sector AND g.directorate=$directorate";			
+		}
+		
         function projfy()
         {
             global $db;
@@ -24,7 +43,6 @@ if ($permission) {
     } catch (PDOException $ex) {
         $result = flashMessage("An error occurred: " . $ex->getMessage());
     }
-    $pageTitle = "Project Maps Dashboard";
 ?>
     <style>
         .mt-map-wrapper {
@@ -48,8 +66,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -82,21 +100,30 @@ if ($permission) {
                                                 <option value="" selected="selected">Select To Financial Year</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
-                                            <select name="department" onchange="get_projects()" id="department" class="form-control show-tick" data-live-search="true" data-live-search-style="startsWith">
-                                                <option value="" selected="selected">Select Department</option>
-                                                <?php
-                                                while ($row_rsSectors = $query_rsSectors->fetch()) {
-                                                ?>
-                                                    <option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
-                                                <?php
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
+										<?php if($sector==1){ ?>
+											<div class="col-md-4">
+												<select name="department" onchange="get_projects()" id="department" class="form-control show-tick" data-live-search="true" data-live-search-style="startsWith">
+													<option value="" selected="selected">Select Department</option>
+													<?php
+													while ($row_rsSectors = $query_rsSectors->fetch()) {
+													?>
+														<option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
+													<?php
+													}
+													?>
+												</select>
+											</div>
+										<?php } ?>
                                         <div class="col-md-4">
                                             <select name="projid" onchange="get_outputs()" id="projid" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
-                                                <option value="" selected="selected">Select Projects</option>
+												<?php 
+												if($sector==1){ ?>
+													<option value="" selected="selected">Select Projects</option>
+												<?php 
+												} else {
+													echo $sector_projects; 
+												}
+												?>
                                             </select>
                                         </div>
                                         <div class="col-md-4" id="test">
@@ -182,9 +209,9 @@ require('includes/footer.php');
                     get_outputs: "get_outputs",
                     projid: projid,
                 },
-                dataType: "json",
+                dataType: "html",
                 success: function(response) {
-                    $("#fyto").html(response);
+                    $("#outputs").html(response);
                 }
             });
         }

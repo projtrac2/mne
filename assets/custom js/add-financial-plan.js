@@ -749,138 +749,140 @@ function amountfunding(rowno) {
   }
 }
 
-//function fo give the modal
-function addFinancier(outputid, planid, ftype, rowno) {
-  $("#fplanid").val(planid);
-  $("#foutputid").val(outputid);
-  $("#ftype").val(ftype); // type 1, 2,3 for funders, personnel and others respectively
-  $("#rowno").val(rowno);
-  var plan_cost = "";
-  var dsmttimeline = "";
-  var finid = "";
-  var rmkid = "";
+function add_direct_cost(outputid, planid, budgetline_type, rowno){
+  $(".modal").each(function () {
+    $(this).modal("hide");
+    $(this)
+      .find("form")
+      .trigger("reset");
+  });
+  var cut_id = outputid + ""+ planid + rowno;
+  var projid = $("#projid").val();
+  var output_description= $(`#dddescription${cut_id}`).val();
+  var output_unit= $(`#dunit${cut_id}`).val();
+  var output_unit_cost= $(`#dunitcost${cut_id}`).val();
+  var output_units_no= $(`#dtotalunits${cut_id}`).val();
 
-  if (ftype == "1") {
-  } else if (ftype == "2") {
-  } else if (ftype == "3") {
+  $("#projid").val(projid);
+  $("#outputid").val(outputid);
+  $("#output_description").val(output_description);
+  $("#output_unit").val(output_unit);
+  $("#output_unit_cost").val(output_unit_cost);
+  $("#output_units_no").val(output_units_no);
+  budget_line_type_hide_show(budgetline_type);
+  var plan_cost_validation = validate_plan_cost(outputid, planid, budgetline_type, rowno);
+  if(plan_cost_validation){
+    check_edit_plan(outputid, planid, budgetline_type, rowno);
+  }else{
+    console.log("cannot work please wait i wook on it s")
+  }
+}
+
+function budget_line_type_hide_show(budgetline_type){
+  if(budgetline_type== 1){
+    $("#timeline_div").hide();
+    $("#responsible").removeAttr("required");
+    $("#timelinedate").removeAttr("required");
+  }else if(budgetline_type== 2){
+    $("#timeline_div").show();
+    $("#responsible_div").hide();
+    $("#responsible").removeAttr("required");
+    $("#timelinedate").attr("required", "required");
+  }else if(budgetline_type== 3){
     $("#responsible_div").show();
     $("#timeline_div").show();
     $("#responsible").attr("required", "required");
     $("#timelinedate").attr("required", "required");
   }
+}
 
-  if (ftype == 1) {
-    $("#timeline_div").hide();
-    $("#responsible").removeAttr("required");
-    $("#timelinedate").removeAttr("required");
-    plan_cost = $("#dtotalcost" + outputid + planid + rowno).val();
-    finid = "#dfinid" + ftype + outputid + planid + rowno;
-    rmkid = "#drmkid" + ftype + outputid + planid + rowno;
-  } else if (ftype == 2) {
-    $("#timeline_div").show();
-    $("#responsible_div").hide();
-    $("#responsible").removeAttr("required");
-    $("#timelinedate").attr("required", "required");
-    plan_cost = $("#totalcost" + planid).val();
-    finid = "#finid" + ftype + planid;
-    dsmttimeline = "#dsmttimeline" + ftype + planid;
-    rmkid = "#rmkid" + ftype + planid;
-  } else if (ftype == 3) {
-    plan_cost = $("#totalcost" + planid).val();
-    dsmttimeline = "#dsmttimeline" + ftype + planid;
-    finid = "#finid" + ftype + planid;
-    rmkid = "#rmkid" + ftype + planid;
-  }
-
-  if (plan_cost) {
+function validate_plan_cost(outputid, planid, budgetline_type, rowno){
+  var plan_cost = (budgetline_type == 1) ? $("#dtotalcost" + outputid + planid + rowno).val() : $("#totalcost" + planid).val();
+  var message = false;
+  if(plan_cost !=""){
     $("#output_cost_fi_celing").val(plan_cost);
     $("#output_cost_ceiling").html(
       "Total Cost Ksh:" + commaSeparateNumber(plan_cost)
     );
+    message= true; 
+  }else{
+    $(".modal").modal("toggle"); 
+    sweet_alert("Error !!!", "Add unit cost and total no of units");
+  }
+  return message;
+}
 
-    var projid = $("#projid").val();
-    var cdsmttimeline = $(dsmttimeline).val();
-    var cfinid = $(finid).val();
-    var crmkid = $(rmkid).val();
+function check_edit_plan(outputid, planid, budgetline_type, rowno){ 
+  var finid =  (budgetline_type == 1) ?  $("#dfinid" + budgetline_type + outputid + planid + rowno).val() : $("#finid" + budgetline_type + planid).val();
+  var rmkid =  (budgetline_type == 1) ?  $("#drmkid" + budgetline_type + outputid + planid + rowno).val() : $("#rmkid" + budgetline_type + planid).val();
+  var cdsmttimeline =  (budgetline_type == 1) ?  "" : $("#dsmttimeline" + budgetline_type + planid).val();
 
-    if (cfinid != "" && crmkid != "") {
-      $.ajax({
-        type: "POST",
-        url: "assets/processor/add-financial-plan-process",
-        data: {
-          editdetails: "editdetails",
-          outputid: outputid,
-          crmkid: crmkid,
-          cfinid: cfinid,
-          cdsmttimeline: cdsmttimeline
-        },
-        dataType: "json",
-        success: function (response) {
-          var disbursement_date = response.disbursement_date;
-          var responsible = response.responsible;
-          var comment = response.comment;
-          $("#comment").val(comment);
-          $("#timelinedate")
-            .val(disbursement_date)
-            .trigger("change");
-          $("#responsible")
-            .val(responsible)
-            .trigger("change");
+  console.log(finid);
+  console.log(rmkid);
 
-          var edit_item =
-            '<input type="hidden" name="remarkid" id="remarkid" value="' +
-            crmkid +
-            '">' +
-            '<input type="hidden" name="dfinid" id="dfinid" value="' +
-            cfinid +
-            '">' +
-            '<input type="hidden" name="timelineid" id="timelineid" value="' +
-            cdsmttimeline +
-            '">';
-          $("#newitem").val("edititem");
-          $("#newitem").attr("name", "edititem");
-          $("#edit-item").html(edit_item);
-        }
-      });
+  
+  if (finid == "" && rmkid == "") {
+    $("#financier_table_body").html(`<tr></tr><tr id="removeTr"><td colspan="5">Add Financiers</td></tr>`);
+    $("#newitem").val("newitem");
+    $("#newitem").attr("name", "newitem");
+    $("#edit-item").html("");
+    console.log("checking if we can add file");
 
-      $.ajax({
-        type: "POST",
-        url: "assets/processor/add-financial-plan-process",
-        data: {
-          getfinancieredit: "getfinancieredit",
-          cfinid: cfinid,
-          projid: projid,
-          outputid: outputid
-        },
-        dataType: "html",
-        success: function (response) {
-          $("#financier_table_body").html(response);
-          validate_against_output_cost();
-        }
-      });
-    } else {
-      $("#financier_table_body").html(
-        "<tr></tr>" +
-        '<tr id="removeTr">' +
-        '<td colspan="5">Add Financiers</td>' +
-        "</tr>"
-      );
-      $(".modal").each(function () {
-        $(this).modal("hide");
-        $(this)
-          .find("form")
-          .trigger("reset");
-      });
-      $("#newitem").val("newitem");
-      $("#newitem").attr("name", "newitem");
-      $("#edit-item").html("");
-    }
-  } else {
-    $(".modal").modal("toggle");
-    var msg = "Add unit cost and total no of units";
-    sweet_alert("Error !!!", msg);
+  }else{ 
+    $("#newitem").val("edititem");
+    $("#newitem").attr("name", "edititem");
+    $("#edit-item").html(`
+      <input type="hidden" name="remarkid" id="remarkid" value="${rmkid}">
+      <input type="hidden" name="dfinid" id="dfinid" value="${finid}">
+      <input type="hidden" name="timelineid" id="timelineid" value="${cdsmttimeline}">
+    `);
+    get_edit_plan_details(outputid,crmkid,cfinid, cdsmttimeline);
+    get_edit_financier_details(projid,outputid, cfinid);
+    console.log("checking if we can edit file");
   }
 }
+
+function get_edit_plan_details(outputid,crmkid,cfinid, cdsmttimeline){
+  $.ajax({
+    type: "POST",
+    url: "assets/processor/add-financial-plan-process",
+    data: {
+      editdetails: "editdetails",
+      outputid: outputid,
+      crmkid: crmkid,
+      cfinid: cfinid,
+      cdsmttimeline: cdsmttimeline
+    },
+    dataType: "json",
+    success: function (response) {
+      var disbursement_date = response.disbursement_date;
+      var responsible = response.responsible;
+      var comment = response.comment;
+      $("#comment").val(comment);
+      $("#timelinedate").val(disbursement_date).trigger("change");
+      $("#responsible").val(responsible).trigger("change");
+    }
+  });
+}
+
+function get_edit_financier_details(projid,outputid, cfinid){
+  $.ajax({
+    type: "POST",
+    url: "assets/processor/add-financial-plan-process",
+    data: {
+      getfinancieredit: "getfinancieredit",
+      cfinid: cfinid,
+      projid: projid,
+      outputid: outputid
+    },
+    dataType: "html",
+    success: function (response) {
+      $("#financier_table_body").html(response);
+      validate_against_output_cost();
+    }
+  });
+}
+
 
 //function to validate timeline date against project dates
 function validate_timeline_date() {
@@ -1300,60 +1302,71 @@ function numbering_direct(id) {
 
 $("#tag-form-submit").click(function (e) {
   e.preventDefault();
-  //var internet_handler = checkNetConnection();
-  var internet_handler = true;
-  if (internet_handler) {
-    $("#form").validate({
-      ignore: [],
-      errorPlacement: function (error, element) {
-        var lastError = $(element).data("lastError"),
-          newError = $(error).text();
-
-        $(element).data("lastError", newError);
-
-        if (newError !== "" && newError !== lastError) {
-          $(element).after('<div class="red">The field is Required</div>');
-        }
-      },
-      success: function (label, element) {
-        $(element)
-          .next(".red")
-          .remove();
-      }
-    });
-
-    var isValid = true;
-    var curInputs = $("#form").find("input, select");
-
-    for (var i = 0; i < curInputs.length; i++) {
-      if (!$(curInputs[i]).valid()) {
-        isValid = false;
-      }
-    }
-
-    if (isValid) {
-      var bal = output_cost_val();
-      if (bal) {
-        var modal_val = modal_validate();
-        if (modal_val) {
-          var formData = $("#form").serialize();
-          $.ajax({
-            type: "post",
-            url: "assets/processor/add-financial-plan-process",
-            data: formData,
-            dataType: "json",
-            success: function (response) {
-              if(response.msg){
-                sweet_alert("Success !!!", "Successfully Added Financial Plan");
-                var get_url = response.url == 1 ? "view-workplan" : "add-project-procurement-details";
-                window.location.href = get_url;
-              }else{
-                sweet_alert("Error !!!", "Eror Inserting data");
-              } 
+  swal({
+    title: "Confirmation",
+    text: "Please confirm whether you have entered correct data!",
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+  .then((willDelete) => {
+    if (willDelete) {
+      var internet_handler = true;
+      if (internet_handler) {
+        $("#form").validate({
+          ignore: [],
+          errorPlacement: function (error, element) {
+            var lastError = $(element).data("lastError"),
+              newError = $(error).text();
+    
+            $(element).data("lastError", newError);
+    
+            if (newError !== "" && newError !== lastError) {
+              $(element).after('<div class="red">The field is Required</div>');
             }
-          });
+          },
+          success: function (label, element) {
+            $(element)
+              .next(".red")
+              .remove();
+          }
+        });
+    
+        var isValid = true;
+        var curInputs = $("#form").find("input, select");
+    
+        for (var i = 0; i < curInputs.length; i++) {
+          if (!$(curInputs[i]).valid()) {
+            isValid = false;
+          }
+        }
+    
+        if (isValid) {
+          var bal = output_cost_val();
+          if (bal) {
+            var modal_val = modal_validate();
+            if (modal_val) {
+              var formData = $("#form").serialize();
+              $.ajax({
+                type: "post",
+                url: "assets/processor/add-financial-plan-process",
+                data: formData,
+                dataType: "json",
+                success: function (response) {
+                  if(response.msg){
+                    sweet_alert("Success !!!", "Successfully Added Financial Plan");
+                    var get_url = "add-project-financial-plan";
+                    window.location.href = get_url;
+                  }else{
+                    sweet_alert("Error !!!", "Eror Inserting data");
+                  } 
+                }
+              });
+            }
+          }
         }
       }
     }
-  }
+  });
+  //var internet_handler = checkNetConnection();
 });

@@ -1,7 +1,6 @@
 <?php
 
 include_once "controller.php";
-include_once '../../system-labels.php';
 
 if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 	$itemId = $_POST['itemId'];
@@ -156,55 +155,55 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 									  </tr>
 							  </thead>
 							  <tbody id="funding_table_body" >';
-									$rowno = 0;
-									do {
-										$Ocounter++;
-										$rowno++;
-										$year =  $row_Data['year'];
-										$projoutputID =  $row_Data['id'];
-										$duration =  $row_Data['duration'];
-										$outputid =  $row_Data['outputid'];
-										$budget =  $row_Data['budget'];
-										$indicatorId =  $row_Data['indicator'];
-										$target =  $row_Data['total_target'];
+	$rowno = 0;
+	do {
+		$Ocounter++;
+		$rowno++;
+		$year =  $row_Data['year'];
+		$projoutputID =  $row_Data['id'];
+		$duration =  $row_Data['duration'];
+		$outputid =  $row_Data['outputid'];
+		$budget =  $row_Data['budget'];
+		$indicatorId =  $row_Data['indicator'];
+		$target =  $row_Data['total_target'];
 
-										$query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$year'");
-										$query_rsYear->execute();
-										$row_rsYear = $query_rsYear->fetch();
-										$projstartyear =  $row_rsYear['yr'];
-										$projend = $projstartyear + 1;
+		$query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$year'");
+		$query_rsYear->execute();
+		$row_rsYear = $query_rsYear->fetch();
+		$projstartyear =  $row_rsYear['yr'];
+		$projend = $projstartyear + 1;
 
-										$query_dep = $db->prepare("SELECT tbl_indicator.indicator_name FROM tbl_indicator   WHERE indid ='$indicatorId' ");
-										$query_dep->execute();
-										$row_dep = $query_dep->fetch();
-										$indname =  $row_dep['indicator_name'];
+		$query_dep = $db->prepare("SELECT tbl_indicator.indicator_name FROM tbl_indicator   WHERE indid ='$indicatorId' ");
+		$query_dep->execute();
+		$row_dep = $query_dep->fetch();
+		$indname =  $row_dep['indicator_name'];
 
-										$query_Indicator_ben = $db->prepare("SELECT * FROM tbl_indicator_beneficiaries WHERE indicatorid ='$indicatorId' ");
-										$query_Indicator_ben->execute();
-										$row_ben_ind = $query_Indicator_ben->fetch();
-										$row_count = $query_Indicator_ben->rowCount();
-										$ben_diss = '';
-										if ($row_count > 0) {
-											$ben_diss = $row_ben_ind['dissagragated'];
-										} else {
-											$ben_diss = 0;
-										}
+		$query_Indicator_ben = $db->prepare("SELECT * FROM tbl_indicator_beneficiaries WHERE indicatorid ='$indicatorId' ");
+		$query_Indicator_ben->execute();
+		$row_ben_ind = $query_Indicator_ben->fetch();
+		$row_count = $query_Indicator_ben->rowCount();
+		$ben_diss = '';
+		if ($row_count > 0) {
+			$ben_diss = $row_ben_ind['dissagragated'];
+		} else {
+			$ben_diss = 0;
+		}
 
-										$query_getprogbudget = $db->prepare("SELECT * FROM tbl_progdetails  WHERE indicator ='$indicatorId' AND year='$projstartyear' AND progid='$progid' ");
-										$query_getprogbudget->execute();
-										$row_rsprogbudget = $query_getprogbudget->fetch();
-										$outputname = $row_rsprogbudget['output'];
-										$progbudget = $row_rsprogbudget['budget'];
+		$query_getprogbudget = $db->prepare("SELECT * FROM tbl_progdetails  WHERE indicator ='$indicatorId' AND year='$projstartyear' AND progid='$progid' ");
+		$query_getprogbudget->execute();
+		$row_rsprogbudget = $query_getprogbudget->fetch();
+		$outputname = $row_rsprogbudget['output'];
+		$progbudget = $row_rsprogbudget['budget'];
 
-										$query_projcost = $db->prepare("SELECT SUM(budget) as projectbudget FROM  tbl_project_details WHERE  outputid ='$outputid' and year='$year' AND progid='$progid' LIMIT 1 ");
-										$query_projcost->execute();
-										$rowproj = $query_projcost->fetch();
+		$query_projcost = $db->prepare("SELECT SUM(budget) as projectbudget FROM  tbl_project_details WHERE  outputid ='$outputid' and year='$year' AND progid='$progid' LIMIT 1 ");
+		$query_projcost->execute();
+		$rowproj = $query_projcost->fetch();
 
-										$totalUsed  =  $rowproj['projectbudget'];
-										$projbudget = $progbudget - $totalUsed;
-										$projceiling = $projbudget + $budget;
+		$totalUsed  =  $rowproj['projectbudget'];
+		$projbudget = $progbudget - $totalUsed;
+		$projceiling = $projbudget + $budget;
 
-										$TargetB .= ' 
+		$TargetB .= ' 
 																		<tr id="row' . $rowno . '">
 																			<td width="5%">' . $Ocounter  . '</td>
 																			<td>' . $outputname  . '
@@ -247,8 +246,8 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 																				</div> 
 																			</td>    
 																		</tr>';
-									} while ($row_Data =  $query_Data->fetch());
-									$TargetB .= '
+	} while ($row_Data =  $query_Data->fetch());
+	$TargetB .= '
 							  </tbody> 
 						  </table> 
 					  </div>
@@ -275,41 +274,41 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 					</div>
 				  </div>
 				  <div class="body">';
-						do {
-							$counter++;
-							// get indicator name 
-							$indicator = $row_OutputData['indicator'];
-							$t_target = $row_OutputData['total_target'];
-							$projoutputID = $row_OutputData['id'];
+	do {
+		$counter++;
+		// get indicator name 
+		$indicator = $row_OutputData['indicator'];
+		$t_target = $row_OutputData['total_target'];
+		$projoutputID = $row_OutputData['id'];
 
-							$query_rsIndicator = $db->prepare("SELECT indicator_name, indid, indicator_unit FROM tbl_indicator WHERE indid ='$indicator'");
-							$query_rsIndicator->execute();
-							$row_rsIndicator = $query_rsIndicator->fetch();
-							$indname = $row_rsIndicator['indicator_name'];
-							$unit_id = $row_rsIndicator['indicator_unit'];
+		$query_rsIndicator = $db->prepare("SELECT indicator_name, indid, indicator_unit FROM tbl_indicator WHERE indid ='$indicator'");
+		$query_rsIndicator->execute();
+		$row_rsIndicator = $query_rsIndicator->fetch();
+		$indname = $row_rsIndicator['indicator_name'];
+		$unit_id = $row_rsIndicator['indicator_unit'];
 
-							// get unit 
-							$query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE  id='$unit_id' ");
-							$query_Indicator->execute();
-							$row = $query_Indicator->fetch();
-							$unit = $row['unit'];
+		// get unit 
+		$query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE  id='$unit_id' ");
+		$query_Indicator->execute();
+		$row = $query_Indicator->fetch();
+		$unit = $row['unit'];
 
-							// Get outputstart year
-							$year = $row_OutputData['year'];
-							$query_rsIndicatorYear =  $db->prepare("SELECT yr FROM tbl_fiscal_year WHERE id='$year'");
-							$query_rsIndicatorYear->execute();
-							$row_rsIndicatorYear = $query_rsIndicatorYear->fetch();
-							$projstartyear = $row_rsIndicatorYear['yr'];
+		// Get outputstart year
+		$year = $row_OutputData['year'];
+		$query_rsIndicatorYear =  $db->prepare("SELECT yr FROM tbl_fiscal_year WHERE id='$year'");
+		$query_rsIndicatorYear->execute();
+		$row_rsIndicatorYear = $query_rsIndicatorYear->fetch();
+		$projstartyear = $row_rsIndicatorYear['yr'];
 
-							// get output name 
-							$outputid = $row_OutputData['outputid'];
-							$query_rsOutput = $db->prepare("SELECT * FROM tbl_progdetails WHERE id='$outputid'");
-							$query_rsOutput->execute();
-							$row_rsOutput = $query_rsOutput->fetch();
-							$count_rsOutput = $query_rsOutput->rowCount();
-							$outputName = $count_rsOutput > 0 ?  $row_rsOutput['output'] : "N/A";
+		// get output name 
+		$outputid = $row_OutputData['outputid'];
+		$query_rsOutput = $db->prepare("SELECT * FROM tbl_progdetails WHERE id='$outputid'");
+		$query_rsOutput->execute();
+		$row_rsOutput = $query_rsOutput->fetch();
+		$count_rsOutput = $query_rsOutput->rowCount();
+		$outputName = $count_rsOutput > 0 ?  $row_rsOutput['output'] : "N/A";
 
-							$Targets .= '
+		$Targets .= '
 										<div class="elementT" id="target_div_' . trim($projoutputID)  . '">
 													<div class="header">  
 														<div class="col-md-6 clearfix" style="margin-top:5px; margin-bottom:5px">
@@ -322,46 +321,46 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 														<div class="row">
 															<div class="col-md-12">
 																<div class="spanYears">';
-							//get financial years with specific outputid 
-							$query_projYear = $db->prepare("SELECT * FROM  tbl_project_output_details WHERE projid = '$projid' and projoutputid = '$projoutputID' ORDER BY year");
-							$query_projYear->execute();
-							$rows_OutpuprojYear = $query_projYear->rowCount();
-							$row_projYear =  $query_projYear->fetch();
+		//get financial years with specific outputid 
+		$query_projYear = $db->prepare("SELECT * FROM  tbl_project_output_details WHERE projid = '$projid' and projoutputid = '$projoutputID' ORDER BY year");
+		$query_projYear->execute();
+		$rows_OutpuprojYear = $query_projYear->rowCount();
+		$row_projYear =  $query_projYear->fetch();
 
-							$TargetPlan = "";
-							$containerTH = "";
-							$containerTH2 = "";
-							$containerTB = "";
-							do {
-								$Pyear =  $row_projYear['year'];
-								$target =  $row_projYear['target'];
-								$Fyear =  $Pyear + 1;
+		$TargetPlan = "";
+		$containerTH = "";
+		$containerTH2 = "";
+		$containerTB = "";
+		do {
+			$Pyear =  $row_projYear['year'];
+			$target =  $row_projYear['target'];
+			$Fyear =  $Pyear + 1;
 
-								// get program targets
-								$query_getProgTarget = $db->prepare("SELECT * FROM tbl_progdetails WHERE indicator ='$indicator' AND year='$Pyear' AND progid='$progid' ");
-								$query_getProgTarget->execute();
-								$row_rsProgTarget = $query_getProgTarget->fetch();
-								$totalRows_ProgTarget = $query_getProgTarget->rowCount();
-								$progtarget  =  $row_rsProgTarget['target'];
+			// get program targets
+			$query_getProgTarget = $db->prepare("SELECT * FROM tbl_progdetails WHERE indicator ='$indicator' AND year='$Pyear' AND progid='$progid' ");
+			$query_getProgTarget->execute();
+			$row_rsProgTarget = $query_getProgTarget->fetch();
+			$totalRows_ProgTarget = $query_getProgTarget->rowCount();
+			$progtarget  =  $row_rsProgTarget['target'];
 
-								// get sum of all used program targets under specific indicator 
-								$query_rsprojTarget = $db->prepare("SELECT SUM(target) as projtarget FROM  tbl_project_output_details  WHERE progid='$progid' AND indicator ='$indicator' and year='$Pyear'  LIMIT 1 ");
-								$query_rsprojTarget->execute();
-								$row_rsprojTarget = $query_rsprojTarget->fetch();
-								$totalRows_rsprojTarget = $query_rsprojTarget->rowCount();
-								$totalUsedTarget  =  $row_rsprojTarget['projtarget'];
+			// get sum of all used program targets under specific indicator 
+			$query_rsprojTarget = $db->prepare("SELECT SUM(target) as projtarget FROM  tbl_project_output_details  WHERE progid='$progid' AND indicator ='$indicator' and year='$Pyear'  LIMIT 1 ");
+			$query_rsprojTarget->execute();
+			$row_rsprojTarget = $query_rsprojTarget->fetch();
+			$totalRows_rsprojTarget = $query_rsprojTarget->rowCount();
+			$totalUsedTarget  =  $row_rsprojTarget['projtarget'];
 
 
-								// get sum of the given project indicator targets
-								$query_proTargetSum = $db->prepare("SELECT SUM(target) as projtargets FROM  tbl_project_output_details WHERE progid='$progid' AND indicator ='$indicator' and year='$Pyear' and projid='$projid'  LIMIT 1 ");
-								$query_proTargetSum->execute();
-								$rowprojSum = $query_proTargetSum->fetch();
-								$targetSum = $rowprojSum['projtargets'];
+			// get sum of the given project indicator targets
+			$query_proTargetSum = $db->prepare("SELECT SUM(target) as projtargets FROM  tbl_project_output_details WHERE progid='$progid' AND indicator ='$indicator' and year='$Pyear' and projid='$projid'  LIMIT 1 ");
+			$query_proTargetSum->execute();
+			$rowprojSum = $query_proTargetSum->fetch();
+			$targetSum = $rowprojSum['projtargets'];
 
-								$projTarget = ($progtarget - $totalUsedTarget)  + $targetSum;
-								$projTargetB = ($progtarget - $totalUsedTarget);
+			$projTarget = ($progtarget - $totalUsedTarget)  + $targetSum;
+			$projTargetB = ($progtarget - $totalUsedTarget);
 
-								$containerTH .= ' <th>
+			$containerTH .= ' <th>
 																		' . $Pyear . '/' . $Fyear . '
 																		<input type="hidden" class="output_years' . $projoutputID  . '" name="output_years' . $projoutputID  . '[]" value="' . $Pyear . ' " >
 																		<input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >  
@@ -370,14 +369,14 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 																		<span>Program Target Bal: </span>(<span style="color:red" id="year_target' . $projoutputID .  $Pyear . '" >' . number_format($projTargetB, 2) . '</span>) ' . $unit . '
 																		</th>';
 
-								$containerTB .= '<td> 
+			$containerTB .= '<td> 
 																		<input type="number" data-id=""  name="target_year' . $projoutputID . '[]" placeholder="target" value="' . $target . '"  id="target_year' . $projoutputID . $Pyear . '" class="form-control workplanTarget' . $projoutputID . '"
 																			onkeyup=get_op_sum_target(' . $projoutputID . ',' . $Pyear . ') required >
 																		</td>';
-							} while ($row_projYear =  $query_projYear->fetch());
+		} while ($row_projYear =  $query_projYear->fetch());
 
 
-							$Targets .= '</div>
+		$Targets .= '</div>
 															</div>
 														</div>
 														<div class="table-responsive">
@@ -409,13 +408,13 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 														</div> 
 														</div>';
 
-							$query_rsOpDiss =  $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid = '$projoutputID' and projid='$projid'");
-							$query_rsOpDiss->execute();
-							$row_rsOpDiss = $query_rsOpDiss->fetch();
-							$count_down  = $query_rsOpDiss->rowCount();
+		$query_rsOpDiss =  $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid = '$projoutputID' and projid='$projid'");
+		$query_rsOpDiss->execute();
+		$row_rsOpDiss = $query_rsOpDiss->fetch();
+		$count_down  = $query_rsOpDiss->rowCount();
 
-							if ($count_down > 0) {
-								$location_Targets .= '
+		if ($count_down > 0) {
+			$location_Targets .= '
 												<div class"element" id="div_' . $projoutputID . '">
 														<div class="header">  
 															<div class="col-md-6 clearfix" style="margin-top:5px; margin-bottom:5px">
@@ -433,26 +432,26 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 															<div class="row">
 																<div class="col-md-12">
 																	<div class="spanYears">';
-																		$containerTHL = '<tr>';
-																		$containerTH23  = "<tr>";
-																		$containerTBL = "<tr>";
-																		do {
-																			$state = $row_rsOpDiss['outputstate'];
-																			$total_target = $row_rsOpDiss['total_target'];
+			$containerTHL = '<tr>';
+			$containerTH23  = "<tr>";
+			$containerTBL = "<tr>";
+			do {
+				$state = $row_rsOpDiss['outputstate'];
+				$total_target = $row_rsOpDiss['total_target'];
 
-																			$query_rsOpDiss_val =  $db->prepare("SELECT * FROM tbl_project_results_level_disaggregation  WHERE projid = '$projid' and projoutputid = '$projoutputID' AND  opstate='$state' AND  type=3 ");
-																			$query_rsOpDiss_val->execute();
-																			$row_rsOpDiss_val = $query_rsOpDiss_val->fetch();
-																			$locations = $query_rsOpDiss_val->rowCount();
+				$query_rsOpDiss_val =  $db->prepare("SELECT * FROM tbl_project_results_level_disaggregation  WHERE projid = '$projid' and projoutputid = '$projoutputID' AND  opstate='$state' AND  type=3 ");
+				$query_rsOpDiss_val->execute();
+				$row_rsOpDiss_val = $query_rsOpDiss_val->fetch();
+				$locations = $query_rsOpDiss_val->rowCount();
 
-																			// get the forest 
-																			$query_ward = $db->prepare("SELECT id, state, parent FROM tbl_state WHERE id='$state'");
-																			$query_ward->execute();
-																			$row_ward = $query_ward->fetch();
-																			$level3 = $row_ward['state'];
+				// get the forest 
+				$query_ward = $db->prepare("SELECT id, state, parent FROM tbl_state WHERE id='$state'");
+				$query_ward->execute();
+				$row_ward = $query_ward->fetch();
+				$level3 = $row_ward['state'];
 
-																			if ($locations > 0) {
-																				$containerTHL .= '<th colspan="' . $locations . '">
+				if ($locations > 0) {
+					$containerTHL .= '<th colspan="' . $locations . '">
 																															<input type="hidden"   name="locate_output_name[]" id="locate_opid' . $projoutputID . '" value="' . $outputName . '"/>  
 																															<input type="hidden"   name="level3label' . $state . $projoutputID . '[]" id="level3label' . $state . $projoutputID . '" value="' . $level3 . '"/>  
 																															<input type="hidden"   name="unitName' . $state . $projoutputID . '[]" id="unitName' . $state . $projoutputID . '" value="' . $unit . '"/>  
@@ -460,22 +459,22 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 																															' . $level3label . ': ' . $level3 . '
 																															<input type="hidden"  class="form-control" id="ceilinglocation_target' . $state . $projoutputID . '"  name="ceiloutputlocationtarget' . $projoutputID . '[]" value="' . $total_target . '" />
 																															(<span id="state_ceil' . $state . $projoutputID . '" style="color:red" > ' . number_format($total_target, 2) . '</span>) ' . $unit . '</th>';
-																				$p = 0;
-																				do {
-																					$name = $row_rsOpDiss_val['name'];
-																					$value = $row_rsOpDiss_val['value'];
-																					$p++;
-																					$gen_number =  mt_rand(15, 500);
-																					$number = $p . $gen_number;
-																					$containerTH23 .= '<th>' . $name . '</th> ';
-																					$containerTBL .= '
+					$p = 0;
+					do {
+						$name = $row_rsOpDiss_val['name'];
+						$value = $row_rsOpDiss_val['value'];
+						$p++;
+						$gen_number =  mt_rand(15, 500);
+						$number = $p . $gen_number;
+						$containerTH23 .= '<th>' . $name . '</th> ';
+						$containerTBL .= '
 																																	<td>
 																																		<input type="hidden"   name="outputlocation' . $state . $projoutputID . '[]" id="locate' . $number . '" value="' . $name . '"/>  
 																																		<input type="number" value="' . $value . '" data-loc="' . $name . '"  data-id="' . $projoutputID . '" id="locate_numb' . $number . '" placeholder="' . $unit . '" class="form-control locate_total' . $state .  $projoutputID . '" onkeyup=get_sum("' . $state . '","' . $number . '") onchange=get_sum("' . $state . '","' . $number . '")  name="outputlocationtarget' . $state . $projoutputID . '[]" value="" required />  
 																																	</td>';
-																				} while ($row_rsOpDiss_val = $query_rsOpDiss_val->fetch());
-																			} else {
-																				$containerTHL .= '<th colspan="">
+					} while ($row_rsOpDiss_val = $query_rsOpDiss_val->fetch());
+				} else {
+					$containerTHL .= '<th colspan="">
 																														<input type="hidden"   name="locate_output_name[]" id="locate_opid' . $projoutputID . '" value="' . $outputName . '"/>  
 																														<input type="hidden"   name="level3label' . $state . $projoutputID . '[]" id="level3label' . $state . $projoutputID . '" value="' . $level3 . '"/>  
 																														<input type="hidden"   name="unitName' . $state . $projoutputID . '[]" id="unitName' . $state . $projoutputID . '" value="' . $unit . '"/>  
@@ -483,20 +482,20 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 																														' . $level3label . ': ' . $level3 . '
 																														<input type="hidden"  class="form-control" id="ceilinglocation_target' . $state . $projoutputID . '"  name="ceiloutputlocationtarget' . $projoutputID . '[]" value="' . $total_target . '" />
 																														(<span id="state_ceil' . $state . $projoutputID . '" style="color:red" > ' . number_format($total_target, 2) . '</span>) ' . $unit . '</th>';
-																				$p = 0;
-																				$gen_number =  mt_rand(15, 500);
-																				$number = $p . $gen_number;
-																				$containerTBL .= '
+					$p = 0;
+					$gen_number =  mt_rand(15, 500);
+					$number = $p . $gen_number;
+					$containerTBL .= '
 																														<td>
 																															<input type="number" value="' . $total_target . '"  data-id="' . $projoutputID . '" id="locate_numb' . $number . '" placeholder="' . $unit . '" class="form-control locate_total' . $state .  $projoutputID . '" onkeyup=get_sum("' . $state . '","' . $number . '") onchange=get_sum("' . $state . '","' . $number . '")  name="outputlocationtarget' . $state . $projoutputID . '[]" value="" required />  
 																														</td>';
-																			}
-																		} while ($row_rsOpDiss = $query_rsOpDiss->fetch());
-																		$containerTHL .= '</tr>';
-																		$containerTH23  .= "</tr>";
-																		$containerTBL .= "</tr>";
-																		$location_Targets .=
-																'</div>
+				}
+			} while ($row_rsOpDiss = $query_rsOpDiss->fetch());
+			$containerTHL .= '</tr>';
+			$containerTH23  .= "</tr>";
+			$containerTBL .= "</tr>";
+			$location_Targets .=
+				'</div>
 															</div>
 														</div>
 														<div class="row clearfix" >
@@ -514,9 +513,9 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
 															</div>
 														</div>
 												</div>';
-							}
-						} while ($row_OutputData =  $query_OutputData->fetch());
-						$Targets .= '
+		}
+	} while ($row_OutputData =  $query_OutputData->fetch());
+	$Targets .= '
 					</div>
 				</div>
 			</div>

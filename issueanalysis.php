@@ -38,7 +38,7 @@ try{
 		$teamleaderemail = $row_teamleader["email"];
 		$teamleaderid = $row_teamleader["ptid"];
 								
-		$query_issuedetails =  $db->prepare("SELECT projcode, output, observation, category FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_progdetails o on o.id=i.opid inner join tbl_projrisk_categories c on c.rskid=i.risk_category WHERE i.projid = :projid and i.id=:issueid");
+		$query_issuedetails =  $db->prepare("SELECT projcode, output, observation, category FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_progdetails o on o.id=i.output_id inner join tbl_projrisk_categories c on c.rskid=i.risk_category WHERE i.projid = :projid and i.id=:issueid");
 		$query_issuedetails->execute(array(":projid" => $projid, ":issueid" => $rskid));		
 		$row_issuedetails = $query_issuedetails->fetch();
 		$output = $row_issuedetails["output"];
@@ -399,7 +399,7 @@ try{
 							<tr>
 							  <td>
 								<p>Dear '.$teamleader.',</p>
-								<p>Please note that issue ('.$issuecat.':- '.$issuedesc.') for project code: '.$projcode.' under output: '.$output.' has been analysed and report ready, please act on it by '.$duedate.'</p>
+								<p>Please note that issue ('.$issuecat.':- '.$issuedesc.') for project code: '.$projcode.' has been analysed and report ready, please act on it by '.$duedate.'</p>
 								<p>Owner\'s Comments:<br>'.$notes.'</p>
 								<p>Click below for more details</p>
 								<table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
@@ -445,7 +445,7 @@ try{
 		$mail->Host       = 'mail.projtrac.co.ke';  // Specify main and backup SMTP servers
 		$mail->SMTPAuth   = true;                                   // Enable SMTP authentication
 		$mail->Username   = 'info@projtrac.co.ke';                     // SMTP username
-		$mail->Password   = 'softcimes@2018';                               // SMTP password
+		$mail->Password   = 'Milele@2o!8#';                               // SMTP password
 		$mail->SMTPSecure = 'tls';                                  // Enable TLS encryption, `ssl` also accepted
 		$mail->Port       = 587;                                    // TCP port to connect to
 
@@ -472,4 +472,3 @@ try{
     $result = flashMessage("An error occurred: " .$ex->getMessage());
 	echo $result;
 }
-?>

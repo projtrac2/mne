@@ -1,6 +1,4 @@
-<?php
-$Id = 12;
-$subId = 49;
+<?php 
 include_once 'includes/head-alt.php';
 $crud_permissions = $role_group == 2 ? true : false;
 try {

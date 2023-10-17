@@ -1,7 +1,6 @@
 <?php
-include 'includes/controller.php';
-?>
-
+include_once "includes/permission.php";
+?> 
 <!DOCTYPE html>
 <html>
 
@@ -60,12 +59,15 @@ include 'includes/controller.php';
 	<link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
 
 	<!-- Jquery Core Js -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 
 	<!-- Sweet Alert Css -->
 	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 	<script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script src="assets/ckeditor/ckeditor.js"></script>
 
 	<!--CUSTOM MAIN STYLES-->
 	<link href="assets/css/custom.css" rel="stylesheet" />
@@ -74,6 +76,37 @@ include 'includes/controller.php';
 	<!-- date-picker -->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet" />
 
+	<style>
+		.modal-lg {
+			max-width: 100% !important;
+			width: 90%;
+		} 
+		#links a {
+			color: #FFFFFF;
+			text-decoration: none;
+		}
+
+		hr {
+			display: block;
+			margin-top: 0.5em;
+			margin-bottom: 0.5em;
+			margin-left: auto;
+			margin-right: auto;
+			border-style: inset;
+			border-width: 1px;
+		}
+
+		@media (min-width: 1200px) {
+			.modal-lg {
+				width: 90%;
+			}
+		}
+
+		.bootstrap-select .dropdown-menu {
+			margin: 15px 0 0;
+			padding: 15px;
+		}
+	</style>
 </head>
 
 <body class="theme-blue">
@@ -122,16 +155,26 @@ include 'includes/controller.php';
 			<!-- User Info -->
 			<div class="user-info">
 				<div class="image">
-					<img src="assets/images/user.png" width="48" height="48" alt="User" />
+					<img src="<?= $avatar ?>" width="48" height="48" alt="User" />
 				</div>
-				<?php
-				include_once("includes/user-info.php");
-				?>
+				<div class="info-container">
+					<div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<?php echo "Welcome! " . ($fullname); ?>
+					</div>
+					<div class="btn-group user-helper-dropdown">
+						<i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+						<ul class="dropdown-menu pull-right">
+							<li><a href="profile.php"><i class="material-icons">person</i>My Profile</a></li>
+							<li role="separator" class="divider"></li>
+							<li><a href="logout.php"><i class="material-icons">input</i>Sign Out</a></li>
+						</ul>
+					</div>
+				</div>
 			</div>
 			<!-- #User Info -->
 
 			<!-- Menu -->
-			<?php 
+			<?php
 			include_once("includes/sidebar.php");
 			?>
 			<!-- #Menu -->

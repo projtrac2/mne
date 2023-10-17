@@ -1,4 +1,7 @@
 <?php
+session_start();
+$user_name = $_SESSION['MM_Username'];
+
 $stplan = (isset($_GET['plan'])) ? $_GET['plan'] : header("Location: view-strategic-plans.php");
 
 //include_once 'projtrac-dashboard/resource/session.php';
@@ -9,11 +12,23 @@ require_once __DIR__ . '../../vendor/autoload.php';
 require '../functions/strategicplan.php';
  
 try {
-    $query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1 LIMIT 1");
+	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+	$query_company->execute(array(":stid" => $stid));
+	$row_company = $query_company->fetch();
+	
+    $query_user =  $db->prepare("SELECT p.*, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
+    $query_user->execute(array(":user_id" => $user_name));
+    $row_rsUser = $query_user->fetch();
+	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
+	
+    $query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE id='$stplan' and current_plan=1 LIMIT 1");
     $query_rsStrategicPlan->execute();
     $row_rsStrategicPlan = $query_rsStrategicPlan->fetch();
     $totalRows_rsStrategicPlan = $query_rsStrategicPlan->rowCount();
 
+	/* $spyears = $row_stratplanyr["years"];
+	$spfnyear = $row_stratplanyr["starting_year"]; */
+	
     if ($totalRows_rsStrategicPlan == 0) {
         // redirect back to strategic plan
         header("Location: view-strategic-plans.php");
@@ -42,7 +57,7 @@ try {
     $mpdf->WriteHTML('
       <div style="text-align: center;">
          <img src="' . $logo . '" height="180px" style="max-height: 200px; text-align: center;"/>
-         <h2 style="" >COUNTY GOVERNMENT OF UASIN GISHU</h2>
+         <h2 style="" >'.$row_company["company_name"].'</h2>
          <br/>
          <hr/>
          <h3 style="margin-top:10px;" >COUNTY INTERGRATED DEVELOPMENT PLAN (CIDP)</h3>
@@ -50,9 +65,9 @@ try {
          <hr/>
          <div style="margin-top:80px;" >
             <address>
-               <h5>The County Treasury P. O. Box 40-30100 ELDORET, KENYA </h5>
-               <h5>Email: info@uasingishu.go.ke </h5>
-               <h5>Website: www.uasingishu.go.ke </h5>
+               <h5>The County Treasury '.$row_company["postal_address"].', KENYA </h5>
+               <h5>Email: '.$row_company["email_address"].' </h5>
+               <h5>Website: '.$row_company["domain_address"].' </h5>
             </address>
          </div>
       </div>
@@ -81,7 +96,7 @@ try {
             $department = $sector_rows["sector"];
             $stid = $sector_rows["stid"];
 
-            $query_ind = $db->prepare("SELECT indid, indicator_name FROM tbl_indicator WHERE indicator_sector='$stid' AND indicator_category = 'Output' AND baseline=1");
+            $query_ind = $db->prepare("SELECT indid, indicator_name, unit FROM tbl_indicator i left join tbl_measurement_units u  on u.id=i.indicator_unit WHERE indicator_sector='$stid' AND indicator_category = 'Output' AND baseline=1");
             $query_ind->execute();
             $totalRows_ind = $query_ind->rowCount();
 
@@ -128,6 +143,7 @@ try {
                     $nm = $nm + 1;
                     $indicator = $row_ind["indicator_name"];
                     $indid = $row_ind["indid"];
+                    $unit = $row_ind["unit"];
                     $target = 0;
                     $achieved = 0;
                     $rate = 0;
@@ -153,7 +169,9 @@ try {
                     }
 
                     $budget = 0;
-                    $query_indbudget = $db->prepare("SELECT budget FROM tbl_strategic_plan_op_indicator_budget WHERE indid='$indid' AND spid='$stplan'");
+					$query_indbudget =  $db->prepare("SELECT SUM(d.budget) AS budget FROM tbl_progdetails d left join tbl_programs g on g.progid=d.progid WHERE indicator='$indid' AND strategic_plan='$stplan'");
+																					
+                    //$query_indbudget = $db->prepare("SELECT budget FROM tbl_strategic_plan_op_indicator_budget WHERE indid='$indid' AND spid='$stplan'");
                     $query_indbudget->execute();
                     $totalRows_indbudget = $query_indbudget->rowCount();
                     if ($totalRows_indbudget > 0) {
@@ -165,33 +183,42 @@ try {
                     $mn++;
                     $outputs = '';
                     for ($q = 0; $q < $years; $q++) {
-                        //  $year = $spfnyear + $k;
-                        $targetraw = get_strategic_plan_yearly_target($indid, $stplan, $q_year);
-                        $achievedraw = get_strategic_plan_yearly_achieved($indid, $stplan, $q_year);
-
-                        if (!empty($achievedraw)) {
-                            $achieved = get_strategic_plan_yearly_achieved($indid, $stplan, $q_year);
-                        }
-
-                        if (!empty($targetraw)) {
-                            $target = get_strategic_plan_yearly_target($indid, $stplan, $q_year);
-                            $rate = $achieved / $target;
-                        }
+						$year = $start_year + $q;
+						$targetraw = get_strategic_plan_yearly_target($indid, $year);
+						$achievedraw = get_strategic_plan_yearly_achieved($indid, $year);
+						$basevalue = get_strategic_plan_yearly_baseline($indid, $year);
+						$achieved = 0;
+						$target = 0;
+						$rate = 0;
+						
+						if (!empty($achievedraw)) {
+							$achieved = get_strategic_plan_yearly_achieved($indid, $year);
+						}
+						
+						if (!empty($targetraw)) {
+							$target = get_strategic_plan_yearly_target($indid, $year);
+							$rate  = ($achieved / $target)*100;
+						}
+                        
                         $outputs .= '
-                          <td>' . number_format($target, 2) . ' </td>
-                          <td>' . number_format($achieved, 2) . ' </td>
+                          <td>' . $target . ' </td>
+                          <td>' . $achieved . ' </td>
                           <td>' . number_format($rate, 2) . ' </td>
                           ';
                         $q_year++;
+						
+						unset($target);
+						unset($achieved);
+						unset($rate);
                     }
 
                     $body .= '
                           <tr>
                              <td> ' . $sn . '.' . $mn . '</td>
-                             <td>Output Testing indicator ' . $mn . ' </td>
-                             <td>' . number_format($basevalue, 2) . ' </td>
+                             <td>' . $unit . ' of ' . $indicator . ' </td>
+                             <td>' . $basevalue . ' </td>
                              ' . $outputs . '
-                             <td>' . number_format($budget, 2) . '</td>
+                             <td>' . $budget . '</td>
                           </tr>';
                 }
 
@@ -213,7 +240,7 @@ try {
         $body .= "No depatments Found !!!";
     }
     $mpdf->WriteHTML($body);
-    $mpdf->WriteHTML('<h4 style="color:green">Printed By: </h4>'); 
+    $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>'); 
     $mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County {PAGENO}');
     $mpdf->Output();
 

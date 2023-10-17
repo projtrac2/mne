@@ -1,85 +1,162 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-  'planlabel' => "CIDP",
-  'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-  $pageTitle = "PROJECTS SURVEY";
+
   try {
-    $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=11) ORDER BY p.projid ASC");
-    $query_baseline_survey->execute();
+    $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_baseline_survey->execute(array(":user_name" => $user_name));
+
+    if ( $designation == 1) {
+      $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_baseline_survey->execute();
+    }
+    //$rows = $query_baseline_survey->fetch();
     $count_baseline_survey = $query_baseline_survey->rowCount();
+
+    $newsurveys = 0;
 
     if ($count_baseline_survey > 0) {
       while ($row = $query_baseline_survey->fetch()) {
-        $projid = $row["projid"];
-        $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE  projid=:projid and status>1");
-        $query_survey_forms->execute(array(":projid" => $projid));
-        $totalrows_survey_forms = $query_survey_forms->rowCount();
-        if ($totalrows_survey_forms > 0) {
-          $count_baseline_survey = $count_baseline_survey - 1;
-        }
+        $outcomeid = $row["id"];
+        $outcomeprojstatus = $row["projstatus"];
+        $outcomeprojstage = $row["projstage"];
+		if($outcomeprojstage == 9){
+			$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and created_by=:responsible");
+			$query_survey_forms->execute(array(":outcomeid" => $outcomeid, ":responsible" => $user_name));
+			if ( $designation == 1) {
+			  $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2");
+			  $query_survey_forms->execute(array(":outcomeid" => $outcomeid));
+			}
+			$totalrows_survey_forms = $query_survey_forms->rowCount();
+
+			if ($totalrows_survey_forms > 0) {
+			  $query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and created_by=:responsible and status = 1");
+			  $query_survey_forms_status->execute(array(":outcomeid" => $outcomeid, ":responsible" => $user_name));
+			  if ( $designation == 1) {
+				$query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and status = 1");
+				$query_survey_forms_status->execute(array(":outcomeid" => $outcomeid));
+			  }
+			  $totalrows_survey_forms_status = $query_survey_forms_status->rowCount();
+			  if ($totalrows_survey_forms_status > 0) {
+				$newsurveys++;
+			  }
+			} else {
+			  $newsurveys++;
+			}
+		}else{
+			if($outcomeprojstatus == 5){
+				$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and created_by=:responsible");
+				$query_survey_forms->execute(array(":outcomeid" => $outcomeid, ":responsible" => $user_name));
+				if ( $designation == 1) {
+				  $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2");
+				  $query_survey_forms->execute(array(":outcomeid" => $outcomeid));
+				}
+				$totalrows_survey_forms = $query_survey_forms->rowCount();
+
+				if ($totalrows_survey_forms > 0) {
+				  $query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and created_by=:responsible and status = 1");
+				  $query_survey_forms_status->execute(array(":outcomeid" => $outcomeid, ":responsible" => $user_name));
+				  if ( $designation == 1) {
+					$query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and status = 1");
+					$query_survey_forms_status->execute(array(":outcomeid" => $outcomeid));
+				  }
+				  $totalrows_survey_forms_status = $query_survey_forms_status->rowCount();
+				  if ($totalrows_survey_forms_status > 0) {
+					$newsurveys++;
+				  }
+				} else {
+				  $newsurveys++;
+				}
+			}
+		}
       }
     }
 
-    $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=11) ORDER BY p.projid ASC");
+    $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible='$user_name' ORDER BY p.projid ASC");
+    if ( $designation == 1) {
+      $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+    }
     $query_baseline_step1->execute();
     $count_baseline_step1 = $query_baseline_step1->rowCount();
 
-    $query_baseline_step5 = $db->prepare("SELECT * FROM tbl_projects WHERE  projstage=9 ORDER BY projid ASC");
-    $query_baseline_step5->execute();
-    $count_baseline_step5 = $query_baseline_step5->rowCount();
-    $rows_baseline_step5 = $query_baseline_step5->fetch();
+
+    //============================= ACTIVE SURVEYS ==============================================
+
+    $query_active_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=2 and created_by=:responsible ORDER BY id ASC");
+    $query_active_survey->execute(array(":responsible" => $user_name));
+    if ( $designation == 1) {
+      $query_active_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=2 ORDER BY id ASC");
+      $query_active_survey->execute();
+    }
+    $count_active_survey = $query_active_survey->rowCount();
+
+
+    //============================= SURVEYS DATA ==============================================
+
+    $query_survey_data = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 and created_by=:responsible ORDER BY id ASC");
+    $query_survey_data->execute(array(":responsible" => $user_name));
+    if ($designation == 1) {
+		$query_survey_data = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 ORDER BY id ASC");
+		$query_survey_data->execute();
+    }
+    $count_survey_data = 0;
+	
+	while($row_survey_data = $query_survey_data->fetch()){
+		$projid = $row_survey_data["projid"];
+		$query_outcome_evaluation_concluded = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=2 AND resultstypeid=:resultstypeid AND projid=:projid");
+		$query_outcome_evaluation_concluded->execute(array(":resultstypeid" => $outcomeid, ":projid" => $projid));
+		$rows_outcome_evaluation_concluded = $query_outcome_evaluation_concluded->rowCount();
+
+		if ($rows_outcome_evaluation_concluded == 0) {
+			$count_survey_data++;
+		}
+	}
+
+
+    //============================= SURVEYS CONCLUSION ==============================================
+
+    $query_survey_submissions = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 and created_by=:responsible ORDER BY id ASC");
+    $query_survey_submissions->execute(array(":responsible" => $user_name));
+    if ( $designation == 1) {
+      $query_survey_submissions = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 ORDER BY id ASC");
+      $query_survey_submissions->execute();
+    }
 
     $count_baseline_step5 = 0;
-    do {
-      $projid = $rows_baseline_step5['projid'];
-      $query_rs_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE  projid=:projid");
-      $query_rs_survey->execute(array(":projid" => $projid));
-      $row_rs_survey = $query_rs_survey->fetch();
-      $totalrows_rs_survey = $query_rs_survey->rowCount();
+    while ($rows_survey_submissions = $query_survey_submissions->fetch()) {
+      $projid = $rows_survey_submissions['projid'];
+      $form_id = $rows_survey_submissions['id'];
+      $samplesize = $rows_survey_submissions['sample_size'];
 
-      $forms = 1;
-      $query_rs_Impact = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE projid=:projid");
-      $query_rs_Impact->execute(array(":projid" => $projid));
-      $row_rs_Impact = $query_rs_Impact->fetch();
-      $totalrows_rs_Impact = $query_rs_Impact->rowCount();
-      $impact_link = '';
-      $form_name = [];
+      $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
+      $query_projects->execute(array(":projid" => $projid));
+      $rows_projects = $query_projects->fetch();
 
-      if ($totalrows_rs_survey > 0) {
-        do {
-          $form_name[]  = trim($row_rs_survey['form_name']);
-        } while ($row_rs_survey = $query_rs_survey->fetch());
-      }
-      if ($totalrows_rs_Impact > 0) {
-        $forms = 2;
-      }
+      $locations = count(explode(",", $rows_projects['projlga']));
 
-      if ($totalrows_rs_survey != $forms) {
+      $query_count_submissions = $db->prepare("SELECT * FROM tbl_project_evaluation_submission WHERE projid=:projid AND formid=:formid");
+      $query_count_submissions->execute(array(":projid" => $projid, ":formid" => $form_id));
+      $count_total_submissions = $query_count_submissions->rowCount();
+
+      $totalsamplesize = $locations * $samplesize;
+
+      $query_evaluation_conclusion = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype = 2 AND resultstypeid=:resultstypeid");
+      $query_evaluation_conclusion->execute(array(":resultstypeid" => $outcomeid));
+      $count_evaluation_conclusion = $query_evaluation_conclusion->rowCount();
+
+      if ($totalsamplesize == $count_total_submissions && $count_evaluation_conclusion == 0) {
         $count_baseline_step5++;
       }
-    } while ($rows_baseline_step5 = $query_baseline_step5->fetch());
+    }
 
-    $query_baseline_step3 = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE status=2 ORDER BY id ASC");
-    $query_baseline_step3->execute();
-    $count_baseline_step3 = $query_baseline_step3->rowCount();
-    $rows_baseline_step3 = $query_baseline_step3->fetch();
-
-    $query_baseline_step4 = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE status=3 ORDER BY id ASC");
-    $query_baseline_step4->execute();
-    $count_baseline_step4 = $query_baseline_step4->rowCount();
-    $rows_baseline_step4 = $query_baseline_step4->fetch();
-
-    $query_baseline_step5 = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE status=3 ORDER BY id ASC");
-    $query_baseline_step5->execute();
-    $count_baseline_step5 = $query_baseline_step5->rowCount();
-    $rows_baseline_step5 = $query_baseline_step5->fetch();
+    $query_survey_conclusion = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 and created_by=:responsible ORDER BY id ASC");
+    $query_survey_conclusion->execute(array(":responsible" => $user_name));
+    if ( $designation == 1) {
+      $query_survey_conclusion = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 ORDER BY id ASC");
+      $query_survey_conclusion->execute();
+    }
+    $count_survey_conclusion = $query_survey_conclusion->rowCount();
   } catch (PDOException $ex) {
     $results = flashMessage("An error occurred: " . $ex->getMessage());
   }
@@ -95,8 +172,8 @@ if ($permission) {
     <div class="container-fluid">
       <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
         <h4 class="contentheader">
-          <i class="fa fa-columns" aria-hidden="true"></i>
-          <?php echo $pageTitle ?>
+          <?= $icon ?>
+          <?= $pageTitle ?>
           <div class="btn-group" style="float:right">
             <div class="btn-group" style="float:right">
             </div>
@@ -109,8 +186,8 @@ if ($permission) {
           <div class="header" style="padding-bottom:0px; margin-left:10px; margin-right:10px">
             <div class="button-demo" style="margin-top:-15px">
               <span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
-              <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; padding-left:-5px">Primary Data Source</a>
-              <a href="evaluation-secondary-data-source.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Secondary Data Source</a>
+              <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; padding-left:-5px">Survey Data Source</a>
+              <a href="evaluation-secondary-data-source.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Records Data Source</a>
             </div>
           </div>
         </div>
@@ -119,16 +196,16 @@ if ($permission) {
             <div class="card-header">
               <ul class="nav nav-tabs" style="font-size:14px">
                 <li class="active">
-                  <a data-toggle="tab" href="#home"><i class="fa fa-hourglass-half bg-orange" aria-hidden="true"></i> Projects Requiring Survey &nbsp;<span class="badge bg-orange"><?= $count_baseline_survey ?></span></a>
+                  <a data-toggle="tab" href="#home"><i class="fa fa-hourglass-half bg-orange" aria-hidden="true"></i> Projects Requiring Survey &nbsp;<span class="badge bg-orange"><?= $newsurveys ?></span></a>
                 </li>
                 <li>
-                  <a data-toggle="tab" href="#menu1"><i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Active Surveys&nbsp;<span class="badge bg-light-blue"><?= $count_baseline_step3 ?></span></a>
+                  <a data-toggle="tab" href="#menu1"><i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Active Surveys&nbsp;<span class="badge bg-light-blue"><?= $count_active_survey ?></span></a>
                 </li>
                 <li>
-                  <a data-toggle="tab" href="#menu2"><i class="fa fa-check-square-o bg-light-green" aria-hidden="true"></i> Surveys Data&nbsp;<span class="badge bg-light-green"><?= $count_baseline_step4 ?></span></a>
+                  <a data-toggle="tab" href="#menu2"><i class="fa fa-check-square-o bg-light-green" aria-hidden="true"></i> Surveys Data&nbsp;<span class="badge bg-light-green"><?= $count_survey_data ?></span></a>
                 </li>
                 <li>
-                  <a data-toggle="tab" href="#menu3"><i class="fa fa-check-square-o bg-green" aria-hidden="true"></i>Survey Conclusion&nbsp;<span class="badge bg-green"><?= $count_baseline_step4 ?></span></a>
+                  <a data-toggle="tab" href="#menu3"><i class="fa fa-check-square-o bg-green" aria-hidden="true"></i>Survey Conclusion&nbsp;<span class="badge bg-green"><?= $count_baseline_step5 ?></span></a>
                 </li>
               </ul>
             </div>
@@ -169,19 +246,30 @@ if ($permission) {
                           if ($count_baseline_step1 > 0) {
                             $sn = 0;
                             $outcome_link = '';
+                            $impact_link = '';
                             while ($row = $query_baseline_step1->fetch()) {
+                              $outcomeid = $row['id'];
                               $projname = $row['projname'];
                               $projid = $row['projid'];
                               $projcode = $row['projcode'];
                               $projstatus = $row['projstatus'];
                               $projstage = $row['projstage'];
-                              $outcomeindid = $row['outcome_indicator'];
+                              $outcomeindid = $row['indid'];
                               $projdatecompleted = $row['projdatecompleted'];
+                              $responsible = $row['responsible'];
+                              $resultstype = 2;
+
 
                               $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
                               $query_outcome_ind->execute(array(":indid" => $outcomeindid));
                               $rows_outcome_ind = $query_outcome_ind->fetch();
                               $outcomeindicator = $rows_outcome_ind['indicator_name'];
+                              $indicatorunitid = $rows_outcome_ind['indicator_unit'];
+
+                              $query_ind_unit = $db->prepare("SELECT * FROM tbl_measurement_units WHERE id=:unitid");
+                              $query_ind_unit->execute(array(":unitid" => $indicatorunitid));
+                              $rows_ind_unit = $query_ind_unit->fetch();
+                              $indicatorunit = $rows_ind_unit['unit'];
 
 
                               if ($projstage == 9) {
@@ -197,8 +285,8 @@ if ($permission) {
                               $rows_due_date = $query_due_date->fetch();
                               $days = $rows_due_date['time']; // 30
 
-                              $query_outcome_date = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE projid=:projid");
-                              $query_outcome_date->execute(array(":projid" => $projid));
+                              $query_outcome_date = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:outcomeid");
+                              $query_outcome_date->execute(array(":outcomeid" => $outcomeid));
                               $count_outcome_date = $query_outcome_date->rowCount();
                               $rows_outcome_date = $query_outcome_date->fetch();
                               $survey_date = '';
@@ -222,29 +310,23 @@ if ($permission) {
                               $duedate = date_create($date_due);
                               $due_date = date_format($duedate, "d M Y");
 
-                              $query_rs_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and status=1");
-                              $query_rs_survey->execute(array(":projid" => $projid));
+                              $query_rs_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and resultstypeid = :resultstypeid and status=1");
+                              $query_rs_survey->execute(array(":projid" => $projid, ":resultstypeid" => $outcomeid));
                               $row_rs_survey = $query_rs_survey->fetch();
                               $totalrows_rs_survey = $query_rs_survey->rowCount();
                               $status = [];
                               $form_name = [];
+                              //$evaluation_responsible = $permissions->verify_created_by($responsible);
 
                               if ($totalrows_rs_survey > 0) {
                                 do {
                                   $form_name[]  = trim($row_rs_survey['form_name']);
                                 } while ($row_rs_survey = $query_rs_survey->fetch());
                               }
+                              $resultsoc = base64_encode("results{$outcomeid}");
 
 
-                              if (!in_array($stagetype, $form_name)) {
-                                $outcome_link = '
-											<li>
-												<a type="button" href="create-project-survey-form?projid=' . $projid . '" >
-													<i class="glyphicon glyphicon-file"></i>
-													Form Details
-												</a>
-											</li>';
-                              } elseif (in_array($stagetype, $form_name)) {
+                              if (in_array($stagetype, $form_name)) {
                                 $query_survey_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and form_name=:formname and status = 1");
                                 $query_survey_form->execute(array(":projid" => $projid, ":formname" => $stagetype));
                                 $rows_survey_form = $query_survey_form->fetch();
@@ -253,20 +335,33 @@ if ($permission) {
                                 $duedate = date_create($duedate);
                                 $due_date = date_format($duedate, "d M Y");
 
+                                $surveyform = base64_encode("surveyform{$form_id}");
                                 $outcome_link = '
-											<li>
-												<a type="button" href="preview-project-survey-form?projid=' . $projid . '&ftype=2" >
-													<i class="glyphicon glyphicon-file"></i>
-													Form preview
-												</a>
-											</li>
-											<li>
-												<a type="button" href="deploy-survey-form?formid=' . $form_id . '" >
-													<i class="fa fa-telegram">
-													</i>
-													Deploy Form
-												</a>
-											</li>';
+                                <li>
+                                  <a type="button" href="preview-project-survey-form?resultstype=' . $resultstype . '&resultstypeid=' . $resultsoc . '" >
+                                    <i class="glyphicon glyphicon-file"></i>
+                                    Form preview
+                                  </a>
+                                </li>';
+
+                                if ($rows_survey_form) {
+                                  $outcome_link .=
+                                    '<li>
+                                    <a type="button" href="deploy-survey-form?formid=' . $surveyform . '" >
+                                      <i class="fa fa-telegram">
+                                      </i>
+                                      Deploy Form
+                                    </a>
+                                  </li>';
+                                }
+                              } else {
+                                $outcome_link = '
+                                  <li>
+                                    <a type="button" href="create-project-survey-form?resultstype=' . $resultstype . '&resultstypeid=' . $resultsoc . '" >
+                                      <i class="glyphicon glyphicon-file"></i>
+                                      Form Details
+                                    </a>
+                                  </li>';
                               }
 
                               $active = '';
@@ -277,8 +372,8 @@ if ($permission) {
                               }
 
 
-                              $query_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and status>1");
-                              $query_survey->execute(array(":projid" => $projid));
+                              $query_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:resultstypeid and status>1");
+                              $query_survey->execute(array(":resultstypeid" => $outcomeid));
                               $totalrows_survey = $query_survey->rowCount();
 
                               $survey_form = [];
@@ -287,29 +382,59 @@ if ($permission) {
                                 $survey_form[]  = trim($row_survey['form_name']);
                               }
 
+                              if ($projstage == 9) {
+                                $resultstagetype = "Baseline";
+                              } else {
+                                $resultstagetype = "Endline";
+                              }
+
                               if (!in_array($stagetype, $survey_form)) {
-                                $sn++;
-                                echo '
-											<tr>
-												<td style="width:3%">' . $sn . '</td>
-												<td style="width:20%">' . $outcomeindicator . '</td>
-												<td style="width:35%">' . $projname . '</td>
-												<td style="width:15%">' . $stagetype . '</td>
-												<td style="width:10%">' . $due_date . '</td>
-												<td style="width:10%">' . $active . '</td>
-												<td style="width:7%">
-													<div class="btn-group">
-														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-															Options <span class="caret"></span>
-														</button>
-														<ul class="dropdown-menu">
-															' .
-                                  $outcome_link
-                                  . '
-														</ul>
-													</div>
-												</td>
-											</tr>';
+
+								  if ($projstage == 9) {
+									$sn++;
+									echo '
+									<tr>
+									  <td style="width:3%">' . $sn . '</td>
+									  <td style="width:20%">' . $outcomeindicator . '</td>
+									  <td style="width:35%">' . $projname . '</td>
+									  <td style="width:15%">' . $resultstagetype . '</td>
+									  <td style="width:10%">' . $due_date . '</td>
+									  <td style="width:10%">' . $active . '</td>
+									  <td style="width:7%">
+										<div class="btn-group">
+										  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+											Options <span class="caret"></span>
+										  </button>
+										  <ul class="dropdown-menu">
+											' . $outcome_link . '
+										  </ul>
+										</div>
+									  </td>
+									</tr>';
+								  }else{
+									  if ($projstatus == 5) {
+										$sn++;
+										echo '
+										<tr>
+										  <td style="width:3%">' . $sn . '</td>
+										  <td style="width:20%">' . $impactindicator . '</td>
+										  <td style="width:35%">' . $projname . '</td>
+										  <td style="width:15%">' . $resultstagetype . '</td>
+										  <td style="width:10%">' . $due_date . '</td>
+										  <td style="width:10%">' . $active . '</td>
+										  <td style="width:7%">
+											<div class="btn-group">
+											  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+												Options <span class="caret"></span>
+											  </button>
+											  <ul class="dropdown-menu">
+												' . $impact_link . '
+											  </ul>
+											</div>
+										  </td>
+										</tr>';
+									  }
+								  }
                               }
                             }
                           } else {
@@ -340,32 +465,35 @@ if ($permission) {
                             <th style="width:3%">#</th>
                             <th style="width:20%">Indicator</th>
                             <th style="width:35%">Project Name</th>
-                            <th style="width:12%">Survey&nbsp;Type</th>
+                            <th style="width:15%">Survey&nbsp;Type</th>
                             <th style="width:10%">Start Date</th>
                             <th style="width:10%">End Date</th>
-                            <th style="width:10%">Number of Submissions</th>
+                            <th style="width:7%">Number of Submissions</th>
                           </tr>
                         </thead>
                         <tbody>
                           <?php
-                          if ($count_baseline_step3 > 0) {
+                          if ($count_active_survey > 0) {
                             $deploy_counter = 0;
-                            do {
-                              $projid = $rows_baseline_step3['projid'];
-                              $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
+                            while ($rows_active_survey = $query_active_survey->fetch()) {
+                              $projid = $rows_active_survey['projid'];
+
+                              $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid ");
                               $query_projects->execute(array(":projid" => $projid));
                               $count_projects = $query_projects->rowCount();
                               $rows_projects = $query_projects->fetch();
 
                               if ($count_projects > 0) {
                                 $projname = $rows_projects['projname'];
-                                $startdate = date_format(date_create($rows_baseline_step3['startdate']), "d M Y");
-                                $enddate = date_format(date_create($rows_baseline_step3['enddate']), "d M Y");
-                                $status = $rows_baseline_step3['status'];
-                                $form_name = $rows_baseline_step3['form_name'];
-                                $form_id = $rows_baseline_step3['id'];
+                                $startdate = date_format(date_create($rows_active_survey['startdate']), "d M Y");
+                                $enddate = date_format(date_create($rows_active_survey['enddate']), "d M Y");
+                                $resultstypeid = $rows_active_survey['resultstypeid'];
+                                $resultstype = $rows_active_survey['resultstype'];
+                                $status = $rows_active_survey['status'];
+                                $form_name = $rows_active_survey['form_name'];
+                                $form_id = $rows_active_survey['id'];
+                                $indid = $rows_active_survey['indid'];
                                 $projstatus = $rows_projects['projstatus'];
-                                $outcomeindid = $rows_projects['outcome_indicator'];
                                 $projdate = date('d-m-Y');
 
                                 $query_count = $db->prepare("SELECT * FROM tbl_project_evaluation_submission WHERE formid=:formid");
@@ -373,31 +501,31 @@ if ($permission) {
                                 $count_count = $query_count->rowCount();
                                 $rows_count = $query_count->fetch();
 
-                                $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
-                                $query_outcome_ind->execute(array(":indid" => $outcomeindid));
+                                $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
+                                $query_outcome_ind->execute(array(":indid" => $indid));
                                 $rows_outcome_ind = $query_outcome_ind->fetch();
                                 $outcomeindicator = $rows_outcome_ind['indicator_name'];
 
                                 $deploy_counter++;
 
                                 echo '
-										<tr>
-											<td style="width:3%">' . $deploy_counter . '</td>
-											<td style="width:20%">' . $outcomeindicator . '</td>
-											<td style="width:35%">' . $projname . '</td>
-											<td style="width:12%">' . $form_name . '</td>
-											<td style="width:10%">' . $startdate . '</td>
-											<td style="width:10%">' . $enddate . '</td>
-											<td style="width:10%">
-												<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $form_id . ')">
-													<span class="badge bg-purple" id="active_count' . $form_id . '">
-														' . $count_count . '
-													</span>
-												</a>
-											</td>
-										</tr>';
+                                <tr>
+                                  <td style="width:3%">' . $deploy_counter . '</td>
+                                  <td style="width:20%">' . $outcomeindicator . '</td>
+                                  <td style="width:35%">' . $projname . '</td>
+                                  <td style="width:15%">' . $form_name . '</td>
+                                  <td style="width:10%">' . $startdate . '</td>
+                                  <td style="width:10%">' . $enddate . '</td>
+                                  <td style="width:7%">
+                                    <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $form_id . ')">
+                                      <span class="badge bg-purple" id="active_count' . $form_id . '">
+                                        ' . $count_count . '
+                                      </span>
+                                    </a>
+                                  </td>
+                                </tr>';
                               }
-                            } while ($rows_baseline_step3 = $query_baseline_step3->fetch());
+                            }
                           } else {
                             echo '<td colspan="6">No active survey</td>';
                           }
@@ -433,60 +561,72 @@ if ($permission) {
                           </tr>
                         </thead>
                         <tbody>
-                          <?php
-                          if ($count_baseline_step4 > 0) {
-                            $deploy_counter = 0;
-                            do {
-                              $projid = $rows_baseline_step4['projid'];
-                              $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
-                              $query_projects->execute(array(":projid" => $projid));
-                              $count_projects = $query_projects->rowCount();
-                              $rows_projects = $query_projects->fetch();
+							<?php
+						      //============================= SURVEYS DATA ==============================================
 
-                              if ($count_projects > 0) {
-                                $projname = $rows_projects['projname'];
-                                $startdate = date_format(date_create($rows_baseline_step4['startdate']), "d M Y");
-                                $enddate = date_format(date_create($rows_baseline_step4['enddate']), "d M Y");
-                                $status = $rows_baseline_step4['status'];
-                                $form_name = $rows_baseline_step4['form_name'];
-                                $form_id = $rows_baseline_step4['id'];
-                                $projstatus = $rows_projects['projstatus'];
-                                $outcomeindid = $rows_projects['outcome_indicator'];
-                                $projdate = date('d-m-Y');
+							$query_survey_data_inner = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 and created_by=:responsible ORDER BY id ASC");
+							$query_survey_data_inner->execute(array(":responsible" => $user_name));
+							if ($designation == 1) {
+								$query_survey_data_inner = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype = 2 AND status=3 ORDER BY id ASC");
+								$query_survey_data_inner->execute();
+							}
+							$count_survey_data_inner = $query_survey_data_inner->rowCount();
+							if ($count_survey_data_inner > 0) {
+								$deploy_counter = 0;
+								while ($rows_survey_data = $query_survey_data_inner->fetch()) {
+									$projid = $rows_survey_data['projid'];
+									$query_impact_evaluation_concluded = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=2 AND resultstypeid=:resultstypeid AND projid=:projid");
+									$query_impact_evaluation_concluded->execute(array(":resultstypeid" => $outcomeid, ":projid" => $projid));
+									$rows_impact_evaluation_concluded = $query_impact_evaluation_concluded->rowCount();
 
-                                $query_count = $db->prepare("SELECT * FROM tbl_project_evaluation_submission WHERE projid=:projid AND formid=:formid");
-                                $query_count->execute(array(":projid" => $projid, ":formid" => $form_id));
-                                $count_count = $query_count->rowCount();
-                                $rows_count = $query_count->fetch();
+									if ($rows_impact_evaluation_concluded == 0) {
+										$query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
+										$query_projects->execute(array(":projid" => $projid));
+										$count_projects = $query_projects->rowCount();
+										$rows_projects = $query_projects->fetch();
+										$projname = $rows_projects['projname'];
+										$startdate = date_format(date_create($rows_survey_data['startdate']), "d M Y");
+										$enddate = date_format(date_create($rows_survey_data['enddate']), "d M Y");
+										$resultstypeid = $rows_survey_data['resultstypeid'];
+										$resultstype = $rows_survey_data['resultstype'];
+										$status = $rows_survey_data['status'];
+										$form_name = $rows_survey_data['form_name'];
+										$form_id = $rows_survey_data['id'];
+										$projstatus = $rows_projects['projstatus'];
+										$indid = $rows_survey_data['indid'];
+										$projdate = date('d-m-Y');
 
-                                $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
-                                $query_outcome_ind->execute(array(":indid" => $outcomeindid));
-                                $rows_outcome_ind = $query_outcome_ind->fetch();
-                                $outcomeindicator = $rows_outcome_ind['indicator_name'];
-                                $frmid = base64_encode($form_id);
-                                $deploy_counter++;
-                                echo '
-                                  <tr>
-                                    <td style="width:3%">' . $deploy_counter . '</td>
-                                    <td style="width:20%">' . $outcomeindicator . '</td>
-                                    <td style="width:35%">' . $projname . '</td>
-                                    <td style="width:12%">' . $form_name . '</td>
-                                    <td style="width:10%">' . $startdate . '</td>
-                                    <td style="width:10%">' . $enddate . '</td>
-                                    <td style="width:10%">
-                                      <a href="view-survey-data?frm=' . $frmid . '">
-                                        <span class="badge bg-purple">
-                                          ' . $count_count . '
-                                        </span>
-                                      </a>
-                                    </td>
-                                  </tr>';
-                              }
-                            } while ($rows_baseline_step4 = $query_baseline_step4->fetch());
-                          } else {
-                            echo '<td colspan="5">No concluded survey</td>';
-                          }
-                          ?>
+										$query_count = $db->prepare("SELECT * FROM tbl_project_evaluation_submission WHERE projid=:projid AND formid=:formid");
+										$query_count->execute(array(":projid" => $projid, ":formid" => $form_id));
+										$count_count = $query_count->rowCount();
+										$rows_count = $query_count->fetch();
+
+										$query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
+										$query_outcome_ind->execute(array(":indid" => $indid));
+										$rows_outcome_ind = $query_outcome_ind->fetch();
+										$outcomeindicator = $rows_outcome_ind['indicator_name'];
+										$frmid = base64_encode("surveydata{$form_id}");
+										$deploy_counter++;
+										echo '
+										<tr>
+											<td style="width:3%">' . $deploy_counter . '</td>
+											<td style="width:20%">' . $outcomeindicator . '</td>
+											<td style="width:35%">' . $projname . '</td>
+											<td style="width:12%">' . $form_name . '</td>
+											<td style="width:10%">' . $startdate . '</td>
+											<td style="width:10%">' . $enddate . '</td>
+											<td style="width:10%">
+											  <a href="view-survey-data?frm=' . $frmid . '">
+												<span class="badge bg-purple">
+												  ' . $count_count . '
+												</span>
+											  </a>
+											</td>
+										</tr>';
+									}
+								}
+							}
+							?>
                         </tbody>
                       </table>
                     </div>
@@ -519,24 +659,29 @@ if ($permission) {
                         </thead>
                         <tbody>
                           <?php
-                          if ($count_baseline_step5 > 0) {
+                          if ($count_survey_conclusion > 0) {
                             $deploy_counter = 0;
-                            do {
-                              $projid = $rows_baseline_step5['projid'];
+                            while ($rows_survey_conclusion = $query_survey_conclusion->fetch()) {
+                              $projid = $rows_survey_conclusion['projid'];
                               $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
                               $query_projects->execute(array(":projid" => $projid));
                               $count_projects = $query_projects->rowCount();
                               $rows_projects = $query_projects->fetch();
 
+
                               if ($count_projects > 0) {
                                 $projname = $rows_projects['projname'];
-                                $startdate = date_format(date_create($rows_baseline_step5['startdate']), "d M Y");
-                                $enddate = date_format(date_create($rows_baseline_step5['enddate']), "d M Y");
-                                $status = $rows_baseline_step5['status'];
-                                $form_name = $rows_baseline_step5['form_name'];
-                                $form_id = $rows_baseline_step5['id'];
+                                $startdate = date_format(date_create($rows_survey_conclusion['startdate']), "d M Y");
+                                $enddate = date_format(date_create($rows_survey_conclusion['enddate']), "d M Y");
+                                $status = $rows_survey_conclusion['status'];
+                                $form_name = $rows_survey_conclusion['form_name'];
+                                $form_id = $rows_survey_conclusion['id'];
+                                $indid = $rows_survey_conclusion['indid'];
+                                $outcomeid = $rows_survey_conclusion['resultstypeid'];
+                                $samplesize = $rows_survey_conclusion['sample_size'];
+                                $resultstype = $rows_survey_conclusion['resultstype'];
                                 $projstatus = $rows_projects['projstatus'];
-                                $outcomeindid = $rows_projects['outcome_indicator'];
+                                $locations = count(explode(",", $rows_projects['projlga']));
                                 $projdate = date('d-m-Y');
 
                                 $query_count = $db->prepare("SELECT * FROM tbl_project_evaluation_submission WHERE projid=:projid AND formid=:formid");
@@ -544,28 +689,42 @@ if ($permission) {
                                 $count_count = $query_count->rowCount();
                                 $rows_count = $query_count->fetch();
 
-                                $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
-                                $query_outcome_ind->execute(array(":indid" => $outcomeindid));
+                                $totalsamplesize = $locations * $samplesize;
+
+                                $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
+                                $query_outcome_ind->execute(array(":indid" => $indid));
                                 $rows_outcome_ind = $query_outcome_ind->fetch();
                                 $outcomeindicator = $rows_outcome_ind['indicator_name'];
-                                $frmid = base64_encode($form_id);
-                                $deploy_counter++;
-                                echo '
-                                <tr>
-                                  <td style="width:3%">' . $deploy_counter . '</td>
-                                  <td style="width:20%">' . $outcomeindicator . '</td>
-                                  <td style="width:35%">' . $projname . '</td>
-                                  <td style="width:12%">' . $form_name . '</td>
-                                  <td style="width:10%">' . $startdate . '</td>
-                                  <td style="width:10%">' . $enddate . '</td>
-                                  <td style="width:10%">
-                                    <a type="button" class="badge bg-purple" href="survey-conclusion.php?frm=' . $frmid . '">
-                                      Conclude
-                                    </a>
-                                  </td>
-                                </tr>';
+
+                                //$frmid = base64_encode("frm_id{$form_id}");
+                                $outcomeidencoded = base64_encode("resultssecdata{$outcomeid}");
+
+                                if ($totalsamplesize == $count_count) {
+
+                                  $query_outcome_evaluated = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=2 AND resultstypeid=:resultstypeid");
+                                  $query_outcome_evaluated->execute(array(":resultstypeid" => $outcomeid));
+                                  $rows_outcome_evaluated = $query_outcome_evaluated->rowCount();
+
+                                  if ($rows_outcome_evaluated == 0) {
+                                    $deploy_counter++;
+                                    echo '
+										<tr>
+										  <td style="width:3%">' . $deploy_counter . '</td>
+										  <td style="width:20%">' . $outcomeindicator . '</td>
+										  <td style="width:35%">' . $projname . '</td>
+										  <td style="width:12%">' . $form_name . '</td>
+										  <td style="width:10%">' . $startdate . '</td>
+										  <td style="width:10%">' . $enddate . '</td>
+										  <td style="width:10%">
+											<a type="button" class="badge bg-purple" href="survey-conclusion.php?results=' . $outcomeidencoded . '&resultstype=2">
+											  Conclude
+											</a>
+										  </td>
+										</tr>';
+                                  }
+                                }
                               }
-                            } while ($rows_baseline_step5 = $query_baseline_step5->fetch());
+                            }
                           } else {
                             echo '<td colspan="5">No concluded survey</td>';
                           }

@@ -1,89 +1,74 @@
 <?php
-$projid = (isset($_GET['projid']) && isset($_GET['projid'])) ? $_GET['projid'] : header("location:myprojects.php");
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
+$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
+$projid_array = explode("projid54321", $decode_projid);
+$projid = $projid_array[1];
+$original_projid = $_GET['proj'];
 
-$page = "view";
 require('includes/head.php');
-$pageTitle = "Project Activities (Milestones and Tasks)";
-
 if ($permission) {
 	try {
-
-		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
+		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
 		$row_rsMyP = $query_rsMyP->fetch();
-		$projcategory = $row_rsMyP["projcategory"];
+		$implimentation_type = $row_rsMyP["projcategory"];
+		$projname = $row_rsMyP['projname'];
+		$percent2 = calculate_project_progress($projid, $implimentation_type);
 
-		$query_proj =  $db->prepare("SELECT projname, projid FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
-		$query_proj->execute();
-		$row_proj = $query_proj->fetch();
+		$query_rsOutputs = $db->prepare("SELECT p.output as  output, o.id as opid, p.indicator, o.budget as budget, o.total_target FROM tbl_project_details o INNER JOIN tbl_progdetails p ON p.id = o.outputid WHERE projid = :projid");
+		$query_rsOutputs->execute(array(":projid" => $projid));
+		$row_rsOutputs = $query_rsOutputs->fetch();
+		$totalRows_rsOutputs = $query_rsOutputs->rowCount();
 
-		$query_rsMilestone =  $db->prepare("SELECT msid, milestone, progress, status, sdate, edate, sdate AS stdate, edate AS endate FROM tbl_milestone WHERE projid = '$projid'");
-		$query_rsMilestone->execute();
-		$row_rsMilestone = $query_rsMilestone->fetch();
+		$month = date('m');
+		$year = date('Y');
 
-		$projectID =  $row_rsMyP['projid'];
-		$currentStatus =  $row_rsMyP['projstatus'];
+		$start_date = 01 . ' ' . date('M') . ' ' . date('Y');
+		$end_date = date('t') . ' ' . date('M') . ' ' . date('Y');
 
-		$query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = '$projectID'");
-		$query_rsMlsProg->execute();
-		$row_rsMlsProg = $query_rsMlsProg->fetch();
+		$month_date = '(' . $start_date . ' - ' . $end_date  . ')';
 
-		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
-
-		$percent2 = round($prjprogress, 2);
-
-
-		$tndprojid = $row_rsMyP['projid'];
-		$query_rsTender =  $db->prepare("SELECT * FROM tbl_tenderdetails where projid='$tndprojid'");
-		$query_rsTender->execute();
-		$row_rsTender = $query_rsTender->fetch();
-		$totalRows_rsTender = $query_rsTender->rowCount();
+		$month = 9;
+		$year = 2023;
+		$projid = 96;
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		echo $result;
 	}
 ?>
-	<!-- start body  -->
+	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
+	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-						</div>
+					<?= $icon ?>
+					<?= $pageTitle ?>
+					<div class="btn-group" style="float:right; margin-right:10px">
+						<input type="button" VALUE="Go Back to Projects Activity Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>
 			<div class="row clearfix">
 				<div class="block-header">
-					<?= $results; ?>
-					<div class="header" style="padding-bottom:0px">
-						<div class="button-demo" style="margin-top:-15px">
-							<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
-							<a href="myprojectdash.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Details</a>
-							<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
-							<a href="myprojectworkplan.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Quarterly Targets</a>
-							<a href="myprojectfinancialplan.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
-							<a href="myproject-key-stakeholders.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
-							<a href="projectissueslist.php?proj=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues Log</a>
-							<a href="myprojectfiles.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
-						</div>
-					</div>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<h4>
-							<div class="col-md-8" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
-								Project Name: <font color="white"><?php echo $row_rsMyP['projname']; ?></font>
+						<div class="header" style="padding-bottom:0px">
+							<div class="button-demo" style="margin-top:-15px">
+								<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
+								<a href="myprojectdash.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Dashboard</a>
+								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Performance</a>
+								<a href="myproject-key-stakeholders.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Team</a>
+								<a href="my-project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues</a>
+								<a href="myprojectfiles.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Media</a>
 							</div>
-							<div class="col-md-4" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
-								<div class="barBg" style="margin-top:0px; width:100%; border-radius:1px">
-									<div class="bar hundred cornflowerblue">
-										<div id="label" class="barFill" style="margin-top:0px; border-radius:1px"><?php echo $percent2 ?>%</div>
+						</div>
+						<h4>
+							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
+								Project Name: <font color="white"><?php echo $projname; ?></font>
+							</div>
+							<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
+								<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
+									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $percent2 ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $percent2 ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
+										<?= $percent2 ?>%
 									</div>
 								</div>
 							</div>
@@ -92,290 +77,849 @@ if ($permission) {
 				</div>
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="card">
+						<div class="card-header">
+							<ul class="nav nav-tabs" style="font-size:14px">
+								<li class="active">
+									<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Finance &nbsp;<span class="badge bg-orange">|</span></a>
+								</li>
+								<li>
+									<a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> <?= $month_date  ?> Progress &nbsp;<span class="badge bg-blue">|</span></a>
+								</li>
+								<li>
+									<a data-toggle="tab" href="#menu2"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> <?= date('d M Y') ?> &nbsp;<span class="badge bg-blue">|</span></a>
+								</li>
+							</ul>
+						</div>
 						<div class="body">
-						<div class="table-responsive">
-								<table class="table table-bordered table-striped table-hover">
-									<thead>
-										<tr id="colrow" class="milestones" >
-											<th width="5%"></th>
-											<th width="3%"><strong> # </strong></th>
-											<th width="33%"><strong>Milestone</strong></th>
-											<th width="12%"><strong>Status & Progress</strong></th>
-											<th width="12%"><strong>No of Tasks</strong></th>
-											<th width="9%"><strong>Budget (Ksh)</strong></th>
-											<th width="9%"><strong>Start Date</strong></th>
-											<th width="9%"><strong>End Date</strong></th>
-										</tr>
-									</thead>
-									<tbody>
-										<!-- =========================================== -->
-										<?php 
-										$sn = 0;
-										do { 
-											$sn = $sn + 1;
-											$milestoneID =  $row_rsMilestone['msid'];
-											$mlStatus =  $row_rsMilestone['status'];
-											$mlprogress =  $row_rsMilestone['progress'];
-											$mlprogress =  $row_rsMilestone['progress'];
-											$mlStatus =  $row_rsMilestone['status'];
-											$milestone =  $row_rsMilestone['milestone'];
-											// $prjid = $projectid_rsMyP;
-									
+							<div class="tab-content">
+								<div id="home" class="tab-pane fade in active">
+									<div class="row clearfix">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<?php
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid ORDER BY d.id");
+											$query_Output->execute(array(":projid" => $projid));
+											$total_Output = $query_Output->rowCount();
+											if ($total_Output > 0) {
+												$counter = 0;
+												while ($row_rsOutput = $query_Output->fetch()) {
+													$counter++;
+													$output_id = $row_rsOutput['id'];
+													$indicator_name = $row_rsOutput['indicator_name'];
+													$target = $row_rsOutput['total_target'];
+													$indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
+											?>
+													<fieldset class="scheduler-border row setup-content" id="step-2">
+														<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output <?= $counter ?>: <?= $indicator_name ?></legend>
+														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+															<div class="table-responsive">
+																<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+																	<thead>
+																		<tr class="bg-grey">
+																			<th style="width:5%" align="center">#</th>
+																			<th style="width:40%">Site/Location</th>
+																			<th style="width:20%">Budget</th>
+																			<th style="width:20%">Expense</th>
+																			<th style="width:15%">Spent (%)</th>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		<?php
+																		if ($indicator_mapping_type == 1) {
+																			$query_rsSite_details = $db->prepare("SELECT * FROM tbl_output_disaggregation b INNER JOIN tbl_project_sites s ON s.site_id = b.output_site WHERE outputid = :output_id");
+																			$query_rsSite_details->execute(array(":output_id" => $output_id));
+																			$total_rsSite_details = $query_rsSite_details->rowCount();
+																			if ($total_rsSite_details > 0) {
+																				$mcounter = 0;
+																				while ($rows_rsSite_details = $query_rsSite_details->fetch()) {
+																					$site = $rows_rsSite_details['site'];
+																					$site_id = $rows_rsSite_details['site_id'];
 
-											$query_milestonetatus = $db->prepare("SELECT * FROM tbl_status WHERE statusid = '$mlStatus'");
-											$query_milestonetatus->execute();
-											$row_milestonetatus = $query_milestonetatus->fetch();
-											$milestonetatus = $row_milestonetatus['statusname'];
-									
+																					$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
+																					if ($implimentation_type == 2) {
+																						$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_tender_details WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
+																					}
+																					$query_rsDirect_cost_plan->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
+																					$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
+																					$planned_amount = !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
 
-											$query_tasks_count = $db->prepare("SELECT * FROM tbl_task WHERE msid  = '$milestoneID'");
-											$query_tasks_count->execute();
-											$row_tasks_count = $query_tasks_count->fetch();
-											$total_tasks_count = $query_tasks_count->rowCount();
-									
+																					$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid AND output_id=:output_id and site_id=:site_id");
+																					$query_consumed->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
+																					$row_consumed = $query_consumed->fetch();
+																					$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
+																					$rate  = $consumed > 0 && $planned_amount > 0 ? ($consumed / $planned_amount) * 100 : 0;
+																					$mcounter++;
+																		?>
+																					<tr style="background-color:#FFFFFF">
+																						<td align="center"><?= $mcounter ?></td>
+																						<td><?= $site ?></td>
+																						<td><?= number_format($planned_amount, 2) ?></td>
+																						<td><?= number_format($consumed, 2) ?></td>
+																						<td><?= number_format($rate, 2) ?></td>
+																					</tr>
+																			<?php
+																				}
+																			}
+																		} else {
+																			$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id");
+																			if ($implimentation_type == 2) {
+																				$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_tender_details WHERE projid =:projid AND outputid=:output_id");
+																			}
+																			$query_rsDirect_cost_plan->execute(array(":projid" => $projid, ":output_id" => $output_id));
+																			$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
+																			$planned_amount = !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
 
-											$query_rsMSStatus = $db->prepare("SELECT * , MIN(sdate) AS SmallestDate, MAX(edate) AS BiggestDate, COUNT(CASE WHEN status = 4 THEN 1 END) AS `Task In Progress`, COUNT(CASE WHEN status = 5 THEN 1 END) AS `Completed Task`, COUNT(CASE WHEN status = 3 THEN 1 END) AS `Pending Task`, COUNT(CASE WHEN status = 11 THEN 1 END) AS `Behind Schedule`, COUNT(CASE WHEN status = 9 THEN 1 END) AS `Overdue Task`,  COUNT(status) AS 'Total Task', sum(progress) AS tskprogress FROM tbl_task WHERE msid  = '$milestoneID'");
-											$query_rsMSStatus->execute();
-											$row_rsMSStatus = $query_rsMSStatus->fetch();
+																			$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid AND output_id=:output_id");
+																			$query_consumed->execute(array(":projid" => $projid, ":output_id" => $output_id));
+																			$row_consumed = $query_consumed->fetch();
+																			$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
+																			$rate  = $consumed > 0 && $planned_amount ? ($consumed / $planned_amount) * 100 : 0;
 
-											$query_mltasks = $db->prepare("SELECT * FROM tbl_task WHERE msid  = '$milestoneID'");
-											$query_mltasks->execute();
-											$row_mltasks = $query_mltasks->fetch();
-											$totalRows_mltasks = $query_mltasks->rowCount();
+																			$query_Output_states = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE outputid=:output_id ");
+																			$query_Output_states->execute(array(":output_id" => $output_id));
+																			$total_Output_states = $query_Output_states->rowCount();
+																			$site_name = [];
+																			if ($total_Output_states > 0) {
+																				while ($row_rsOutput_states = $query_Output_states->fetch()) {
+																					$site_name[] = $row_rsOutput_states['state'];
+																				}
+																			}
 
-											$mlstartdate = $row_rsMilestone["sdate"];
-											$SmallestStartDate = $row_rsMSStatus["SmallestDate"];
-											$BiggestEndDate = $row_rsMSStatus["BiggestDate"];
-											$mlenddate = $row_rsMilestone["edate"];
-					
-											$prjstartdate = date("d M Y",strtotime($row_rsMilestone['stdate']));
-											$prjenddate = date("d M Y",strtotime($row_rsMilestone['endate']));
-											$milestonebudget = 0;
-									
-											$query_milestonebudget = $db->prepare("SELECT d.unit_cost, d.units_no FROM tbl_task t inner join tbl_project_tender_details d on d.tasks=t.tkid WHERE t.msid = :msid");
-											$query_milestonebudget->execute(array(":msid" => $milestoneID));
-											
-											while($row_milestonebudget = $query_milestonebudget->fetch()){
-												$uno = $row_milestonebudget['units_no'];
-												$ucost = $row_milestonebudget['unit_cost'];
-												$tkbudget = $uno * $ucost;
-												$milestonebudget = $milestonebudget + $tkbudget;
+																			$states = implode(",", $site_name);
+																			?>
+																			<tr style="background-color:#FFFFFF">
+																				<td align="center"><?= 1 ?></td>
+																				<td><?= $states ?></td>
+																				<td><?= number_format($planned_amount, 2) ?></td>
+																				<td><?= number_format($consumed, 2) ?></td>
+																				<td><?= number_format($rate, 2) ?></td>
+																			</tr>
+																		<?php
+																		}
+																		?>
+																	</tbody>
+																</table>
+															</div>
+														</div>
+													</fieldset>
+											<?php
+												}
+											} else {
+												echo "Sorry Project Has no outputs";
 											}
 											?>
-											<tr class="milestones">
-												<td align="center" id="milestones<?php echo $milestoneID ?>" class="mb-0" data-toggle="collapse" data-target=".milestone<?php echo $milestoneID ?>">
-													<button class="btn btn-link " title="To expand click this Plus sign and to collapse click the Minus sign!!">
-														<i class="fa fa-plus-square" style="font-size:16px"></i>
-													</button>
-												</td>
-												<td><?php echo $sn; ?></td>
-												<td><?php echo $milestone; ?></td>
-												<td>
-													<?php	
-													if($mlStatus == 3){
-														echo '<button type="button" class="btn bg-yellow waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}else if($mlStatus == 1){
-														echo '<button type="button" class="btn bg-grey waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}else if($mlStatus == 4){
-														echo '<button type="button" class="btn btn-primary waves-effect" style="width:100%">'.$milestonetatus.'</button>';
-													}else if($mlStatus == 11){
-														echo '<button type="button" class="btn bg-red waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}else if($mlStatus == 5){
-														echo '<button type="button" class="btn btn-success waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}else if($mlStatus == 2){
-														echo '<button type="button" class="btn bg-brown waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}else if($mlStatus == 6){
-														echo '<button type="button" class="btn bg-pink waves-effect" style="width:100%">'.$milestonetatus. '</button>';
-													}
-												
-													if ($mlprogress < 100) {
-														echo '
+										</div>
+									</div>
+								</div>
+								<div id="menu1" class="tab-pane fade">
+									<div class="row clearfix">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<?php
+											$query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
+											$query_Sites->execute(array(":projid" => $projid));
+											$rows_sites = $query_Sites->rowCount();
+											if ($rows_sites > 0) {
+												$counter = 0;
+												while ($row_Sites = $query_Sites->fetch()) {
+													$site_id = $row_Sites['site_id'];
+													$site = $row_Sites['site'];
+													$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id");
+													$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id));
+													$rows_site_score = $query_Site_score->rowCount();
+													if ($rows_site_score) {
+														$counter++;
+
+														$progress = number_format(calculate_site_progress($implimentation_type, $site_id), 2);
+														$achieved = 0;
+
+														$site_progress = '
 														<div class="progress" style="height:20px; font-size:10px; color:black">
-															<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="'.$mlprogress.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$mlprogress.'%; height:20px; font-size:10px; color:black">
-																'.$mlprogress.'%
+															<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																' . $progress . '%
 															</div>
 														</div>';
-													} 
-													elseif ($mlprogress ==100){
-														echo '
-														<div class="progress" style="height:20px; font-size:10px; color:black">
-															<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="'.$mlprogress.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$mlprogress.'%; height:20px; font-size:10px; color:black">
-															'.$mlprogress.'%                                   
+
+														if ($progress == 100) {
+															$site_progress = '
+															<div class="progress" style="height:20px; font-size:10px; color:black">
+																<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																' . $progress . '%
+																</div>
+															</div>';
+														}
+														$achieved = 0;
+											?>
+														<fieldset class="scheduler-border">
+															<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																<i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $counter ?> :
+															</legend>
+															<div class="card-header">
+																<div class="row clearfix">
+																	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																		<ul class="list-group">
+																			<li class="list-group-item list-group-item list-group-item-action active">Site : <?= $site ?></li>
+																			<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																			<li class="list-group-item">Progress : <?= $site_progress ?></li>
+																		</ul>
+																	</div>
+																</div>
 															</div>
-														</div>';
-													}
-													?>
-												</td>
-												<td><strong><a href="myprojecttaskfilter?projid=<?php echo $row_rsMilestone['projid']; ?>&amp;msid=<?php echo $row_rsMilestone['msid']; ?>" style="color:#2196F3"><?php echo $total_tasks_count; ?> Tasks</a></strong><br />
-													<?php
-													if($mlStatus == 2)
-													{
-														if($row_rsMilestone['Cancelled Task'] == 0){
+															<?php
+															$query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
+															$query_Site_Output->execute(array(":site_id" => $site_id));
+															$rows_Site_Output = $query_Site_Output->rowCount();
+															if ($rows_Site_Output > 0) {
+																$output_counter = 0;
+																while ($row_Site_Output = $query_Site_Output->fetch()) {
+																	$output_counter++;
+																	$output_id = $row_Site_Output['outputid'];
+																	$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id");
+																	$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id));
+																	$rows_site_score = $query_Site_score->rowCount();
+																	if ($rows_site_score) {
+																		$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE id = :outputid");
+																		$query_Output->execute(array(":outputid" => $output_id));
+																		$row_Output = $query_Output->fetch();
+																		$total_Output = $query_Output->rowCount();
+																		if ($total_Output) {
+																			$output_id = $row_Output['id'];
+																			$output = $row_Output['indicator_name'];
+																			$progress = number_format(calculate_output_site_progress($output_id, $implimentation_type, $site_id), 2);
+																			$output_progress = '
+																			<div class="progress" style="height:20px; font-size:10px; color:black">
+																				<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																					' . $progress . '%
+																				</div>
+																			</div>';
 
-														}
-														else{
-														?><span class="badge bg-brown-grey" style="margin-bottom:2px"><?php echo $row_rsMilestone['Cancelled Task']; ?></span> Cancelled<br />
-														<?php
-														}
-													}
-													elseif($mlStatus == 6)
-													{
-														if($row_rsMSStatus['On Hold Task'] == 0){
+																			if ($progress == 100) {
+																				$output_progress = '
+																				<div class="progress" style="height:20px; font-size:10px; color:black">
+																					<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																					' . $progress . '%
+																					</div>
+																				</div>';
+																			}
+																			$achieved = 0;
+															?>
+																			<fieldset class="scheduler-border">
+																				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																					<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> :
+																				</legend>
+																				<div class="row clearfix">
+																					<div class="card-header">
+																						<div class="row clearfix">
+																							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																								<ul class="list-group">
+																									<li class="list-group-item list-group-item list-group-item-action active">Output : <?= $output ?></li>
+																									<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																									<li class="list-group-item">Progress : <?= $output_progress ?></li>
+																								</ul>
+																							</div>
+																						</div>
+																					</div>
+																					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																						<div class="table-responsive">
+																							<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+																								<thead>
+																									<tr>
+																										<th style="width:5%">#</th>
+																										<th style="width:40%">Subtasks</th>
+																										<th style="width:25%">Unit of Measure</th>
+																										<th style="width:10%">Acheived</th>
+																										<th style="width:10%">Status</th>
+																										<th style="width:10%">Progress</th>
+																									</tr>
+																								</thead>
+																								<tbody>
+																									<?php
+																									$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid");
+																									$query_rsTasks->execute(array(":output_id" => $output_id));
+																									$totalRows_rsTasks = $query_rsTasks->rowCount();
+																									if ($totalRows_rsTasks > 0) {
+																										$tcounter = 0;
+																										while ($row_rsTasks = $query_rsTasks->fetch()) {
+																											$task_name = $row_rsTasks['task'];
+																											$task_id = $row_rsTasks['tkid'];
+																											$unit =  $row_rsTasks['unit_of_measure'];
+																											$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id AND subtask_id=:subtask_id");
+																											$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id, ":subtask_id" => $task_id));
+																											$rows_site_score = $query_Site_score->rowCount();
+																											$row_site_score = $query_Site_score->fetch();
+																											if ($rows_site_score) {
+																												$units_no =  $row_site_score['achieved'];
+																												$tcounter++;
+																												$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+																												$query_rsIndUnit->execute(array(":unit_id" => $unit));
+																												$row_rsIndUnit = $query_rsIndUnit->fetch();
+																												$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+																												$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 
-														}
-														else{
-														?><span class="badge bg-pink" style="margin-bottom:2px"><?php echo $row_rsMSStatus['On Hold Task']; ?></span> On Hold<br />
-														<?php
-														}
-													}
-													else{
-														if($row_rsMSStatus['Pending Task'] == 0){
+																												$progress = number_format(calculate_subtask_site_progress($task_id, $site_id), 2);
 
-														}
-														else{
-														?><span class="badge bg-yellow" style="margin-bottom:2px"><?php echo $row_rsMSStatus['Pending Task']; ?></span> Pending<br /> 
-														<?php
-														}
-														if($row_rsMSStatus['Task In Progress'] == 0){
+																												$subtask_progress = '
+																												<div class="progress" style="height:20px; font-size:10px; color:black">
+																													<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																														' . $progress . '%
+																													</div>
+																												</div>';
 
-														}
-														else{
-														?><span class="badge bg-blue" style="margin-bottom:2px"> <?php echo $row_rsMSStatus['Task In Progress']; ?></span> On Track<br />
-														<?php
-														}
-														if($row_rsMSStatus['Behind Schedule'] == 0){
+																												if ($progress == 100) {
+																													$subtask_progress = '
+																												<div class="progress" style="height:20px; font-size:10px; color:black">
+																													<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																													' . $progress . '%
+																													</div>
+																												</div>';
+																												}
 
-														}
-														else{
-														?><span class="badge bg-red" style="margin-bottom:2px"><?php echo $row_rsMSStatus['Behind Schedule']; ?></span> Behind Schedule<br />
+																												$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																												$query_Projstatus->execute(array(":projstatus" => 11));
+																												$row_Projstatus = $query_Projstatus->fetch();
+																												$total_Projstatus = $query_Projstatus->rowCount();
+																												$status = "";
+																												if ($total_Projstatus > 0) {
+																													$status_name = $row_Projstatus['statusname'];
+																													$status_class = $row_Projstatus['class_name'];
+																													$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																												}
+																									?>
+																												<tr id="row<?= $tcounter ?>">
+																													<td style="width:5%"><?= $tcounter ?></td>
+																													<td style="width:40%"><?= $task_name ?></td>
+																													<td style="width:25%"><?= $unit_of_measure ?></td>
+																													<td style="width:10%"><?= number_format($units_no) ?></td>
+																													<td style="width:10%"><?= $status ?></td>
+																													<td style="width:10%"><?= $subtask_progress ?></td>
+																												</tr>
+																									<?php
+																											}
+																										}
+																									}
+																									?>
+																								</tbody>
+																							</table>
+																						</div>
+																					</div>
+																				</div>
+																			</fieldset>
+															<?php
+																		}
+																	}
+																}
+															}
+															?>
+														</fieldset>
 														<?php
-														}
-														if($row_rsMSStatus['Completed Task'] == 0){
-
-														}
-														else{
-														?><span class="badge bg-green" style="margin-bottom:2px"><?php echo $row_rsMSStatus['Completed Task']; ?></span> Completed<br />
-														<?php
-														}
 													}
-													?>
-												</td>
-												<td><?php echo number_format($milestonebudget, 2); ?></td>
-												<td><?php echo $prjstartdate; ?></td>
-												<td><?php echo $prjenddate; ?></td>
-											</tr>
-											<tr class="collapse milestone<?php echo $milestoneID ?> bg-light-blue" data-parent="milestones<?php echo $milestoneID ?>">
-												<th width="5%"><strong></strong></th>
-												<th width="3%"><strong> # </strong></th>
-												<th width="33%"><strong>Task</strong></th>
-												<th width="12%"><strong>Status</strong></th>
-												<th width="12%"><strong>Progress</strong></th>
-												<th width="9%"><strong>Budget</strong></th>
-												<th width="9%"><strong>Start Date</strong></th>
-												<th width="9%"><strong>End Date</strong></th>
-											</tr>
-											<!-- =========================================== -->
-											<?php 
-											if($projcategory == 1){
-												$query_rsMSTask =  $db->prepare("SELECT t.tkid, t.task, t.status, t.progress, t.sdate, t.edate, d.unit_cost, d.units_no FROM tbl_task t inner join tbl_project_direct_cost_plan d on d.tasks=t.tkid WHERE msid = :msid ORDER BY t.sdate ASC");
-												$query_rsMSTask->execute(array(":msid" => $milestoneID));		
-												$row_rsMSTask = $query_rsMSTask->fetch();
-											} else {
-												$query_rsMSTask =  $db->prepare("SELECT t.tkid, t.task, t.status, t.progress, t.sdate, t.edate, d.unit_cost, d.units_no FROM tbl_task t inner join tbl_project_tender_details d on d.tasks=t.tkid WHERE msid = :msid ORDER BY t.sdate ASC");
-												$query_rsMSTask->execute(array(":msid" => $milestoneID));		
-												$row_rsMSTask = $query_rsMSTask->fetch();
-											}
-	
-											$nm = 0;
-											do { 
-												$nm = $nm + 1;
-												$taskid = $row_rsMSTask['tkid'];
-												$current_date = date("Y-m-d");
-												$tkstartdate = date("d M Y",strtotime($row_rsMSTask['sdate']));
-												$tkenddate = date("d M Y",strtotime($row_rsMSTask['edate']));
-												$tkstatus = $row_rsMSTask['status'];
-												$task = $row_rsMSTask['task'];
-									
-												$query_tasktatus = $db->prepare("SELECT * FROM tbl_status WHERE statusid  = :tkstatus");
-												$query_tasktatus->execute(array(":tkstatus" => $tkstatus));
-												$row_tasktatus = $query_tasktatus->fetch();
-												$tasktatus = $row_tasktatus['statusname'];
-									
-												$totaltasksbudget = 0;
-												
-												if($projcategory == 1){
-													$query_taskbudget = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE tasks = :taskid");
-													$query_taskbudget->execute(array(":taskid" => $taskid));
-													while($row_taskbudget = $query_taskbudget->fetch()){
-														$unitsno = $row_taskbudget['units_no'];
-														$unitcost = $row_taskbudget['unit_cost'];
-														$taskbudget = $unitsno * $unitcost;
-														$totaltasksbudget = $totaltasksbudget + $taskbudget;
-													}
-													$totaltasksbudget = number_format($totaltasksbudget, 2);
-												} else {
-													$query_taskbudget = $db->prepare("SELECT * FROM tbl_project_tender_details WHERE tasks = :taskid");
-													$query_taskbudget->execute(array(":taskid" => $taskid));
-													while($row_taskbudget = $query_taskbudget->fetch()){
-														$unitsno = $row_taskbudget['units_no'];
-														$unitcost = $row_taskbudget['unit_cost'];
-														$taskbudget = $unitsno * $unitcost;
-														$totaltasksbudget = $totaltasksbudget + $taskbudget;
-													}
-													$totaltasksbudget = number_format($totaltasksbudget, 2);
 												}
-												
-												?>
-												<tr class="collapse milestone<?php echo $milestoneID  ?>" data-parent="milestones<?php echo $milestoneID ?>">
-													<td class="bg-light-blue"></td>
-													<td><?php echo $sn.".".$nm; ?></td>
-													<td><?php echo $task; ?></td>
-													<td>
-													<?php
-														if($tkstatus == 3){
-															echo '<button type="button" class="btn bg-yellow waves-effect" style="width:100%">'.$tasktatus. '</button>';
-														}else if($tkstatus == 4){
-															echo '<button type="button" class="btn btn-primary waves-effect" style="width:100%">'.$tasktatus.'</button>';
-														}else if($tkstatus == 5){
-															echo '<button type="button" class="btn btn-success waves-effect" style="width:100%">'.$tasktatus. '</button>';
-														}else if($tkstatus == 11){
-															echo '<button type="button" class="btn bg-red waves-effect" style="width:100%">'.$tasktatus. '</button>';
-														}elseif($tkstatus == 2){
-															echo '<button type="button" class="btn bg-brown waves-effect" style="width:100%">'.$tasktatus. '</button>';
-														}elseif($tkstatus == 6){
-															echo '<button type="button" class="btn bg-pink waves-effect" style="width:100%">'.$tasktatus. '</button>';
-														}
-													?>
-													</td>
-													<td>
-														<?php
-														$tskprogress = $row_rsMSTask['progress'];
-														if ($tskprogress < 100) {
-															echo '
+											}
+
+
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+											$query_Output->execute(array(":projid" => $projid));
+											$total_Output = $query_Output->rowCount();
+											$outputs = '';
+											if ($total_Output > 0) {
+												$outputs = '';
+												if ($total_Output > 0) {
+													$counter = 0;
+													$site_id = 0;
+													while ($row_rsOutput = $query_Output->fetch()) {
+														$output_id = $row_rsOutput['id'];
+														$output = $row_rsOutput['indicator_name'];
+														$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id");
+														$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id));
+														$rows_site_score = $query_Site_score->rowCount();
+														if ($rows_site_score) {
+															$counter++;
+
+															$output_progress = '
 															<div class="progress" style="height:20px; font-size:10px; color:black">
-																<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="'.$tskprogress.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$tskprogress.'%; height:20px; font-size:10px; color:black">
-																	'.$tskprogress.'%
+																<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																	' . $progress . '%
 																</div>
 															</div>';
-														} 
-														elseif ($tskprogress ==100){
-															echo '
-															<div class="progress" style="height:20px; font-size:10px; color:black">
-																<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="'.$tskprogress.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$tskprogress.'%; height:20px; font-size:10px; color:black">
-																'.$tskprogress.'%                                   
-																</div>
-															</div>';
-														}
+
+															if ($progress == 100) {
+																$output_progress = '
+																<div class="progress" style="height:20px; font-size:10px; color:black">
+																	<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																	' . $progress . '%
+																	</div>
+																</div>';
+															}
+
+															$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+															$query_Projstatus->execute(array(":projstatus" => 11));
+															$row_Projstatus = $query_Projstatus->fetch();
+															$total_Projstatus = $query_Projstatus->rowCount();
+															$status = "";
+															if ($total_Projstatus > 0) {
+																$status_name = $row_Projstatus['statusname'];
+																$status_class = $row_Projstatus['class_name'];
+																$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+															}
 														?>
-													</td>
-													<td><?php echo $totaltasksbudget; ?></td>
-													<td><?php echo $tkstartdate; ?></td>
-													<td><?php echo $tkenddate; ?></td>
-												</tr>
-											<?php } while ($row_rsMSTask = $query_rsMSTask->fetch());
-										} while ($row_rsMilestone = $query_rsMilestone->fetch()); ?>
-									</tbody>
-								</table>
+															<fieldset class="scheduler-border">
+																<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																	<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
+																</legend>
+
+																<div class="card-header">
+																	<div class="row clearfix">
+																		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																			<ul class="list-group">
+																				<li class="list-group-item list-group-item list-group-item-action active">Output : <?= $output ?></li>
+																				<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																				<li class="list-group-item">Progress : <?= $output_progress ?></li>
+																			</ul>
+																		</div>
+																	</div>
+																</div>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+																		<thead>
+																			<tr>
+																				<th style="width:5%">#</th>
+																				<th style="width:40%">Item</th>
+																				<th style="width:25%">Unit of Measure</th>
+																				<th style="width:10%">No. of Units</th>
+																				<th style="width:10%">Unit Cost (Ksh)</th>
+																				<th style="width:10%">Total Cost (Ksh)</th>
+																			</tr>
+																		</thead>
+																		<tbody>
+																			<?php
+																			$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid");
+																			$query_rsTasks->execute(array(":output_id" => $output_id));
+																			$totalRows_rsTasks = $query_rsTasks->rowCount();
+																			if ($totalRows_rsTasks > 0) {
+																				$tcounter = 0;
+																				while ($row_rsTasks = $query_rsTasks->fetch()) {
+																					$task_name = $row_rsTasks['task'];
+																					$task_id = $row_rsTasks['tkid'];
+																					$unit =  $row_rsTasks['unit_of_measure'];
+																					$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id AND subtask_id=:subtask_id");
+																					$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id, ":subtask_id" => $task_id));
+																					$rows_site_score = $query_Site_score->rowCount();
+																					$row_site_score = $query_Site_score->fetch();
+																					if ($rows_site_score) {
+																						$units_no =  $row_site_score['achieved'];
+																						$tcounter++;
+																						$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+																						$query_rsIndUnit->execute(array(":unit_id" => $unit));
+																						$row_rsIndUnit = $query_rsIndUnit->fetch();
+																						$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+																						$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+																						$subtask_progress = '
+																						<div class="progress" style="height:20px; font-size:10px; color:black">
+																							<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																								' . $progress . '%
+																							</div>
+																						</div>';
+
+																						if ($progress == 100) {
+																							$subtask_progress = '
+																							<div class="progress" style="height:20px; font-size:10px; color:black">
+																								<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																								' . $progress . '%
+																								</div>
+																							</div>';
+																						}
+
+																						$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																						$query_Projstatus->execute(array(":projstatus" => 11));
+																						$row_Projstatus = $query_Projstatus->fetch();
+																						$total_Projstatus = $query_Projstatus->rowCount();
+																						$status = "";
+																						if ($total_Projstatus > 0) {
+																							$status_name = $row_Projstatus['statusname'];
+																							$status_class = $row_Projstatus['class_name'];
+																							$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																						}
+																			?>
+																						<tr id="row<?= $tcounter ?>">
+																							<td style="width:5%"><?= $tcounter ?></td>
+																							<td style="width:40%"><?= $task_name ?></td>
+																							<td style="width:25%"><?= $unit_of_measure ?></td>
+																							<td style="width:10%"><?= number_format($units_no, 2) ?></td>
+																							<td style="width:10%"><?= $status ?></td>
+																							<td style="width:10%"><?= $subtask_progress ?></td>
+																						</tr>
+																			<?php
+																					}
+																				}
+																			}
+																			?>
+																		</tbody>
+																	</table>
+																</div>
+															</fieldset>
+											<?php
+														}
+													}
+												}
+											}
+											?>
+										</div>
+									</div>
+								</div>
+								<div id="menu2" class="tab-pane fade">
+									<div class="row clearfix">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<?php
+											$query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
+											$query_Sites->execute(array(":projid" => $projid));
+											$rows_sites = $query_Sites->rowCount();
+											if ($rows_sites > 0) {
+												$counter = 0;
+												while ($row_Sites = $query_Sites->fetch()) {
+													$site_id = $row_Sites['site_id'];
+													$site = $row_Sites['site'];
+													$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id");
+													$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id));
+													$rows_site_score = $query_Site_score->rowCount();
+													if ($rows_site_score) {
+														$counter++;
+
+														$progress = number_format(calculate_site_progress($implimentation_type, $site_id), 2);
+														$achieved = 0;
+
+														$site_progress = '
+														<div class="progress" style="height:20px; font-size:10px; color:black">
+															<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																' . $progress . '%
+															</div>
+														</div>';
+
+														if ($progress == 100) {
+															$site_progress = '
+															<div class="progress" style="height:20px; font-size:10px; color:black">
+																<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																' . $progress . '%
+																</div>
+															</div>';
+														}
+														$achieved = 0;
+											?>
+														<fieldset class="scheduler-border">
+															<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																<i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $counter ?> :
+															</legend>
+															<div class="card-header">
+																<div class="row clearfix">
+																	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																		<ul class="list-group">
+																			<li class="list-group-item list-group-item list-group-item-action active">Site : <?= $site ?></li>
+																			<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																			<li class="list-group-item">Progress : <?= $site_progress ?></li>
+																		</ul>
+																	</div>
+																</div>
+															</div>
+															<?php
+															$query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
+															$query_Site_Output->execute(array(":site_id" => $site_id));
+															$rows_Site_Output = $query_Site_Output->rowCount();
+															if ($rows_Site_Output > 0) {
+																$output_counter = 0;
+																while ($row_Site_Output = $query_Site_Output->fetch()) {
+																	$output_counter++;
+																	$output_id = $row_Site_Output['outputid'];
+																	$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id");
+																	$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id));
+																	$rows_site_score = $query_Site_score->rowCount();
+																	if ($rows_site_score) {
+																		$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE id = :outputid");
+																		$query_Output->execute(array(":outputid" => $output_id));
+																		$row_Output = $query_Output->fetch();
+																		$total_Output = $query_Output->rowCount();
+																		if ($total_Output) {
+																			$output_id = $row_Output['id'];
+																			$output = $row_Output['indicator_name'];
+																			$progress = number_format(calculate_output_site_progress($output_id, $implimentation_type, $site_id), 2);
+																			$output_progress = '
+																			<div class="progress" style="height:20px; font-size:10px; color:black">
+																				<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																					' . $progress . '%
+																				</div>
+																			</div>';
+
+																			if ($progress == 100) {
+																				$output_progress = '
+																				<div class="progress" style="height:20px; font-size:10px; color:black">
+																					<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																					' . $progress . '%
+																					</div>
+																				</div>';
+																			}
+																			$achieved = 0;
+															?>
+																			<fieldset class="scheduler-border">
+																				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																					<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> :
+																				</legend>
+																				<div class="row clearfix">
+																					<div class="card-header">
+																						<div class="row clearfix">
+																							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																								<ul class="list-group">
+																									<li class="list-group-item list-group-item list-group-item-action active">Output : <?= $output ?></li>
+																									<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																									<li class="list-group-item">Progress : <?= $output_progress ?></li>
+																								</ul>
+																							</div>
+																						</div>
+																					</div>
+																					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																						<div class="table-responsive">
+																							<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+																								<thead>
+																									<tr>
+																										<th style="width:5%">#</th>
+																										<th style="width:40%">Subtasks</th>
+																										<th style="width:25%">Unit of Measure</th>
+																										<th style="width:10%">Acheived</th>
+																										<th style="width:10%">Status</th>
+																										<th style="width:10%">Progress</th>
+																									</tr>
+																								</thead>
+																								<tbody>
+																									<?php
+																									$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid");
+																									$query_rsTasks->execute(array(":output_id" => $output_id));
+																									$totalRows_rsTasks = $query_rsTasks->rowCount();
+																									if ($totalRows_rsTasks > 0) {
+																										$tcounter = 0;
+																										while ($row_rsTasks = $query_rsTasks->fetch()) {
+																											$task_name = $row_rsTasks['task'];
+																											$task_id = $row_rsTasks['tkid'];
+																											$unit =  $row_rsTasks['unit_of_measure'];
+																											$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id AND subtask_id=:subtask_id");
+																											$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id, ":subtask_id" => $task_id));
+																											$rows_site_score = $query_Site_score->rowCount();
+																											$row_site_score = $query_Site_score->fetch();
+																											if ($rows_site_score) {
+																												$units_no =  $row_site_score['achieved'];
+																												$tcounter++;
+																												$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+																												$query_rsIndUnit->execute(array(":unit_id" => $unit));
+																												$row_rsIndUnit = $query_rsIndUnit->fetch();
+																												$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+																												$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+																												$progress = number_format(calculate_subtask_site_progress($task_id, $site_id), 2);
+
+																												$subtask_progress = '
+																												<div class="progress" style="height:20px; font-size:10px; color:black">
+																													<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																														' . $progress . '%
+																													</div>
+																												</div>';
+
+																												if ($progress == 100) {
+																													$subtask_progress = '
+																												<div class="progress" style="height:20px; font-size:10px; color:black">
+																													<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																													' . $progress . '%
+																													</div>
+																												</div>';
+																												}
+
+																												$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																												$query_Projstatus->execute(array(":projstatus" => 11));
+																												$row_Projstatus = $query_Projstatus->fetch();
+																												$total_Projstatus = $query_Projstatus->rowCount();
+																												$status = "";
+																												if ($total_Projstatus > 0) {
+																													$status_name = $row_Projstatus['statusname'];
+																													$status_class = $row_Projstatus['class_name'];
+																													$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																												}
+																									?>
+																												<tr id="row<?= $tcounter ?>">
+																													<td style="width:5%"><?= $tcounter ?></td>
+																													<td style="width:40%"><?= $task_name ?></td>
+																													<td style="width:25%"><?= $unit_of_measure ?></td>
+																													<td style="width:10%"><?= number_format($units_no) ?></td>
+																													<td style="width:10%"><?= $status ?></td>
+																													<td style="width:10%"><?= $subtask_progress ?></td>
+																												</tr>
+																									<?php
+																											}
+																										}
+																									}
+																									?>
+																								</tbody>
+																							</table>
+																						</div>
+																					</div>
+																				</div>
+																			</fieldset>
+															<?php
+																		}
+																	}
+																}
+															}
+															?>
+														</fieldset>
+														<?php
+													}
+												}
+											}
+
+
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+											$query_Output->execute(array(":projid" => $projid));
+											$total_Output = $query_Output->rowCount();
+											$outputs = '';
+											if ($total_Output > 0) {
+												$outputs = '';
+												if ($total_Output > 0) {
+													$counter = 0;
+													$site_id = 0;
+													while ($row_rsOutput = $query_Output->fetch()) {
+														$output_id = $row_rsOutput['id'];
+														$output = $row_rsOutput['indicator_name'];
+														$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id");
+														$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id));
+														$rows_site_score = $query_Site_score->rowCount();
+														if ($rows_site_score) {
+															$counter++;
+
+															$output_progress = '
+															<div class="progress" style="height:20px; font-size:10px; color:black">
+																<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																	' . $progress . '%
+																</div>
+															</div>';
+
+															if ($progress == 100) {
+																$output_progress = '
+																<div class="progress" style="height:20px; font-size:10px; color:black">
+																	<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																	' . $progress . '%
+																	</div>
+																</div>';
+															}
+
+															$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+															$query_Projstatus->execute(array(":projstatus" => 11));
+															$row_Projstatus = $query_Projstatus->fetch();
+															$total_Projstatus = $query_Projstatus->rowCount();
+															$status = "";
+															if ($total_Projstatus > 0) {
+																$status_name = $row_Projstatus['statusname'];
+																$status_class = $row_Projstatus['class_name'];
+																$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+															}
+														?>
+															<fieldset class="scheduler-border">
+																<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+																	<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
+																</legend>
+
+																<div class="card-header">
+																	<div class="row clearfix">
+																		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																			<ul class="list-group">
+																				<li class="list-group-item list-group-item list-group-item-action active">Output : <?= $output ?></li>
+																				<li class="list-group-item">Achieved : <?= $achieved ?></li>
+																				<li class="list-group-item">Progress : <?= $output_progress ?></li>
+																			</ul>
+																		</div>
+																	</div>
+																</div>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+																		<thead>
+																			<tr>
+																				<th style="width:5%">#</th>
+																				<th style="width:40%">Item</th>
+																				<th style="width:25%">Unit of Measure</th>
+																				<th style="width:10%">No. of Units</th>
+																				<th style="width:10%">Unit Cost (Ksh)</th>
+																				<th style="width:10%">Total Cost (Ksh)</th>
+																			</tr>
+																		</thead>
+																		<tbody>
+																			<?php
+																			$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid");
+																			$query_rsTasks->execute(array(":output_id" => $output_id));
+																			$totalRows_rsTasks = $query_rsTasks->rowCount();
+																			if ($totalRows_rsTasks > 0) {
+																				$tcounter = 0;
+																				while ($row_rsTasks = $query_rsTasks->fetch()) {
+																					$task_name = $row_rsTasks['task'];
+																					$task_id = $row_rsTasks['tkid'];
+																					$unit =  $row_rsTasks['unit_of_measure'];
+																					$query_Site_score = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score where month(created_at)=:month AND year(created_at)=:year AND site_id=:site_id AND output_id=:output_id AND subtask_id=:subtask_id");
+																					$query_Site_score->execute(array(":month" => $month, ":year" => $year, ":site_id" => $site_id, ":output_id" => $output_id, ":subtask_id" => $task_id));
+																					$rows_site_score = $query_Site_score->rowCount();
+																					$row_site_score = $query_Site_score->fetch();
+																					if ($rows_site_score) {
+																						$units_no =  $row_site_score['achieved'];
+																						$tcounter++;
+																						$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+																						$query_rsIndUnit->execute(array(":unit_id" => $unit));
+																						$row_rsIndUnit = $query_rsIndUnit->fetch();
+																						$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+																						$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+																						$subtask_progress = '
+																						<div class="progress" style="height:20px; font-size:10px; color:black">
+																							<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																								' . $progress . '%
+																							</div>
+																						</div>';
+
+																						if ($progress == 100) {
+																							$subtask_progress = '
+																							<div class="progress" style="height:20px; font-size:10px; color:black">
+																								<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																								' . $progress . '%
+																								</div>
+																							</div>';
+																						}
+
+																						$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																						$query_Projstatus->execute(array(":projstatus" => 11));
+																						$row_Projstatus = $query_Projstatus->fetch();
+																						$total_Projstatus = $query_Projstatus->rowCount();
+																						$status = "";
+																						if ($total_Projstatus > 0) {
+																							$status_name = $row_Projstatus['statusname'];
+																							$status_class = $row_Projstatus['class_name'];
+																							$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																						}
+																			?>
+																						<tr id="row<?= $tcounter ?>">
+																							<td style="width:5%"><?= $tcounter ?></td>
+																							<td style="width:40%"><?= $task_name ?></td>
+																							<td style="width:25%"><?= $unit_of_measure ?></td>
+																							<td style="width:10%"><?= number_format($units_no, 2) ?></td>
+																							<td style="width:10%"><?= $status ?></td>
+																							<td style="width:10%"><?= $subtask_progress ?></td>
+																						</tr>
+																			<?php
+																					}
+																				}
+																			}
+																			?>
+																		</tbody>
+																	</table>
+																</div>
+															</fieldset>
+											<?php
+														}
+													}
+												}
+											}
+											?>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -383,43 +927,6 @@ if ($permission) {
 			</div>
 	</section>
 	<!-- end body  -->
-	<!-- Modal Issue Action -->
-	<div class="modal fade" id="ganttModal" role="dialog">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#03A9F4">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3 class="modal-title" align="center">
-						<font color="#FFF">Project Issue Analysis</font>
-					</h3>
-				</div>
-				<div class="modal-body">
-					<div class="row clearfix">
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-							<div class="card">
-								<div class="body">
-									<div class="table-responsive" style="background:#eaf0f9">
-										<div id="chart_gantt" style="width:100%;"></div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<div class="col-md-5">
-					</div>
-					<div class="col-md-2" align="center">
-						<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
-					</div>
-					<div class="col-md-5">
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- #END# Modal Issue Action -->
-
 <?php
 } else {
 	$results =  restriction();
@@ -428,5 +935,3 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script src="general-settings/js/fetch-selected-project-activities.js"></script>
-s

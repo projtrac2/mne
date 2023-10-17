@@ -38,7 +38,7 @@ function static_map(map_id) {
     zoom: 12,
   });
 
-  var map_markers_url = "markers/markers.php?map_id=" + map_id;
+  var map_markers_url = "markers/markers?map_id=" + map_id;
 
   // Change this depending on the name of your PHP or XML file
   downloadUrl(map_markers_url, null, function (data) {

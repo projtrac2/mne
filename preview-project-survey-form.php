@@ -1,308 +1,304 @@
 <?php 
-include_once 'includes/head-alt.php';
-$Id = 7;
-$subId = 23;
+require('includes/head.php');
+if ($permission) {
 
-try {
+    try {
+        if (isset($_GET['resultstypeid']) && !empty($_GET['resultstypeid'])) {
+            $resultstype = $_GET['resultstype'];
+            $encoded_resultsid = $_GET['resultstypeid'];
+			$decode_resultsid = base64_decode($encoded_resultsid);
+			$resultsid_array = explode("results", $decode_resultsid);
+			$resultstypeid = $resultsid_array[1];
+			
+			if($resultstype == 2){
+				$query_results = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:resultstypeid");
+				$query_results->execute(array(":resultstypeid" => $resultstypeid));
+				$row_results = $query_results->fetch();
+				$formtype = "Outcome ";
+				$resultstobemeasured = $row_results['outcome'];
+			} else{
+				$query_results = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE id=:resultstypeid");
+				$query_results->execute(array(":resultstypeid" => $resultstypeid));
+				$row_results = $query_results->fetch();
+				$formtype = "Impact ";
+				$resultstobemeasured = $row_results['impact'];
+			}
+			
+            $projid = $row_results['projid'];
+            $indid = $row_results['indid'];
+            $data_source  = $row_results['data_source'];
 
-    if(isset($_GET['projid']) && !empty($_GET['projid'])){
-        $projid = $_GET['projid'];
+            $query_rs_projects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
+            $query_rs_projects->execute(array(":projid" => $projid));
+            $row_rs_projects = $query_rs_projects->fetch();
 
-        $query_rs_projects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
-        $query_rs_projects->execute(array(":projid"=>$projid));
-        $row_rs_projects= $query_rs_projects->fetch();
+            $projname = $row_rs_projects['projname'];
+            $projstage = $row_rs_projects['projstage'];
 
-        $projname = $row_rs_projects['projname'];
-        $progid = $row_rs_projects['progid'];
-        $projstage = $row_rs_projects['projstage'];
-		$resultstype = $row_rs_projects['outcome'];
-		$indid = $row_rs_projects['outcome_indicator'];
-		
-		if($projstage==9){
-			$surveytype = "Baseline";
-		}
-		else{
-			$surveytype = "Endline";
-		}
+            if ($projstage == 9) {
+                $surveytype = "Baseline";
+            } else {
+                $surveytype = "Endline";
+            }
 
-		$query_outcome = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE projid=:projid");
-		$query_outcome->execute(array(":projid"=>$projid));
-		$row_outcome=$query_outcome->fetch();
-		$totalrows_outcome=$query_outcome->rowCount(); 
-		
-		$data_source  = $row_outcome['data_source']; 
-		if($data_source  == 1){
-			$datasource  = "Primary";
-		} else {
-			$datasource  = "Secondary";
-		}
-		
-		$formtype = "Outcome ";
-		$formname = "Project ".$formtype.$surveytype." Survey";
-		$formid = "addoutcomebasefrm";
+            if ($data_source  == 1) {
+                $datasource  = "Primary";
+            } else {
+                $datasource  = "Secondary";
+            }
+
+            $formname = "Project " . $formtype . $surveytype . " Survey";
 
 
-        $query_rsIndicator = $db->prepare("SELECT indid, indicator_name, indicator_disaggregation, indicator_calculation_method, indicator_unit FROM tbl_indicator WHERE indid ='$indid'");
-        $query_rsIndicator->execute();
-        $row_rsIndicator = $query_rsIndicator->fetch();
-        $indname = $row_rsIndicator['indicator_name']; 
-        $disaggregated = $row_rsIndicator['indicator_disaggregation'];
-        $indicator_calculation_method  = $row_rsIndicator['indicator_calculation_method'];
-        $indunit  = $row_rsIndicator['indicator_unit'];
-  
-        // get unit 
-        $query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id ='$indunit'");
-        $query_Indicator->execute();
-        $row = $query_Indicator->fetch();
-        $unit = $row['unit'];
+            $query_rsIndicator = $db->prepare("SELECT indid, indicator_name, indicator_disaggregation, indicator_calculation_method, indicator_unit FROM tbl_indicator WHERE indid ='$indid'");
+            $query_rsIndicator->execute();
+            $row_rsIndicator = $query_rsIndicator->fetch();
+            $indname = $row_rsIndicator['indicator_name'];
+            $disaggregated = $row_rsIndicator['indicator_disaggregation'];
+            $indicator_calculation_method  = $row_rsIndicator['indicator_calculation_method'];
+            $indunit  = $row_rsIndicator['indicator_unit'];
 
-        // get form details 
-        $query_survey_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid = :projid and form_name = :fname");
-        $query_survey_form->execute(array(":projid"=>$projid, ":fname"=>$surveytype));
-        $row_enumtype = $query_survey_form->fetch();
-		
-        $enumtype = $row_enumtype['enumerator_type'];
-        $sample = $row_enumtype['sample_size'];
-		$sdate = date_create($row_enumtype['startdate']);
-        $startdate = date_format($sdate, "d M Y");
-		$edate = date_create($row_enumtype['enddate']);
-        $enddate = date_format($edate, "d M Y");
-		
-		if($enumtype == 1){
-			$enumeratortype = "In-house";
-		}
-		else{
-			$enumeratortype = "Out-Sourced";
-		}
-    }
-    
-} catch (PDOException $ex) {
+            // get unit 
+            $query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id ='$indunit'");
+            $query_Indicator->execute();
+            $row = $query_Indicator->fetch();
+            $unit = $row['unit'];
 
-    function flashMessage($flashMessages)
-    {
-        return $flashMessages;
-    }
+            // calculation method
+            $query_calculation_method = $db->prepare("SELECT * FROM tbl_indicator_calculation_method WHERE id ='$indicator_calculation_method'");
+            $query_calculation_method->execute();
+            $row_query_calculation_method = $query_calculation_method->fetch();
+            $calculation_method = $row_query_calculation_method['method'];
 
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $result;
-}
-?>
+            // get form details 
+            $query_survey_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid = :resultstypeid and resultstype = :resultstype and form_name = :fname");
+            $query_survey_form->execute(array(":resultstypeid" => $resultstypeid, ":resultstype" => $resultstype, ":fname" => $surveytype));
+            $row_enumtype = $query_survey_form->fetch();
 
-<!DOCTYPE html>
-<html>
+            $enumtype = $row_enumtype['enumerator_type'];
+			$targetdescription = $row_enumtype['respondent_description'];
+            $sample = $row_enumtype['sample_size'];
+            $sdate = date_create($row_enumtype['startdate']);
+            $startdate = date_format($sdate, "d M Y");
+            $edate = date_create($row_enumtype['enddate']);
+            $enddate = date_format($edate, "d M Y");
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <title>Result-Based Monitoring &amp; Evaluation System: Indicators</title>
-    <!-- Favicon-->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-
-    <!--CUSTOM MAIN STYLES-->
-    <link href="css/custom.css" rel="stylesheet" />
-
-    <!-- Bootstrap Core Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-    <!-- Waves Effect Css -->
-    <link href="projtrac-dashboard/plugins/node-waves/waves.css" rel="stylesheet" />
-
-    <!-- Animation Css -->
-    <link href="projtrac-dashboard/plugins/animate-css/animate.css" rel="stylesheet" />
-
-    <!--WaitMe Css-->
-    <link href="projtrac-dashboard/plugins/waitme/waitMe.css" rel="stylesheet" />
-
-    <!-- Multi Select Css -->
-    <link href="projtrac-dashboard/plugins/multi-select/css/multi-select.css" rel="stylesheet">
-
-    <!-- Bootstrap Spinner Css -->
-    <link href="projtrac-dashboard/plugins/jquery-spinner/css/bootstrap-spinner.css" rel="stylesheet">
-
-    <!-- Bootstrap Tagsinput Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
-
-    <!-- Bootstrap Select Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
-    <!-- JQuery DataTable Css -->
-    <link href="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
-
-    <!-- Sweet Alert Css -->
-    <link href="projtrac-dashboard/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-
-    <!-- Custom Css -->
-    <link href="projtrac-dashboard/css/style.css" rel="stylesheet">
-
-    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
-    <link href="projtrac-dashboard/css/themes/all-themes.css" rel="stylesheet" />
-
-    <link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
-    <script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
-
-    <link href="css/left_menu.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="assets/custom js/baseline-survey.js"></script>
-    <script src="ckeditor/ckeditor.js"></script>
-    <style>
-        #links a {
-            color: #FFFFFF;
-            text-decoration: none;
+            if ($enumtype == 1) {
+                $enumeratortype = "In-house";
+            } else {
+                $enumeratortype = "Out-Sourced";
+            }
         }
-    </style>
-</head>
+		$pageTitle = "Survey Form Preview";
+    } catch (PDOException $ex) {
 
-<body class="theme-blue">
-    <!-- Page Loader --
-<div class="page-loader-wrapper">
-    <div class="loader">
-        <div class="preloader">
-            <div class="spinner-layer pl-red">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
-        </div>
-        <p>Please wait...</p>
-    </div>
-</div>
-<!-- #END# Page Loader -->
-    <!-- Overlay For Sidebars -->
-    <div class="overlay"></div>
-    <!-- #END# Overlay For Sidebars -->
-    <!-- Top Bar -->
-    <nav class="navbar" style="height:69px; padding-top:-10px">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-                <a href="javascript:void(0);" class="bars"></a>
-                <img src="images/logo.png" alt="logo" width="239" height="39">
-            </div>
-            
-        </div>
-    </nav>
-    <!-- #Top Bar -->
-    <section>
-        <!-- Left Sidebar -->
-        <aside id="leftsidebar" class="sidebar">
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="image">
-                    <img src="images/user.png" width="48" height="48" alt="User" />
-                </div>
-                <?php
-                include_once("includes/user-info.php");
-                ?>
-            </div>
-            <!-- #User Info -->
-            <!-- Menu -->
-            <?php
-            include_once("includes/sidebar.php");
-            ?>
-            <!-- #Menu -->
-            <!-- Footer -->
-            <div class="legal">
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-                    ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-                </div>
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-                    Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
-                </div>
-            </div>
-            <!-- #Footer -->
-        </aside>
-        <!-- #END# Left Sidebar -->
-    </section>
+        function flashMessage($flashMessages)
+        {
+            return $flashMessages;
+        }
 
-    <section class="content" style="margin-top:-20px; padding-bottom:0px">
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
+?>
+    <!-- start body  -->
+    <section class="content">
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader"><i class="fa fa-plus" aria-hidden="true"></i> Project Baseline Survey Form
-				<button class="btn btn-warning waves-effect waves-light pull-right" style="margin-right:10px" onclick="history.back()">
-					Go back
-				</button>
+                <h4 class="contentheader">
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
+                    <div class="btn-group" style="float:right">
+                        <div class="btn-group" style="float:right">
+                            <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+                                Go Back
+                            </button>
+                        </div>
+                    </div>
                 </h4>
             </div>
-            <!-- Draggable Handles -->
             <div class="row clearfix">
                 <div class="block-header">
-                    <?php
-                    echo $results;
-                    ?>
+                    <?= $results; ?>
                 </div>
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
-                        <!-- <div class="body"> -->
-                        <?php
-                        include_once('preview-project-survey-form-inner.php');
-                        ?>
-                        <!--</div> -->
+                        <div class="card-header">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+								<ul class="list-group">
+									<li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
+									<li class="list-group-item"><strong>Project <?= $formtype ?> : </strong> <?= $resultstobemeasured ?> </li>
+									<li class="list-group-item"><strong>Indicator: </strong> <?= $indname ?> </li>
+									<li class="list-group-item"><strong>Unit of Measure: </strong> <?= $unit ?> </li>
+									<li class="list-group-item"><strong>Source of Data: </strong> <?= $datasource ?> </li>
+									<li class="list-group-item"><strong>Calculation Method: </strong> <?= $calculation_method ?> </li>
+								</ul>
+							</div>
+                        </div>
+                        <div class="body">
+                            <div class="row clearfix">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<label for="" id="" class="control-label">Target Respondents Description *:</label>
+										<div class="form-input">
+											<div class="form-control"><?php echo $targetdescription; ?></div>
+										</div>
+									</div>
+                                    <?php
+                                    if ($data_source  == 1) {
+                                    ?>
+                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="">
+                                            <label for="" id="" class="control-label">Sample Size Per Location:</label>
+                                            <div class="form-input">
+                                                <div class="form-control"><?php echo $sample; ?></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <label class="control-label"><strong>Main Question: </strong></label>
+											<?php
+											if($resultstype == 2){
+												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=1 ORDER BY id ASC");
+											}else{
+												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=1 ORDER BY id ASC");
+											}
+											$query_questions->execute(array(":projid" => $projid));
+											$row = $query_questions->fetch();
+											$answertype = $row["answertype"];
+											
+											if($answertype == 1){$answername = "Number";} elseif($answertype == 2){$answername = "Multiple Choice";} elseif($answertype == 3){$answername = "Checkboxes";} elseif($answertype == 4){$answername = "Dropdown";} elseif($answertype == 5){$answername = "Text";} elseif($answertype == 6){$answername = "File Upload";}
+											
+											?>
+                                            <div>
+                                                <table class="table table-bordered table-striped table-hover dataTable">
+                                                    <thead>
+                                                        <tr>
+														
+															<th width="60%">Question</th>
+															<th width="15%">Answer Type</th>
+															<th width="25%">Answer Labels</th>
+														
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+														$question = '<td>' . $row['question'] . '</td>';
+														$answerdatatype = '<td>' . $answername . '</td>';
+														$answerlabel = "";
+															
+														if($answertype == 1){$answername = "Number";} elseif($answertype == 2){$answername = "Multiple Choice";} elseif($answertype == 3){$answername = "Checkboxes";} elseif($answertype == 4){$answername = "Dropdown";} elseif($answertype == 5){$answername = "Text";} elseif($answertype == 6){$answername = "File Upload";}
+														
+														$question = '<td>' . $row['question'] . '</td>';
+														$answerdatatype = '<td>' . $answername . '</td>';
+														$answerlabel = '<td>N/A</td>';
+														if($answertype == 2 || $answertype == 3 || $answertype == 4){
+															$answerlabel = '<td>' . $row['answerlabels'] . '</td>';
+														}
+														$data = $question.$answerdatatype.$answerlabel;
+												
+														echo '
+														<tr>
+															' . $data . '
+														</tr>';
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <label class="control-label"><strong>Other Question/s: </strong></label>
+											<?php
+											if($resultstype == 2){
+												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=2 ORDER BY id ASC");
+											}else{
+												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=2 ORDER BY id ASC");
+											}
+											$query_questions->execute(array(":projid" => $projid));
+											
+											?>
+                                            <div>
+                                                <table class="table table-bordered table-striped table-hover dataTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:5%">#</th>
+															<th width="55%">Question</th>
+															<th width="15%">Answer Type</th>
+															<th width="25%">Answer Labels</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $counter = 0;
+                                                        while ($row = $query_questions->fetch()) {
+                                                            $counter++;
+															$count = '<td>' .$counter.'</td>';
+															$answertype = $row["answertype"];
+															
+															if($answertype == 1){$answername = "Number";} elseif($answertype == 2){$answername = "Multiple Choice";} elseif($answertype == 3){$answername = "Checkboxes";} elseif($answertype == 4){$answername = "Dropdown";} elseif($answertype == 5){$answername = "Text";} elseif($answertype == 6){$answername = "File Upload";}
+															
+															$question = '<td>' . $row['question'] . '</td>';
+															$answerdatatype = '<td>' . $answername . '</td>';
+															$answerlabel = '<td>N/A</td>';
+															if($answertype == 2 || $answertype == 3 || $answertype == 4){
+																$answerlabel = '<td>' . $row['answerlabels'] . '</td>';
+															}
+															$data = $count.$question.$answerdatatype.$answerlabel;
+													
+															echo '
+															<tr>
+																' . $data . '
+															</tr>';
+                                                        }
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    <?php
+                                    } else {
+                                    ?>
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <label for="" id="" class="control-label">Key Question:</label>
+                                            <div class="form-input">
+                                                <div class="form-control"><?php echo $unit . " of " . $indname; ?></div>
+                                            </div>
+                                        </div>
+                                    <?php
+                                    }
+                                    ?>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <label>Enumerator Type *:</label>
+                                        <div class="form-line">
+                                            <div class="form-control"><?php echo $enumeratortype; ?></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <label for="" id="" class="control-label">Survey Start Date *:</label>
+                                        <div class="form-input">
+                                            <div class="form-control"><?php echo $startdate; ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <label for="" id="" class="control-label">Survey End Date *:</label>
+                                        <div class="form-input">
+                                            <div class="form-control"><?php echo $enddate; ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
     </section>
+    <!-- end body  -->
+<?php
+} else {
+    $results =  restriction();
+    echo $results;
+}
 
-    <!-- Jquery Core Js -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-
-    <!-- Bootstrap Core Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script>
-
-    <!-- Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script>
-
-    <!-- Multi Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/multi-select/js/jquery.multi-select.js"></script>
-
-    <!-- Slimscroll Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-
-    <!-- Waves Effect Plugin Js -->
-    <script src="projtrac-dashboard/plugins/node-waves/waves.js"></script>
-
-    <!-- Sweet Alert Plugin Js -->
-    <script src="projtrac-dashboard/plugins/sweetalert/sweetalert.min.js"></script>
-
-    <!-- Autosize Plugin Js -->
-    <script src="projtrac-dashboard/plugins/autosize/autosize.js"></script>
-
-    <!-- Moment Plugin Js -->
-    <script src="projtrac-dashboard/plugins/momentjs/moment.js"></script>
-
-    <!-- Jquery DataTable Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-datatable/jquery.dataTables.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.flash.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/jszip.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/pdfmake.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/vfs_fonts.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.html5.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.print.min.js"></script>
-
-    <!-- Custom Js -->
-    <script src="projtrac-dashboard/js/pages/tables/jquery-datatable.js"></script>
-    <script src="projtrac-dashboard/js/admin2.js"></script>
-    <script src="projtrac-dashboard/js/pages/forms/basic-form-elements.js"></script>
-    <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
-
-    <!-- Demo Js -->
-    <script src="projtrac-dashboard/js/demo.js"></script>
-    <script src="assets/custom js/indicator-details.js"></script>
-
-</body>
-
-</html>
+require('includes/footer.php');
+?>

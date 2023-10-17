@@ -165,7 +165,7 @@ function validate_projcode() {
   if (projcode != "") {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: "projcode=" + projcode,
       dataType: "json",
       success: function (response) {
@@ -381,7 +381,7 @@ function get_financial_year(projfscyear1) {
   if (progendyear != "" && projfscyear1 != "") {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: "getyear=" + projfscyear1,
       dataType: "json",
       success: function (response) {
@@ -421,7 +421,7 @@ function get_community(comm) {
   if (comm) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: `get_comm=${comm}`,
       dataType: "html",
       success: function (response) {
@@ -437,7 +437,7 @@ function get_conservancy(scID) {
   if (scID) {
     $.ajax({
       type: "POST",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: "getward=" + scID,
       dataType: "html",
       success: function (html) {
@@ -473,7 +473,7 @@ function ecosystem() {
 function get_ecosystem(ward) {
   $.ajax({
     type: "POST",
-    url: "assets/processor/add-project-process.php",
+    url: "assets/processor/add-project-process",
     data: "getlocation=" + ward,
     success: function (html) {
       $("#projstate").html(html);
@@ -489,7 +489,7 @@ function get_hlevel2(ward) {
   if (ward) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: { get_ward: ward, conservancy: conservancy },
       dataType: "html",
       success: function (response) {
@@ -521,7 +521,7 @@ function get_hlevel3(state) {
   if (state) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: { get_level3: state, level2: level2 },
       dataType: "html",
       success: function (response) {
@@ -543,7 +543,7 @@ function get_hlevel3(state) {
 function get_output_table() {
 	$.ajax({
 		type: "post",
-		url: "assets/processor/add-project-process.php",
+		url: "assets/processor/add-project-process",
 		data: "getOutputTable",
 		dataType: "html",
 		success: function (response) {
@@ -665,7 +665,7 @@ function delete_row_output(rowno) {
     if (handler) {
       $.ajax({
         type: "post",
-        url: "assets/processor/add-project-process.php",
+        url: "assets/processor/add-project-process",
         data: { deleteItem: "deleteItem", itemId: outputIdsTrue },
         dataType: "json",
         success: function (response) {
@@ -725,7 +725,7 @@ function getoutput(rowno) {
   if (projendYear) {
     $.ajax({
       type: "POST",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getprojoutput: "getprojoutput",
         outprojstartYear: projstartYear,
@@ -778,7 +778,7 @@ function getIndicator(rowno) {
   if (outputid) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getIndicator: outputid,
         getIndicatorProgid: progid
@@ -839,7 +839,7 @@ function output_year(rowno) {
   if (projstate) {
     $.ajax({
       type: "POST",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         projoutputYear: "projoutputYear",
         opprojstartYear: projstartYear,
@@ -912,7 +912,7 @@ function edit_output_details(projstate, opid, rowno) {
   if (projstate && opid) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getprojectOutputData: "getprojectOutputData",
         outputids: opid,
@@ -1009,7 +1009,7 @@ function output_year_change() {
 function get_op_year(outputYear, projendyear) {
   $.ajax({
     type: "post",
-    url: "assets/processor/add-project-process.php",
+    url: "assets/processor/add-project-process",
     data: {
       getYear: outputYear
     },
@@ -1036,7 +1036,7 @@ function get_op_year(outputYear, projendyear) {
 function get_op_budget_ceil(indicatorid, progid, outputYear) {
   $.ajax({
     type: "post",
-    url: "assets/processor/add-project-process.php",
+    url: "assets/processor/add-project-process",
     data: {
       getoutputBudget: "budget",
       indicatorid: indicatorid,
@@ -1351,7 +1351,7 @@ function get_state(rowno, type) {
   var projstate = $("#projstate").val();
   $.ajax({
     type: "post",
-    url: "assets/processor/add-project-process.php",
+    url: "assets/processor/add-project-process",
     data: "get_location=" + projstate,
     dataType: "html",
     success: function (response) {
@@ -1571,7 +1571,7 @@ function get_total_target_ceiling() {
   if (opduration != "") {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         get_target_bal: "new_bal",
         progid: progid,
@@ -1623,7 +1623,7 @@ $("#addprojoutput").submit(function (e) {
   if (diss_target_handler) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: form_data,
       dataType: "json",
       success: function (response) {
@@ -1685,7 +1685,7 @@ function states_auto_val() {
     if (outputIds.length > 0) {
       $.ajax({
         type: "post",
-        url: "assets/processor/add-project-process.php",
+        url: "assets/processor/add-project-process",
         data: { projstate: projstate, outputIds: outputIds, validate_state: "val_state" },
         dataType: "json",
         success: function (response) {
@@ -1748,7 +1748,7 @@ function getcost() {
   if (outputIds.length > 0) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getprojcost: "getprojcost",
         outputDispId: outputIds
@@ -1801,7 +1801,7 @@ function getMeasurements(id) {
   if (id) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: "opdiss=" + id,
       dataType: "html",
       success: function (response) {
@@ -1886,7 +1886,7 @@ function get_op_target_div(id) {
   if (id) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         get_target_div: "get_target_div",
         outputid: id,
@@ -1987,7 +1987,7 @@ function delete_one_output(opid) {
   if (opid) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: { deleteItem: "deleteItem", itemid: opid },
       dataType: "json",
       success: function (response) {
@@ -2015,7 +2015,7 @@ function delete_all_outputs() {
   if (outputIds.length > 0) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: { deleteItems: "deleteItems", itemIds: outputIds },
       dataType: "json",
       success: function (response) {
@@ -2062,7 +2062,7 @@ const project_lead_implementor = () => {
   if (projleadimplementor) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getImplementingPartner: "implementingPartner",
         leadImplementor: projleadimplementor
@@ -2121,7 +2121,7 @@ const project_implementing_partner = () => {
   if (data) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getcollaborativepratner: "collaborative",
         leadImpl: projleadimplementor,
@@ -2250,7 +2250,7 @@ function getFinanciers(rowno) {
   var financier = "#financerow" + rowno;
   $.ajax({
     type: "post",
-    url: "assets/processor/add-project-process.php",
+    url: "assets/processor/add-project-process",
     data: {
       getfinancier: progid
     },
@@ -2298,7 +2298,7 @@ function financeir_celing(rowno) {
   if (finance) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         finance: "finance",
         sourcecategory: finance,
@@ -2557,7 +2557,7 @@ function get_total_ouptu_cost(outputIds) {
   if (outputIds) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getprojcost: "getprojcost",
         outputDispId: outputIds
@@ -2581,7 +2581,7 @@ function output_details_display() {
   if (outputIds.length > 0) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: {
         getoutputDetailsDisp: "getdetails",
         outputDispId: outputIds
@@ -2702,7 +2702,7 @@ function get_ind_state_val(id) {
   if (id) {
     $.ajax({
       type: "post",
-      url: "assets/processor/add-project-process.php",
+      url: "assets/processor/add-project-process",
       data: "get_ind_state_val=" + id,
       dataType: "html",
       success: function (response) {

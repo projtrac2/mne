@@ -1,14 +1,5 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
     try {
         $query_rsUsers =  $db->prepare("SELECT * FROM tbl_projteam2 t inner join tbl_users u on u.pt_id=t.ptid WHERE u.username = '$username'");
@@ -32,8 +23,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -50,7 +41,7 @@ if ($permission) {
                                 <a href="project-milestones-payment" class="btn bg-light-blue waves-effect" style="margin-top:10px">Contractor</a>
                                 <a href="project-inhouse-payment" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">In House</a>
                                 <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Completion Certificates</a>
-                                <a href="paymentsreport" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>
+                                <!--<a href="paymentsreport" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>-->
                             </div>
                         </div>
                     </div>

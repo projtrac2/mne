@@ -2,13 +2,8 @@
 
 include_once "controller.php";
 
-try{
-	//$currentmonth = date("m");
-	$currentyr = date("Y");
-	/* if($currentmonth < 7){
-		$currentyr = $currentyr - 1;
-	} */
-		
+try{ 
+	$currentyr = date("Y");		
 	$nextyr = $currentyr + 1;
 	$currentfy = $currentyr."/".$nextyr;
 	$plan= $_GET["sp"];
@@ -92,40 +87,32 @@ try{
 							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>							
 						</ul> 
 					</div>';
-				} else {
-					$status = "Pending ADP";
-					/* $currentYear = '';
-					$month =  date('m');
-					if ($month  < 7) {
-						$currentYear =  date("Y") - 1;
-					} else {
-						$currentYear =  date("Y");
-					} */
-					$approve=''; 
-					$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">'.$status.'</label>';
-					//$active = "<label class='label label-danger'>".$status."</label>";
-					
-					$approve .='
-					<li>
-						<a type="button" href="strategic-plan-projects?adp=1&proj='.$itemId.'" onclick="return confirm(\'Are you sure you want to add this project to ' . $currentfy . ' ADP?\')">
-							<i class="glyphicon glyphicon-plus"></i> Add to ADP
-						</a>
-					</li>';
-					 
+				} else { 
+					if($role_group == 2 && $designation == 7){
+							$status = "Pending ADP"; 
+							$approve=''; 
+							$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">'.$status.'</label>';
+							$approve .='
+							<li>
+								<a type="button" href="strategic-plan-projects?adp=1&proj='.$itemId.'" onclick="return confirm(\'Are you sure you want to add this project to ' . $currentfy . ' ADP?\')">
+									<i class="glyphicon glyphicon-plus"></i> Add to ADP
+								</a>
+							</li>';
+						}
+						
 					$button = '<!-- Single button -->
-					<div class="btn-group">
-						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							Options <span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu">
-						'.$approve.
-						'
-							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>     
-						</ul>
-					</div>';
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Options <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+							'.$approve.'
+								<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>     
+							</ul>
+						</div>';
+
 				}
 				$active .= '<script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>';
-				
 				$output['data'][] = array(
 					$sn,
 					$projname,
@@ -162,6 +149,5 @@ try{
 	}
 
 } catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	print($ex->getMessage());
+	$result = flashMessage("An error occurred: " .$ex->getMessage()); 
 }

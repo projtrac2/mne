@@ -11,7 +11,7 @@ $(document).ready(function () {
 
   $("#tag-form-submit").click(function (e) {
     e.preventDefault();
-    var formData = $("#submitMilestoneForm").serialize(); 
+    var formData = $("#submitMilestoneForm").serialize();
     $.ajax({
       type: "POST",
       url: "assets/processor/add-project-map-location-assign-process",
@@ -39,10 +39,11 @@ function sweet_alert(err, msg) {
     title: err,
     text: msg,
     type: "Error",
+    icon: 'error',
     timer: 5000,
     showConfirmButton: false,
   });
-  setTimeout(function () {}, 2000);
+  setTimeout(function () { }, 2000);
 }
 
 function more(projid, opid, dissagragated) {
@@ -153,10 +154,9 @@ function get_responsible(rowno) {
 function validate_date($rowno) {
   var today = new Date().setHours(0, 0, 0, 0);
   var chosen = new Date($("#mdate" + $rowno).val()).setHours(0, 0, 0, 0);
-  if (today >= chosen) {
+  if (chosen < today) {
     $("#mdate" + $rowno).val("");
     var msg = "Date should be greater than today";
-    // sweet_alert("Error", msg);
-    alert(msg);
+    sweet_alert("Error", msg);
   }
 }

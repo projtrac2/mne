@@ -32,10 +32,21 @@ if ($rows_count > 0) {
 
 		$name = $row["name"];
 		$description = $row["description"];
+		$category ="";
+		$group =  $row["grp"];
+		if($group == 1){
+			$category = "Administrative/Operational Cost";
+		}else if($group == 2){
+			$category = "Non Expendable Equipment Cost";
+		}else if($group == 3){
+			$category = "Other Cost Lines";
+		}
+
 		$output['data'][] = array(
 			$sn,
 			$name,
 			$description,
+			$category,
 			$active,
 			$button
 		);

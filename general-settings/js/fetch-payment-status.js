@@ -97,7 +97,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-payment-status-item.php",
+      url: "general-settings/selected-items/fetch-selected-payment-status-item",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -166,7 +166,7 @@ function editItem(itemId = null) {
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/project-payment-status-action.php",
+                url: "general-settings/action/project-payment-status-action",
                 type: "post",
                 data: formData,
                 dataType: "json",

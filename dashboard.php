@@ -1,22 +1,26 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-
 if ($permission) {
-    $pageTitle = "General Dashboard";
     try {
-        function projfy()
+        $accesslevel = "";
+        if (($user_designation < 5)) {
+            $accesslevel = "";
+        } elseif ($user_designation == 5) {
+            $accesslevel = " AND g.projsector=$user_department";
+        } elseif ($user_designation == 6) {
+            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section";
+        } elseif ($user_designation > 6) {
+            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
+        }
+
+        function projfy($prjfyfrom)
         {
             global $db;
             $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year");
             $projfy->execute();
             while ($row = $projfy->fetch()) {
-                echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
+				$selected = $row['id'] == $prjfyfrom ? "selected" : "";
+                echo '<option value="' . $row['id'] . '" '.$selected.'>' . $row['year'] . '</option>';
             }
         }
 
@@ -44,122 +48,93 @@ if ($permission) {
         $totalRows_rsComm = $query_rsComm->rowCount();
 
         $status_array = array(
-            'all' => array('stage' => '', "status" => ''),
-            'complete' => array('stage' => '', "status" => 5),
-            'in-progress' => array('stage' => '= 10', "status" => 4),
-            'pending' => array('stage' => '> 6', "status" => '0'),
-            'behind-schedule' => array('stage' => '=10', "status" => 11),
-            'approved' => array('stage' => '< 7', "status" => '0'),
-            'on-hold' => array('stage' => '= 10', "status" => 6),
-            'cancelled' => array('stage' => '= 10', "status" => 2),
+            'all' => array("status" => ''),
+            'complete' => array("status" => 5),
+            'on-track' => array("status" => 4),
+            'pending' => array("status" => 3),
+            'behind-schedule' => array("status" => 11),
+            'awaiting-procurement' => array("status" => 1),
+            'on-hold' => array("status" => 6),
+            'cancelled' => array("status" => 2),
         );
 
-        function widgets_filter($from = null, $to = null, $level1 = null, $level2 = null, $level3 = null, $prjstatus)
+        function widgets_filter($from = null, $to = null, $level1 = null, $level2 = null, $prjstatus, $accesslevel = "")
         {
             $widget_array = '';
             if ($from != null) {
                 if ($to != null) {
                     if ($level1 != null) {
                         if ($level2 != null) {
-                            if ($level3 != null) {
-                                // select for only from, to, level 1, 2 and 3
-                                $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
-                                $widget_array = widgets($sql, $level1, $level2, $level3, $prjstatus);
-                                $department_projects = project_vs_department_distribution($sql, $level1, $level2, $level3, $prjstatus);
-                                $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $level3, $prjstatus);
-                                $tender_projects = projects_vs_tender_category($sql, $level1, $level2, $level3, $prjstatus);
-                                $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $level3, $prjstatus);
-                            } else {
-                                // select for only from, to, level 1 and 2
-                                $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
-                                $widget_array = widgets($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $department_projects = project_vs_department_distribution($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $tender_projects = projects_vs_tender_category($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $level3 = null, $prjstatus);
-                            }
+							// select for only from, to, level 1 and 2
+							$sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
+							$widget_array = widgets($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$department_projects = project_vs_department_distribution($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$tender_projects = projects_vs_tender_category($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $prjstatus, $accesslevel);
                         } else {
                             // select for only from, to and level 1
                             $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
-                            $widget_array = widgets($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $department_projects = project_vs_department_distribution($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $tender_projects = projects_vs_tender_category($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
+                            $widget_array = widgets($sql, $level1, $level2 = null, $level3 = null, $prjstatus, $accesslevel);
+                            $department_projects = project_vs_department_distribution($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $tender_projects = projects_vs_tender_category($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
                         }
                     } else {
                         // select for only from, to and to
                         $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
-                        $widget_array = widgets($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $department_projects = project_vs_department_distribution($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $budget_data = project_cost_vs_department_distribution($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_projects = projects_vs_tender_category($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_cost = projects_cost_vs_tender_category($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
+                        $widget_array = widgets($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $department_projects = project_vs_department_distribution($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $budget_data = project_cost_vs_department_distribution($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_projects = projects_vs_tender_category($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_cost = projects_cost_vs_tender_category($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
                     }
                 } else {
                     if ($level1 != null) {
                         if ($level2 != null) {
-                            if ($level3 != null) {
-                                // select for only from, level 1, 2 and 3
-                                $sql = "p.projfscyear >=" . $from;
-                                $widget_array = widgets($sql, $level1, $level2, $level3, $prjstatus);
-                                $department_projects = project_vs_department_distribution($sql, $level1, $level2, $level3, $prjstatus);
-                                $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $level3, $prjstatus);
-                                $tender_projects = projects_vs_tender_category($sql, $level1, $level2, $level3, $prjstatus);
-                                $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $level3, $prjstatus);
-                            } else {
-                                // select for only from, level 1 and 2
-                                $sql = "p.projfscyear >=" . $from;
-                                $widget_array = widgets($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $department_projects = project_vs_department_distribution($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $tender_projects = projects_vs_tender_category($sql, $level1, $level2, $level3 = null, $prjstatus);
-                                $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $level3 = null, $prjstatus);
-                            }
+							// select for only from, level 1 and 2
+							$sql = "p.projfscyear >=" . $from;
+							$widget_array = widgets($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$department_projects = project_vs_department_distribution($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$budget_data = project_cost_vs_department_distribution($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$tender_projects = projects_vs_tender_category($sql, $level1, $level2, $prjstatus, $accesslevel);
+							$tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2, $prjstatus, $accesslevel);
                         } else {
                             // select for only from and level 1
                             $sql = "p.projfscyear >=" . $from;
-                            $widget_array = widgets($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $department_projects = project_vs_department_distribution($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $tender_projects = projects_vs_tender_category($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
-                            $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2 = null, $level3 = null, $prjstatus);
+                            $widget_array = widgets($sql, $level1, $level2 = null, $level3 = null, $prjstatus, $accesslevel);
+                            $department_projects = project_vs_department_distribution($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $budget_data = project_cost_vs_department_distribution($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $tender_projects = projects_vs_tender_category($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
+                            $tender_cost = projects_cost_vs_tender_category($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
                         }
                     } else {
                         // select for only from
                         $sql = "p.projfscyear >=" . $from;
-                        $widget_array = widgets($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $department_projects = project_vs_department_distribution($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $budget_data = project_cost_vs_department_distribution($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_projects = projects_vs_tender_category($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_cost = projects_cost_vs_tender_category($sql, $level1 = null, $level2 = null, $level3 = null, $prjstatus);
+                        $widget_array = widgets($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $department_projects = project_vs_department_distribution($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $budget_data = project_cost_vs_department_distribution($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_projects = projects_vs_tender_category($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_cost = projects_cost_vs_tender_category($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
                     }
                 }
             } else {
                 if ($level1 != null) {
                     if ($level2 != null) {
-                        if ($level3 != null) {
-                            // select for only level 1, 2 and 3
-                            $widget_array = widgets($sql = null, $level1, $level2, $level3, $prjstatus);
-                            $department_projects = project_vs_department_distribution($sql = null, $level1, $level2, $level3, $prjstatus);
-                            $budget_data = project_cost_vs_department_distribution($sql = null, $level1, $level2, $level3, $prjstatus);
-                            $tender_projects = projects_vs_tender_category($sql = null, $level1, $level2, $level3, $prjstatus);
-                            $tender_cost = projects_cost_vs_tender_category($sql = null, $level1, $level2, $level3, $prjstatus);
-                        } else {
-                            // select for only level 1 and 2
-                            $widget_array = widgets($sql = null, $level1, $level2, $level3 = null, $prjstatus);
-                            $department_projects = project_vs_department_distribution($sql = null, $level1, $level2, $level3 = null, $prjstatus);
-                            $budget_data = project_cost_vs_department_distribution($sql = null, $level1, $level2, $level3 = null, $prjstatus);
-                            $tender_projects = projects_vs_tender_category($sql = null, $level1, $level2, $level3 = null, $prjstatus);
-                            $tender_cost = projects_cost_vs_tender_category($sql = null, $level1, $level2, $level3 = null, $prjstatus);
-                        }
+						// select for only level 1 and 2
+						$widget_array = widgets($sql = null, $level1, $level2, $level3 = null, $prjstatus);
+						$department_projects = project_vs_department_distribution($sql = null, $level1, $level2, $prjstatus, $accesslevel);
+						$budget_data = project_cost_vs_department_distribution($sql = null, $level1, $level2, $prjstatus, $accesslevel);
+						$tender_projects = projects_vs_tender_category($sql = null, $level1, $level2, $prjstatus, $accesslevel);
+						$tender_cost = projects_cost_vs_tender_category($sql = null, $level1, $level2, $prjstatus, $accesslevel);
                     } else {
                         // select for only level 1
-                        $widget_array = widgets($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus);
-                        $department_projects = project_vs_department_distribution($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus);
-                        $budget_data = project_cost_vs_department_distribution($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_projects = projects_vs_tender_category($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus);
-                        $tender_cost = projects_cost_vs_tender_category($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus);
+                        $widget_array = widgets($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
+                        $department_projects = project_vs_department_distribution($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
+                        $budget_data = project_cost_vs_department_distribution($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_projects = projects_vs_tender_category($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
+                        $tender_cost = projects_cost_vs_tender_category($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
                     }
                 }
             }
@@ -174,32 +149,26 @@ if ($permission) {
             );
         }
 
-        function widgets($query = null, $level1 = null, $level2 = null, $level3 = null)
+        function widgets($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel = null)
         {
             global $status_array, $db;
             $widgets = array();
             foreach ($status_array as $key => $project_status) {
-                $stage = $project_status['stage'];
                 $status = $project_status['status'];
                 $stmt = '';
-                if ($status != '' && $stage != '') {
-                    $stmt = "projstatus =" . $status . ' AND projstage ' . $stage;
-                } else if ($status != '' && $stage == '') {
+                if ($status != '') {
                     $stmt = "projstatus =" . $status;
-                } else if ($status == '' && $stage != '') {
-                    $stmt = 'projstage ' . $stage;
                 }
 
-                $where = $stmt != "" ? "AND " . $stmt : "";
+                $where = $stmt != "" ? $accesslevel . " AND " . $stmt : $accesslevel;
                 $where = $query != null ? $where . " AND " . $query : $where;
 
-                $sql = "SELECT * FROM tbl_projects p INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid  WHERE d.status = 1 and deleted = '0' " . $where;
-                // echo $sql . "<br/>";
+                $sql = "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 and p.deleted = '0' " . $where;
                 $query_rsprojects = $db->prepare($sql);
                 $query_rsprojects->execute();
                 $row_projects = $query_rsprojects->fetch();
                 $allprojects = $query_rsprojects->rowCount();
-                // echo $sql . "  Status = " . $key  . "  projects count  " . $allprojects . "<br/> ";
+
 
                 if ($allprojects > 0) {
                     if ($level1 != null) {
@@ -207,17 +176,10 @@ if ($permission) {
                         do {
                             $projcommunity = explode(",", $row_projects['projcommunity']);
                             $projlga = explode(",", $row_projects['projlga']);
-                            $projstate = explode(",", $row_projects['projstate']);
 
                             if ($level2 != null) {
-                                if ($level3 != null) {
-                                    if (in_array($level3, $projstate)) {
-                                        $count_projects += 1;
-                                    }
-                                } else {
-                                    if (in_array($level2, $projlga)) {
-                                        $count_projects += 1;
-                                    }
+                                if (in_array($level2, $projlga)) {
+                                    $count_projects += 1;
                                 }
                             } else {
                                 if (in_array($level1, $projcommunity)) {
@@ -236,7 +198,7 @@ if ($permission) {
             return $widgets;
         }
 
-        function project_cost_vs_department_distribution($query = null, $level1 = null, $level2 = null, $level3 = null, $projstatus = null)
+        function project_cost_vs_department_distribution($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel = null)
         {
             global $db;
             $query_rsDepartments = $db->prepare("SELECT * FROM tbl_sectors WHERE parent=0 ORDER BY sector ASC");
@@ -245,67 +207,65 @@ if ($permission) {
             $totalRows_rsDepartments = $query_rsDepartments->rowCount();
             $rate = [];
             if ($totalRows_rsDepartments > 0) {
-                $where = "";
+                $where =  $accesslevel;
                 $where  = $query != null ? $where . " AND " . $query : $where;
                 $budget_data = "";
                 do {
                     $stid = $row_rsDepartments['stid'];
                     $sector = $row_rsDepartments['sector'];
-                    $sql = "SELECT  * FROM tbl_projects p
-                    INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid 
-                    INNER JOIN tbl_programs g ON p.progid= g.progid  
-                    WHERE d.status = 1  AND g.projsector='$stid'  $where";
+                    $sql = "SELECT * FROM tbl_projects p
+                    INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid
+                    INNER JOIN tbl_programs g ON p.progid= g.progid
+                    WHERE d.status = 1 AND p.projstage > 7 AND g.program_type=1 AND g.projsector='$stid' $where";
                     $query_rsprojects = $db->prepare($sql);
                     $query_rsprojects->execute();
-                    $row_projects = $query_rsprojects->fetch();
                     $allprojects = $query_rsprojects->rowCount();
                     $count_projects = 0;
                     $k = $p = 0;
 
                     if ($allprojects > 0) {
-                        do {
+                        while ($row_projects = $query_rsprojects->fetch()) {
                             $projcommunity = explode(",", $row_projects['projcommunity']);
                             $projlga = explode(",", $row_projects['projlga']);
-                            $projstate = explode(",", $row_projects['projstate']);
                             $projid = $row_projects['projid'];
 
-                            $query_rsApprovedCost = $db->prepare("SELECT  sum(amount) as amount FROM tbl_project_approved_yearly_budget WHERE projid=$projid ");
+                            $query_rsApprovedCost = $db->prepare("SELECT sum(amount) as amount FROM tbl_project_approved_yearly_budget WHERE projid=$projid");
                             $query_rsApprovedCost->execute();
                             $row_rsApprovedCost = $query_rsApprovedCost->fetch();
                             $totalRows_rsApprovedCost = $query_rsApprovedCost->rowCount();
 
-                            $query_rsPayouts = $db->prepare("SELECT sum(amountpaid) as amount FROM tbl_payments_disbursed WHERE projid=$projid");
+                            $query_rsPayouts = $db->prepare("SELECT sum(amount_requested) as amount FROM tbl_payments_request WHERE status=3 AND projid=$projid");
                             $query_rsPayouts->execute();
                             $row_rsPayouts = $query_rsPayouts->fetch();
                             $totalRows_rsPayouts = $query_rsPayouts->rowCount();
                             $amount_paid = $row_rsPayouts['amount'];
                             $amount_approved = $row_rsApprovedCost['amount'];
-                            if ($amount_approved > 0 && $amount_paid > 0) {
-                                if ($level1 != null) {
-                                    if ($level2 != null) {
-                                        if ($level3 != null) {
-                                            if (in_array($level3, $projstate)) {
-                                                $k += $amount_paid;
-                                                $p += $amount_approved;
-                                            }
-                                        } else {
-                                            if (in_array($level2, $projlga)) {
-                                                $k += $amount_paid;
-                                                $p += $amount_approved;
-                                            }
-                                        }
-                                    } else {
-                                        if (in_array($level1, $projcommunity)) {
-                                            $k += $amount_paid;
-                                            $p += $amount_approved;
-                                        }
+
+                            $query_contracor_payouts = $db->prepare("SELECT sum(requested_amount) as amount FROM tbl_contractor_payment_requests WHERE status=3 AND projid=$projid");
+                            $query_contracor_payouts->execute();
+                            $row_contracor_payouts = $query_contracor_payouts->fetch();
+                            $totalRows_contracor_payouts = $query_contracor_payouts->rowCount();
+                            $cont_amount_paid = $row_contracor_payouts['amount'];
+
+                            $amount_paid = $amount_paid + $cont_amount_paid;
+
+                            if ($level1 != null) {
+                                if ($level2 != null) {
+                                    if (in_array($level2, $projlga)) {
+                                        $k += $amount_paid;
+                                        $p += $amount_approved;
                                     }
                                 } else {
-                                    $k += $amount_paid;
-                                    $p += $amount_approved;
+                                    if (in_array($level1, $projcommunity)) {
+                                        $k += $amount_paid;
+                                        $p += $amount_approved;
+                                    }
                                 }
+                            } else {
+                                $k += $amount_paid;
+                                $p += $amount_approved;
                             }
-                        } while ($row_projects = $query_rsprojects->fetch());
+                        }
                     }
                     $rate = ($k != 0 && $p != 0) ? ($k / $p * 100) : 0;
                     $budget_data .= "
@@ -326,7 +286,7 @@ if ($permission) {
             return $budget_data;
         }
 
-        function project_vs_department_distribution($query = null, $level1 = null, $level2 = null, $level3 = null, $projstatus = null)
+        function project_vs_department_distribution($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel)
         {
             global $db;
             $query_rsDepartments = $db->prepare("SELECT * FROM tbl_sectors WHERE parent=0 ORDER BY sector ASC");
@@ -335,14 +295,13 @@ if ($permission) {
             $totalRows_rsDepartments = $query_rsDepartments->rowCount();
             $department_arr = [];
             if ($totalRows_rsDepartments > 0) {
-                $where = "";
+                $where =  $accesslevel;
                 $where  = $query != null ? $where . " AND " . $query : $where;
                 do {
                     $stid = $row_rsDepartments['stid'];
                     $sql = "SELECT * FROM tbl_projects p
-                    INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid
                     INNER JOIN tbl_programs g ON p.progid= g.progid
-                    WHERE d.status = 1  AND g.projsector='$stid' $where";
+                    WHERE projstage > 1  AND g.projsector='$stid' $where";
                     $query_rsprojects = $db->prepare($sql);
                     $query_rsprojects->execute();
                     $row_projects = $query_rsprojects->fetch();
@@ -352,17 +311,10 @@ if ($permission) {
                         do {
                             $projcommunity = explode(",", $row_projects['projcommunity']);
                             $projlga = explode(",", $row_projects['projlga']);
-                            $projstate = explode(",", $row_projects['projstate']);
                             if ($level1 != null) {
                                 if ($level2 != null) {
-                                    if ($level3 != null) {
-                                        if (in_array($level3, $projstate)) {
-                                            $count_projects += 1;
-                                        }
-                                    } else {
-                                        if (in_array($level2, $projlga)) {
-                                            $count_projects += 1;
-                                        }
+                                    if (in_array($level2, $projlga)) {
+                                        $count_projects += 1;
                                     }
                                 } else {
                                     if (in_array($level1, $projcommunity)) {
@@ -380,7 +332,7 @@ if ($permission) {
             return json_encode($department_arr);
         }
 
-        function projects_cost_vs_tender_category($query = null, $level1 = null, $level2 = null, $level3 = null)
+        function projects_cost_vs_tender_category($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel = null)
         {
             global $db;
             $data_no_arr = "[['Tenders', 'Project Amount'],";
@@ -390,12 +342,12 @@ if ($permission) {
             $rows_tender_category = $query_tender_category->fetch();
 
             if ($count_tender_category > 0) {
-                $where = "";
+                $where =  $accesslevel;
                 $where  = $query != null ? $where . " AND " . $query : $where;
                 do {
                     $tender_catid = $rows_tender_category['id'];
                     $t = $rows_tender_category['category'];
-                    $sql = "SELECT * FROM tbl_projects p INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid  WHERE d.status = 1 and deleted = '0' $where ";
+                    $sql = "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage >5 and p.projcategory='2' and p.deleted = '0' $where ";
                     $query_rsprojects = $db->prepare($sql);
                     $query_rsprojects->execute();
                     $row_projects = $query_rsprojects->fetch();
@@ -406,7 +358,6 @@ if ($permission) {
                         do {
                             $projcommunity = explode(",", $row_projects['projcommunity']);
                             $projlga = explode(",", $row_projects['projlga']);
-                            $projstate = explode(",", $row_projects['projstate']);
                             $projid = $row_projects['projid'];
                             $query_tender_projects = $db->prepare("SELECT SUM((unit_cost * units_no)) as totalamt FROM tbl_projects p
                                 INNER JOIN tbl_tenderdetails t  ON p.projtender=t.td_id
@@ -425,14 +376,8 @@ if ($permission) {
                             if ($count_tender_projects > 0) {
                                 if ($level1 != null) {
                                     if ($level2 != null) {
-                                        if ($level3 != null) {
-                                            if (in_array($level3, $projstate)) {
-                                                $n += $amts;
-                                            }
-                                        } else {
-                                            if (in_array($level2, $projlga)) {
-                                                $n += $amts;
-                                            }
+                                        if (in_array($level2, $projlga)) {
+                                            $n += $amts;
                                         }
                                     } else {
                                         if (in_array($level1, $projcommunity)) {
@@ -455,7 +400,7 @@ if ($permission) {
             return $data_no_arr;
         }
 
-        function projects_vs_tender_category($query = null, $level1 = null, $level2 = null, $level3 = null)
+        function projects_vs_tender_category($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel = null)
         {
             global $db;
             $data_no_arr = "[['Tenders', 'Project Number'],";
@@ -465,12 +410,12 @@ if ($permission) {
             $rows_tender_category = $query_tender_category->fetch();
 
             if ($count_tender_category > 0) {
-                $where = "";
+                $where =  $accesslevel;
                 $where  = $query != null ? $where . " AND " . $query : $where;
                 do {
                     $tender_catid = $rows_tender_category['id'];
                     $t = $rows_tender_category['category'];
-                    $sql = "SELECT * FROM tbl_projects p INNER JOIN tbl_annual_dev_plan d ON p.projid= d.projid  WHERE d.status = 1 and deleted = '0' $where ";
+                    $sql = "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage >5 and p.projcategory='2' and p.deleted = '0' $where ";
                     $query_rsprojects = $db->prepare($sql);
                     $query_rsprojects->execute();
                     $row_projects = $query_rsprojects->fetch();
@@ -482,7 +427,6 @@ if ($permission) {
                         do {
                             $projcommunity = explode(",", $row_projects['projcommunity']);
                             $projlga = explode(",", $row_projects['projlga']);
-                            $projstate = explode(",", $row_projects['projstate']);
                             $projid = $row_projects['projid'];
                             $query_tender_projects = $db->prepare("SELECT projid, tt.id FROM tbl_tenderdetails t INNER JOIN tbl_tender_category tt ON t.tendercat=tt.id  INNER JOIN tbl_tender_type tc ON t.tendertype=tc.id AND tt.id='$tender_catid' AND projid='$projid'");
                             $query_tender_projects->execute();
@@ -491,14 +435,8 @@ if ($permission) {
                             if ($count_tender_projects > 0) {
                                 if ($level1 != null) {
                                     if ($level2 != null) {
-                                        if ($level3 != null) {
-                                            if (in_array($level3, $projstate)) {
-                                                $n += 1;
-                                            }
-                                        } else {
-                                            if (in_array($level2, $projlga)) {
-                                                $n += 1;
-                                            }
+                                        if (in_array($level2, $projlga)) {
+                                            $n += 1;
                                         }
                                     } else {
                                         if (in_array($level1, $projcommunity)) {
@@ -522,7 +460,7 @@ if ($permission) {
         }
 
         $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
-        $allprojectsurl = '';
+        $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
         if (isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER") {
             // $prjstatus = $_GET['prjstatus'];
             $prjstatus = '';
@@ -530,36 +468,56 @@ if ($permission) {
             $prjfyto = $_GET['projfyto'];
             $prjsc = $_GET['projscounty'];
             $prjward = $_GET['projward'];
-            $prjloc = $_GET['projlocation'];
-            $allprojectsurl = "&projfyfrom=$prjfyfrom&projfyto=$prjfyto&projscounty=$prjsc&projward=$prjward&projlocation=$prjloc&btn_search=FILTER";
+            $allprojectsurl = "&projfyfrom=$prjfyfrom&projfyto=$prjfyto&projscounty=$prjsc&projward=$prjward&btn_search=FILTER";
             if (empty($prjfyfrom) && empty($prjsc)) {
-                $widget_data = widgets($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-                $project_distribution_data = project_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-                $budget_data = project_cost_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-                $tender_projects = projects_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-                $tender_cost = projects_cost_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
+                $widget_data = widgets($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+                $project_distribution_data = project_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+                $budget_data = project_cost_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+                $tender_projects = projects_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+                $tender_cost = projects_cost_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
             } else {
-                $widget_data1 = widgets_filter($prjfyfrom, $prjfyto, $prjsc, $prjward, $prjloc, $prjstatus);
+                $widget_data1 = widgets_filter($prjfyfrom, $prjfyto, $prjsc, $prjward, $prjstatus, $accesslevel);
                 $widget_data = $widget_data1['widget_data'];
                 $project_distribution_data = $widget_data1['department_projects'];
                 $budget_data = $widget_data1['budget_data'];
                 $tender_projects = $widget_data1['tender_projects'];
                 $tender_cost = $widget_data1['tender_cost'];
             }
+			
+			
+			function projfyto($prjfyfrom, $prjfyto)
+			{
+				global $db;
+				$projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id >= $prjfyfrom");
+				$projfy->execute();
+				while ($row = $projfy->fetch()) {
+					$selected = $row['id'] == $prjfyto ? "selected" : "";
+					echo '<option value="' . $row['id'] . '" '.$selected.'>' . $row['year'] . '</option>';
+				}
+			}
+			
+			function prjward($prjsc, $prjward)
+			{
+				global $db;
+				$projward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=$prjsc ORDER BY state ASC");
+				$projward->execute();
+				while ($row = $projward->fetch()) {
+					$selected = $row['id'] == $prjward ? "selected" : "";
+					echo '<option value="' . $row['id'] . '" '.$selected.'>' . $row['state'] . '</option>';
+				}
+			}
         } else {
-            $prjstatus = 'all';
+            $prjstatus = '';
             if (isset($_GET['prjstatus'])) {
                 $prjstatus = $_GET['prjstatus'];
             }
 
-            $widget_data = widgets($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-            $project_distribution_data = project_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-            $budget_data = project_cost_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-            $tender_projects = projects_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
-            $tender_cost = projects_cost_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjloc = null, $prjstatus);
+            $widget_data = widgets($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+            $project_distribution_data = project_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+            $budget_data = project_cost_vs_department_distribution($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+            $tender_projects = projects_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
+            $tender_cost = projects_cost_vs_tender_category($query = null, $prjsc = null, $prjward = null, $prjstatus, $accesslevel);
         }
-
-        include_once 'system-labels.php';
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -574,8 +532,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -603,13 +561,18 @@ if ($permission) {
                                             <select name="projfyfrom" id="fyfrom" onchange="finyearfrom()" class="form-control show-tick " data-live-search="true" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
                                                 <option value="" selected="selected">Select Financial Year From</option>
                                                 <?php
-                                                projfy();
+                                                projfy($prjfyfrom);
                                                 ?>
                                             </select>
                                         </div>
                                         <div class="col-md-4">
                                             <select name="projfyto" id="fyto" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
                                                 <option value="" selected="selected">Select To Financial Year</option>
+                                                <?php
+												if(!empty($prjfyto)){
+													projfyto($prjfyfrom, $prjfyto);
+												}
+                                                ?>
                                             </select>
                                         </div>
                                         <div class="col-md-4">
@@ -629,8 +592,9 @@ if ($permission) {
                                                         $row_rsLocations = $query_rsLocations->fetch();
                                                         $total_locations = $query_rsLocations->rowCount();
                                                         if ($total_locations > 0) {
+															$selected_sb = $row_rsComm['id'] == $prjsc ? "selected" : "";
                                                             if (!in_array($comm, $id)) {
-                                                                $data .= '<option value="' . $row_rsComm['id'] . '">' . $row_rsComm['state'] . '</option>';
+                                                                $data .= '<option value="' . $row_rsComm['id'] . '" '.$selected_sb.'>' . $row_rsComm['state'] . '</option>';
                                                             }
                                                             $id[] = $row_rsComm['id'];
                                                         }
@@ -641,15 +605,15 @@ if ($permission) {
                                             </select>
                                         </div>
                                         <div class="col-md-4">
-                                            <select name="projward" id="projlga" onchange="ecosystem()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
+                                            <select name="projward" id="projlga" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
                                                 <option value="">Select <?= $level2label ?></option>
+                                                <?php
+												if(!empty($prjsc)){
+													prjward($prjsc, $prjward);
+												}
+                                                ?>
                                             </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <select name="projlocation" class="form-control show-tick" data-live-search="false" id="projloc" style="border:#CCC thin solid; border-radius:5px;">
-                                                <option value="" selected="selected">Select <?= $level3label ?></option>
-                                            </select>
-                                        </div>
+                                        </div> 
                                         <div class="col-md-4">
                                             <input type="submit" class="btn btn-primary" name="btn_search" id="btn_search" value="FILTER" />
                                             <input type="button" VALUE="RESET" class="btn btn-warning" onclick="location.href='dashboard.php'" id="btnback">
@@ -687,14 +651,14 @@ if ($permission) {
                                     </a>
                                 </div>
                                 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                    <a href='view-dashboard-projects.php?prjstatus=in-progress&<?php echo $allprojectsurl; ?>'>
+                                    <a href='view-dashboard-projects.php?prjstatus=on-track&<?php echo $allprojectsurl; ?>'>
                                         <div class="info-box bg-blue hover-expand-effect">
                                             <div class="icon">
                                                 <i class="material-icons">timeline</i>
                                             </div>
                                             <div class="content">
                                                 <div class="text">ON TRACK PROJECTS</div>
-                                                <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['in-progress']; ?>" data-speed="1000" data-fresh-interval="20"><?php echo $widget_data['in-progress']; ?></div>
+                                                <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['on-track']; ?>" data-speed="1000" data-fresh-interval="20"><?php echo $widget_data['on-track']; ?></div>
                                             </div>
                                         </div>
                                     </a>
@@ -726,14 +690,14 @@ if ($permission) {
                                     </a>
                                 </div>
                                 <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                    <a href='view-dashboard-projects.php?prjstatus=approved&<?php echo $allprojectsurl; ?>'>
+                                    <a href='view-dashboard-projects.php?prjstatus=awaiting-procurement&<?php echo $allprojectsurl; ?>'>
                                         <div class="info-box bg-grey hover-expand-effect">
                                             <div class="icon">
                                                 <i class="material-icons">hourglass_empty</i>
                                             </div>
                                             <div class="content">
                                                 <div class="text">AWAITING PROCUREMENT</div>
-                                                <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['approved']; ?>" data-speed="1000" data-fresh-interval="20"><?php echo $widget_data['approved']; ?></div>
+                                                <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['awaiting-procurement']; ?>" data-speed="1000" data-fresh-interval="20"><?php echo $widget_data['awaiting-procurement']; ?></div>
                                             </div>
                                         </div>
                                     </a>

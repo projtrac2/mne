@@ -11,6 +11,12 @@
 	$departmentlabel = $rows_leveldepartment["label"];
 	$departmentlabelplural = $rows_leveldepartment["label_plural"];
 	
+	$query_leveldirectorate = $db->prepare("SELECT label, label_plural FROM tbl_terminologies WHERE name='directorate'");
+	$query_leveldirectorate->execute();
+	$rows_leveldirectorate = $query_leveldirectorate->fetch();
+	$directoratelabel = $rows_leveldirectorate["label"];
+	$directoratelabelplural = $rows_leveldirectorate["label_plural"];
+	
 	$query_level1 = $db->prepare("SELECT label, label_plural FROM tbl_terminologies WHERE name='level1'");
 	$query_level1->execute();
 	$rows_level1 = $query_level1->fetch();

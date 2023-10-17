@@ -1,13 +1,16 @@
 <?php
 //include_once 'projtrac-dashboard/resource/session.php';
+session_start();
+$user_name = $_SESSION['MM_Username'];
 
+date_default_timezone_set("Africa/Nairobi");
 include_once '../projtrac-dashboard/resource/Database.php';
 include_once '../projtrac-dashboard/resource/utilities.php';
 require_once __DIR__ . '../../vendor/autoload.php';
+
 $stylesheet = file_get_contents('bootstrap.css'); // external css
 
 try {
-
     function get_department($stid = null)
     {
         global $db;
@@ -70,6 +73,15 @@ try {
             return false;
         }
     }
+
+    $query_user =  $db->prepare("SELECT p.*, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
+    $query_user->execute(array(":user_id" => $user_name));
+    $row_rsUser = $query_user->fetch();
+	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
+	
+	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+	$query_company->execute(array(":stid" => $stid));
+	$row_company = $query_company->fetch();
 
     $filter = "";
 
@@ -179,16 +191,16 @@ try {
     $mpdf->WriteHTML('
       <div style="text-align: center;">
          <img src="' . $logo . '" height="180px" style="max-height: 200px; text-align: center;"/>
-         <h2 style="" >COUNTY GOVERNMENT OF UASIN GISHU</h2>
+         <h2 style="" >'.$row_company["company_name"].'</h2>
          <br/>
          <hr/>
-         <h3 style="margin-top:10px;" >PROJECTS PERFORMANCE REPORT</h3>
+         <h3 style="margin-top:10px;" >PROJECTS IMPLEMENTATION STATUS REPORT</h3>
          <hr/>
          <div style="margin-top:80px;" >
             <address>
-               <h5>The County Treasury P. O. Box 40-30100 ELDORET, KENYA </h5>
-               <h5>Email: info@uasingishu.go.ke </h5>
-               <h5>Website: www.uasingishu.go.ke </h5>
+               <h5>The County Treasury '.$row_company["postal_address"].', KENYA </h5>
+               <h5>Email: '.$row_company["email_address"].' </h5>
+               <h5>Website: '.$row_company["domain_address"].'</h5>
             </address>
             <h4>' . date('d M Y') . '</h4>
          </div>
@@ -199,7 +211,7 @@ try {
         '
       <div style="text-align: right;">
         <img src="' . $logo . '" height="80px" style="max-height: 100px; text-align: center;"/>
-         <p><i> Projects Performance Report</i></p>
+         <p><i> Projects Implementation Status Report</i></p>
       </div>'
     );
 
@@ -247,9 +259,9 @@ try {
             $projstatus = $row["projstatus"];
             $projstartdate = $row["projstartdate"];
             $projenddate = $row["projenddate"];
-            $projstate = explode(",", $row['projstate']);
+            $projstate = explode(",", $row['projlga']);
 
-            $query_projectexp = $db->prepare("SELECT SUM(amountpaid) AS exp FROM `tbl_payments_request` r inner join `tbl_payments_disbursed` d on d.reqid=r.id WHERE r.projid=:projid");
+            $query_projectexp = $db->prepare("SELECT SUM(amount_requested) AS exp FROM `tbl_payments_request` WHERE status=3 AND projid=:projid");
             $query_projectexp->execute(array(":projid" => $itemId));
             $row_projectexp = $query_projectexp->fetch();
             $totalRows_projectexp = $query_projectexp->rowCount();
@@ -283,7 +295,7 @@ try {
                 $percent2 = round($prjprogress, 2);
             }
 
-            $queryactivities = $db->prepare("SELECT * FROM `tbl_task` WHERE projid=:projid");
+            $queryactivities = $db->prepare("SELECT * FROM `tbl_task` t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid=:projid");
             $queryactivities->execute(array(":projid" => $itemId));
 
             $query_projremarks = $db->prepare("SELECT * FROM `tbl_projects_performance_report_remarks` WHERE projid=:projid LIMIT 1");
@@ -317,8 +329,8 @@ try {
             while ($rowact = $queryactivities->fetch()) {
                 $nm++;
                 $activity = $rowact["task"];
-                $startdate = $rowact["sdate"];
-                $enddate = $rowact["edate"];
+                $startdate = $rowact["start_date"];
+                $enddate = $rowact["end_date"];
                 $statusid = $rowact["status"];
                 $progress = $rowact["progress"];
                 $querytaskstatus = $db->prepare("SELECT statusname FROM `tbl_task_status` WHERE statusid=:statusid");
@@ -342,9 +354,7 @@ try {
                 $row_projremarks = $query_projremarks->fetch();
                 $body .= '<strong>Project Remarks: </strong>' . $row_projremarks["remarks"];
             } else {
-                $body .= '<button type="button" data-toggle="modal" data-target="#remarksItemModal" id="remarksItemModalBtn"  class="btn btn-success btn-sm" onclick=remarks("' . $itemId . '")>
-            <i class="glyphicon glyphicon-file"></i><strong> Add Project Remarks</strong>
-            </button>';
+                $body .= '<strong>Project Remarks: Data not available!</strong>';
             }
             $body .= '</td></tr>';
         }
@@ -363,7 +373,7 @@ try {
     $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
     //  $mpdf->WriteHTML($body);
-    $mpdf->WriteHTML('<h4 style="color:green">Printed By: </h4>');
+    $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
     $mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County {PAGENO}');
     $mpdf->Output();
 } catch (PDOException $ex) {

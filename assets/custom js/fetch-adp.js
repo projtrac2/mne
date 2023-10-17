@@ -1,17 +1,17 @@
 var manageItemTable;
 
-$(document).ready(function() {
-	var tblid = $("#tblid").val();
-	manageItemTable = $("#manageItemTableHome").DataTable({
-		ajax: url,
-		order: [],
-		columnDefs: [
-		  {
-			targets: [0, 6],
-			orderable: false
-		  }
-		]
-	});
+$(document).ready(function () {
+  var tblid = $("#tblid").val();
+  manageItemTable = $("#manageItemTableHome").DataTable({
+    ajax: url,
+    order: [],
+    columnDefs: [
+      {
+        targets: [0, 6],
+        orderable: false
+      }
+    ]
+  });
 });
 
 function more(itemId = null) {
@@ -28,7 +28,7 @@ function more(itemId = null) {
       type: "post",
       data: { itemId: itemId },
       dataType: "html",
-      success: function(response) {
+      success: function (response) {
         $("#moreinfo").html(response);
       } // /success function
     }); // /ajax to fetch Project Main Menu  image
@@ -42,19 +42,19 @@ function removeItem(itemId = null) {
   if (itemId) {
     $("#removeItemBtn")
       .unbind("click")
-      .bind("click", function() {
+      .bind("click", function () {
         var deleteItem = 1;
         $.ajax({
           url: "general-settings/action/adp-edit-action",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
-          success: function(response) {
+          success: function (response) {
             $("#removeItemBtn").button("reset");
             if (response.success == true) {
               manageItemTable.ajax.reload(null, true);
               alert(response.messages);
-              $(".modal").each(function() {
+              $(".modal").each(function () {
                 $(this).modal("hide");
               });
             } else {
@@ -69,7 +69,7 @@ function removeItem(itemId = null) {
 
 function approveItem(itemId = null) {
   if (itemId) {
-	  //console.log(itemId);
+    //console.log(itemId);
     $.ajax({
       url: "ajax/projects/approve",
       type: "post",
@@ -78,7 +78,7 @@ function approveItem(itemId = null) {
         itemId: itemId
       },
       dataType: "html",
-      success: function(response) {
+      success: function (response) {
         $("#aproveBody").html(response);
       }
     });
@@ -90,20 +90,20 @@ function approveItem(itemId = null) {
 // approve item
 $("#approveItemForm")
   .unbind("submit")
-  .bind("submit", function(e) {
+  .bind("submit", function (e) {
     e.preventDefault();
     var form = $(this);
     var formData = new FormData(this);
 
     var sumOutputBudget = 0;
-    $("input[name='projcost[]']").each(function() {
+    $("input[name='projcost[]']").each(function () {
       if ($(this).val()) {
         sumOutputBudget = parseFloat($(this).val()) + sumOutputBudget;
       }
     });
 
     var financierContribution = 0;
-    $("input[name='amountfunding[]']").each(function() {
+    $("input[name='amountfunding[]']").each(function () {
       if ($(this).val()) {
         financierContribution =
           parseFloat($(this).val()) + financierContribution;
@@ -181,7 +181,7 @@ function approvedBudget(itemId = null) {
         itemId: itemId
       },
       dataType: "html",
-      success: function(response) {
+      success: function (response) {
         $("#aprovedBudgetBody").html(response);
       }
     });
@@ -193,33 +193,33 @@ function approvedBudget(itemId = null) {
 // submit approved budget
 $("#approvedBudgetForm")
   .unbind("submit")
-  .bind("submit", function(e) {
+  .bind("submit", function (e) {
     e.preventDefault();
     var form = $(this);
     var formData = new FormData(this);
 
-	var bhandler = validate_location_state();
-	if (bhandler) {
-		$.ajax({
-			url: "general-settings/action/adp-edit-action",
-			type: "post",
-			data: formData,
-			dataType: "json",
-			cache: false,
-			contentType: false,
-			processData: false,
-			success: function (response) {
-				if (response) {
-					$("#editProductBtn").button("reset");
-					manageItemTable.ajax.reload(null, true);
-					alert(response.messages);
-					$(".modal").each(function () {
-						$(this).modal("hide");
-					});
-				}
-			}
-		});
-	}
+    var bhandler = validate_location_state();
+    if (bhandler) {
+      $.ajax({
+        url: "general-settings/action/adp-edit-action",
+        type: "post",
+        data: formData,
+        dataType: "json",
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+          if (response) {
+            $("#editProductBtn").button("reset");
+            manageItemTable.ajax.reload(null, true);
+            alert(response.messages);
+            $(".modal").each(function () {
+              $(this).modal("hide");
+            });
+          }
+        }
+      });
+    }
   });
 
 function add_row_files() {
@@ -324,12 +324,15 @@ function add_row_approve_financier() {
   $rowno = $("#approve_financier_table_body tr").length;
   $rowno = $rowno + 1;
   $("#approve_financier_table_body tr:last").after(
-`<tr id="financerow${$rowno}">
+    `<tr id="financerow${$rowno}">
    <td> ${$rowno}</td>
    <td>
       <select  data-id="${$rowno}" name="source_category[]" onchange="category_change(${$rowno})" id="source_categoryrow${$rowno}" class="form-control validoutcome selected_category" required="required">
       </select>
    </td>
+   <td> 
+      <span id="category_amount${$rowno}"></span>
+    </td>
    <td>
       <select  data-id="${$rowno}" name="source[]" id="sourcerow${$rowno}" class="form-control selected_source" onchange="get_source_ceiling('${$rowno}')"  required="required">
          <option value="">Select Category First</option>
@@ -410,7 +413,7 @@ function category_change(rowno) {
       success: function (response) {
         if (category != "") {
           $("#sourcerow" + rowno).html(response.source);
-          $("#source_category_valrow" + rowno).val(response.category_ceiling);
+          $("#source_category_valrow" + rowno).html(response.category_ceiling);
           $("#amountfundingrow" + rowno).val("");
           $("#amountfundingrow" + rowno).removeAttr("class");
           $("#amountfundingrow" + rowno).addClass("form-control amount_funding_valrow" + category);
@@ -450,7 +453,7 @@ function category_change(rowno) {
 function get_source_ceiling(rowno) {
   var source = $("#sourcerow" + rowno).val();
   var category = $("#source_categoryrow" + rowno).val();
- // var category = $("#source_categoryrow" + rowno).val();
+  // var category = $("#source_categoryrow" + rowno).val();
   var projid = $("#projid").val();
   var projfscyear = $("#projfscyear").val();
   if (category && source) {

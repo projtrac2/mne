@@ -1,87 +1,20 @@
 <?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
-    $pageTitle = "Add Project Financial Plan";
     try {
-        if (isset($_POST["search"])) {
-            $projcode = trim($_POST["srccode"]);
-            $projsector = $_POST["srcsector"];
-
-            if (!empty(($projcode)) && empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and p.deleted='0' and p.projstage=5");
-                $query_rsProjects->execute(array(":projcode" => $projcode));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            } elseif (empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE g.projdept = :projsector and p.deleted='0' and p.projstage=5");
-                $query_rsProjects->execute(array(":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            } elseif (!empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and g.projdept = :projsector and p.deleted='0' and p.projstage=5");
-                $query_rsProjects->execute(array(":projcode" => $projcode, ":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            }
-        } else {
-            $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' and p.projstage=5");
-            $query_rsProjects->execute();
-            $row_rsProjects = $query_rsProjects->fetch();
-            $totalRows_rsProjects = $query_rsProjects->rowCount();
-        }
-
-        $query_rsTP = $db->prepare("SELECT COUNT(projname) FROM tbl_projects WHERE deleted='0' and projplanstatus='1'");
-        $query_rsTP->execute();
-        $row_rsTP = $query_rsTP->fetch();
-
-        $query_rsTPList = $db->prepare("SELECT projname, COUNT(projname) FROM tbl_projects WHERE deleted='0' and projplanstatus='1' GROUP BY projname");
-        $query_rsTPList->execute();
-        $row_rsTPList = $query_rsTPList->fetch();
-
-        $query_srcSector = $db->prepare("SELECT DISTINCT projdept, g.projsector FROM tbl_programs g inner join tbl_projects p on p.progid=g.progid where projplanstatus='1' ORDER BY g.projsector ASC");
-        $query_srcSector->execute();
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
+        $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
     } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-        echo $result;
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
 ?>
-    <style>
-        #links a {
-            color: #FFFFFF;
-            text-decoration: none;
-        }
-
-        hr {
-            display: block;
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
-            margin-left: auto;
-            margin-right: auto;
-            border-style: inset;
-            border-width: 1px;
-        }
-
-        @media (min-width: 1200px) {
-            .modal-lg {
-                width: 90%;
-            }
-        }
-    </style>
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
+                    <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
@@ -97,80 +30,106 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example " id="">
+                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                                     <thead>
                                         <tr style="background-color:#0b548f; color:#FFF">
-                                            <th style="width:4%" align="center">#</th>
-                                            <th style="width:12%">Project Code</th>
-                                            <th style="width:50%">Project Name </th>
-                                            <th style="width:25">Project Department</th>
-                                            <?php
-                                            if ($file_rights->add) {
-                                            ?>
-                                                <th style="width:9%">Action</th>
-                                            <?php
-                                            }
-                                            ?>
+                                            <th style="width:5%" align="center">#</th>
+                                            <th style="width:10%">Code</th>
+                                            <th style="width:50%">Project </th>
+                                            <th style="width:10">Due Date</th>
+                                            <th style="width:10">Status</th>
+                                            <th style="width:5%">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
                                         if ($totalRows_rsProjects > 0) {
                                             $counter = 0;
-                                            do {
+                                            while ($row_rsProjects = $query_rsProjects->fetch()) {
                                                 $projid = $row_rsProjects['projid'];
-                                                $progid = $row_rsProjects['progid'];
-                                                $projsector = $row_rsProjects['projsector'];
-                                                $department = $row_rsProjects['sector'];
+                                                $encode_projid = base64_encode("encodefnprj{$projid}");
+                                                $implementation = $row_rsProjects['projcategory'];
+                                                $sub_stage = $row_rsProjects['proj_substage'];
+                                                $project_department = $row_rsProjects['projsector'];
+                                                $project_section = $row_rsProjects['projdept'];
+                                                $project_directorate = $row_rsProjects['directorate'];
+                                                $start_date = date('Y-m-d');
 
-                                                $query_projsector = $db->prepare("SELECT * FROM tbl_sectors WHERE stid = :sector");
-                                                $query_projsector->execute(array(":sector" => $projsector));
-                                                $row_projsector = $query_projsector->fetch();
-                                                $sector = $row_projsector['sector'];
 
                                                 $query_rsPlan = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid = :projid");
                                                 $query_rsPlan->execute(array(":projid" => $projid));
-                                                $row_plan = $query_rsPlan->fetch();
                                                 $totalRows_plan = $query_rsPlan->rowCount();
+                                                $timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
+                                                $filter_department = view_record($project_department, $project_section, $project_directorate);
+                                                $details = "{
+                                                    get_edit_details: 'details',
+                                                    projid:$projid,
+                                                    workflow_stage:$workflow_stage,
+                                                    sub_stage:$sub_stage,
+                                                    project_directorate:$project_directorate,
+                                                }";
 
-                                                $counter++;
+                                                $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
+                                                $assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
+
+                                                if ($filter_department) {
+                                                    $counter++;
+
+                                                    $activity_status = '';
+                                                    $activity = $totalRows_plan == 0 ? "Add" : "Edit";
+                                                    if ($sub_stage == 0) {
+                                                        $activity_status = "Pending";
+                                                    } else if ($sub_stage == 1) {
+                                                        $activity_status = "Assigned";
+                                                    } else if ($sub_stage > 1) {
+                                                        $activity_status = "Pending Approval";
+                                                        $activity = "Approve";
+                                                    }
                                         ?>
-                                                <tr class="projects" style="background-color:#eff9ca">
-                                                    <td align="center"><?= $counter ?></td>
-                                                    <td><?php echo $row_rsProjects['projcode'] ?></td>
-                                                    <td><?php echo $row_rsProjects['projname'] ?></td>
-                                                    <td><?php echo $department ?></td>
-                                                    <?php
-                                                    if ($file_rights->add) {
-                                                    ?>
+                                                    <tr>
+                                                        <td align="center"><?= $counter ?></td>
+                                                        <td><?php echo $row_rsProjects['projcode'] ?></td>
+                                                        <td><?php echo $row_rsProjects['projname'] ?></td>
+                                                        <td><?php echo date('Y M d') ?></td>
+                                                        <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                         <td>
-                                                            <?php
-                                                            if ($totalRows_plan == 0) {
-                                                                $prjid = $rpow_rsProjects['projid'];
-                                                                $encode_projid = base64_encode("encodefnprj{$prjid}");
-                                                            ?>
-                                                                <div class="btn-group">
-                                                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                        Options <span class="caret"></span>
-                                                                    </button>
-                                                                    <ul class="dropdown-menu">
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    Options <span class="caret"></span>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
+                                                                            <i class="fa fa-file-text"></i> View More
+                                                                        </a>
+                                                                    </li>
+                                                                    <?php
+                                                                    if ($assign_responsible) {
+                                                                    ?>
                                                                         <li>
-                                                                            <a type="button" href="add-financial-plan?proj=<?= $encode_projid ?>" id="addFormModalBtn">
-                                                                                <i class="fa fa-plus-square-o"></i> Add Plan
+                                                                            <a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
+                                                                                <i class="fa fa-users"></i> Assign
                                                                             </a>
                                                                         </li>
-                                                                    </ul>
-                                                                </div>
-                                                            <?php
-                                                            }
-                                                            ?>
+                                                                    <?php
+                                                                    }
+                                                                    if ($assigned_responsible) {
+                                                                    ?>
+                                                                        <li>
+                                                                            <a type="button" href="add-financial-plan?proj=<?= $encode_projid ?>" id="addFormModalBtn">
+                                                                                <i class="fa fa-plus-square-o"></i> <?= $activity ?> Plan
+                                                                            </a>
+                                                                        </li>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </ul>
+                                                            </div>
                                                         </td>
-                                                    <?php
-                                                    }
-                                                    ?>
-                                                </tr>
+                                                    </tr>
                                         <?php
-                                            } while ($row_rsProjects = $query_rsProjects->fetch());
+                                                }
+                                            }
                                         }
                                         ?>
                                     </tbody>
@@ -182,6 +141,7 @@ if ($permission) {
             </div>
     </section>
     <!-- end body  -->
+
     <!-- Start Item more -->
     <div class="modal fade" tabindex="-1" role="dialog" id="moreModal">
         <div class="modal-dialog  modal-lg">
@@ -201,79 +161,45 @@ if ($permission) {
         </div><!-- /.modal-dialog -->
     </div>
     <!-- End Item more -->
-
-    <!-- Start Item Delete -->
-    <div class="modal fade" tabindex="-1" role="dialog" id="removeItemModal">
-        <div class="modal-dialog">
+    <!-- Start Modal Item approve -->
+    <div class="modal fade" id="assign_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-md">
             <div class="modal-content">
                 <div class="modal-header" style="background-color:#03A9F4">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="glyphicon glyphicon-trash"></i> Delete Item</h4>
+                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Assign Project</h4>
                 </div>
-                <div class="modal-body">
-                    <div class="removeItemMessages"></div>
-                    <p align="center">Are you sure you want to delete this record?</p>
-                </div>
-                <div class="modal-footer removeProductFooter">
-                    <div class="col-md-12 text-center">
-                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Cancel</button>
-                        <button type="button" class="btn btn-success" id="removeItemBtn"> <i class="fa fa-check-square-o"></i> Delete</button>
-                    </div>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-    <!-- Start Item Delete -->
+                <form class="form-horizontal" id="assign_responsible" action="" method="POST">
+                    <div class="modal-body" style="max-height:450px; overflow:auto;">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <label for="projduration">Responsible *:</label>
+                            <div class="form-line">
+                                <select name="responsible" id="responsible" class="form-control" required="required">
+                                </select>
+                            </div>
+                        </div>
+                    </div> <!-- /modal-body -->
+                    <div class="modal-footer approveItemFooter">
+                        <div class="col-md-12 text-center">
+                            <input type="hidden" name="projid" id="projid" value="">
+                            <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
+                            <input type="hidden" name="sub_stage" id="sub_stage" value="">
+                            <input type="hidden" name="assign_responsible" id="assign_responsible" value="new">
+                            <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
+                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                        </div>
+                    </div> <!-- /modal-footer -->
+                </form> <!-- /.form -->
+            </div>
+            <!-- /modal-content -->
+        </div>
+    </div>
 <?php
 } else {
     $results =  restriction();
     echo $results;
 }
-
 require('includes/footer.php');
 ?>
-<script src="general-settings/js/fetch-selected-project-financial-plan.js"></script>
-<script type="text/javascript">
-    function CallRiskAction(id) {
-        $.ajax({
-            type: 'post',
-            url: 'callriskaction.php',
-            data: {
-                rskid: id
-            },
-            success: function(data) {
-                $('#riskaction').html(data);
-                $("#riskModal").modal({
-                    backdrop: "static"
-                });
-            }
-        });
-    }
-
-    $(document).ready(function() {
-        $(".account").click(function() {
-            var X = $(this).attr('id');
-            if (X == 1) {
-                $(".submenus").hide();
-                $(this).attr('id', '0');
-            } else {
-                $(".submenus").show();
-                $(this).attr('id', '1');
-            }
-        });
-        //Mouseup textarea false
-        $(".submenus").mouseup(function() {
-            return false
-        });
-        $(".account").mouseup(function() {
-            return false
-        });
-
-        //Textarea without editing.
-        $(document).mouseup(function() {
-            $(".submenus").hide();
-            $(".account").attr('id', '');
-        });
-
-    });
-</script>
+<script src="assets/js/projects/view-project.js"></script>
+<script src="assets/js/master/index.js"></script>

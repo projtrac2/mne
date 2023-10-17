@@ -15,7 +15,7 @@ try {
         $results3 = $deleteQuery->execute(array(':projid' => $projid));
 
         if ($results1 && $results2 && $results3) {
-            $projstage = 6;
+            $projstage = 4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -27,18 +27,20 @@ try {
     // get personnel from project team // select 
     if (isset($_POST['getpersonel'])) {
         $projid = $_POST['projid'];
-        $query_rsPersonel = $db->prepare("SELECT t.* FROM tbl_projmembers m inner join tbl_projteam2 t on t.ptid=m.ptid where m.projid = :projid");
+        $query_rsPersonel = $db->prepare("SELECT * FROM tbl_projmembers m inner join users u on u.userid =m.ptid inner join tbl_projteam2 t on u.pt_id = t.ptid where m.projid = :projid");
         $query_rsPersonel->execute(array(":projid" => $projid));
         $row_rsPersonel = $query_rsPersonel->fetch();
         $totalRows_rsPersonel = $query_rsPersonel->rowCount();
 
         $input = '<option value="">.... Select from list ....</option>';
-        do {
-            $ptnid = $row_rsPersonel['ptid'];
-            $ptnname = $row_rsPersonel['fullname'];
-            $title = $row_rsPersonel['title'];
-            $input .= '<option value="' . $ptnid . '">' . $title. '.'. $ptnname . '</option>';
-        } while ($row_rsPersonel = $query_rsPersonel->fetch());
+        if($totalRows_rsPersonel > 0){
+            do {
+                $ptnid = $row_rsPersonel['ptid'];
+                $ptnname = $row_rsPersonel['fullname'];
+                $title = $row_rsPersonel['title'];
+                $input .= '<option value="' . $ptnid . '">' . $title. '.'. $ptnname . '</option>';
+            } while ($row_rsPersonel = $query_rsPersonel->fetch());
+        }
 		
         echo $input;
     }
@@ -230,7 +232,7 @@ try {
         }
 
         if ($result1  && $result2 && $result3) {
-            $projstage = 6;
+            $projstage = 4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -276,7 +278,7 @@ try {
         }
 
         if ($results1 && $results2 && $results3) {
-            $projstage = 6;
+            $projstage = 4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -293,7 +295,7 @@ try {
             $results1 = $deleteQuery->execute(array(':id' => $dfinid));
 
             if ($results1) {
-                $projstage = 6;
+                $projstage = 4;
                 $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
                 $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
                 if ($results) {
@@ -570,7 +572,7 @@ try {
             }
         }
 
-        $projstage = 7;
+        $projstage = 5;
         $projid = $_POST['projid'];
         $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
         $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));

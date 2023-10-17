@@ -1,11 +1,5 @@
 <?php
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-//include_once 'projtrac-dashboard/resource/session.php';
-include_once '../../projtrac-dashboard/resource/Database.php';
-// include_once '../../projtrac-dashboard/resource/utilities.php';
+include_once "controller.php";
 
 // get add insoection checklist table 
 if (isset($_POST['getaddInspectionChecklist'])) {
@@ -35,10 +29,10 @@ if (isset($_POST['getaddInspectionChecklist'])) {
 			<div class="form-line">
 				<select name="opchecklist" id="opchecklist" class="form-control show-tick" data-live-search="true"  style="border:#CCC thin solid; border-radius:5px"  required>
 					<option value="" selected="selected" class="selection">Select Inspection Checklist</option> ';
-					foreach ($row_projchklstname as $row) {
-						echo '<option value="' . $row["id"] . '">' . $row["name"] . '</option>';
-					}
-					echo '
+	foreach ($row_projchklstname as $row) {
+		echo '<option value="' . $row["id"] . '">' . $row["name"] . '</option>';
+	}
+	echo '
 				</select>
 			</div>
 		</div>
@@ -76,7 +70,7 @@ if (isset($_POST['getaddInspectionChecklist'])) {
 				$("#checklist_table_body tr:last").after(\'<tr id="row\' + $rowno + \'"><td>\' + $listno + \'</td><td><select name="topic[]" id="topic" class="form-control" required="required"><option value="">Select Topic</option>';
 	do {
 		echo
-			'<option value="' . $row_topic['id'] . '">' . $row_topic['topic'] . '</option>';
+		'<option value="' . $row_topic['id'] . '">' . $row_topic['topic'] . '</option>';
 	} while ($row_topic = $query_topic->fetch());
 	echo '</select></td><td><input type="text" name="checklist[]" id="checklist[]" class="form-control"  placeholder="Define your question here" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><button type="button" class="btn btn-danger btn-sm"  onclick=delete_list("row\' + $rowno + \'")><span class="glyphicon glyphicon-minus"></span></button></td></tr>\');
 	numbering_insp();               
@@ -153,7 +147,7 @@ if (isset($_POST['getaddInspectionChecklist'])) {
 // get editing inpectin checklist table 
 if (isset($_POST['geteditInspectionChecklist'])) {
 	$taskid = $_POST['tkid'];
-	
+
 	$query_taskd =  $db->prepare("SELECT projid, msid, outputid FROM tbl_task WHERE tkid = :taskid");
 	$query_taskd->execute(array(":taskid" => $taskid));
 	$row_taskd = $query_taskd->fetch();
@@ -165,12 +159,12 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 	$query_projinspQsn->execute(array(":taskid" => $taskid));
 	$row_projinspQsn = $query_projinspQsn->fetch();
 	$questionid = $row_projinspQsn["questionid"];
-	
+
 	$query_checklist =  $db->prepare("SELECT checklistname FROM tbl_inspection_checklist_questions WHERE id = :questionid");
 	$query_checklist->execute(array(":questionid" => $questionid));
 	$row_checklist = $query_checklist->fetch();
 	$chkid = $row_checklist["checklistname"];
-	
+
 	$query_projchklstname =  $db->prepare("SELECT id, name FROM tbl_inspection_checklist WHERE output = :outputid ORDER BY id ASC");
 	$query_projchklstname->execute(array(":outputid" => $outputid));
 	$row_projchklstname = $query_projchklstname->fetchAll();
@@ -207,14 +201,14 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 			<div class="form-line">
 				<select name="opchecklist" id="opchecklist" class="form-control show-tick" data-live-search="true"  style="border:#CCC thin solid; border-radius:5px"  required>
 					<option value="" selected="selected" class="selection">Select Inspection Checklist</option> ';
-					foreach ($row_projchklstname as $row) {
-						if ($chkid == $row["id"]) {
-							echo '<option value="' . $row["id"] . '" selected> ' . $row["name"] . '</option>';
-						} else {
-							echo '<option value="' . $row["id"] . '">' . $row["name"] . '</option>';
-						}
-					}
-					echo '
+	foreach ($row_projchklstname as $row) {
+		if ($chkid == $row["id"]) {
+			echo '<option value="' . $row["id"] . '" selected> ' . $row["name"] . '</option>';
+		} else {
+			echo '<option value="' . $row["id"] . '">' . $row["name"] . '</option>';
+		}
+	}
+	echo '
 				</select>
 			</div>
 		</div>
@@ -239,79 +233,79 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 										</tr>
 									</thead>
 									<tbody>';
-										if ($count_topics == 0) {
-											echo '<tr>
+	if ($count_topics == 0) {
+		echo '<tr>
 												<td  colspan="3"><div style="color:red; font-size:14px"><strong>Sorry No Record Found!!</strong></div></td>
 											</tr>';
-										} else {
-											$nm = 0;
-											while ($rows_topics = $query_topics->fetch()) {
-												$nm = $nm + 1;
-												if ($nm == 1) {
-													$nmb = "A";
-												} elseif ($nm == 2) {
-													$nmb = "B";
-												} elseif ($nm == 3) {
-													$nmb = "C";
-												} elseif ($nm == 4) {
-													$nmb = "D";
-												} elseif ($nm == 5) {
-													$nmb = "E";
-												} elseif ($nm == 6) {
-													$nmb = "F";
-												} elseif ($nm == 7) {
-													$nmb = "G";
-												} elseif ($nm == 8) {
-													$nmb = "H";
-												} elseif ($nm == 9) {
-													$nmb = "I";
-												} elseif ($nm == 10) {
-													$nmb = "J";
-												} elseif ($nm == 11) {
-													$nmb = "K";
-												} elseif ($nm == 12) {
-													$nmb = "L";
-												} elseif ($nm == 13) {
-													$nmb = "M";
-												} elseif ($nm == 14) {
-													$nmb = "N";
-												} elseif ($nm == 15) {
-													$nmb = "O";
-												} elseif ($nm == 16) {
-													$nmb = "P";
-												} elseif ($nm == 17) {
-													$nmb = "Q";
-												} elseif ($nm == 18) {
-													$nmb = "R";
-												} elseif ($nm == 19) {
-													$nmb = "S";
-												} elseif ($nm == 20) {
-													$nmb = "T";
-												} elseif ($nm == 21) {
-													$nmb = "U";
-												} elseif ($nm == 22) {
-													$nmb = "V";
-												} elseif ($nm == 23) {
-													$nmb = "W";
-												} elseif ($nm == 24) {
-													$nmb = "X";
-												} elseif ($nm == 25) {
-													$nmb = "Y";
-												} elseif ($nm == 26) {
-													$nmb = "Z";
-												}
-												
-												$topicid = $rows_topics['topic'];
+	} else {
+		$nm = 0;
+		while ($rows_topics = $query_topics->fetch()) {
+			$nm = $nm + 1;
+			if ($nm == 1) {
+				$nmb = "A";
+			} elseif ($nm == 2) {
+				$nmb = "B";
+			} elseif ($nm == 3) {
+				$nmb = "C";
+			} elseif ($nm == 4) {
+				$nmb = "D";
+			} elseif ($nm == 5) {
+				$nmb = "E";
+			} elseif ($nm == 6) {
+				$nmb = "F";
+			} elseif ($nm == 7) {
+				$nmb = "G";
+			} elseif ($nm == 8) {
+				$nmb = "H";
+			} elseif ($nm == 9) {
+				$nmb = "I";
+			} elseif ($nm == 10) {
+				$nmb = "J";
+			} elseif ($nm == 11) {
+				$nmb = "K";
+			} elseif ($nm == 12) {
+				$nmb = "L";
+			} elseif ($nm == 13) {
+				$nmb = "M";
+			} elseif ($nm == 14) {
+				$nmb = "N";
+			} elseif ($nm == 15) {
+				$nmb = "O";
+			} elseif ($nm == 16) {
+				$nmb = "P";
+			} elseif ($nm == 17) {
+				$nmb = "Q";
+			} elseif ($nm == 18) {
+				$nmb = "R";
+			} elseif ($nm == 19) {
+				$nmb = "S";
+			} elseif ($nm == 20) {
+				$nmb = "T";
+			} elseif ($nm == 21) {
+				$nmb = "U";
+			} elseif ($nm == 22) {
+				$nmb = "V";
+			} elseif ($nm == 23) {
+				$nmb = "W";
+			} elseif ($nm == 24) {
+				$nmb = "X";
+			} elseif ($nm == 25) {
+				$nmb = "Y";
+			} elseif ($nm == 26) {
+				$nmb = "Z";
+			}
 
-												$query_topicname = $db->prepare("SELECT topic FROM tbl_inspection_checklist_topics WHERE id = :topicid");
-												$query_topicname->execute(array(":topicid" => $topicid));
-												$row_topicname = $query_topicname->fetch();
-												$topicname = $row_topicname["topic"];
+			$topicid = $rows_topics['topic'];
 
-												$query_questions = $db->prepare("SELECT id, question FROM tbl_inspection_checklist_questions WHERE topic = :topicid AND checklistname = :chkid");
-												$query_questions->execute(array(":topicid" => $topicid, ":chkid" => $chkid));
+			$query_topicname = $db->prepare("SELECT topic FROM tbl_inspection_checklist_topics WHERE id = :topicid");
+			$query_topicname->execute(array(":topicid" => $topicid));
+			$row_topicname = $query_topicname->fetch();
+			$topicname = $row_topicname["topic"];
 
-												echo '<tr style="background-color:#CDDC39; color:#2196F3">
+			$query_questions = $db->prepare("SELECT id, question FROM tbl_inspection_checklist_questions WHERE topic = :topicid AND checklistname = :chkid");
+			$query_questions->execute(array(":topicid" => $topicid, ":chkid" => $chkid));
+
+			echo '<tr style="background-color:#CDDC39; color:#2196F3">
 													<td align="center">' . $nmb . '</td>
 													<td><strong>' . $topicname . '</strong></td>
 													<td></td>
@@ -321,48 +315,48 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 													<th>Checklist Question</th>
 													<th>Select</th>
 												</tr>';
-												$num = 0;
-												while ($row_questions = $query_questions->fetch()) {
-													$num = $num + 1;
-													$question = $row_questions["question"];
-													$questionid = $row_questions["id"];
+			$num = 0;
+			while ($row_questions = $query_questions->fetch()) {
+				$num = $num + 1;
+				$question = $row_questions["question"];
+				$questionid = $row_questions["id"];
 
-													$handler = validateQuestion($questionid, $taskid);
+				$handler = validateQuestion($questionid, $taskid);
 
-													echo '<tr style="background-color:#eff9ca">
+				echo '<tr style="background-color:#eff9ca">
 														<td align="center">' . $nmb . '.' . $num . '</td>
 														<td>' . $question . '</td>
 														<td>';
-														if ($handler == true) {
-															echo '<input type="checkbox" name="question[]" id="qsn' . $nmb . $num . '" value="' . $questionid . '" checked="checked" class="filled-in chk-col-blue"/>
+				if ($handler == true) {
+					echo '<input type="checkbox" name="question[]" id="qsn' . $nmb . $num . '" value="' . $questionid . '" checked="checked" class="filled-in chk-col-blue"/>
 																	<label for="qsn' . $nmb . $num . '"></label>
 																';
-														} else {
-															echo '<input type="checkbox" name="question[]" id="qsn' . $nmb . $num . '" value="' . $questionid . '" class="filled-in chk-col-blue"/>
+				} else {
+					echo '<input type="checkbox" name="question[]" id="qsn' . $nmb . $num . '" value="' . $questionid . '" class="filled-in chk-col-blue"/>
 																	<label for="qsn' . $nmb . $num . '"></label>
 																';
-														}
-														echo '</td>
+				}
+				echo '</td>
 													</tr>';
-												}
-											}
-										}
-									echo '</tbody>
+			}
+		}
+	}
+	echo '</tbody>
 								</table>
 							</div>
 						</fieldset>';
-						
-						$query_topic = $db->prepare("SELECT id, topic FROM tbl_inspection_checklist_topics");
-						$query_topic->execute();
-						$row_topic = $query_topic->fetch();
-						
-						$data = '';
-						do {
-							$topic = $row_topic["topic"];
-							$data .= '<option value="' . $row_topic["id"] . '">' . $row_topic["topic"] . '</option>';
-						} while ($row_topic = $query_topic->fetch());
 
-						echo '<fieldset class="scheduler-border">
+	$query_topic = $db->prepare("SELECT id, topic FROM tbl_inspection_checklist_topics");
+	$query_topic->execute();
+	$row_topic = $query_topic->fetch();
+
+	$data = '';
+	do {
+		$topic = $row_topic["topic"];
+		$data .= '<option value="' . $row_topic["id"] . '">' . $row_topic["topic"] . '</option>';
+	} while ($row_topic = $query_topic->fetch());
+
+	echo '<fieldset class="scheduler-border">
 							<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add New Questions</legend>
 							<div class="table-responsive">
 								<table class="table table-bordered" >
@@ -381,8 +375,8 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 										<select name="topic[]" id="topic" class="form-control show-tick" data-live-search="true"  style="border:#CCC thin solid; border-radius:5px"  required>
 										<option value="">... Select ...</option>
 										' .
-										$data
-										. '</select>
+		$data
+		. '</select>
 										</td>
 										<td>
 											<input type="text" name="checklist[]" id="checklist[]" class="form-control" placeholder="Define your question here" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" >
@@ -423,11 +417,11 @@ if (isset($_POST['geteditInspectionChecklist'])) {
 		$rowno = $rowno + 1;
 		$listno = $rowno - 1;
 		$("#checklist_table_body tr:last").after(\'<tr id="row\' + $rowno + \'"><td>\' + $listno + \'</td><td><select name="topic[]" id="topic" class="form-control" required="required"><option value="">Select Topic</option>';
-		do {
-			echo
-				'<option value="' . $row_topic['id'] . '">' . $row_topic['topic'] . '</option>';
-		} while ($row_topic = $query_topic->fetch());
-		echo '</select></td><td><input type="text" name="checklist[]" id="checklist[]" class="form-control"  placeholder="Define your question here" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><button type="button" class="btn btn-danger btn-sm"  onclick=delete_list("row\' + $rowno + \'")><span class="glyphicon glyphicon-minus"></span></button></td></tr>\');
+	do {
+		echo
+		'<option value="' . $row_topic['id'] . '">' . $row_topic['topic'] . '</option>';
+	} while ($row_topic = $query_topic->fetch());
+	echo '</select></td><td><input type="text" name="checklist[]" id="checklist[]" class="form-control"  placeholder="Define your question here" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><button type="button" class="btn btn-danger btn-sm"  onclick=delete_list("row\' + $rowno + \'")><span class="glyphicon glyphicon-minus"></span></button></td></tr>\');
 		numbering_insp();               
 	} 
 		
@@ -525,80 +519,80 @@ if (isset($_POST["chkid"]) && !empty($_POST["chkid"])) {
 							</tr>
 						</thead>
 						<tbody>';
-						if ($count_topics == 0) {
-							echo '<tr>
+	if ($count_topics == 0) {
+		echo '<tr>
 								<td  colspan="3"><div style="color:red; font-size:14px"><strong>Sorry No Record Found!!</strong></div></>
 							</tr>';
-						} else {
-							$nm = 0;
-							while ($rows_topics = $query_topics->fetch()) {
-								$nm = $nm + 1;
-								if ($nm == 1) {
-									$nmb = "A";
-								} elseif ($nm == 2) {
-									$nmb = "B";
-								} elseif ($nm == 3) {
-									$nmb = "C";
-								} elseif ($nm == 4) {
-									$nmb = "D";
-								} elseif ($nm == 5) {
-									$nmb = "E";
-								} elseif ($nm == 6) {
-									$nmb = "F";
-								} elseif ($nm == 7) {
-									$nmb = "G";
-								} elseif ($nm == 8) {
-									$nmb = "H";
-								} elseif ($nm == 9) {
-									$nmb = "I";
-								} elseif ($nm == 10) {
-									$nmb = "J";
-								} elseif ($nm == 11) {
-									$nmb = "K";
-								} elseif ($nm == 12) {
-									$nmb = "L";
-								} elseif ($nm == 13) {
-									$nmb = "M";
-								} elseif ($nm == 14) {
-									$nmb = "N";
-								} elseif ($nm == 15) {
-									$nmb = "O";
-								} elseif ($nm == 16) {
-									$nmb = "P";
-								} elseif ($nm == 17) {
-									$nmb = "Q";
-								} elseif ($nm == 18) {
-									$nmb = "R";
-								} elseif ($nm == 19) {
-									$nmb = "S";
-								} elseif ($nm == 20) {
-									$nmb = "T";
-								} elseif ($nm == 21) {
-									$nmb = "U";
-								} elseif ($nm == 22) {
-									$nmb = "V";
-								} elseif ($nm == 23) {
-									$nmb = "W";
-								} elseif ($nm == 24) {
-									$nmb = "X";
-								} elseif ($nm == 25) {
-									$nmb = "Y";
-								} elseif ($nm == 26) {
-									$nmb = "Z";
-								}
-								$topicid = $rows_topics['topic'];
+	} else {
+		$nm = 0;
+		while ($rows_topics = $query_topics->fetch()) {
+			$nm = $nm + 1;
+			if ($nm == 1) {
+				$nmb = "A";
+			} elseif ($nm == 2) {
+				$nmb = "B";
+			} elseif ($nm == 3) {
+				$nmb = "C";
+			} elseif ($nm == 4) {
+				$nmb = "D";
+			} elseif ($nm == 5) {
+				$nmb = "E";
+			} elseif ($nm == 6) {
+				$nmb = "F";
+			} elseif ($nm == 7) {
+				$nmb = "G";
+			} elseif ($nm == 8) {
+				$nmb = "H";
+			} elseif ($nm == 9) {
+				$nmb = "I";
+			} elseif ($nm == 10) {
+				$nmb = "J";
+			} elseif ($nm == 11) {
+				$nmb = "K";
+			} elseif ($nm == 12) {
+				$nmb = "L";
+			} elseif ($nm == 13) {
+				$nmb = "M";
+			} elseif ($nm == 14) {
+				$nmb = "N";
+			} elseif ($nm == 15) {
+				$nmb = "O";
+			} elseif ($nm == 16) {
+				$nmb = "P";
+			} elseif ($nm == 17) {
+				$nmb = "Q";
+			} elseif ($nm == 18) {
+				$nmb = "R";
+			} elseif ($nm == 19) {
+				$nmb = "S";
+			} elseif ($nm == 20) {
+				$nmb = "T";
+			} elseif ($nm == 21) {
+				$nmb = "U";
+			} elseif ($nm == 22) {
+				$nmb = "V";
+			} elseif ($nm == 23) {
+				$nmb = "W";
+			} elseif ($nm == 24) {
+				$nmb = "X";
+			} elseif ($nm == 25) {
+				$nmb = "Y";
+			} elseif ($nm == 26) {
+				$nmb = "Z";
+			}
+			$topicid = $rows_topics['topic'];
 
-								$query_topicname = $db->prepare("SELECT topic FROM tbl_inspection_checklist_topics WHERE id = :topicid");
-								$query_topicname->execute(array(":topicid" => $topicid));
-								$row_topicname = $query_topicname->fetch();
-								$topicname = $row_topicname["topic"];
+			$query_topicname = $db->prepare("SELECT topic FROM tbl_inspection_checklist_topics WHERE id = :topicid");
+			$query_topicname->execute(array(":topicid" => $topicid));
+			$row_topicname = $query_topicname->fetch();
+			$topicname = $row_topicname["topic"];
 
 
 
-								$query_questions = $db->prepare("SELECT id, question FROM tbl_inspection_checklist_questions WHERE topic = :topicid AND checklistname = :chkid");
-								$query_questions->execute(array(":topicid" => $topicid, ":chkid" => $chkid));
+			$query_questions = $db->prepare("SELECT id, question FROM tbl_inspection_checklist_questions WHERE topic = :topicid AND checklistname = :chkid");
+			$query_questions->execute(array(":topicid" => $topicid, ":chkid" => $chkid));
 
-								echo '<tr style="background-color:#CDDC39; color:#2196F3">
+			echo '<tr style="background-color:#CDDC39; color:#2196F3">
 									<td align="center">' . $nmb . '</td>
 									<td><strong>' . $topicname . '</strong></td>
 									<td></td>
@@ -608,12 +602,12 @@ if (isset($_POST["chkid"]) && !empty($_POST["chkid"])) {
 										<th>Checklist Question</th>
 										<th>Select</th>
 									</tr>';
-									$num = 0;
-									while ($row_questions = $query_questions->fetch()) {
-										$num = $num + 1;
-										$question = $row_questions["question"];
-										$questionid = $row_questions["id"];
-										echo '<tr style="background-color:#eff9ca">
+			$num = 0;
+			while ($row_questions = $query_questions->fetch()) {
+				$num = $num + 1;
+				$question = $row_questions["question"];
+				$questionid = $row_questions["id"];
+				echo '<tr style="background-color:#eff9ca">
 											<td align="center">' . $nmb . '.' . $num . '</td>
 											<td>' . $question . '</td>
 											<td>
@@ -621,25 +615,25 @@ if (isset($_POST["chkid"]) && !empty($_POST["chkid"])) {
 												<label for="qsn' . $nmb . $num . '"></label>
 											</td>
 										</tr>';
-									}
-								}
-							}
+			}
+		}
+	}
 
-								echo '</tbody>
+	echo '</tbody>
 											</table>
 													</div>
 													</fieldset>';
 
-							$query_topic = $db->prepare("SELECT topic, id FROM tbl_inspection_checklist_topics");
-							$query_topic->execute();
-							$row_topic = $query_topic->fetch();
-							$data = '';
-							do {
-								$topic = $row_topic["topic"];
-								$data .= '<option value="' . $row_topic["id"] . '">' . $row_topic["topic"] . '</option>';
-							} while ($row_topic = $query_topic->fetch());
+	$query_topic = $db->prepare("SELECT topic, id FROM tbl_inspection_checklist_topics");
+	$query_topic->execute();
+	$row_topic = $query_topic->fetch();
+	$data = '';
+	do {
+		$topic = $row_topic["topic"];
+		$data .= '<option value="' . $row_topic["id"] . '">' . $row_topic["topic"] . '</option>';
+	} while ($row_topic = $query_topic->fetch());
 
-							echo '<fieldset class="scheduler-border">
+	echo '<fieldset class="scheduler-border">
 							<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add New Questions</legend>
 							<div class="table-responsive">
 					<table class="table table-bordered" id="checklist_table"> 

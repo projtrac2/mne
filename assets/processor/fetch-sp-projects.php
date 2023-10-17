@@ -1,69 +1,67 @@
 <?php
-
 include_once "controller.php";
-
-try{
-	//$currentmonth = date("m");
+try {
 	$currentyr = date("Y");
-	/* if($currentmonth < 7){
-		$currentyr = $currentyr - 1;
-	} */
-		
-	$nextyr = $currentyr + 1;
-	$currentfy = $currentyr."/".$nextyr;
-	$plan= $_GET["sp"];
 
-	if($plan){
-		if(isset($_GET["prg"]) && !empty($_GET["prg"])){
+	$nextyr = $currentyr + 1;
+	$currentfy = $currentyr . "/" . $nextyr;
+	$plan = isset($_GET['sp']) ? $_GET["sp"] : "";
+	if ($plan) {
+		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$prgid = $_GET["prg"];
-			
 			$sql = $db->prepare("SELECT * FROM `tbl_projects` p inner join `tbl_programs` g ON g.progid=p.progid WHERE g.strategic_plan=:sp and p.progid = :prgid ORDER BY `projplanstatus`, `projfscyear` ASC");
-			$sql->execute(array(":sp" =>$plan, ":prgid" => $prgid));
-			
-		}else{
+			$sql->execute(array(":sp" => $plan, ":prgid" => $prgid));
+		} else {
 			$sql = $db->prepare("SELECT * FROM `tbl_projects` p inner join `tbl_programs` g ON g.progid=p.progid WHERE g.strategic_plan=:sp ORDER BY `projplanstatus`, `projfscyear` ASC");
-			$sql->execute(array(":sp" =>$plan));
+			$sql->execute(array(":sp" => $plan));
 		}
+
+
 
 		$rows_count = $sql->rowCount();
 		$output = array('data' => array());
 		if ($rows_count > 0) {
-			// $row = $result->fetch_array();
 			$active = "";
-			$sn = 0;
-			$plan = base64_encode($plan);
+			$sn = 0; 
+			$plan = base64_encode("strplan1{$plan}");
 			while ($row = $sql->fetch()) {
-				$sn++;
 				$itemId = $row['projid'];
 				$stid = $row['projsector'];
-				
+				$program_type = $row['program_type'];
+				$username = $row['user_name'];
+
+
+				// add_to_adp remove_adp edit delete 
+				$project_department = $row['projsector'];
+				$project_section = $row['projdept'];
+				$project_directorate = $row['directorate'];
+
+				// edit delete approve_project unapprove_project
+				$edit = $permissions->verify_action($project_department, $project_section, $project_directorate, $edit1);
+				$edit =   ($edit) ?  $permissions->verify_created_by($username) : false;
+				// $delete = $permissions->verify_action($project_department, $project_section, $project_directorate, $delete1);
+				// $add_to_adp = $permissions->verify_action($project_department, $project_section, $project_directorate, $add_to_adp1);
+				// $remove_adp = $permissions->verify_action($project_department, $project_section, $project_directorate, $remove_adp1);
+
 				$query_adp =  $db->prepare("SELECT *, p.status as status FROM tbl_annual_dev_plan p inner join tbl_fiscal_year y ON y.id=p.financial_year WHERE projid = :itemId");
 				$query_adp->execute(array(":itemId" => $itemId));
 				$row_adp = $query_adp->fetch();
 				$totalRows_adp = $query_adp->rowCount();
+				$adpstatus = $totalRows_adp > 0 ? $row_adp["status"] : "";
+
 
 				$query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE projid = :itemId");
 				$query_rsBudget->execute(array(":itemId" => $itemId));
 				$row_rsBudget = $query_rsBudget->fetch();
 				$totalRows_rsBudget = $query_rsBudget->rowCount();
-				$projbudget = $row_rsBudget['budget'];
-				
-				
-/* 
-				$query_prg = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid = :prgid");
-				$query_prg->execute(array(":sp" =>$plan, ":prgid" => $prgid));
-				$row_prg = $query_prg->fetch();
-				//$row_prg = $row_prg["spid"];
-				
-				$query_prj = $db->prepare("SELECT * FROM `tbl_projects` WHERE progid = :prgid ORDER BY `projplanstatus`, `projfscyear` ASC");
-				$query_prj->execute(array(":prgid" => $prgid));
-				$row_prj = $query_prj->fetch();
- */			
+				$projbudget = $totalRows_rsBudget > 0 ? $row_rsBudget['budget'] : 0;
+
 				$query_sector = $db->prepare("SELECT sector FROM tbl_sectors WHERE stid = :stid");
-				$query_sector->execute(array(":stid" =>$stid));
+				$query_sector->execute(array(":stid" => $stid));
 				$row_sector = $query_sector->fetch();
 
 				$projname = $row["projname"];
+				$username = $row["user_name"];
 				$budget = number_format($projbudget, 2);
 				$progid = $row["progid"];
 				$srcfyear = $row["projfscyear"];
@@ -87,90 +85,104 @@ try{
 				$row_rsDept = $query_rsDept->fetch();
 				$department = $row_rsDept['sector'];
 				$totalRows_rsDept = $query_rsDept->rowCount();
-				
+
 				$progname = $rowprog["progname"];
-				$sector = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="'.$department.'" style="color:#2196F3">'.$row_sector["sector"].'</span>';
-				
+				$sector = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $row_sector["sector"] . '</span>';
+
 				// status
 				if ($totalRows_adp == 1) {
-					$adpstatus = $row_adp["status"];
-					$status = $row_adp["year"]." ADP";
-					if($adpstatus ==1){
-						$active = '<label class="label label-success" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Approved" >'.$status.'</label>';
+					$status = $row_adp["year"] . " ADP";
+					if ($adpstatus == 1) {
+						$active = '<label class="label label-success" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Approved" >' . $status . '</label>';
 					} else {
-						$active = '<label class="label label-primary" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending Approval" >'.$status.'</label>';
+						$active = '<label class="label label-primary" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending Approval" >' . $status . '</label>';
 					}
-					
+
 					$button = '<!-- Single button -->
 					<div class="btn-group">
 						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							Options <span class="caret"></span>
 						</button>
 						<ul class="dropdown-menu">
-							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>'; 
-							if($adpstatus ==0){
-								$button .= '<li><a type="button" data-toggle="modal" id="approveItemModalBtns" data-target="#approveItemModals" onclick="Undo(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Remove from ADP</a></li>';   
-							}
-							$button .= '							
+							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>';
+					if ($remove_adp && $adpstatus == 0) {
+						$button .= '<li><a type="button" data-toggle="modal" id="approveItemModalBtns" data-target="#approveItemModals" onclick="Undo(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Remove from ADP</a></li>';
+					}
+					$button .= '							
 						</ul> 
 					</div>';
 				} else {
 					$status = "Pending ADP";
-					/* $currentYear = '';
-					$month =  date('m');
-					if ($month  < 7) {
-						$currentYear =  date("Y") - 1;
-					} else {
-						$currentYear =  date("Y");
-					} */
-					$approve=''; 
-					$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">'.$status.'</label>';
-					//$active = "<label class='label label-danger'>".$status."</label>";
-					
-					$approve .='
-					<li>
-						<a type="button" href="strategic-plan-projects?adp=1&proj='.$itemId.'&plan='.$plan.'" onclick="return confirm(\'Are you sure you want to add this project to ' . $currentfy . ' ADP?\')">
-							<i class="glyphicon glyphicon-plus"></i> Add to ADP
-						</a>
-					</li>';
-					 
+					$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">' . $status . '</label>';
 					$button = '<!-- Single button -->
 					<div class="btn-group">
 						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							Options <span class="caret"></span>
 						</button>
-						<ul class="dropdown-menu">
-						'.$approve.
-						'
-							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>       
-							<li><a type="button" data-toggle="modal" id="editprogram"  href="edit-project?projid=' . $itemId . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-							<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>       
+						<ul class="dropdown-menu">';
+					if ($adpstatus == 0) {
+
+						$query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+						$query_rsOutput->execute(array(":projid" => $itemId));
+						$totalRows_rsOutput = $query_rsOutput->rowCount();
+						if ($totalRows_rsOutput > 0) {
+							if ($add_to_adp) {
+								$button .= '<li><a type="button" href="add-project-outputs.php?projid=' . base64_encode($itemId) . '"> <i class="glyphicon glyphicon-plus"></i>Edit Outputs</a></li>';
+								$button .= '
+									<li>
+										<a type="button" href="strategic-plan-projects?plan=' . $plan . '&adp=1&proj=' . $itemId . '" onclick="return confirm(\'Are you sure you want to add this project to ' . $currentfy . ' ADP?\')">
+											<i class="glyphicon glyphicon-plus"></i> Add to ADP
+										</a>
+									</li>
+									';
+							}
+						} else {
+							if ($edit) {
+								$button .= '<li><a type="button" href="add-project-outputs.php?projid=' . base64_encode($itemId) . '"> <i class="glyphicon glyphicon-plus"></i>Add Outputs</a></li>';
+								$button .= '<li><a type="button" data-toggle="modal" id="editprogram"  href="add-project?projid=' . $itemId . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>';
+							}
+
+							if ($delete) {
+								$button .= '<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>     ';
+							}
+						}
+					}
+
+					$button .= '
+							<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>         
 						</ul>
 					</div>';
 				}
 				$active .= '<script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>';
-				
-				$output['data'][] = array(
-					$sn,
-					$projname,
-					$progname,
-					$sector,
-					$budget,
-					$projYear,
-					$active,
-					$button
-				);
+				$progbudgetbal = number_format(($row_rsBudget['budget'] - $projbudget), 2);
+				// $link = ($program_type == 0) ? $sp_link : $button;
+				$filter_department = $permissions->open_permission_filter($project_department, $project_section, $project_directorate);
+
+				if ($filter_department) {
+					$sn++;
+
+					$output['data'][] = array(
+						$sn,
+						$projname,
+						$progname,
+						$sector,
+						$budget,
+						$projYear,
+						$active,
+						$button
+					);
+				}
 			} // /while 
 
 		} // if num_rows
 
 		echo json_encode($output);
 	}
-	
+
 	$valid['success'] = array('success' => false, 'messages' => array());
-	if(isset($_POST["removeadp"])){
+	if (isset($_POST["removeadp"])) {
 		$projid = $_POST["itemId"];
-		
+
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_annual_dev_plan` WHERE projid=:projid");
 		$results = $deleteQuery->execute(array(':projid' => $projid));
 
@@ -181,10 +193,8 @@ try{
 			$valid['success'] = false;
 			$valid['messages'] = "Error while removing the project from ADP!!";
 		}
-		//var_dump("Valid: ".$valid);
 		echo json_encode($valid);
 	}
-
 } catch (PDOException $ex) {
 	// $result = flashMessage("An error occurred: " .$ex->getMessage());
 	print($ex->getMessage());

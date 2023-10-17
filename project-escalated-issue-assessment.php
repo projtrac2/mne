@@ -1,9 +1,15 @@
-<?php 
-include_once 'includes/head-alt.php';
+<?php
+$pageName = "Project Escalated Issue Assessment";
+$replacement_array = array(
+    'planlabel' => "Escalated Issue Action",
+    'plan_id' => base64_encode(6),
+);
 
-try{		
-	
-	
+$page = "view";
+require('includes/head.php');
+$pageTitle = $planlabelplural;
+
+if ($permission) {   
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
 	  $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -170,155 +176,21 @@ try{
 	$tmleadercomments = $rows["leadercomments"];
 	$dateescalated = date("d M Y",strtotime($rows["dateescalated"]));
 
-	$query_tmembers =  $db->prepare("SELECT t.designation as role, ptleave, reassignee, datereassigned, d.designation, t.ptid, t.fullname, t.title, t.email, t.phone FROM tbl_projteam2 t inner join tbl_projmembers m on m.ptid=t.ptid inner join tbl_pmdesignation d on d.moid=t.designation where m.projid='$projid' GROUP BY pmid ORDER BY t.designation ASC");
+	$query_tmembers =  $db->prepare("SELECT * FROM tbl_projmembers where projid='$projid' GROUP BY pmid ORDER BY role ASC");
 	$query_tmembers->execute();		
 	
-	$query_teamleader = $db->prepare("SELECT pt_id, fullname, title FROM tbl_users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid='$escdby'");
+	$query_teamleader = $db->prepare("SELECT pt_id, fullname, title FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid='$escdby'");
 	$query_teamleader->execute();		
 	$teamleader = $query_teamleader->fetch();
 	$escdbyid = $teamleader["pt_id"];
 	$escalatedby = $teamleader["title"].".".$teamleader["fullname"];
 	$style = 'style="padding:8px; border:#CCC thin solid; border-radius:5px"';
 	
-	$query_recordedby = $db->prepare("SELECT fullname, title FROM tbl_users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid='$recordedby'");
+	$query_recordedby = $db->prepare("SELECT fullname, title FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid='$recordedby'");
 	$query_recordedby->execute();		
 	$row_recordedby = $query_recordedby->fetch();
 	$recordedby = $row_recordedby["title"].".".$row_recordedby["fullname"];
-
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
-}
-?>
-
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <title>Result-Based Monitoring &amp; Evaluation System: Escalated Issue Action</title>
-    <!-- Favicon-->
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
-	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-	
-    <!--CUSTOM MAIN STYLES-->
-    <link href="css/custom.css" rel="stylesheet" />
-	
-    <!-- Custom CSS -->
-    <link href="css/popper-small.css" rel="stylesheet">
-
-    <!-- Bootstrap Core Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
-
-    <!-- Waves Effect Css -->
-    <link href="projtrac-dashboard/plugins/node-waves/waves.css" rel="stylesheet" />
-
-    <!-- Animation Css -->
-    <link href="projtrac-dashboard/plugins/animate-css/animate.css" rel="stylesheet" />
-
-    <!--WaitMe Css-->
-    <link href="projtrac-dashboard/plugins/waitme/waitMe.css" rel="stylesheet" />
-
-    <!-- Multi Select Css -->
-    <link href="projtrac-dashboard/plugins/multi-select/css/multi-select.css" rel="stylesheet">
-
-    <!-- Bootstrap Spinner Css -->
-    <link href="projtrac-dashboard/plugins/jquery-spinner/css/bootstrap-spinner.css" rel="stylesheet">
-
-    <!-- Bootstrap Tagsinput Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
-
-    <!-- Bootstrap Select Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
-    <!-- JQuery DataTable Css -->
-    <link href="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
-
-    <!-- Sweet Alert Css -->
-    <link href="projtrac-dashboard/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-
-    <!-- Custom Css -->
-    <link href="projtrac-dashboard/css/style.css" rel="stylesheet">
-
-    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
-    <link href="projtrac-dashboard/css/themes/all-themes.css" rel="stylesheet" />
-	
-	<!-- InstanceBeginEditable name="head" -->
-	<script type="text/javascript">
-	jQuery(document).ready(function() {
-		jQuery('.tabs .tab-links a').on('click', function(e)  {
-			var currentAttrValue = jQuery(this).attr('href');
-	 
-			// Show/Hide Tabs
-			jQuery('.tabs ' + currentAttrValue).show().siblings().hide();
-	 
-			// Change/remove current tab to active
-			jQuery(this).parent('li').addClass('active').siblings().removeClass('active');
-	 
-			e.preventDefault();
-		});
-	});
-	</script>
-
-	<script type="text/javascript" >
-	$(document).ready(function()
-	{
-	$(".account").click(function()
-	{
-	var X=$(this).attr('id');
-
-	if(X==1)
-	{
-	$(".submenus").hide();
-	$(this).attr('id', '0');	
-	}
-	else
-	{
-
-	$(".submenus").show();
-	$(this).attr('id', '1');
-	}
-		
-	});
-
-	//Mouseup textarea false
-	$(".submenus").mouseup(function()
-	{
-	return false
-	});
-	$(".account").mouseup(function()
-	{
-	return false
-	});
-
-
-	//Textarea without editing.
-	$(document).mouseup(function()
-	{
-	$(".submenus").hide();
-	$(".account").attr('id', '');
-	});
-		
-	});</script>
-	<link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
-	<script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
-
-    <link href="css/left_menu.css" rel="stylesheet">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">	
-	<script src="ckeditor/ckeditor.js"></script>
-	<style>
-	#links a {
-		color: #FFFFFF;
-		text-decoration: none;
-	}  
-	</style>
+	?>
 	<script type="text/javascript">
 	$(document).ready(function(){
 		$('#issueaction').on('change',function(){
@@ -367,11 +239,8 @@ try{
 		});
 	}
 	</script>
-</head>
-
-<body class="theme-blue">
 	<!-- Modal -->
-	  <div class="modal fade" id="myModal" role="dialog">
+	<div class="modal fade" id="myModal" role="dialog">
 		<div class="modal-dialog modal-lg span5">
 		  <div class="modal-content">
 			<div class="modal-header">
@@ -383,89 +252,220 @@ try{
 			</div>
 		  </div>
 		</div>
-	  </div>
-    <!-- Page Loader --
-    <div class="page-loader-wrapper">
-        <div class="loader">
-            <div class="preloader">
-                <div class="spinner-layer pl-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
-            <p>Please wait...</p>
-        </div>
-    </div>
-    <!-- #END# Page Loader -->
-	<?php
-		$pid = $row_rsMyP['projid'];
-		$query_rsSDate =  $db->prepare("SELECT projstartdate FROM tbl_projects where projid='$pid'");
-		$query_rsSDate->execute();		
-		$row_rsSDate = $query_rsSDate->fetch();
-				
-		$projstartdate = $row_rsSDate["projstartdate"];
-		//$start_date = date_format($projstartdate, "Y-m-d");
-		$current_date = date("Y-m-d");
-				
-		$tndprojid = $row_rsMyP['projid'];
-		$query_rsTender =  $db->prepare("SELECT * FROM tbl_tenderdetails where projid='$tndprojid'");
-		$query_rsTender->execute();		
-		$row_rsTender = $query_rsTender->fetch();
-		$totalRows_rsTender = $query_rsTender->rowCount();
-	?>
-    <!-- Overlay For Sidebars -->
-    <div class="overlay"></div>
-    <!-- #END# Overlay For Sidebars ->
-    <!-- Top Bar -->
-    <nav class="navbar" style="height:69px; padding-top:-10px">
+	</div>
+    <!-- start body  -->
+    <section class="content">
         <div class="container-fluid">
-            <div class="navbar-header">
-                <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-                <a href="javascript:void(0);" class="bars"></a>
-                <img src="images/logo.png" alt="logo" width="239" height="39">
+            <div class="block-header">
+				<div>
+					<?php echo $results; ?>
+				</div>
             </div>
-			
-        </div>
-    </nav>
-    <section>
-        <!-- Left Sidebar -->
-        <aside id="leftsidebar" class="sidebar">
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="image">
-                    <img src="images/user.png" width="48" height="48" alt="User" />
+            <div class="block-header bg-brown" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+				<h4 class="contentheader"><i class="fa fa-columns" aria-hidden="true"></i> Issue Assessment Report</h4>
+            </div>
+			<div class="row clearfix" style="margin-top:10px">
+				<!-- Advanced Form Example With Validation -->
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+						<div class="body">
+							<fieldset class="scheduler-border">
+								<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-alert" aria-hidden="true"></i> Issue History</legend>
+								<div style="padding-top: 20px; padding-bottom:-50px">
+									<div  class="col-md-12">
+										<label>Project:</label>
+										<div <?=$style?>><?=$projname?></div>
+									</div>
+									<div class="col-md-12">
+										<label>Issue:</label>
+										<div <?=$style?>><?=$issuename?></div>
+									</div>
+									<div class="col-md-12">
+										<label>Issue Description:</label>
+										<div <?=$style?>><?=$issuedescription?></div>
+									</div>
+									<div class="col-md-3">
+										<label>Severity Level:</label>
+										<div <?=$style?>><?=$severity?></div>
+									</div>
+									<div class="col-md-9">
+										<label>Mitigation:</label>
+										<div <?=$style?>><?=$mitigation?></div>
+									</div>
+									<div class="col-md-3">
+										<label>Recorded By:</label>
+										<div <?=$style?>><?=$recordedby?></div>
+									</div>
+									<div class="col-md-3">
+										<label>Date Recorded:</label>
+										<div <?=$style?>><?=$daterecorded?></div>
+									</div>
+									<div class="col-md-3">
+										<label>Issue Owner:</label>
+										<div <?=$style?>><?=$issueowner?></div>
+									</div>
+									<div class="col-md-3">
+										<label>Date Analysed:</label>
+										<div <?=$style?>><?=$dateanalysed?></div>
+									</div>
+									<div class="col-md-12">
+										<label>Analysis Recommendation:</label>
+										<div <?=$style?>><?=$analysisrecm?></div>
+									</div>
+									<div class="col-md-4">
+										<label>Escalated By:</label>
+										<div <?=$style?>><?=$escalatedby?></div>
+									</div>
+									<div class="col-md-4">
+										<label>Date Escalated:</label>
+										<div <?=$style?>><?=$dateescalated?></div>
+									</div>
+									<div class="col-md-12">
+										<label>Team Leader Comments:</label>
+										<div <?=$style?>><?=$tmleadercomments?></div>
+									</div>
+									<fieldset class="scheduler-border">
+										<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-users" aria-hidden="true"></i> Project Team Members</legend>
+										<div class="table-responsive">
+											<table class="table table-bordered table-striped table-hover">
+												<thead>
+													<tr id="colrow">
+														<th width="2%"><strong id="colhead">SN</strong></th>
+														<th width="23%">Name</strong></td>
+														<th width="15%">Role</th>
+														<th width="15%">Designation</th>
+														<th width="10%">Availability</th>
+														<th width="15%">Phone</th>
+														<th width="20%">Email</th>
+													</tr>
+												</thead>
+												<tbody>
+												<?php
+												//return; 
+												$sn = 0;
+												while ($rows = $query_tmembers->fetch()) { 
+													$mbrid = $rows['ptid'];
+												
+													$query_tmember =  $db->prepare("SELECT t.designation as role, d.designation, t.ptid, t.fullname, t.title, t.email, t.phone FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_pmdesignation d on d.moid=t.designation where u.userid='$mbrid' ORDER BY t.designation ASC");
+													$query_tmember->execute();
+													$row = $query_tmember->fetch();
+													
+													$sn = $sn + 1;
+													$name = $row['title'].".".$row['fullname'];
+													$designation = $row['designation'];
+													$role = $rows['role'];
+													if($role==1){
+														$role = "Team Leader";
+													}elseif($role==2){
+														$role = "Deputy Team Leader";
+													}elseif($role==3){
+														$role = "Officer";
+													}else{
+														$role = "monitoring Officer";
+													}
+													
+													$email = $row['email'];
+													$phone = $row['phone'];
+													$avail = $rows['ptleave'];
+													
+													if($avail==1){
+														$availability = "Unavailable";
+														$reassignee = $rows['reassignee'];
+														$datereassigned = date("d M Y",strtotime($rows['datereassigned']));
+														
+														$query_reassignee =  $db->prepare("SELECT fullname, title, phone, email FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid where userid='$reassignee'");
+														$query_reassignee->execute();		
+														$row_reassignee = $query_reassignee->fetch();
+														$reassigneedto = $row_reassignee["title"].".".$row_reassignee["fullname"];
+														$reassigneedphone = $row_reassignee["phone"];
+														$reassigneedemail = $row_reassignee["email"];
+														$availclass = 'class="text-warning"';
+													}else{
+														$availability = "Available";
+														$availclass = 'class="text-success"';
+													}
+													?>
+													<tr id="rowlines">
+														<td><?php echo $sn; ?></td>
+														<td><?php echo $name; ?></td>
+														<td><?php echo $role; ?></td>
+														<td><?php echo $designation; ?></td>
+														<?php if($avail==1){ ?>
+														<td <?=$availclass?>><span class="mytooltip tooltip-effect-1"><span class="tooltip-item2"><?php echo $availability; ?></span><span class="tooltip-content4 clearfix" style="background-color:#CDDC39; color:#000"><span class="tooltip-text2"><h4 align="center"><u>Details</u></h4><strong>Unavailable From Date:</strong> <?php echo $datereassigned; ?><br> <strong>In-Place:</strong> <?php echo $reassigneedto; ?><br> <strong>In-Place Phone:</strong> <?php echo $reassigneedphone; ?><br> <strong>In-Place Email:</strong> <?php echo $reassigneedemail; ?></span></span></span></td>
+														<?php }else{ ?>
+														<td><?php echo $availability; ?></td>
+														<?php } ?>
+														<td><?php echo $phone; ?></td>
+														<td><?php echo $email; ?></td>
+													</tr>
+												<?php 
+												}
+												?>
+												</tbody>
+											</table>
+										</div>
+									</fieldset>
+								</div>
+							</fieldset>
+								
+							<fieldset class="scheduler-border">
+								<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-comments" aria-hidden="true"></i> Issue Assessment Comments</legend>
+								<div class="col-lg-12 col-md-12 col-sm-12" style="padding-top: 20px">
+									<form id="assessmentcomments" method="POST" name="assessmentcomments" action="" autocomplete="off">
+										<div class="row clearfix" style="padding-left:10px; padding-right:10px">
+											<?php
+											$query_projstatuschange =  $db->prepare("SELECT projcode, projstatus, projchangedstatus, projevaluate FROM tbl_projects WHERE projid = '$projid'");
+											$query_projstatuschange->execute();		
+											$row_projstatuschange = $query_projstatuschange->fetch();
+											$projstatus = $row_projstatuschange["projstatus"];
+											$projcode = $row_projstatuschange["projcode"];
+											$projevaluate = $row_projstatuschange["projevaluate"];
+											
+											?>
+											<div class="col-md-12">
+												<label><font color="#174082">Comments:</font></label>
+												<div class="form-line">
+													<textarea name="comments" cols="45" rows="5" class="txtboxes" id="comments" style="height:50px; width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
+													<script src="js/issueescalationtextareajs.js"></script>
+												</div>
+											</div>
+											<div class="col-md-12">
+												<label><font color="#174082">Select and attach a file:</font></label>
+												<div class="form-line">                 
+													<input type="file" class="form-control" name="attachment" id="attachment">
+												</div>
+											</div>
+											<div class="row clearfix">
+												<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+													&nbsp;
+												</div>
+												<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
+													<div class="btn-group">
+														<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit"  value="Save" />
+													</div>
+													<div class="btn-group">
+														<a type="button" class="btn btn-warning" href="project-escalated-issue">Cancel</a>
+													</div>
+												</div>
+												<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+													<input name="projid" type="hidden" id="projid" value="<?php echo $projid; ?>" />
+													<input name="user_name" type="hidden" id="user_name" value="<?php echo $username; ?>" />
+													<input name="issueid" type="hidden" value="<?php echo $issueid; ?>" />
+												</div>
+											</div> 
+										</div>
+									</form>
+								</div>
+							</fieldset>
+						</div>
+                    </div>
                 </div>
-				<?php
-				include_once("includes/user-info.php");
-				?>
             </div>
-            <!-- #User Info -->
-            <!-- Menu -->        
-			<?php
-			 include_once("includes/sidebar.php");
-			?>
-            <!-- #Menu -->
-            <!-- Footer -->
-			<div class="legal">
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-					ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-				</div>
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-					Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
-				</div>
-			</div>
-            <!-- #Footer -->
-        </aside>
-        <!-- #END# Left Sidebar -->
+            <!-- #END# Advanced Form Example With Validation -->
+        </div>
     </section>
-	<!-- Inner Section -->
-		<?php  include_once('project-escalated-issue-assessment-inner.php');?>
-    <!-- #END# Inner Section -->
-	
+    <!-- end body  -->	
+
 
 	<script language="javascript" type="text/javascript">
 	$(document).ready(function(){		
@@ -602,55 +602,14 @@ try{
 		</div>
 	</div>
     <!-- #END# Modal Project Constrain Parameters -->
-    <!-- Jquery Core Js -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+<?php
+} else {
+    $results =  restriction();
+    echo $results;
+}
 
-    <!-- Bootstrap Core Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script>
-
-    <!-- Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script>
-
-    <!-- Multi Select Plugin Js -->
-    <script src="projtrac-dashboard/plugins/multi-select/js/jquery.multi-select.js"></script>
-
-    <!-- Slimscroll Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-
-    <!-- Waves Effect Plugin Js -->
-    <script src="projtrac-dashboard/plugins/node-waves/waves.js"></script>
-
-    <!-- Autosize Plugin Js -->
-    <script src="projtrac-dashboard/plugins/autosize/autosize.js"></script>
-
-    <!-- Sweet Alert Plugin Js -->
-    <script src="projtrac-dashboard/plugins/sweetalert/sweetalert.min.js"></script>
-
-    <!-- Moment Plugin Js -->
-    <script src="projtrac-dashboard/plugins/momentjs/moment.js"></script>
-
-    <!-- Custom Js -->
-    <script src="projtrac-dashboard/js/admin2.js"></script>
-    <script src="projtrac-dashboard/js/pages/forms/basic-form-elements.js"></script>
-    <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
-	
-    <!-- Bootstrap tether Core JavaScript -->
-    <script src="assets/plugins/popper/popper.min.js"></script>
-	
-    <!-- Demo Js -->
-    <script src="projtrac-dashboard/js/demo.js"></script>
-	
-    <!--stickey kit -->
-    <script src="assets/plugins/sticky-kit-master/dist/sticky-kit.min.js"></script>
-    <script src="assets/plugins/sparkline/jquery.sparkline.min.js"></script>
-    <!--Custom JavaScript -->
-    <script src="js/custom.min.js"></script>
-    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?lang=css&amp;skin=default"></script>
-    <!-- Style switcher -->
-    <!-- ============================================================== -->
-    <script src="assets/plugins/styleswitcher/jQuery.style.switcher.js"></script>
+require('includes/footer.php');
+?>
 	
 </body>
-
 </html>

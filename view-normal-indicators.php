@@ -11,11 +11,7 @@ if (!isset($_SESSION)) {
 
 require 'authentication.php';
 
-try {
-
-	
-
-
+try { 
 	if (isset($_GET['indcode'])) {
 		$indcode_rsUpP = $_GET['indcode'];
 	}

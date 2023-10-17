@@ -1,9 +1,7 @@
 <?php
 
 
-include_once "controller.php";
-include_once("../../system-labels.php");
-
+include_once "controller.php"; 
 $itemId = $_POST['itemId'];
 $query_item = $db->prepare("SELECT s.financier AS financier, fund_code, y.year AS fyear, amount, c.code AS ccode, c.currency AS currency, exchange_rate, date_funds_released, funds_purpose, grant_life_span, grant_installments, grant_installment_date, t.id AS tid, t.type AS ttype FROM tbl_funds f inner join tbl_financiers s on s.id=f.funder inner join tbl_fiscal_year y on y.id=f.financial_year inner join tbl_currency c on c.id=f.currency inner join tbl_funding_type t ON t.id=s.type WHERE f.id = '$itemId'");
 $query_item->execute();

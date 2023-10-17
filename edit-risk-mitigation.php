@@ -1,17 +1,7 @@
 <?php
 $mtid = (isset($_GET['mtid'])) ? base64_decode($_GET['mtid']) : "";
-
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
-
 require('includes/head.php');
-if ($permission) {
-$pageTitle = "Risk Mitigations";
+if ($permission) { 
 
 try {
     $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");

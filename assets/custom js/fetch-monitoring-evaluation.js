@@ -53,8 +53,7 @@ function viewchecklist(proj) {
       projid: proj,
     },
     dataType: "html",
-    success: function (response) {
-		console.log(response);
+    success: function (response) { 
       $("#checklistBody").html(response);
     },
   });	

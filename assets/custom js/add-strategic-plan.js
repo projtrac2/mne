@@ -46,7 +46,7 @@ $(document).ready(function() {
     e.preventDefault();
     $.ajax({
       type: "post",
-      url: "strategic-plan-process.php",
+      url: "strategic-plan-process",
       data: $("#stratcplan").serialize(),
       success: function(response) {
         $("#objective_table").html(response);
@@ -69,7 +69,7 @@ $(document).ready(function() {
     e.preventDefault();
     $.ajax({
       type: "post",
-      url: "strategic-plan-process.php",
+      url: "strategic-plan-process",
       data: $("#objectiveplan").serialize(),
       success: function(response) {
         $("#strategy_table").html(response);
@@ -85,7 +85,7 @@ $(document).ready(function() {
     e.preventDefault();
     $.ajax({
       type: "post",
-      url: "strategic-plan-process.php",
+      url: "strategic-plan-process",
       data: $("#strategy").serialize(),
       success: function(response) {
         var $active = $(".wizard .nav-tabs li.active");

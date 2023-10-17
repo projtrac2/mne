@@ -20,7 +20,7 @@ $(document).ready(function () {
         if (addnew == "addunit") {
             $.ajax({
                 type: "post",
-                url: 'assets/processor/indicator-details.php',
+                url: 'assets/processor/indicator-details',
                 data: form_data,
                 dataType: "json",
                 success: function (response) {
@@ -46,7 +46,7 @@ $(document).ready(function () {
         } else if (addnew == "add_type_diss") {
             $.ajax({
                 type: "post",
-                url: 'assets/processor/indicator-details.php',
+                url: 'assets/processor/indicator-details',
                 data: form_data,
                 dataType: "json",
                 success: function (response) {
@@ -87,7 +87,7 @@ $(document).ready(function () {
 function measurement_unit() {
     $.ajax({
         type: "POST",
-        url: 'assets/processor/indicator-details.php',
+        url: 'assets/processor/indicator-details',
         data: "get_unit",
         dataType: "html",
         success: function (response) {
@@ -101,7 +101,7 @@ function get_department() {
     if (sctID) {
         $.ajax({
             type: 'POST',
-            url: 'assets/processor/indicator-details.php',
+            url: 'assets/processor/indicator-details',
             data: 'sct_id=' + sctID,
             success: function (html) {
                 $('#inddept').html(html);
@@ -242,7 +242,7 @@ function get_disaggregations(rowno, type = null) {
     if (type) {
         $.ajax({
             type: "POST",
-            url: 'assets/processor/indicator-details.php',
+            url: 'assets/processor/indicator-details',
             data: "get_disaggregations",
             dataType: "html",
             success: function (response) {
@@ -270,7 +270,7 @@ function output_disaggregation() {
 function get_output_disaggregation_type() {
     $.ajax({
         type: "POST",
-        url: 'assets/processor/indicator-details.php',
+        url: 'assets/processor/indicator-details',
         data: "get_diss_type=0",
         dataType: "html",
         success: function (response) {
@@ -284,7 +284,7 @@ function indicator_disaggregation(ind_diss, indicatorid) {
     if (ind_diss != "") {
       $.ajax({
         type: "post",
-        url: "assets/processor/indicator-details.php",
+        url: "assets/processor/indicator-details",
         data: {
           getdisstype: "new",
           ind_diss: ind_diss,
@@ -353,7 +353,7 @@ function checkAvailability() {
     $("#loaderIcon").show();
     var indcode = $.trim($("#indcode").val());
     jQuery.ajax({
-        url: 'assets/processor/indicator-details.php',
+        url: 'assets/processor/indicator-details',
         data: 'indcode=' + indcode,
         type: "POST",
         success: function (data) {

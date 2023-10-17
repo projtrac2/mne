@@ -1,9 +1,7 @@
 <?php
 
 
-include_once "controller.php";
-include_once("../../system-labels.php");
-
+include_once "controller.php"; 
 
 $valid['success'] = array('success' => false, 'messages' => array());
 if(isset($_POST["deleteItem"])){

@@ -4,9 +4,9 @@ return [
     'database' => [
         'driver' => 'mysql',
         'host' => 'localhost',
-        'dbname' => 'county',
-        'username' => 'evans',
-        'password' => 'Password@9570'
+        'dbname' => 'mne',
+        'username' => 'root',
+        'password' => '3!&o@8ProjTrack4'
     ],
     'mail' => [
         'transport' => 'smtp',

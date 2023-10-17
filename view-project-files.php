@@ -1,35 +1,39 @@
 <?php
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-	$pageTitle = "All Project Files";
 	try {
-		$query_rsPFiles = $db->prepare("SELECT f.*, p.projid, p.projname, f.date_uploaded AS ufdate FROM tbl_projects p INNER JOIN tbl_files f ON p.projid=f.projid WHERE p.deleted = '0' ORDER BY f.fcategory, f.ftype");
-		$query_rsPFiles->execute();
-		$row_rsPFiles = $query_rsPFiles->fetch();
-		$totalRows_rsPFiles = $query_rsPFiles->rowCount();
+		if (isset($_GET['projid'])) {
+		  $hash = $_GET['projid'];
+		  $decode_projid = base64_decode($hash);
+		  $projid_array = explode("prjfile5", $decode_projid);
+		  $projid = $projid_array[1];
+		}
+		
+		$query_project_files = $db->prepare("SELECT f.*, s.stage, p.progid FROM tbl_files f INNER JOIN tbl_project_workflow_stage s ON s.id=f.projstage inner join tbl_projects p on p.projid=f.projid WHERE f.projid = $projid ORDER BY f.projstage, f.ftype");
+		$query_project_files->execute();
+		$total_project_files = $query_project_files->rowCount();
+		
+		$query_project_photos = $db->prepare("SELECT f.*, s.stage, p.progid FROM tbl_project_photos f INNER JOIN tbl_project_workflow_stage s ON s.id=f.projstage inner join tbl_projects p on p.projid=f.projid WHERE f.projid = $projid ORDER BY f.projstage, f.ftype");
+		$query_project_photos->execute();
+		$total_project_photos = $query_project_photos->rowCount();
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
-?>
+	?>
 
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-
-						</div>
+					<?= $icon ?>
+					<?= $pageTitle ?>
+					
+					<div class="btn-group" style="float:right; margin-right:5px">
+						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -45,39 +49,82 @@ if ($permission) {
 								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 									<thead>
 										<tr id="colrow">
-											<td width="3%"><strong>#</strong></td>
-											<td width="20%"><strong>File Name</strong></td>
-											<td width="8%"><strong>File Type</strong></td>
-											<td width="8%"><strong>File Category</strong></td>
-											<td width="26%"><strong>Project</strong></td>
-											<td width="17%"><strong>Purpose</strong></td>
+											<td width="4%"><strong>#</strong></td>
+											<td width="25%"><strong>File Name</strong></td>
+											<td width="16%"><strong>Project Stage</strong></td>
+											<td width="10%"><strong>File Category</strong></td>
+											<td width="15%"><strong>Purpose</strong></td>
+											<td width="10%"><strong>File Type</strong></td>
 											<td width="10%"><strong>File Date</strong></td>
-											<td width="8%"><strong><i class="fa fa-file" aria-hidden="true"></i> Download</strong></td>
+											<td width="10%"><strong>Download</strong></td>
 										</tr>
 									</thead>
 									<tbody>
 										<?php
-										if ($totalRows_rsPFiles > 0) {
-
+										if ($total_project_files > 0 || $total_project_photos > 0) {
 											$nm = 0;
-											do {
-												$nm++;
-												$flupdate = strtotime($row_rsPFiles['ufdate']);
-												$fileuploaddate = date("d M Y", $flupdate);
-										?>
-												<tr>
-													<td><?php echo $nm; ?></td>
-													<td><?php echo $row_rsPFiles['filename']; ?></td>
-													<td><?php echo $row_rsPFiles['ftype']; ?></td>
-													<td><?php echo $row_rsPFiles['fcategory']; ?></td>
-													<td><?php echo $row_rsPFiles['projname']; ?></td>
-													<td><?php echo $row_rsPFiles['reason']; ?></td>
-													<td><?php echo $fileuploaddate; ?></td>
-													<td align="center"><a href="<?php echo $row_rsPFiles['floc']; ?>" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a></td>
-												</tr>
-											<?php
-											} while ($row_rsPFiles = $query_rsPFiles->fetch()); ?>
-										<?php
+											while ($row_files = $query_project_files->fetch()) {
+												$progid = $row_files['progid'];
+												$flupdate = strtotime($row_files['date_uploaded']);
+												$filedate = date("d M Y", $flupdate);
+
+												$query_rsPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE progid = :progid");
+												$query_rsPrograms->execute(array(":progid" => $progid));
+												$row_rsPrograms = $query_rsPrograms->fetch();
+												$totalRows_rsPrograms = $query_rsPrograms->rowCount();
+
+												$project_department = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projsector'] : "";
+												$project_section = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projdept'] : "";
+												$project_directorate = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['directorate'] : "";
+
+												$filter_department = view_record($project_department, $project_section, $project_directorate);
+												if ($filter_department) {
+													$nm++;
+													?>
+													<tr>
+														<td><?php echo $nm; ?></td>
+														<td><?php echo $row_files['filename']; ?></td>
+														<td><?php echo $row_files['stage']; ?></td>
+														<td><?php echo $row_files['fcategory']; ?></td>
+														<td><?php echo $row_files['reason']; ?></td>
+														<td><?php echo $row_files['ftype']; ?></td>
+														<td><?php echo $filedate; ?></td>
+														<td align="center"><a href="<?php echo $row_files['floc']; ?>" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a></td>
+													</tr>
+													<?php
+												}
+											}
+											while ($row_files = $query_project_photos->fetch()) {
+												$progid = $row_files['progid'];
+												$flupdate = strtotime($row_files['date_uploaded']);
+												$filedate = date("d M Y", $flupdate);
+
+												$query_rsPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE progid = :progid");
+												$query_rsPrograms->execute(array(":progid" => $progid));
+												$row_rsPrograms = $query_rsPrograms->fetch();
+												$totalRows_rsPrograms = $query_rsPrograms->rowCount();
+
+												$project_department = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projsector'] : "";
+												$project_section = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projdept'] : "";
+												$project_directorate = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['directorate'] : "";
+
+												$filter_department = view_record($project_department, $project_section, $project_directorate);
+												if ($filter_department) {
+													$nm++;
+													?>
+													<tr>
+														<td><?php echo $nm; ?></td>
+														<td><?php echo $row_files['filename']; ?></td>
+														<td><?php echo $row_files['stage']; ?></td>
+														<td><?php echo $row_files['fcategory']; ?></td>
+														<td><?php echo $row_files['reason']; ?></td>
+														<td><?php echo $row_files['ftype']; ?></td>
+														<td><?php echo $filedate; ?></td>
+														<td align="center"><a href="<?php echo $row_files['floc']; ?>" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a></td>
+													</tr>
+													<?php
+												} 
+											}
 										}
 										?>
 									</tbody>

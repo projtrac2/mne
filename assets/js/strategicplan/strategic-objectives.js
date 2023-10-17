@@ -166,6 +166,7 @@ function editItem(itemId = null) {
           .unbind("submit")
           .bind("submit", function (e) {
             e.preventDefault();
+            $("#tag-form-submit").prop("disabled", true);
             var form = $(this);
             var formData = new FormData(this);
             $.ajax({
@@ -225,6 +226,8 @@ function delete_row(rowno) {
 $(document).ready(function () {
   $("#addstrategyForm").on("submit", function (event) {
     event.preventDefault();
+    $("#tag-form-submit").prop("disabled", true);
+
     var form_info = $(this).serialize(); 
     $.ajax({
       type: "POST",

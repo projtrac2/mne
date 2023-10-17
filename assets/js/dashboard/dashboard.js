@@ -4,7 +4,7 @@ function conservancy() {
     if (level1 != "") {
         $.ajax({
             type: "post",
-            url: "assets/processor/dashboard-processor.php",
+            url: "assets/processor/dashboard-processor",
             data: { get_level2: "get_level2", level1: level1 },
             dataType: "html",
             success: function (response) {
@@ -20,7 +20,7 @@ function ecosystem() {
     if (level2 != "") {
         $.ajax({
             type: "post",
-            url: "assets/processor/dashboard-processor.php",
+            url: "assets/processor/dashboard-processor",
             data: { get_level3: "get_level3", level2: level2 },
             dataType: "html",
             success: function (response) {
@@ -36,7 +36,7 @@ function finyearfrom() {
     if (fyfrom != "") {
         $.ajax({
             type: "post",
-            url: "assets/processor/dashboard-processor.php",
+            url: "assets/processor/dashboard-processor",
             data: { get_fyto: fyfrom },
             dataType: "html",
             success: function (response) {
@@ -54,7 +54,7 @@ function get_projects() {
     if (deptid != "") {
         $.ajax({
             type: "post",
-            url: "assets/processor/dashboard-processor.php",
+            url: "assets/processor/dashboard-processor",
             data: {
                 get_dept_projects: deptid,
                 start_year: start_year,
@@ -74,7 +74,7 @@ function get_outputs() {
     if (projid) {
         $.ajax({
             type: "post",
-            url: "assets/processor/dashboard-processor.php",
+            url: "assets/processor/dashboard-processor",
             data: {
                 get_outputs: "get_outputs",
                 projid: projid,

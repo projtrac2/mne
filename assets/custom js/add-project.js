@@ -1,13 +1,9 @@
 $(document).ready(function () {
-  $(".account").click(function () {
-    var X = $(this).attr("id");
-    if (X == 1) {
-      $(".submenus").hide();
-      $(this).attr("id", "0");
-    } else {
-      $(".submenus").show();
-      $(this).attr("id", "1");
-    }
+
+  $("#unit_type").change(function (e) {
+    e.preventDefault();
+    var unit_type = $(this).val();
+    (unit_type == 1) ? $("#mapping_point_div").show() : $("#mapping_point_div").hide();
   });
 
   var urlpath = window.location.pathname;
@@ -17,19 +13,6 @@ $(document).ready(function () {
     hide_divs();
   }
 
-  //Mouseup textarea false
-  $(".submenus").mouseup(function () {
-    return false;
-  });
-  $(".account").mouseup(function () {
-    return false;
-  });
-
-  //Textarea without editing.
-  $(document).mouseup(function () {
-    $(".submenus").hide();
-    $(".account").attr("id", "");
-  });
 
   //on load calculate the program days
   var progduration = $("#progduration").val();
@@ -61,6 +44,7 @@ $(document).ready(function () {
       $(element).next(".red").remove();
     },
   });
+
   var navListItems = $("div.setup-panel div a"),
     allWells = $(".setup-content"),
     allNextBtn = $(".nextBtn");
@@ -139,6 +123,34 @@ $(document).ready(function () {
   });
 
   $("div.setup-panel div a.btn-primary").trigger("click");
+
+
+  //filter the expected output  cannot be selected twice
+  $(document).on("change", ".select_output", function (e) {
+    var tralse = true;
+    var selectOutcome_arr = []; // for contestant name
+    var attrb = $(this).attr("id");
+    var selectedid = "#" + attrb;
+    var selectedText = $(selectedid + " option:selected").html();
+
+    $(".select_output").each(function (k, v) {
+      var getVal = $(v).val();
+      if (getVal && $.trim(selectOutcome_arr.indexOf(getVal)) != -1) {
+        tralse = false;
+        alert("You can not select Output: " + selectedText + ", more than once");
+        var rw = $(v).attr("data-id");
+        var outcomeindicator = "#outcomeindicatorrow" + rw; // outcome  indicator id
+        $(v).val("");
+        $(outcomeindicator).val("");
+        return false;
+      } else {
+        selectOutcome_arr.push($(v).val());
+      }
+    });
+    if (!tralse) {
+      return false;
+    }
+  });
 });
 
 //function to put commas to the data
@@ -165,9 +177,7 @@ const validate_projcode = () => {
       success: function (response) {
         if (response == "true") {
           $("#projcodemsg").show();
-          $("#projcodemsg").html(
-            "This project exists!! Please confirm if this is the correct project code"
-          );
+          $("#projcodemsg").html("This project exists!! Please confirm if this is the correct project code");
           $("#projcode").val("");
         } else {
           $("#projcodemsg").hide();
@@ -181,9 +191,7 @@ const validate_projcode = () => {
 function finacial_year_change() {
   var phandler = output_form_fields();
   if (phandler) {
-    var chandler = confirm(
-      "This change will delete Output plan defined in the next tab. Would you like to proceed?"
-    );
+    var chandler = confirm("This change will delete Output plan defined in the next tab. Would you like to proceed?");
     if (chandler) {
       delete_all_outputs();
       change_fsc_year();
@@ -267,14 +275,10 @@ function project_duration_change() {
 // validation checker for output duration
 function project_duration_validate() {
   var handler = false;
-
   var phandler = output_form_fields();
-
   if (phandler) {
     if (handler == false) {
-      var chandler = confirm(
-        "This change will delete Output plan defined in the next tab. Would you like to proceed?"
-      );
+      var chandler = confirm("This change will delete Output plan defined in the next tab. Would you like to proceed?");
       if (chandler) {
         project_duration_change();
         delete_all_outputs();
@@ -295,76 +299,60 @@ function validate_project_duration() {
   var projduration = parseFloat($("#projduration1").val());
   if ($("#projduration1").val() != "") {
     var progendyear = $("#progendyear").val();
+    var progendyearDate = new Date(progendyear + "-06-30");
     var starting_year = $("#projectStartingYear").val();
     var progduration = parseFloat(progendyear) - parseFloat(starting_year);
     var remainingDuration = parseFloat(progduration) * 365 - projduration;
 
-    var years = projduration / 365;
-    var startYear = starting_year;
-    var startYearDate = starting_year + "-07-01";
-    var today = new Date(startYearDate);
-    var progendyearDate = new Date(progendyear + "-06-30");
+    $.ajax({
+      type: "get",
+      url: "assets/processor/add-project-process",
+      data: {
+        get_start_year: "get_start_year",
+        starting_year: starting_year,
+        projduration: projduration,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.msg) {
+          var end_year = parseInt(response.endyear);
+          var project_end_year = (end_year + 1);
+          var project_end_date = new Date(response.project_end_date);
+          var financial_end_year = end_year + "/" + project_end_year;
+          if (project_end_date <= progendyearDate) {
+            $("#projendyear").val(financial_end_year);
+            $("#hprojendyear").val(end_year);
+            $("#projendyearDate").val(response.project_end_date);
+            $("#projdurationmsg1").hide();
 
-    var endyearDate = "";
-    var a = new Date();
-
-    if (projduration % 365 != 0) {
-      projduration = projduration - 1;
-      for (var i = 0; i < years; i++) {
-        startYear++;
-        var leapYear = isLeap(startYear);
-        if (leapYear == true) {
-          projduration++;
+            get_output_table();
+            if (remainingDuration < 0) {
+              $("#projdurationmsg").html(parseFloat(progduration) * 365);
+            } else {
+              $("#projdurationmsg").html(remainingDuration);
+            }
+          } else {
+            $("#projdurationmsg1").show();
+            $("#projdurationmsg1").html(
+              "Enter duration that is within program duration"
+            );
+            $("#projendyear").val("");
+            $("#hprojendyear").val("");
+            $("#projendyearDate").val("");
+            $("#projduration1").val("");
+            $("#projdurationmsg").html(parseFloat(progduration) * 365);
+          }
         } else {
-          projduration = projduration;
+          $("#projdurationmsg1").show();
+          $("#projdurationmsg1").html("Enter duration that is within program duration");
+          $("#projendyear").val("");
+          $("#hprojendyear").val("");
+          $("#projendyearDate").val("");
+          $("#projduration1").val("");
+          $("#projdurationmsg").html(parseFloat(progduration) * 365); 
         }
       }
-
-      Date.prototype.addDays = function (d) {
-        today.setDate(today.getDate() + d);
-        return today;
-      };
-      endyearDate = a.addDays(projduration);
-    } else {
-      Date.prototype.addDays = function (d) {
-        today.setDate(today.getDate() + d);
-        return today;
-      };
-      endyearDate = a.addDays(projduration);
-    }
-
-    //function to check if leap year
-    function isLeap(year) {
-      return new Date(year, 1, 29).getDate() === 29;
-    }
-
-    var projendyearDate = new Date(endyearDate).toISOString().slice(0, 10);
-
-    var projendyear = endyearDate.getFullYear();
-
-    if (endyearDate <= progendyearDate) {
-      var Edate = projendyear + "/" + (parseFloat(projendyear) + 1);
-      $("#projendyear").val(Edate);
-      $("#hprojendyear").val(projendyear);
-      $("#projendyearDate").val(projendyearDate);
-      $("#projdurationmsg1").hide();
-      get_output_table();
-      if (remainingDuration < 0) {
-        $("#projdurationmsg").html(parseFloat(progduration) * 365);
-      } else {
-        $("#projdurationmsg").html(remainingDuration);
-      }
-    } else {
-      $("#projdurationmsg1").show();
-      $("#projdurationmsg1").html(
-        "Enter duration that is within program duration"
-      );
-      $("#projendyear").val("");
-      $("#hprojendyear").val("");
-      $("#projendyearDate").val("");
-      $("#projduration1").val("");
-      $("#projdurationmsg").html(parseFloat(progduration) * 365);
-    }
+    });
   }
 }
 
@@ -390,12 +378,9 @@ function get_financial_year(projfscyear1) {
 // Function to validate ecosystem on change
 function conservancy() {
   var scID = $("#projcommunity").val();
-
   var fields = output_form_fields();
   if (fields) {
-    var handler = confirm(
-      "This change will delete Output plan defined in the next tab. Would you like to amend the selection?"
-    );
+    var handler = confirm("This change will delete Output plan defined in the next tab. Would you like to amend the selection?");
     if (handler) {
       delete_all_outputs();
       get_conservancy(scID);
@@ -449,9 +434,7 @@ function ecosystem() {
   var fields = output_form_fields();
 
   if (fields) {
-    var handler = confirm(
-      "This change will delete Output plan defined in the next tab. Would you like to amend the selection?"
-    );
+    var handler = confirm("This change will delete Output plan defined in the next tab. Would you like to amend the selection?");
     if (handler) {
       delete_all_outputs();
       get_ecosystem(ward);
@@ -485,7 +468,10 @@ function get_hlevel2(ward) {
     $.ajax({
       type: "post",
       url: "assets/processor/add-project-process",
-      data: { get_ward: ward, conservancy: conservancy },
+      data: { 
+        get_ward: ward, 
+        conservancy: conservancy 
+      },
       dataType: "html",
       success: function (response) {
         $("#projlga").html(response);
@@ -500,9 +486,7 @@ function forest() {
   var forest = $("#projstate").val();
   var fields = output_form_fields();
   if (fields) {
-    var handler = confirm(
-      "This change will delete Output plan defined in the next tab. Would you like to amend the selection?"
-    );
+    var handler = confirm("This change will delete Output plan defined in the next tab. Would you like to amend the selection?");
     if (handler) {
       delete_all_outputs();
     } else {
@@ -570,57 +554,32 @@ function add_row_output() {
     let randno = Math.floor(Math.random() * 1000 + 1);
     let $rowno = $row + "" + randno;
     $("#hideinfo").remove(); //new change
-    $("#output_table_body tr:last").after(
-      '<tr id="row' +
-        $rowno +
-        '">' +
-        "<td></td><td>" +
-        '<select  data-id="' +
-        $rowno +
-        '" name="output[]" id="outputrow' +
-        $rowno +
-        '" onchange=getIndicator("row' +
-        $rowno +
-        '")  class="form-control validoutcome select_output" required="required">' +
-        '<option value="">Select Output from list</option> </select>' +
-        '<input type="hidden" name="outputIdsTrue[]" id="outputIdsTruerow' +
-        $rowno +
-        '" value="" />' +
-        '<input type="hidden" name="ben_diss[]" id="ben_dissrow' +
-        $rowno +
-        '" value="" />' +
-        "</td>" +
-        "<td>" +
-        '<input type="hidden" name="indicatorid[]" id="indicatoridrow' +
-        $rowno +
-        '" />' +
-        '<input type="hidden" name="unit_measure[]" id="unit_measurerow' +
-        $rowno +
-        '" />' +
-        '<input type="hidden" name="diss_type_op[]" id="diss_type_oprow' +
-        $rowno +
-        '" />' +
-        '<span id="indicatorrow' +
-        $rowno +
-        '"></span>' +
-        '<input type="hidden" name="indicator[]"    placeholder="Enter"  class="form-control" disabled  />' +
-        "</td>" +
-        "<td>" +
-        '<a type="button" data-toggle="modal"  data-target="#outputItemModal" onclick=output_year("row' +
-        $rowno +
-        '") id="outputItemModalBtnrow' +
-        $rowno +
-        '"> Add Details</a>' +
-        "</td>" +
-        "<td>" +
-        '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_output("row' +
-        $rowno +
-        '")>' +
-        '<span class="glyphicon glyphicon-minus"></span>' +
-        "</button>" +
-        "</td>" +
-        "</tr>"
-    );
+    $("#output_table_body tr:last").after(`
+      <tr id="row${$rowno}">
+        <td></td>
+        <td>
+          <select  data-id="${$rowno}" name="output[]" id="outputrow${$rowno}" onchange=getIndicator("row${$rowno}")  class="form-control validoutcome select_output" required="required">
+            <option value="">Select Output from list</option> 
+          </select>
+        </td>
+        <td>
+          <span id="indicatorrow${$rowno}"></span>
+        </td>
+        <td>
+          <a type="button" data-toggle="modal"  data-target="#outputItemModal" onclick=output_year("row${$rowno}") id="outputItemModalBtnrow${$rowno}"> Add Details</a>
+        </td>
+        <td>
+          <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_output("row${$rowno}")>
+            <span class="glyphicon glyphicon-minus"></span>
+          </button>
+        </td>
+        <input type="hidden" name="outputIdsTrue[]" id="outputIdsTruerow${$rowno}" value="" />
+        <input type="hidden" name="ben_diss[]" id="ben_dissrow${$rowno}" value="" />
+        <input type="hidden" name="indicatorid[]" id="indicatoridrow${$rowno}" />
+        <input type="hidden" name="unit_measure[]" id="unit_measurerow${$rowno}" />
+        <input type="hidden" name="diss_type_op[]" id="diss_type_oprow${$rowno}" />
+        <input type="hidden" name="indicator[]"  placeholder="Enter"  class="form-control" disabled/>
+      </tr>`);
     numberingOutput();
     getoutput($rowno);
   } else {
@@ -658,9 +617,7 @@ function delete_row_output(rowno) {
   var outputIdsTrue = $("#outputIdsTrue" + rowno).val();
 
   if (outputIdsTrue != "") {
-    var handler = confirm(
-      "This change will delete the below plan. Would you like to proceed?"
-    );
+    var handler = confirm("This change will delete the below plan. Would you like to proceed?");
     if (handler) {
       $.ajax({
         type: "post",
@@ -676,9 +633,7 @@ function delete_row_output(rowno) {
             numberingOutput();
             $number = $("#output_table_body tr").length;
             if ($number == 1) {
-              $("#output_table_body tr:last").after(
-                '<tr id="hideinfo"><td colspan="5" align="center"> Add Output</td></tr>'
-              );
+              $("#output_table_body tr:last").after('<tr id="hideinfo"><td colspan="5" align="center"> Add Output</td></tr>');
               hide_divs();
             }
             getcost();
@@ -736,33 +691,6 @@ function getoutput(rowno) {
   }
 }
 
-//filter the expected output  cannot be selected twice
-$(document).on("change", ".select_output", function (e) {
-  var tralse = true;
-  var selectOutcome_arr = []; // for contestant name
-  var attrb = $(this).attr("id");
-  var selectedid = "#" + attrb;
-  var selectedText = $(selectedid + " option:selected").html();
-
-  $(".select_output").each(function (k, v) {
-    var getVal = $(v).val();
-    if (getVal && $.trim(selectOutcome_arr.indexOf(getVal)) != -1) {
-      tralse = false;
-      alert("You can not select Output: " + selectedText + ", more than once");
-      var rw = $(v).attr("data-id");
-      var outcomeindicator = "#outcomeindicatorrow" + rw; // outcome  indicator id
-      $(v).val("");
-      $(outcomeindicator).val("");
-      return false;
-    } else {
-      selectOutcome_arr.push($(v).val());
-    }
-  });
-  if (!tralse) {
-    return false;
-  }
-});
-
 // function too get indicator
 function getIndicator(rowno) {
   var outputid = $("#output" + rowno).val();
@@ -806,19 +734,13 @@ function getIndicator(rowno) {
 // output workplan modal
 ///////////
 
+
+
+
 // function to get  output year
 function output_year(rowno) {
   //var mapp = $("input:radio[name=projmapping]:checked").val();
   var projmapping = $('input[name="projmapping"]:checked').val();
-
-  if (projmapping == "1") {
-    $("#projwaypoints").attr("required", "required");
-    $("#projwaypoints").removeAttr("disabled");
-  } else {
-    $("#projwaypoints").removeAttr("required");
-    $("#projwaypoints").attr("disabled", "disabled");
-  }
-
   var indicatorVal = $("#indicatorid" + rowno).val();
   var projstartYear = parseFloat($("#projectStartingYear").val());
   var projendYear = parseFloat($("#hprojendyear").val());
@@ -832,6 +754,8 @@ function output_year(rowno) {
   var diss_type = $("#diss_type_op" + rowno).val();
   $(`#diss_type`).html(diss_type);
 
+
+  $("#mapping_point_div").hide();
   var opduration = "";
   $("#outputStartYear").val("");
   $("#outputdurationmsg1").html("");
@@ -852,10 +776,10 @@ function output_year(rowno) {
         opprojendYear: projendYear,
         opstartoutputId: indicatorVal,
         opprogid: progid,
-        //mapp: mapp,
         opprojid: projid,
         opduration: opduration,
       },
+      dataType:'json',
       success: function (html) {
         // reset the form first
         $(".modal").each(function () {
@@ -863,7 +787,7 @@ function output_year(rowno) {
           $("#addprojoutput .selectpicker").selectpicker("deselectAll");
         });
 
-        $("#outputfscyear").html(html);
+        $("#outputfscyear").html(html.fscyears);
         var indicatorVal = $("#indicatorid" + rowno).val();
         var projoutputValue = $("#output" + rowno).val();
         $("#outputids").val(projoutputValue);
@@ -884,6 +808,15 @@ function output_year(rowno) {
             '<i class="fa fa-edit"></i> Add Output Details'
           );
         }
+
+        var mapping_type = html.mapping_type;
+
+        $("#unit_type_div").hide();
+        $("#unit_type").removeAttr("required");
+        if (projmapping == 1 && mapping_type == 1) {
+          $("#unit_type_div").show();
+          $("#unit_type").attr("required", "required"); 
+        } 
       },
     });
   } else {
@@ -912,7 +845,6 @@ function edit_output_details(projstate, opid, rowno) {
         var year = response.year;
         var duration = response.duration;
         var outputBudget = response.outputBudget;
-        var projwaypoints = response.mapping_type;
         var outputDuration = parseFloat(response.outputDuration);
         var remainingBudget = response.remainingBudget;
         var actual_budget = response.actual_budget;
@@ -943,7 +875,6 @@ function edit_output_details(projstate, opid, rowno) {
         );
 
         $("#outputMonitorigFreq").val(distribution_type);
-        $("#projwaypoints").val(projwaypoints);
         $("#outputceiling").val(commaSeparateNumber(parseFloat(actual_budget)));
 
         var ben_diss = $(`#ben_diss${rowno}`).val();
@@ -977,7 +908,6 @@ function output_year_change() {
 
   if (outputYear != "") {
     $("#outputfscyearmsg").hide();
-    get_op_budget_ceil(indicatorid, progid, outputYear);
     get_op_year(outputYear, projendyear);
   } else {
     $("#outputfscyearmsg").show();
@@ -990,8 +920,7 @@ function output_year_change() {
 }
 
 // function to get output year from the db
-function get_op_year(outputYear, projendyear) {
-  console.log("Year of the year");
+function get_op_year(outputYear, projendyear) { 
   $.ajax({
     type: "post",
     url: "assets/processor/add-project-process",
@@ -1018,28 +947,44 @@ function get_op_year(outputYear, projendyear) {
 }
 
 // function to get output budget ceiling
-function get_op_budget_ceil(indicatorid, progid, outputYear) {
-  $.ajax({
-    type: "post",
-    url: "assets/processor/add-project-process",
-    data: {
-      getoutputBudget: "budget",
-      indicatorid: indicatorid,
-      programid: progid,
-      outputYear: outputYear,
-    },
-    dataType: "json",
-    success: function (response) {
-      if (response.msg) {
-        var remaining = response.remaining;
-        $("#outputceilingVal").val(remaining);
-        $("#outputceiling").val(commaSeparateNumber(parseFloat(remaining)));
-      } else {
-        $("#outputceilingVal").val("");
-        $("#outputceiling").val("");
-      }
-    },
-  });
+function get_op_budget_ceil() {
+  var progid = $("#progid").val();
+  var indicatorid = $("#indicatorids").val();
+  var outputfscyear = $("#outputfscyear").val();
+  var outputduration = $("#outputduration").val();
+
+  if (outputfscyear != "" && outputduration != "") {
+    $.ajax({
+      type: "post",
+      url: "assets/processor/add-project-process",
+      data: {
+        getoutputBudget: "budget",
+        indicatorid: indicatorid,
+        programid: progid,
+        outputYear: outputfscyear,
+        outputduration: outputduration,
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.msg) {
+          $("#outputceilingVal").val(response.budget);
+          $("#outputceiling").val(commaSeparateNumber(parseFloat(response.budget)));
+          $("#ceiling_output_target").val(response.target);
+          $("#ceiling_output_target_msg").html(commaSeparateNumber(response.target));
+        } else {
+          $("#outputceilingVal").val("");
+          $("#outputceiling").val("");
+          $("#ceiling_output_target").val("");
+          $("#ceiling_output_target_msg").html("");
+        }
+      },
+    });
+  } else {
+    $("#outputceilingVal").val("");
+    $("#outputceiling").val("");
+    $("#ceiling_output_target").val("");
+    $("#ceiling_output_target_msg").html("");
+  }
 }
 
 // function to validate if leap year
@@ -1055,7 +1000,8 @@ function onKeyUpDays() {
   var projendyear = $("#projendyear").val();
   var outputduration1 = $("#outputduration1").val();
   empty_dissegragation();
-
+  get_op_budget_ceil();
+  // get_total_target_ceiling();
   if (outputYear) {
     if (projoutputDValue) {
       if (parseFloat(projoutputDValue) > 0) {
@@ -1145,7 +1091,7 @@ function validate_output_days() {
 
     if (projectEndDate >= projOutputendyearDate) {
       $("#outputdurationmsg").hide();
-      get_total_target_ceiling();
+      // get_total_target_ceiling();
     } else {
       $("#outputdurationmsg").show();
       $("#ceiling_output_target").val("");
@@ -1397,7 +1343,7 @@ function optarget() {
           $("#ceiling_output_target_msg").html(commaSeparateNumber(ceil));
           $("#outputTarget").val("");
           alert(
-            "Project output target should be greater than indicated Program target balance"
+            "Project output target should be less than indicated Program target balance"
           );
         }
       } else {
@@ -1411,7 +1357,7 @@ function optarget() {
           $("#ceiling_output_target_msg").val(commaSeparateNumber(ceil));
           $("#outputTarget").val("");
           alert(
-            "Project output target should be greater than indicated Program target balance"
+            "Project output target should be less than indicated Program target balance"
           );
         }
       }
@@ -1425,7 +1371,7 @@ function optarget() {
         $("#ceiling_output_target_msg").html(commaSeparateNumber(ceil));
         $("#outputTarget").val("");
         alert(
-          "Project output target should be greater than indicated Program target balance"
+          "Project output target should be less than indicated Program target balance"
         );
       }
     }
@@ -1575,7 +1521,6 @@ $("#addprojoutput").submit(function (e) {
               add_targets_div(response);
             }
           }
-
           alert(message);
           $(".modal").each(function () {
             $(this).modal("hide");
@@ -1843,7 +1788,7 @@ function get_op_sum_target(opid, year) {
 
   if (total_sum1 != "") {
     let total_sum = parseFloat(total_sum1);
-    if (total_sum > 0) {
+    if (total_sum >= 0) {
       let remainder = ceiling_year_target - total_sum;
       if (remainder < 0) {
         alert("The target can not exceed the ceiling");
@@ -1900,6 +1845,64 @@ function get_sum_opyear(opid, year) {
   }
 }
 
+
+// function to get the remaining for each year
+function get_op_sum_budget(opid, year) {
+  let ceiling_year_budget = parseFloat($("#b_cyear_budget" + opid + "" + year).val());
+  let total_sum1 = $("#budget_year" + opid + "" + year).val();
+  if (total_sum1 != "") {
+    let total_sum = parseFloat(total_sum1);
+    if (total_sum >= 0) {
+      let remainder = ceiling_year_budget - total_sum;
+      if (remainder < 0) {
+        alert("The budget can not exceed the ceiling");
+        $("#budget_year" + opid + "" + year).val("");
+        $("#year_budget" + opid + "" + year).html(ceiling_year_budget);
+      } else {
+        $("#year_budget" + opid + "" + year).html(remainder);
+        get_sum_op_budget_year(opid, year);
+      }
+    } else {
+      $("#budget_year" + opid + "" + year).val("");
+      $("#year_budget" + opid + "" + year).html(ceiling_year_budget);
+    }
+  } else {
+    $("#budget_year" + opid + "" + year).val("");
+    $("#year_budget" + opid + "" + year).html(ceiling_year_budget);
+  }
+}
+
+function get_sum_op_budget_year(opid, year) {
+  let ceiling_year_budget = parseFloat($(`#y_copbudget_budget${opid}`).val());
+  let cyear_budget = parseFloat($(`#b_cyear_budget${opid}${year}`).val());
+  let opid_name = $(`#opid_name${opid}`).val();
+  let total_sum = 0;
+
+  $(`.output_budget${opid}`).each(function () {
+    if ($(this).val() != "") {
+      total_sum = total_sum + parseFloat($(this).val());
+    }
+  });
+
+  let remainder = ceiling_year_budget - total_sum;
+  if (remainder < 0) {
+    alert(`The sum total of year values cannot exceed  ${opid_name} ceiling(${ceiling_year_budget})`);
+    $(`#budget_year${opid}${year}`).val("");
+    let total_sum = 0;
+    $(`.output_budget${opid}`).each(function () {
+      if ($(this).val() != "") {
+        total_sum = total_sum + parseFloat($(this).val());
+      }
+    });
+    let remainder = ceiling_year_budget - total_sum;
+    $(`#y_op_budget${opid}`).html(remainder);
+    $("#year_budget" + opid + "" + year).html(cyear_budget);
+  } else {
+    $(`#y_op_budget${opid}`).html(remainder);
+  }
+}
+
+
 // function to add workplan target divs
 function add_op_targets_div(opid) {
   $(".elementT:last").after(
@@ -1919,6 +1922,25 @@ function del__op_targets_divs() {
   $("#op_targets_div").html('<div class="elementT"></div>');
 }
 
+// function to add workplan budget divs
+function add_op_budget_div(opid) {
+  $(".elementB:last").after(
+    "<div class='element' id='budget_div_" + opid + "'></div>"
+  );
+  get_op_budget_div(opid);
+}
+
+// delete certain budget div
+function del__op_budget_div(opid) {
+  $("#budget_div_" + opid).remove();
+}
+
+// function to empty all budget tables
+function del__op_budget_divs() {
+  $("#op_budget_div").empty();
+  $("#op_budget_div").html('<div class="elementB"></div>');
+}
+
 // function to delete one the output details already set
 // removes the output table, the location and workplan target divs
 function delete_one_output(opid) {
@@ -1933,6 +1955,8 @@ function delete_one_output(opid) {
           alert(response.messages);
           del__op_targets_div(opid);
           del_targets_div(opid);
+          del__op_budget_div(opid);
+          del_budget_div(opid);
         } else {
           alert(response.messages);
         }
@@ -1960,6 +1984,8 @@ function delete_all_outputs() {
           alert(response.messages);
           del__op_targets_divs();
           del_targets_divs();
+          del__op_budget_divs();
+          del_budget_divs();
           hide_divs();
           $("#output_table_body").html(
             '<tr></tr><tr id="hideinfo"><td colspan="5" align="center"> Add Output</td></tr>'
@@ -1972,6 +1998,8 @@ function delete_all_outputs() {
   } else {
     del__op_targets_divs();
     del_targets_divs();
+    del__op_budget_divs();
+    del_budget_divs();
     hide_divs();
     $("#output_table_body tr:last").after(
       '<tr id="hideinfo"><td colspan="5" align="center"> Add Output</td></tr>'
@@ -2013,8 +2041,18 @@ const project_lead_implementor = () => {
     $("#projimplementingpartner").html(
       '<option value="">....Select Lead Implementor....</option>'
     );
+    $(".selectpicker").selectpicker("refresh");
   }
 };
+
+$("#projimplementingpartner").change(function (e) {
+  e.preventDefault();
+  var lead = $(this).val();
+  if (lead.includes('0')) {
+    $("#projimplementingpartner").val('0');
+    $(".selectpicker").selectpicker("refresh");
+  }
+});
 
 // function to add financiers
 function add_row_financier() {
@@ -2025,49 +2063,49 @@ function add_row_financier() {
   let $rowno = $row + "" + randno;
   $("#financier_table_body tr:last").after(
     '<tr id="finrow' +
-      $rowno +
-      '">' +
-      "<td>" +
-      $rowno +
-      "</td>" +
-      "<td>" +
-      '<select onchange=financeir_celing("row' +
-      $rowno +
-      '") data-id="' +
-      $rowno +
-      '" name="finance[]" id="financerow' +
-      $rowno +
-      '" class="form-control validoutcome selectedfinance" required="required">' +
-      '<option value="">Select Financier from list</option>' +
-      "</select>" +
-      "</td>" +
-      "<td>" +
-      '<input type="hidden" name="ceilingval[]"  id="ceilingvalrow' +
-      $rowno +
-      '" />' +
-      '<span id="financierCeilingrow' +
-      $rowno +
-      '" style="color:red"></span>' +
-      "</td>" +
-      "<td>" +
-      '<input type="hidden" name="amountfundingcurrency[]" id="amountfundingcurrencyrow' +
-      $rowno +
-      '"><input type="number" name="amountfunding[]" onkeyup=amountfunding("row' +
-      $rowno +
-      '") onchange=amountfunding("row' +
-      $rowno +
-      '")   id="amountfundingrow' +
-      $rowno +
-      '"   placeholder="Enter"  class="form-control financierTotal" style="width:85%; float:right" required/>' +
-      "</td>" +
-      "<td>" +
-      '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_financier("finrow' +
-      $rowno +
-      '")>' +
-      '<span class="glyphicon glyphicon-minus"></span>' +
-      "</button>" +
-      "</td>" +
-      "</tr>"
+    $rowno +
+    '">' +
+    "<td>" +
+    $rowno +
+    "</td>" +
+    "<td>" +
+    '<select onchange=financeir_celing("row' +
+    $rowno +
+    '") data-id="' +
+    $rowno +
+    '" name="finance[]" id="financerow' +
+    $rowno +
+    '" class="form-control validoutcome selectedfinance" required="required">' +
+    '<option value="">Select Financier from list</option>' +
+    "</select>" +
+    "</td>" +
+    "<td>" +
+    '<input type="hidden" name="ceilingval[]"  id="ceilingvalrow' +
+    $rowno +
+    '" />' +
+    '<span id="financierCeilingrow' +
+    $rowno +
+    '" style="color:red"></span>' +
+    "</td>" +
+    "<td>" +
+    '<input type="hidden" name="amountfundingcurrency[]" id="amountfundingcurrencyrow' +
+    $rowno +
+    '"><input type="number" name="amountfunding[]" onkeyup=amountfunding("row' +
+    $rowno +
+    '") onchange=amountfunding("row' +
+    $rowno +
+    '")   id="amountfundingrow' +
+    $rowno +
+    '"   placeholder="Enter"  class="form-control financierTotal" style="width:85%; float:right" required/>' +
+    "</td>" +
+    "<td>" +
+    '<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_financier("finrow' +
+    $rowno +
+    '")>' +
+    '<span class="glyphicon glyphicon-minus"></span>' +
+    "</button>" +
+    "</td>" +
+    "</tr>"
   );
   numbering();
   getFinanciers($rowno);
@@ -2270,24 +2308,24 @@ function add_row_files() {
   let $rowno = $row + "" + randno;
   $("#meetings_table tr:last").after(
     '<tr id="mtng' +
-      $rowno +
-      '">' +
-      "<td>" +
-      "</td>" +
-      "<td>" +
-      '<input type="file" name="pfiles[]" id="pfiles" multiple class="form-control file_attachment" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required>' +
-      "</td>" +
-      "<td>" +
-      '<input type="text" name="attachmentpurpose[]" id="attachmentpurpose" class="form-control attachment_purpose" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>' +
-      "</td>" +
-      "<td>" +
-      '<button type="button" class="btn btn-danger btn-sm"  onclick=delete_files("mtng' +
-      $rowno +
-      '")>' +
-      '<span class="glyphicon glyphicon-minus"></span>' +
-      "</button>" +
-      "</td>" +
-      "</tr>"
+    $rowno +
+    '">' +
+    "<td>" +
+    "</td>" +
+    "<td>" +
+    '<input type="file" name="pfiles[]" id="pfiles" multiple class="form-control file_attachment" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required>' +
+    "</td>" +
+    "<td>" +
+    '<input type="text" name="attachmentpurpose[]" id="attachmentpurpose" class="form-control attachment_purpose" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>' +
+    "</td>" +
+    "<td>" +
+    '<button type="button" class="btn btn-danger btn-sm"  onclick=delete_files("mtng' +
+    $rowno +
+    '")>' +
+    '<span class="glyphicon glyphicon-minus"></span>' +
+    "</button>" +
+    "</td>" +
+    "</tr>"
   );
   numbering_files();
 }
@@ -2315,24 +2353,24 @@ function add_row_files_edit() {
 
   $("#meetings_table_edit tr:last").after(
     '<tr id="mtng' +
-      $rowno +
-      '">' +
-      "<td>" +
-      "</td>" +
-      "<td>" +
-      '<input type="file" name="pfiles[]" id="pfiles" multiple class="form-control file_attachment" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required>' +
-      "</td>" +
-      "<td>" +
-      '<input type="text" name="attachmentpurpose[]" id="attachmentpurpose" class="form-control attachment_purpose" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>' +
-      "</td>" +
-      "<td>" +
-      '<button type="button" class="btn btn-danger btn-sm"  onclick=delete_files_edit("mtng' +
-      $rowno +
-      '")>' +
-      '<span class="glyphicon glyphicon-minus"></span>' +
-      "</button>" +
-      "</td>" +
-      "</tr>"
+    $rowno +
+    '">' +
+    "<td>" +
+    "</td>" +
+    "<td>" +
+    '<input type="file" name="pfiles[]" id="pfiles" multiple class="form-control file_attachment" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required>' +
+    "</td>" +
+    "<td>" +
+    '<input type="text" name="attachmentpurpose[]" id="attachmentpurpose" class="form-control attachment_purpose" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>' +
+    "</td>" +
+    "<td>" +
+    '<button type="button" class="btn btn-danger btn-sm"  onclick=delete_files_edit("mtng' +
+    $rowno +
+    '")>' +
+    '<span class="glyphicon glyphicon-minus"></span>' +
+    "</button>" +
+    "</td>" +
+    "</tr>"
   );
   numbering_files_edit();
 }
@@ -2377,13 +2415,13 @@ function project_details() {
   var projcase = $("#projcase").val();
   var projfocus = $("#projfocus").val();
   var projimplmethod = $("#projimplmethod>option:selected").text();
-  var bigfour = $("#bigfour>option:selected").text();
   var projfscyear = $("#projfscyear1>option:selected").text();
   var projendyear = $("#hprojendyear").val();
   var projduration = $("#projduration1").val();
   var projinspection = $('input[name="projinspection"]:checked').val();
   var projmapping = $('input[name="projmapping"]:checked').val();
   var projevaluation = $('input[name="projevaluation"]:checked').val();
+  var mne_budget = $('#id_mne_budget').val();
 
   projinspection == 1
     ? $("#projinsps").text("Yes")
@@ -2394,14 +2432,12 @@ function project_details() {
   $("#progs").text(prog);
   $("#projcodes").text(projcode);
   $("#projName").text(projname);
+  $("#mne_budget").text(commaSeparateNumber(mne_budget));
   $("#projcases").text(projcase);
   $("#focusarea").text(projfocus);
   $("#implementation").text(projimplmethod);
-  $("#bigfourA").text(bigfour);
   $("#projfscyears").text(projfscyear);
-  $("#projdurations").text(
-    commaSeparateNumber(parseFloat(projduration)) + " Days"
-  );
+  $("#projdurations").text(commaSeparateNumber(parseFloat(projduration)) + " Days");
   project_location();
 }
 
@@ -2500,13 +2536,12 @@ function location_target_display() {
           var unitName = $(`#unitName${state} ${opid} `).val();
           var locations = $(`input[name = 'outputlocation${opname}[]']`).length;
 
-          locate_target_plan =
-            locate_target_plan +
+          locate_target_plan += 
             `
-                                <tr>
-                                  <th>${q}</th>
-                                  <th colspan = "2" > ${stateName}</th>
-                                </tr>`;
+            <tr>
+              <th>${q}</th>
+              <th colspan = "2" > ${stateName}</th>
+            </tr>`;
           var p = 0;
           let total_sum = 0;
           $(".locate_total" + state + "" + opid).each(function () {
@@ -2515,22 +2550,19 @@ function location_target_display() {
               var sp = q + "." + p;
               total_sum = $(this).val();
               var data_loc = $(this).attr("data-loc");
-              locate_target_plan =
-                locate_target_plan +
+              locate_target_plan +=
                 `
-                                    <tr>
-                                      <td>${sp}</td>
-                                      <td>${data_loc}</td>
-                                      <td> ${total_sum} ${unitNameL}</td> 
-                                    </tr>`;
+                  <tr>
+                    <td>${sp}</td>
+                    <td>${data_loc}</td>
+                    <td> ${total_sum} ${unitNameL}</td> 
+                  </tr>`;
             }
           });
         }
       });
 
-      locate_target_plan =
-        locate_target_plan +
-        `
+      locate_target_plan += `
                           </tbody>
                         </table>
                       </div>
@@ -2540,8 +2572,6 @@ function location_target_display() {
               </div>
             </div>
       </div> `;
-      console.log(locate_target_plan);
-
       add_diss_targets_div(opid, locate_target_plan);
     } else {
       add_ind_targets_div(opid);
@@ -2551,18 +2581,13 @@ function location_target_display() {
 
 // create div and add element div for diss
 function add_diss_targets_div(opid, data) {
-  $(".elementDiv:last").after(
-    "<div class='elementDiv' id='div_ind" + opid + "'></div>"
-  );
-
+  $(".elementDiv:last").after("<div class='elementDiv' id='div_ind" + opid + "'></div>");
   $(`#div_ind${opid}`).html(data);
 }
 
 // create div and add element div for nondiss
 function add_ind_targets_div(opid) {
-  $(".elementDiv:last").after(
-    "<div class='elementDiv' id='div_ind" + opid + "'></div>"
-  );
+  $(".elementDiv:last").after("<div class='elementDiv' id='div_ind" + opid + "'></div>");
   get_ind_state_val(opid);
 }
 
@@ -2595,9 +2620,7 @@ function workplan_target_display() {
     var outputName = $(`#workplan_opName${opid[$i]}`).val();
     var unit = $(`#unit${opid[$i]}`).val();
     var indicatorName = $(`#indicatorName${opid[$i]}`).val();
-
-    var containerH = "";
-    var containerTB = "";
+    var containerH = containerTB = containerHP = "";
 
     $(cyear_targetYearclass).each(function () {
       if ($(this).val() != "") {
@@ -2606,13 +2629,14 @@ function workplan_target_display() {
         var newyear = `${opyear}/${newopyear}`;
         var opname = opid[$i] + "" + opyear + "";
         var target_year_val = $("#target_year" + opname).val();
-        containerH = containerH + `<th> ${newyear}</th> `;
-        containerTB = containerTB + `<td> ${target_year_val}  ${unit}</td> `;
+        var budget_year_val = $("#budget_year" + opname).val();
+        containerH = containerH + `<th colspan="2" class="text-left"> ${newyear}</th> `;
+        containerHP = containerHP + `<th class="text-left"> Target (${unit})</th><th> Budget (KES)</th>`;
+        containerTB = containerTB + `<td class="text-left"> ${target_year_val}</td><td> ${commaSeparateNumber(budget_year_val)}</td>`;
       }
     });
 
-    var workplanDetails =
-      workplanDetails +
+    var workplanDetails = 
       `<div class="row clearfix " id="Targetrowcontainer">
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
@@ -2621,7 +2645,7 @@ function workplan_target_display() {
                                 <h5 style="color:#2B982B"><strong> Output: ${outputName}</strong></h5> 
                                 </div>
                             <div class="col-md-6 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                <h5 style="color:#2B982B"><strong> Indicator: ${indicatorName}</strong></h5> 
+                                <h5 style="color:#2B982B"><strong> Indicator: ${unit} of ${indicatorName}</strong></h5> 
                               </div> 
                         </div>
                         <div class="body">
@@ -2630,7 +2654,8 @@ function workplan_target_display() {
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-striped table-hover" id="targets" style="width:100%">
                                             <thead> 
-                                              ${containerH}
+                                              <tr>${containerH}</tr>
+                                              <tr>${containerHP}</tr>
                                             </thead>
                                             <tbody>
                                               ${containerTB} 
@@ -2644,7 +2669,7 @@ function workplan_target_display() {
                 </div>
             </div>`;
   }
-  workplanDetails = workplanDetails + `</div > `;
+  workplanDetails += `</div > `;
   $("#workplanDetails").html(workplanDetails);
 }
 
@@ -2681,31 +2706,26 @@ function display_finace() {
     amountfunding.push($(this).val());
   });
 
-  var financierFunds = "<ul>";
+  var financierFunds = "<tr>";
+  var mm = 0;
   for (var f = 0; f < finance.length; f++) {
     var financeVal = finance[f];
+    mm++;
     var amountfundingVal = amountfunding[f];
-    financierFunds =
-      financierFunds +
-      "<li>" +
-      financeVal +
-      " : Ksh." +
-      commaSeparateNumber(parseFloat(amountfundingVal)) +
-      "</li>";
+    financierFunds = financierFunds + "<td>" + mm + "</td><td>" + financeVal + " </td> <td> Ksh." + commaSeparateNumber(parseFloat(amountfundingVal)) + "</td>";
   }
-  financierFunds = financierFunds + "<ul>";
-  $("#financiers").html(financierFunds);
+  financierFunds = financierFunds + "</tr>";
+  $("#financier_contribution").html(financierFunds);
 }
 
 // function to get implementor details
 function implementors() {
   // stakeholders
   var projleadimplementor = $("#projleadimplementor>option:selected").text();
-  var projimplementingpartner = $(
-    "#projimplementingpartner>option:selected"
-  ).text();
+  var projimplementingpartner = $("#projimplementingpartner>option:selected").text();
   $("#leadImple").text(projleadimplementor);
   $("#ImplPart").text(projimplementingpartner);
+
   display_finace();
 }
 
@@ -2748,15 +2768,7 @@ function attachments() {
     var attach_p = attachment_purpose[i];
     var f_name = file_name[i];
     var counter = i + 1;
-    files =
-      files +
-      "<tr><td>" +
-      counter +
-      "</td><td>" +
-      attach_p +
-      "</td><td>" +
-      f_name +
-      "</td></tr>";
+    files +=`<tr><td>${counter}</td><td>${attach_p}</td><td>${f_name}</td></tr>`;
   }
 
   var file_pp = [];
@@ -2777,15 +2789,7 @@ function attachments() {
     var attach_p = file_pp[j];
     var f_name = file_attachment[j];
     var counter = j + 1;
-    files =
-      files +
-      "<tr><td>" +
-      counter +
-      "</td><td>" +
-      attach_p +
-      "</td><td>" +
-      f_name +
-      "</td></tr>";
+    files += `<tr><td>${counter}</td><td>${attach_p}</td><td>${f_name}</td></tr>`;
   }
   $("#files_attached").html(files);
 }

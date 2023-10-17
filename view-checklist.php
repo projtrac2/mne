@@ -1,9 +1,5 @@
-<?php
-$Id = 6;
-$subId = 22;
-$pageName  = "Projects Inspection Checklists";
-require('includes/head.php');
-require('includes/header.php');
+<?php 
+require('includes/head.php'); 
 // get the functions selecting data 
 require('functions/inspection.php');
 require('functions/department.php');

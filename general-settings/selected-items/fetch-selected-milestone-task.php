@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
 include_once "controller.php";
 
@@ -22,7 +25,14 @@ if (isset($_POST['milestones'])) {
 		$parent = "N/A";
 	}
 
-	$checked = $row_rsMilestones['paymentrequired']  == 1 ? "Yes" : "No";
+	$locids = explode (",", $row_rsMilestones['location']);
+	$location = "";
+	foreach($locids AS $locid){		
+		$query_milestone_location = $db->prepare("SELECT state FROM tbl_state WHERE id = :stateid");
+		$query_milestone_location->execute(array(":stateid" => $locid));
+		$row_milestone_location = $query_milestone_location->fetch();
+		$location .= $row_milestone_location["state"]."<br>";
+	}
 
 	$Mile = '  
 	<div class="row">
@@ -34,11 +44,11 @@ if (isset($_POST['milestones'])) {
 							<thead>
 								<tr>
 									<th width="4%">#</th> 
-									<th width="38%">Milestone</th>  
-									<th width="38%">Predecessor</th>  
+									<th width="31%">Milestone</th>  
+									<th width="31%">Predecessor</th>  
+									<th width="14%">Location</th>    
 									<th width="10%">Start Date </th> 
 									<th width="10%">End Date </th>
-									<th width="10%">Payment </th>
 								</tr>
 							</thead>
 							<tbody id="funding_table_body" >';
@@ -49,10 +59,10 @@ if (isset($_POST['milestones'])) {
 									<tr>
 										<td >' . $Mcounter  . ' </td>
 										<td >' . $row_rsMilestones['milestone']  . ' </td> 
-										<td> ' . $parent . '</td>
+										<td> ' . $parent . '</td> 
+										<td> ' . $location . '</td>
 										<td> ' . date("d M Y", strtotime($row_rsMilestones['sdate']))  . '</td>
 										<td>' . date("d M Y", strtotime($row_rsMilestones['edate']))  . ' </td>
-										<td>' . $checked . ' </td>
 									</tr>';
 								} while ($row_rsMilestones = $query_rsMilestones->fetch());
 								$Mile .= '
@@ -122,13 +132,13 @@ if (isset($_POST['tasks'])) {
 	$row_rsTasks = $query_rsTasks->fetch();
 	$totalRows_rsTasks = $query_rsTasks->rowCount();
 
-	$responsibleid = $row_rsTasks['responsible'];
-	$query_rsResponsible = $db->prepare("SELECT * FROM tbl_projteam2 WHERE ptid = :ptid");
-	$query_rsResponsible->execute(array(":ptid" => $responsibleid));
+	/* $responsibleid = $row_rsTasks['responsible'];
+	$query_rsResponsible = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
+	$query_rsResponsible->execute(array(":user_id" => $responsibleid));
 	$row_rsResponsible = $query_rsResponsible->fetch();
-	$totalRows_rsResponsible = $query_rsResponsible->rowCount();
+	$totalRows_rsResponsible = $query_rsResponsible->rowCount(); 
 
-	$responsible = $row_rsResponsible['fullname'];
+	$responsible = $row_rsResponsible['fullname'];*/
 	$parentid = $row_rsTasks['parenttask'];
 	$parent = "";
 	if ($parentid != null) {
@@ -151,28 +161,26 @@ if (isset($_POST['tasks'])) {
 								<thead>
 									<tr>
 										<th width="2%">#</th> 
-										<th width="34%">Task</th> 
+										<th width="40%">Task</th> 
 										<th width="34%">Predecessor</th>  
-										<th width="10%">Start Date</th> 
-										<th width="10%">End Date </th> 
-										<th width="10%">Responsible</th> 
+										<th width="12%">Start Date</th> 
+										<th width="12%">End Date </th>  
 									</tr>
 								</thead>
 								<tbody id="task_table_body" >';
-		$Tcounter = 0;
-		do {
-			$Tcounter++;
-			$Task .= ' 
+									$Tcounter = 0;
+									do {
+										$Tcounter++;
+										$Task .= ' 
 										<tr>  
 											<td >' . $Tcounter  . ' </td>
 											<td >' . $row_rsTasks['task']  . ' </td>
 											<td >' . $parent . ' </td>
 											<td>' . date("d M Y", strtotime($row_rsTasks['sdate']))  . ' </td>
 											<td>' . date("d M Y", strtotime($row_rsTasks['edate']))  . ' </td>
-											<td>' . $responsible  . ' </td>
 										</tr>';
-		} while ($row_rsTasks = $query_rsTasks->fetch());
-		$Task .= '  
+									} while ($row_rsTasks = $query_rsTasks->fetch());
+									$Task .= '  
 								</tbody>
 							</table> 
 						</div>
@@ -202,32 +210,30 @@ if (isset($_POST['tasks'])) {
 									<thead>
 										<tr>
 											<th width="5%">#</th> 
-											<th width="60%">Task</th>  
-											<th width="10%">Start Date</th> 
-											<th width="10%">End Date </th> 
-											<th width="15%">Responsible</th> 
+											<th width="65%">Task</th>  
+											<th width="15%">Start Date</th> 
+											<th width="15%">End Date </th> 
 										</tr>
 									</thead>
 									<tbody id="task_table_body" >';
-			$Pcounter = 0;
-			do {
-				$Pcounter++;
-				$responsibleid = $row_rsTask['responsible'];
-				$query_rsResponsible = $db->prepare("SELECT * FROM tbl_projteam2 WHERE ptid = :ptid");
-				$query_rsResponsible->execute(array(":ptid" => $responsibleid));
-				$row_rsResponsible = $query_rsResponsible->fetch();
-				$totalRows_rsResponsible = $query_rsResponsible->rowCount();
-				$responsible  = $row_rsResponsible['fullname'];
-				$Task .= ' 
+										$Pcounter = 0;
+										do {
+											$Pcounter++;
+											/* $responsibleid = $row_rsTask['responsible'];
+											$query_rsResponsible = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
+											$query_rsResponsible->execute(array(":userid" => $responsibleid));
+											$row_rsResponsible = $query_rsResponsible->fetch();
+											$totalRows_rsResponsible = $query_rsResponsible->rowCount();
+											$responsible  = $row_rsResponsible['fullname']; */
+											$Task .= ' 
 											<tr>  
 												<td>' . $Pcounter  . ' </td>
 												<td>' . $row_rsTask['task']  . ' </td> 
 												<td>' . date("d M Y", strtotime($row_rsTask['sdate']))  . ' </td>
 												<td>' . date("d M Y", strtotime($row_rsTask['edate']))  . ' </td>
-												<td>' . $responsible  . ' </td>
 											</tr>';
-			} while ($row_rsTask = $query_rsTask->fetch());
-			$Task .= '  
+										} while ($row_rsTask = $query_rsTask->fetch());
+										$Task .= '  
 									</tbody>
 								</table> 
 							</div>
@@ -255,6 +261,15 @@ if (isset($_POST['getMilestoneForm'])) {
 	$yearid = $row_rsOutputs['year'];
 	$output_id = $row_rsOutputs['outputid'];
 
+	$query_output_location = $db->prepare("SELECT s.id,state FROM tbl_output_disaggregation o inner join tbl_state s on s.id=o.outputstate WHERE outputid = :outputid and projid = :projid");
+	$query_output_location->execute(array(":outputid" => $outputid, ":projid" => $projid));
+	
+	$locationdata = '';
+	while($row_output_location = $query_output_location->fetch()){
+		$oplocationid = $row_output_location['id'];
+		$oplocation = $row_output_location['state'];
+		$locationdata .= '<option value="'.$oplocationid.'">'.$oplocation.'</option>';
+	}
 
 	$query_rsProgramOutputs = $db->prepare("SELECT * FROM tbl_progdetails WHERE id = :outputid");
 	$query_rsProgramOutputs->execute(array(":outputid" => $output_id));
@@ -280,223 +295,237 @@ if (isset($_POST['getMilestoneForm'])) {
 	$row_rsMilestone = $query_rsMilestone->fetch();
 	$parentOptions =  '';
 
-	do {
-		$parentOptions .=  '<option value="' . $row_rsMilestone['msid'] . '">' . $row_rsMilestone['milestone'] . '</option>';
-	} while ($row_rsMilestone = $query_rsMilestone->fetch());
+	if($row_rsMilestone){
+		do {
+			$parentOptions .=  '<option value="' . $row_rsMilestone['msid'] . '">' . $row_rsMilestone['milestone'] . '</option>';
+		} while ($row_rsMilestone = $query_rsMilestone->fetch());
+	}
 
 	echo '<fieldset class="scheduler-border">
 		<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MILESTONE DETAILS</legend>
 		<input type="hidden"  id="projid" class="form-control" value="' . $projid . '" >
 		<input type="hidden"  id="outputid" class="form-control" value="' . $outputid . '" >
-		<div class="col-md-12">
-			<label>Output:</label>
-			<div>
-				<input type="text" id="output_name" class="form-control" value="' . $output . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+		<div class="row clearfix">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<label>Output:</label>
+				<div>
+					<input type="text" id="output_name" class="form-control" value="' . $output . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-6">
-			<label>Output Start Date:</label>
-			<div>
-				<input type="text" id="opstart" class="form-control" value="' . $opstart . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label>Output Start Date:</label>
+				<div>
+					<input type="text" id="opstart" class="form-control" value="' . $opstart . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-6">
-			<label>Output End Date:</label>
-			<div>
-				<input type="text"  id="opend" class="form-control" value="' . $opend . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label>Output End Date:</label>
+				<div>
+					<input type="text"  id="opend" class="form-control" value="' . $opend . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
+				</div>
 			</div>
-		</div>
-		<div class="col-md-12">
-			<label>Milestone Name *:</label> 
-			<div class="form-input">
-				<input type="text" name="milestone" id="milestone" placeholder="Milestone Name"  class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
-				<span id="milestonemsg" style="color:red"></span> 
-			</div> 
-		</div>  
-		<div class="col-md-6">
-			<label class="control-label"> Predecessor :</label>
-			<div class="form-line">
-				<select name="milestoneParent" id="milestoneParent" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" >
-					<option value="">.... Select ....</option> 
-						' . $parentOptions . '
-				</select>
-				<script>
-				$("#milestone").blur(function (e) { 
-					var milestone = $(this).val();
-					if(milestone){ 
-						$("#milestonemsg").html("");
-					}else{
-						$("#milestonemsg").html("Field Required"); 
-					}
-				});
-
-				$("#sdate").change(function (e) { 
-					e.preventDefault();
-					var mstart = new Date($(this).val()).setHours(0,0,0,0);
-					var opstart = new Date($("#opstart").val()).setHours(0,0,0,0);
-					var opend = new Date($("#opend").val()).setHours(0,0,0,0);  
-					var parent = new Date($("#parentdate").val()).setHours(0,0,0,0);
-
-					if(mstart < opstart){
-						$("#sdatemsg").html("Milestone start date should be greater or equal to output start date"); 
-						$("#sdate").val("");
-						$("#edate").val("");
-					}else if(mstart > opend){
-						$("#sdatemsg").html("Milestone start date should be less or equal to output end date"); 
-						$("#edate").val("");
-						$("#sdate").val("");
-					}else{
-						if(parent !=""){
-							if(mstart < parent){
-								 $("#sdatemsg").html("Milestone start date should be  greater or equal to predecessor end date"); 
-								$("#edate").val("");
-								$("#sdate").val(""); 
-							} else{
-								$("#sdatemsg").html("");
-							}
-						}
-					}
-				});
-
-				$("#edate").change(function (e) { 
-					var mstart = new Date($("#sdate").val()).setHours(0,0,0,0); // milestone start date 
-					var opend = new Date($("#opend").val()).setHours(0,0,0,0);  // output end date
-					var mend = new Date($(this).val()).setHours(0,0,0,0); //milestone end date
-						 
-					if(mstart){
-						if(mend < mstart ){
-							$("#edatemsg").html("Milestone end date should be greater or equal to start date"); 
-							$("#edate").val("");
-						}else if(mend  > opend){
-							$("#edatemsg").html("Milestone End date should be less or equal to output end date"); 
-							$("#edate").val("");
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<label>Milestone Name *:</label> 
+				<div class="form-input">
+					<input type="text" name="milestone" id="milestone" placeholder="Milestone Name"  class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
+					<span id="milestonemsg" style="color:red"></span> 
+				</div> 
+			</div>  
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label class="control-label"> Predecessor :</label>
+				<div class="form-line">
+					<select name="milestoneParent" id="milestoneParent" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" >
+						<option value="">.... Select ....</option> 
+							' . $parentOptions . '
+					</select>
+					<script>
+					$("#milestone").blur(function (e) { 
+						var milestone = $(this).val();
+						if(milestone){ 
+							$("#milestonemsg").html("");
 						}else{
-							$("#edatemsg").html("");
+							$("#milestonemsg").html("Field Required"); 
 						}
-					}else{
-						$("#edate").val("");
-						$("#edatemsg").html("Select Start Date"); 
-					}
-				});
+					});
 
-				$("#milestoneParent").change(function(e) {
-					e.preventDefault(); 
-					var parent = $(this).val(); 
-					$("#edate").val("");
-					$("#sdate").val(""); 
-					if (parent != "") { 
-						$.ajax({
-							type: "post",
-							url: "general-settings/selected-items/fetch-selected-milestone-task",
-							data: {
-								getMilestoneParentStart: "parent",
-								mileid: parent
-							},
-							dataType: "json",
-							success: function(response) {
-								html =
-									\'<div>\' +
-									"<label> Predecessor End Date *:</label>" +
-									\'<div class="form-line">\' +
-									\'<input name="parentdate" type="date" id="parentdate" class="form-control" value="\' +
-									response +
-									\'" placeholder="" disabled>\' +
-									"</div>" +
-									"</div>"; 
-								$("#parentDate").html(html);
-							}
-						});
-					}else{
-						$("#parentDate").html("");
-					}
-				}); 
+					$("#sdate").change(function (e) { 
+						e.preventDefault();
+						var mstart = new Date($(this).val()).setHours(0,0,0,0);
+						var opstart = new Date($("#opstart").val()).setHours(0,0,0,0);
+						var opend = new Date($("#opend").val()).setHours(0,0,0,0);  
+						var parent = new Date($("#parentdate").val()).setHours(0,0,0,0);
 
-				$("#tag-form-submit").click(function (e) { 
-					e.preventDefault(); 
-					$("#tag-form-submit").attr("disabled", true);
-
-					var milestone = $("#milestone").val();
-					var parentid = $("#milestoneParent").val();  
-					var startdate =$("#sdate").val();
-					var enddate =$("#edate").val(); 
-					var projid =$("#projid").val(); 
-					var outputid =$("#outputid").val();
-					var paymentrequired = $("#defaultUnchecked").is(":checked") ? 1 : 0;
-
-					if(milestone){ 
-						$("#milestonemsg").html("");
-					}else{
-						$("#milestonemsg").html("Field Required"); 
-					}
-
-					if(startdate){
-						$("#sdatemsg").html("");   
-					}else{ 
-						$("#sdatemsg").html("Field Required");   
-					}
-
-					if(enddate){
-						$("#sdatemsg").html("");   
-					}else{ 
-						$("#edatemsg").html("Field Required");   
-					}
-
-					if(milestone && startdate && enddate){
-						$.ajax({
-							type: "POST",
-							url: "general-settings/selected-items/fetch-selected-milestone-task",
-							data: {
-								addMilestone: "addMilestone",
-								milestone: milestone, 
-								parentid: parentid,
-								startdate:startdate,
-								enddate:enddate,
-								projid:projid,
-								outputid:outputid,
-								paymentrequired:paymentrequired,
-								user_name:1
-							},
-							dataType: "json",
-							success: function(response) { 
-								if (response.success == true) { 
-									alert(response.messages);
-									$(".modal").each(function() {
-										$(this).modal("hide");
-									});
-									location.reload(true);
-								} else {
-									alert(response.messages);
-									location.reload(true);
+						if(mstart < opstart){
+							$("#sdatemsg").html("Milestone start date should be greater or equal to output start date"); 
+							$("#sdate").val("");
+							$("#edate").val("");
+						}else if(mstart > opend){
+							$("#sdatemsg").html("Milestone start date should be less or equal to output end date"); 
+							$("#edate").val("");
+							$("#sdate").val("");
+						}else{
+							if(parent !=""){
+								if(mstart < parent){
+									 $("#sdatemsg").html("Milestone start date should be  greater or equal to predecessor end date"); 
+									$("#edate").val("");
+									$("#sdate").val(""); 
+								} else{
+									$("#sdatemsg").html("");
 								}
-								$("#tag-form-submit").attr("disabled", false);
 							}
-						});
-					}
-				});
-				</script>
+						}
+					});
+
+					$("#edate").change(function (e) { 
+						var mstart = new Date($("#sdate").val()).setHours(0,0,0,0); // milestone start date 
+						var opend = new Date($("#opend").val()).setHours(0,0,0,0);  // output end date
+						var mend = new Date($(this).val()).setHours(0,0,0,0); //milestone end date
+							 
+						if(mstart){
+							if(mend < mstart ){
+								$("#edatemsg").html("Milestone end date should be greater or equal to start date"); 
+								$("#edate").val("");
+							}else if(mend  > opend){
+								$("#edatemsg").html("Milestone End date should be less or equal to output end date"); 
+								$("#edate").val("");
+							}else{
+								$("#edatemsg").html("");
+							}
+						}else{
+							$("#edate").val("");
+							$("#edatemsg").html("Select Start Date"); 
+						}
+					});
+
+					$("#milestoneParent").change(function(e) {
+						e.preventDefault(); 
+						var parent = $(this).val(); 
+						$("#edate").val("");
+						$("#sdate").val(""); 
+						if (parent != "") { 
+							$.ajax({
+								type: "post",
+								url: "general-settings/selected-items/fetch-selected-milestone-task",
+								data: {
+									getMilestoneParentStart: "parent",
+									mileid: parent
+								},
+								dataType: "json",
+								success: function(response) {
+									html =
+										\'<div>\' +
+										"<label> Predecessor End Date *:</label>" +
+										\'<div class="form-line">\' +
+										\'<input name="parentdate" type="date" id="parentdate" class="form-control" value="\' +
+										response +
+										\'" placeholder="" disabled>\' +
+										"</div>" +
+										"</div>"; 
+									$("#parentDate").html(html);
+								}
+							});
+						}else{
+							$("#parentDate").html("");
+						}
+					}); 
+
+					$("#tag-form-submit").click(function (e) { 
+						e.preventDefault(); 
+						$("#tag-form-submit").attr("disabled", true);
+						var milestone = $("#milestone").val();
+						var parentid = $("#milestoneParent").val();  
+						var milestoneLocation = $("#milestoneLocation").val();
+						var startdate =$("#sdate").val();
+						var enddate =$("#edate").val(); 
+						var projid =$("#projid").val(); 
+						var outputid =$("#outputid").val();
+						var paymentrequired = $("#defaultUnchecked").is(":checked") ? 1 : 0;
+
+						if(milestone){ 
+							$("#milestonemsg").html("");
+						}else{
+							$("#milestonemsg").html("Field Required"); 
+						}
+
+						if(milestoneLocation){ 
+							$("#milestoneLocationmsg").html("");
+						}else{
+							$("#milestoneLocationmsg").html("Field Required"); 
+						}
+
+						if(startdate){
+							$("#sdatemsg").html("");   
+						}else{ 
+							$("#sdatemsg").html("Field Required");   
+						}
+
+						if(enddate){
+							$("#sdatemsg").html("");   
+						}else{ 
+							$("#edatemsg").html("Field Required");   
+						}
+
+						if(milestone && startdate && enddate){
+							$.ajax({
+								type: "POST",
+								url: "general-settings/selected-items/fetch-selected-milestone-task",
+								data: {
+									addMilestone: "addMilestone",
+									milestone: milestone, 
+									parentid: parentid,
+									milestoneLocation: milestoneLocation,
+									startdate:startdate,
+									enddate:enddate,
+									projid:projid,
+									outputid:outputid,
+									paymentrequired:paymentrequired,
+									user_name:1
+								},
+								dataType: "json",
+								success: function(response) { 
+									if (response.success == true) { 
+										alert(response.messages);
+										$(".modal").each(function() {
+											$(this).modal("hide");
+										});
+										location.reload(true);
+									} else {
+										alert(response.messages);
+										location.reload(true);
+									} 
+								}
+							});
+						}
+					});
+					</script>
+				</div>
 			</div>
-		</div> 
-		<div  class="col-md-6">
-				<div id="parentDate"></div>
-		</div> 
-		<div class="col-md-6">
-			<label>Milestone Start Date *:</label>
-			<div class="form-line">
-				<input name="sdate" id="sdate" type="date" class="form-control" value="" placeholder="Start Date" required>
+			<div  class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label class="control-label">&nbsp;</label>
+				<div class="form-line" id="parentDate">&nbsp;</div>
+			</div>  
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label class="control-label">Milestone Location *:</label>
+				<div class="form-line">
+					<select name="milestoneLocation[]" id="milestoneLocation"  data-actions-box="true" class="form-control selectpicker" multiple style="border:#CCC thin solid; border-radius:5px" data-mdb-container="#addFormModal">
+						' . $locationdata . '
+					</select>
+					<span id="milestoneLocationmsg" style="color:red"></span>
+				</div>
+			</div> 
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label>Milestone Start Date *:</label>
+				<div class="form-line">
+					<input name="sdate" id="sdate" type="date" class="form-control" value="" placeholder="Start Date" required>
 					<span id="sdatemsg" style="color:red"></span>
 				</div>
-		</div>
-		<div class="col-md-6">
-			<label>Milestone End Date *:</label>
-			<div class="form-line">
-				<input name="edate" id="edate" type="date" class="form-control" value="" placeholder="End Date" required>
-				<span id="edatemsg" style="color:red"></span>
 			</div>
-		</div>
-		<div class="col-md-12">
-			<div class="custom-control custom-checkbox">
-				<input name="paymentrequired"  type="checkbox" class="custom-control-input" value="1" id="defaultUnchecked">
-				<label class="custom-control-label" for="defaultUnchecked">Payment to be made after this milestone?</label>
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label>Milestone End Date *:</label>
+				<div class="form-line">
+					<input name="edate" id="edate" type="date" class="form-control" value="" placeholder="End Date" required>
+					<span id="edatemsg" style="color:red"></span>
+				</div>
 			</div>
 		</div>
 	</fieldset>';
@@ -559,16 +588,10 @@ if (isset($_POST['getMilestoneEditForm'])) {
 	$projid = $row_rsMilestone['projid'];
 	$outputid = $row_rsMilestone['outputid'];
 	$milestoneName = $row_rsMilestone['milestone'];
+	$milestoneloc =  explode (",", $row_rsMilestone['location']);
 	$parentid = $row_rsMilestone['parent'];
 	$milestartdate = $row_rsMilestone['sdate'];
 	$mileenddate = $row_rsMilestone['edate'];
-	$checked = $row_rsMilestone['paymentrequired'];
-
-	if ($checked == 1) {
-		$checked = "checked";
-	} else {
-		$checked = "";
-	}
 
 	$parentDate = '';
 	$parentOptions =  '';
@@ -611,6 +634,12 @@ if (isset($_POST['getMilestoneEditForm'])) {
 	$row_rsOutputs = $query_rsOutputs->fetch();
 	$opduration = $row_rsOutputs['duration'];
 	$yearid = $row_rsOutputs['year'];
+	$output_id = $row_rsOutputs['outputid'];
+	
+	$query_rsProgramOutputs = $db->prepare("SELECT * FROM tbl_progdetails WHERE id = :outputid");
+	$query_rsProgramOutputs->execute(array(":outputid" => $output_id));
+	$row_rsProgramOutputs = $query_rsProgramOutputs->fetch();
+	$output = $row_rsProgramOutputs['output'];
 
 	$query_rsFscYear = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id = :yearid");
 	$query_rsFscYear->execute(array(":yearid" => $yearid));
@@ -624,33 +653,43 @@ if (isset($_POST['getMilestoneEditForm'])) {
 
 	$projsdate = date("d-m-Y", strtotime($row_rsProjects['projstartdate']));
 	$projedate = date("d-m-Y", strtotime($row_rsProjects['projenddate']));
+	
 
-
+	$query_output_location = $db->prepare("SELECT s.id,state FROM tbl_output_disaggregation o inner join tbl_state s on s.id=o.outputstate WHERE outputid = :outputid and projid = :projid");
+	$query_output_location->execute(array(":outputid" => $outputid, ":projid" => $projid));
+	
+	$locationdata = '';
+	while($row_output_location = $query_output_location->fetch()){
+		$oplocationid = $row_output_location['id'];
+		$oplocation = $row_output_location['state'];
+		$selected = in_array($oplocationid,$milestoneloc) ? "selected" : "";
+		$locationdata .= '<option value="'.$oplocationid.'" '.$selected.'>'.$oplocation.'</option>';
+	}
 
 	echo '<fieldset class="scheduler-border">
 			<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MILESTONE DETAILS</legend>
 			<input type="hidden"  id="projid" class="form-control" value="' . $projid . '" >
 			<input type="hidden"  id="msid" class="form-control" value="' . $mileid . '" >
 			<input type="hidden"  id="outputid" class="form-control" value="' . $outputid . '" >
-			<div class="col-md-12">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 			<label>Output:</label>
 			<div>
 				<input type="text" id="output_name" class="form-control" value="' . $output . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
 		</div>
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 			<label>Output Start Date:</label>
 			<div class="">
 				<input type="text" id="opstart" class="form-control" value="' . $opstart . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
 		</div>
-		<div class="col-md-6">
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 			<label>Output End Date:</label>
 			<div class="">
 				<input type="text"  id="opend" class="form-control" value="' . $opend . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
 		</div>
-			<div class="col-md-12">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<label>Milestone Name *:</label>
 				<div class="">
 					<input type="text" name="milestone" id="milestone" value="' . $milestoneName . '" class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
@@ -658,7 +697,7 @@ if (isset($_POST['getMilestoneEditForm'])) {
 				
 					</div>
 			</div>  
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 				<label class="control-label"> Predecessor :</label>
 				<div class="form-line">
 					<select name="milestoneParent" id="milestoneParent" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
@@ -699,11 +738,11 @@ if (isset($_POST['getMilestoneEditForm'])) {
 									$("#sdate").val(""); 
 								} else{
 									$("#sdatemsg").html("");';
-									if ($totalRows_rsMilestones > 0) {
-										$attribute_click = 'validate_dates(' . $mileid . ',milestonestart,1)';
-									}
-									echo $attribute_click;
-									echo '
+	if ($totalRows_rsMilestones > 0) {
+		$attribute_click = 'validate_dates(' . $mileid . ',milestonestart,1)';
+	}
+	echo $attribute_click;
+	echo '
 																}
 															}
 														}
@@ -723,11 +762,11 @@ if (isset($_POST['getMilestoneEditForm'])) {
 																$("#edate").val("");
 															}else{
 																$("#edatemsg").html("");';
-									if ($totalRows_rsMilestones > 0) {
-										$attribute_click = 'validate_dates(' . $mileid . ',milestoneend,2)';
-									}
-									echo $attribute_click;
-									echo '
+	if ($totalRows_rsMilestones > 0) {
+		$attribute_click = 'validate_dates(' . $mileid . ',milestoneend,2)';
+	}
+	echo $attribute_click;
+	echo '
 							}
 						}else{
 							$("#edate").val("");
@@ -751,7 +790,7 @@ if (isset($_POST['getMilestoneEditForm'])) {
 							dataType: "json",
 							success: function(response) {                                   
 								html =
-										\'<div class="col-md-2" id="">\' +
+										\'<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" id="">\' +
 										"<label> Predecessor End Date *:</label>" +
 										\'<div class="form-line">\' +
 										\'<input name="parentdate" type="date" id="parentdate" class="form-control" value="\' +
@@ -771,6 +810,7 @@ if (isset($_POST['getMilestoneEditForm'])) {
 						$("#tag-form-submit").attr("disabled", true);
 						var milestone = $("#milestone").val();
 						var parentid = $("#milestoneParent").val();  
+						var milestoneLocation = $("#milestoneLocation").val();  
 						var startdate =$("#sdate").val();
 						var enddate =$("#edate").val(); 
 						var projid =$("#projid").val(); 
@@ -804,6 +844,7 @@ if (isset($_POST['getMilestoneEditForm'])) {
 									editMilestone: "editMilestone",
 									milestone: milestone, 
 									parentid: parentid,
+									milestoneLocation: milestoneLocation,
 									startdate:startdate,
 									enddate:enddate,
 									projid:projid,
@@ -823,8 +864,7 @@ if (isset($_POST['getMilestoneEditForm'])) {
 									  } else {
 										alert(response.messages);
 										location.reload(true);
-									  }
-        								$("#tag-form-submit").attr("disabled", false);
+									  } 
 								}
 							});
 						}else{
@@ -873,28 +913,31 @@ if (isset($_POST['getMilestoneEditForm'])) {
 			</div> 
 			<div id="parentDate">
 			' . $parentDate . '
-			</div>
-			<div class="col-md-6">
+			</div> 
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+				<label class="control-label">Milestone Location *:</label>
+				<div class="form-line">
+					<select name="milestoneLocation[]" id="milestoneLocation"  data-actions-box="true" class="form-control selectpicker" multiple style="border:#CCC thin solid; border-radius:5px" data-mdb-container="#addFormModal">
+						' . $locationdata . '
+					</select>
+					<span id="milestoneLocationmsg" style="color:red"></span>
+				</div>
+			</div> 
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 				<label>Milestone Start Date *:</label>
 				<div class="form-line">
 					<input name="sdate" id="sdate" type="date"  value="' . $milestartdate . '" class="form-control" value="" placeholder="Start Date" required>
 						<span id="sdatemsg" style="color:red"></span>
 					</div>
 			</div>
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 				<label>Milestone End Date *:</label>
 				<div class="form-line">
 					<input name="edate" id="edate" type="date" value="' . $mileenddate . '" class="form-control" value="" placeholder="End Date" required>
 					<span id="edatemsg" style="color:red"></span>
 				</div>
 			</div>
-			<div class="col-md-12">
-				<div class="custom-control custom-checkbox">
-					<input type="checkbox" name="paymentrequired" class="custom-control-input" value="1" id="defaultUnchecked" ' . $checked . '>
-					<label class="custom-control-label" for="defaultUnchecked">Payment to be made after this milestone?</label>
-				</div>
-			</div>
-			<div class="col-md-12" id="errors" style="color:red">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="errors" style="color:red">
 
 			</div>
 		</fieldset>';
@@ -946,20 +989,20 @@ if (isset($_POST['getAddTaskForm'])) {
 	$parentid = $row_rsMilestone['parent'];
 	$milestart = $row_rsMilestone['sdate'];
 	$mileend = $row_rsMilestone['edate'];
-
-	$responsible = '';
-
-	$query_rsResponsible = $db->prepare("SELECT t.* FROM tbl_projmembers m inner join tbl_projteam2 t on t.ptid=m.ptid where m.projid = :projid");
+	/* $responsible = '';
+	$query_rsResponsible = $db->prepare("SELECT t.* FROM tbl_projmembers m 	INNER JOIN users u ON u.userid = m.ptid inner join tbl_projteam2 t on t.ptid= u.pt_id where m.projid = :projid");
 	$query_rsResponsible->execute(array(":projid" => $projid));
 	$row_rsResponsible = $query_rsResponsible->fetch();
 	$totalRows_rsPersonel = $query_rsResponsible->rowCount();
 
-	do {
-		$ptnid = $row_rsResponsible['ptid'];
-		$ptnname = $row_rsResponsible['fullname'];
-		$title = $row_rsResponsible['title'];
-		$responsible .= '<option value="' . $ptnid . '">' . $title . '.' . $ptnname . '</option>';
-	} while ($row_rsResponsible = $query_rsResponsible->fetch());
+	if ($totalRows_rsPersonel > 0) {
+		do {
+			$ptnid = $row_rsResponsible['ptid'];
+			$ptnname = $row_rsResponsible['fullname'];
+			$title = $row_rsResponsible['title'];
+			$responsible .= '<option value="' . $ptnid . '">' . $title . '.' . $ptnname . '</option>';
+		} while ($row_rsResponsible = $query_rsResponsible->fetch());
+	} */
 
 
 	$query_rsTask = $db->prepare("SELECT * FROM tbl_task WHERE projid='$projid' and msid='$mileid'");
@@ -967,9 +1010,11 @@ if (isset($_POST['getAddTaskForm'])) {
 	$row_rsTask = $query_rsTask->fetch();
 	$parentOptions =  '';
 
-	do {
-		$parentOptions .=  '<option value="' . $row_rsTask['tkid'] . '">' . $row_rsTask['task'] . '</option>';
-	} while ($row_rsTask = $query_rsTask->fetch());
+	if($row_rsTask){
+		do {
+			$parentOptions .=  '<option value="' . $row_rsTask['tkid'] . '">' . $row_rsTask['task'] . '</option>';
+		} while ($row_rsTask = $query_rsTask->fetch());
+	}
 
 	echo '
 		<fieldset class="scheduler-border">
@@ -977,38 +1022,28 @@ if (isset($_POST['getAddTaskForm'])) {
 			<input type="hidden"  id="projid" class="form-control" value="' . $projid . '" >
 			<input type="hidden"  id="msid" class="form-control" value="' . $mileid . '" >
 			<input type="hidden"  id="outputid" class="form-control" value="' . $outputid . '" >
-			<div class="col-md-12">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<label>Milestone:</label>
 				<input type="text" id="milestone_name" class="form-control" value="' .  $milestoneName . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 				<label>Milestone Start Date:</label>
 				<input type="date" id="milestart" class="form-control" value="' .  $milestart . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 				<label>Milestone End Date:</label>
 				<div>
 					<input type="date"  id="mileend" class="form-control" value="' . $mileend . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 				</div>
 			</div>
-			<div class="col-md-12">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<label>Task Name *:</label>
 				<div>
 					<input type="text" name="task" id="task"  placeholder="Task Name" class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
 					<span id="taskmsg" style="color:red"></span> 
 				</div>
 			</div>
-		<div class="col-md-6">
-			<label class="control-label"> Responsible *:</label>
-			<div class="form-line">
-				<select name="responsible" id="responsible" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" >
-					<option value="">.... Select ....</option> 
-						' . $responsible . '
-				</select>
-				<span id="responsiblemsg" style="color:red"></span> 
-			</div>
-		</div>
-			<div class="col-md-6">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label class="control-label"> Predecessor :</label>
 				<div class="form-line">
 					<select name="taskParent" id="taskParent" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" >
@@ -1022,15 +1057,6 @@ if (isset($_POST['getAddTaskForm'])) {
 								$("#taskmsg").html("");
 							}else{
 								$("#taskmsg").html("Field is required");
-							}
-						});
-
-						$("#responsible").change(function (e) {
-							var responsible = $(this).val();
-							if(responsible){
-								$("#responsiblemsg").html("");
-							}else{
-								$("#responsiblemsg").html("Field is required");
 							}
 						});
 
@@ -1100,7 +1126,7 @@ if (isset($_POST['getAddTaskForm'])) {
 								dataType: "json",
 								success: function(response) {                                   
 									html =
-											\'<div class="col-md-4" id="">\' +
+											\'<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="">\' +
 											"<label> Predecessor End Date *:</label>" +
 											\'<div class="form-line">\' +
 											\'<input name="parentdate" type="date" id="parentdate" class="form-control" value="\' +
@@ -1122,8 +1148,7 @@ if (isset($_POST['getAddTaskForm'])) {
 							var task = $("#task").val();
 							var parentid = $("#taskParent").val();  
 							var startdate =$("#tsdate").val();
-							var enddate =$("#tedate").val(); 
-							var responsible =$("#responsible").val(); 
+							var enddate =$("#tedate").val();  
 							var projid =$("#projid").val(); 
 							var outputid =$("#outputid").val(); 
 							var msid =$("#msid").val();
@@ -1132,12 +1157,6 @@ if (isset($_POST['getAddTaskForm'])) {
 								$("#taskmsg").html("");
 							}else{
 								$("#taskmsg").html("Field is required");
-							}
-
-							if(responsible){
-								$("#responsiblemsg").html("");
-							}else{
-								$("#responsiblemsg").html("Field is required");
 							}
 
 							if(startdate){
@@ -1152,7 +1171,7 @@ if (isset($_POST['getAddTaskForm'])) {
 								$("#tedatemsg").html("Field is required");
 							}
 
-							if(task && startdate && enddate && responsible){
+							if(task && startdate && enddate){
 								$.ajax({
 									type: "POST",
 									url: "general-settings/selected-items/fetch-selected-milestone-task",
@@ -1163,7 +1182,6 @@ if (isset($_POST['getAddTaskForm'])) {
 										startdate:startdate,
 										enddate:enddate,
 										projid:projid,
-										responsible:responsible,
 										outputid:outputid,
 										msid:msid,
 										user_name:1
@@ -1179,8 +1197,7 @@ if (isset($_POST['getAddTaskForm'])) {
 										  } else {
 											alert(response.messages);
 											location.reload(true);
-										  }
-        								$("#tag-form-submit").attr("disabled", false);
+										  } 
 									}
 								});
 							}
@@ -1191,14 +1208,14 @@ if (isset($_POST['getAddTaskForm'])) {
 			<div id="parentDate">
 			
 			</div>
-			<div class="col-md-4">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label>Task Start Date *:</label>
 				<div class="form-line">
 					<input name="tsdate" id="tsdate" type="date" class="form-control" value="" placeholder="Start Date" required>
 						<span id="tsdatemsg" style="color:red"></span>
 					</div>
 			</div>
-			<div class="col-md-4">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label>Task End Date *:</label>
 				<div class="form-line">
 					<input name="tedate" id="tedate" type="date" class="form-control" value="" placeholder="End Date" required>
@@ -1231,7 +1248,7 @@ if (isset($_POST['getTaskEditForm'])) {
 
 	$responsible = '';
 
-	$query_rsResponsible = $db->prepare("SELECT t.* FROM tbl_projmembers m inner join tbl_projteam2 t on t.ptid=m.ptid where m.projid = :projid");
+	$query_rsResponsible = $db->prepare("SELECT t.* FROM tbl_projmembers m 	INNER JOIN users u ON u.userid = m.ptid inner join tbl_projteam2 t on t.ptid= u.pt_id where m.projid = :projid");
 	$query_rsResponsible->execute(array(":projid" => $projid));
 	$row_rsResponsible = $query_rsResponsible->fetch();
 	$totalRows_rsPersonel = $query_rsResponsible->rowCount();
@@ -1253,7 +1270,7 @@ if (isset($_POST['getTaskEditForm'])) {
 		$row_rsTaskParent = $query_rsTaskParent->fetch();
 		$pdate = $row_rsTaskParent['edate'];
 		$parentDate = '
-			<div class="col-md-4" id="">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="">
 				<label> Predecessor End Date *:</label>
 				<div class="form-line">
 					<input name="parentdate" type="date" id="parentdate" class="form-control" value="' . $pdate . '" placeholder="" disabled>
@@ -1336,40 +1353,30 @@ if (isset($_POST['getTaskEditForm'])) {
 			<input type="hidden" name="msid" id="msid" class="form-control" value="' . $mileid . '" >
 			<input type="hidden" name="outputid"  id="outputid" class="form-control" value="' . $outputid . '" >
 			<input type="hidden" name="taskid"  id="taskid" class="form-control" value="' . $taskid . '" >
-			<div class="col-md-12">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<label>Milestone:</label>
 				<input type="text" id="milestone_name" class="form-control" value="' .  $milestoneName . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
-			<div class="col-md-6">
+			<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 			<label>Milestone Start Date:</label>
 			<div>
 				<input type="text" id="milestart" class="form-control" value="' .  $milestart . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
 		</div>
-		<div class="col-md-6">
+		<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
 			<label>Milestone End Date:</label>
 			<div>
 				<input type="text"  id="mileend" class="form-control" value="' . $mileend . '" style="border:#CCC thin solid; border-radius: 5px" readonly>
 			</div>
 		</div>
-		<div class="col-md-12">
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 			<label>Task Name *:</label>
 			<div>
 				<input type="text" name="task" id="task" value="' . $task . '" placeholder="Task Name" class="form-control" style="border:#CCC thin solid; border-radius: 5px" required>
 				<span id="taskmsg" style="color:red"></span> 
 				</div>
 		</div>
-		<div class="col-md-6">
-			<label class="control-label"> Responsible *:</label>
-			<div class="form-line">
-				<select name="responsible" id="responsible" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" >
-					<option value="">.... Select ....</option> 
-						' . $responsible . '
-				</select>
-				<span id="responsiblemsg" style="color:red"></span> 
-			</div>
-		</div>
-			<div class="col-md-6">
+		<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label class="control-label"> Predecessor :</label>
 				<div class="form-line">
 					<select name="taskParent" id="taskParent" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
@@ -1386,14 +1393,6 @@ if (isset($_POST['getTaskEditForm'])) {
 						}
 					 });
 
-					 $("#responsible").change(function (e) {
-						var responsible = $(this).val();
-						if(responsible){
-							$("#responsiblemsg").html("");
-						}else{
-							$("#responsiblemsg").html("Field is required");
-						}
-					 });
 					$("#tsdate").change(function (e) { 
 						e.preventDefault(); 
 						var tstart = new Date($(this).val()).setHours(0,0,0,0);
@@ -1472,7 +1471,7 @@ if (isset($_POST['getTaskEditForm'])) {
 								dataType: "json",
 								success: function(response) {                                   
 									html =
-											\'<div class="col-md-4" id="">\' +
+											\'<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="">\' +
 											"<label> Predecessor End Date *:</label>" +
 											\'<div class="form-line">\' +
 											\'<input name="parentdate" type="date" id="parentdate" class="form-control" value="\' +
@@ -1493,7 +1492,6 @@ if (isset($_POST['getTaskEditForm'])) {
 							var parentid = $("#taskParent").val();  
 							var startdate =$("#tsdate").val();
 							var enddate =$("#tedate").val(); 
-							var responsible =$("#responsible").val(); 
 							var projid =$("#projid").val(); 
 							var outputid =$("#outputid").val(); 
 							var msid =$("#msid").val();
@@ -1503,12 +1501,6 @@ if (isset($_POST['getTaskEditForm'])) {
 								$("#taskmsg").html("");
 							}else{
 								$("#taskmsg").html("Field is required");
-							}
-
-							if(responsible){
-								$("#responsiblemsg").html("");
-							}else{
-								$("#responsiblemsg").html("Field is required");
 							}
 
 							if(startdate){
@@ -1523,7 +1515,7 @@ if (isset($_POST['getTaskEditForm'])) {
 								$("#tedatemsg").html("Field is required");
 							}
 
-							if(task && startdate && enddate && responsible){
+							if(task && startdate && enddate){
 								$.ajax({
 									type: "POST",
 									url: "general-settings/selected-items/fetch-selected-milestone-task",
@@ -1535,7 +1527,6 @@ if (isset($_POST['getTaskEditForm'])) {
 										startdate:startdate,
 										enddate:enddate,
 										projid:projid,
-										responsible:responsible,
 										outputid:outputid,
 										msid:msid,
 										user_name:1
@@ -1599,21 +1590,21 @@ if (isset($_POST['getTaskEditForm'])) {
 			<div id="parentDate">
 				' .    $parentDate . '
 			</div>
-			<div class="col-md-4">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label>Task Start Date *:</label>
 				<div class="form-line">
 					<input name="tsdate" id="tsdate" type="date" class="form-control" value="' . $taskstart . '" placeholder="Start Date" required>
 						<span id="tsdatemsg" style="color:red"></span>
 					</div>
 			</div>
-			<div class="col-md-4">
+			<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 				<label>Task End Date *:</label>
 				<div class="form-line">
 					<input name="tedate" id="tedate" type="date" class="form-control" value="' . $taskend . '" placeholder="End Date" required>
 					<span id="tedatemsg" style="color:red"></span>
 				</div>
 			</div>
-			<div class="col-md-12" id="errors" style="color:red">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="errors" style="color:red">
 
 			</div>
 		</fieldset>';
@@ -1676,6 +1667,7 @@ if (isset($_POST["addMilestone"])) {
 	$msenddate = date("Y-m-d", $milenddateformat);
 	$projid = $_POST['projid'];
 	$milestone = $_POST['milestone'];
+    $location = implode(",", $_POST['milestoneLocation']);
 	$parentid = '';
 	if (!empty($_POST['parentid'])) {
 		$parentid = $_POST['parentid'];
@@ -1683,19 +1675,14 @@ if (isset($_POST["addMilestone"])) {
 		$parentid = null;
 	}
 
-	$paymentrequired = $_POST['paymentrequired'];
-	if (!empty($paymentrequired)) {
-		$paymentrequired = $paymentrequired;
-	} else {
-		$paymentrequired = 0;
-	}
+	$paymentrequired = 0;
 
 	try {
 		$username = $_POST['user_name'];
 		$outputid = $_POST['outputid'];
-		$insertSQL = $db->prepare("INSERT INTO tbl_milestone (projid,outputid, milestone, parent, status, paymentrequired, sdate, edate, user_name,date_entered) VALUES (:projid, :outputid, :milestone, :parent, :status, :paymentrequired, :sdate, :edate, :user_name, :date_entered)");
-		$results = $insertSQL->execute(array(':projid' => $projid, ":outputid" => $outputid, ':milestone' => $milestone, ':parent' => $parentid, ':status' => $status, ':paymentrequired' => $paymentrequired, ':sdate' => $msstartdate, ':edate' => $msenddate, ':user_name' => $username, ':date_entered' => $current_date));
 
+		$insertSQL = $db->prepare("INSERT INTO tbl_milestone (projid,outputid, milestone, parent, location, status, paymentrequired, sdate, edate, user_name,date_entered) VALUES (:projid, :outputid, :milestone, :parent, :location, :status, :paymentrequired, :sdate, :edate, :user_name, :date_entered)");
+		$results = $insertSQL->execute(array(':projid' => $projid, ":outputid" => $outputid, ':milestone' => $milestone, ':parent' => $parentid, ':location' => $location, ':status' => $status, ':paymentrequired' => $paymentrequired, ':sdate' => $msstartdate, ':edate' => $msenddate, ':user_name' => $username, ':date_entered' => $current_date));
 		if ($results === TRUE) {
 			$valid['success'] = true;
 			$valid['messages'] = "Successfully Added";
@@ -1721,7 +1708,7 @@ if (isset($_POST["editMilestone"])) {
 	$msenddate = date("Y-m-d", $milenddateformat);
 	$projid = $_POST['projid'];
 	$milestone = $_POST['milestone'];
-	$payment = $_POST['paymentrequired'];
+    $location = implode(",", $_POST['milestoneLocation']);
 	$parentid = '';
 
 	if (!empty($_POST['parentid'])) {
@@ -1730,19 +1717,15 @@ if (isset($_POST["editMilestone"])) {
 		$parentid = null;
 	}
 
-	if (!empty($paymentrequired)) {
-		$paymentrequired = $paymentrequired;
-	} else {
-		$paymentrequired = 0;
-	}
+	$paymentrequired = 0;
 
 
 	$username = $_POST['user_name'];
 	$outputid = $_POST['outputid'];
 	$msid = $_POST['msid'];
 
-	$insertSQL = $db->prepare("UPDATE tbl_milestone SET  parent=:parent, milestone=:milestone,  status=:status, paymentrequired=:paymentrequired, sdate=:sdate, edate=:edate, changedby=:user_name,datechanged=:date_entered WHERE msid=:msid ");
-	$results = $insertSQL->execute(array(":parent" => $parentid, ':milestone' => $milestone, ':status' => $status, ':paymentrequired' => $paymentrequired, ':sdate' => $msstartdate, ':edate' => $msenddate, ':user_name' => $username, ':date_entered' => $current_date, ":msid" => $msid));
+	$insertSQL = $db->prepare("UPDATE tbl_milestone SET  parent=:parent, location=:location, milestone=:milestone,  status=:status, paymentrequired=:paymentrequired, sdate=:sdate, edate=:edate, changedby=:user_name,datechanged=:date_entered WHERE msid=:msid ");
+	$results = $insertSQL->execute(array(":parent" => $parentid, ':location' => $location, ':milestone' => $milestone, ':status' => $status, ':paymentrequired' => $paymentrequired, ':sdate' => $msstartdate, ':edate' => $msenddate, ':user_name' => $username, ':date_entered' => $current_date, ":msid" => $msid));
 
 	if ($results === TRUE) {
 		$valid['success'] = true;
@@ -1772,12 +1755,14 @@ if (isset($_POST["addTask"])) {
 	}
 
 	$username = $_POST['user_name'];
-	$responsible = $_POST['responsible'];
+	//$responsible = $_POST['responsible'];
 	$outputid = $_POST['outputid'];
 	$msid = $_POST['msid'];
-	$insertSQL = $db->prepare("INSERT INTO tbl_task (msid, projid, outputid,  parenttask, task, status, sdate, edate,responsible, user_name,date_entered) VALUES (:msid, :projid,:outputid, :parenttask, :task, :status, :sdate, :edate,:responsible, :user_name,:date_entered)");
-	$results = $insertSQL->execute(array(":msid" => $msid, ':projid' => $projid, ":outputid" => $outputid,  ":parenttask" => $parentid, ':task' => $task, ':status' => $status, ':sdate' => $tskstartdate, ':edate' => $tskenddate, ":responsible" => $responsible, ':user_name' => $username, ':date_entered' => $current_date));
+
+	$insertSQL = $db->prepare("INSERT INTO tbl_task (msid, projid, outputid,  parenttask, task, status, sdate, edate, user_name,date_entered) VALUES (:msid, :projid,:outputid, :parenttask, :task, :status, :sdate, :edate, :user_name,:date_entered)");
+	$results = $insertSQL->execute(array(":msid" => $msid, ':projid' => $projid, ":outputid" => $outputid,  ":parenttask" => $parentid, ':task' => $task, ':status' => $status, ':sdate' => $tskstartdate, ':edate' => $tskenddate, ':user_name' => $username, ':date_entered' => $current_date));
 	$valid = [];
+
 	if ($results === TRUE) {
 		$valid['success'] = true;
 		$valid['messages'] = "Successfully Added";
@@ -1809,10 +1794,10 @@ if (isset($_POST["editTask"])) {
 
 	$username = $_POST['user_name'];
 	$outputid = $_POST['outputid'];
-	$responsible = $_POST['responsible'];
+	//$responsible = $_POST['responsible'];
 
-	$insertSQL = $db->prepare("UPDATE tbl_task SET parenttask=:parentid,  task=:task, status=:status, sdate=:sdate, edate=:edate, responsible=:responsible, changedby=:user_name,datechanged=:date_entered WHERE tkid=:taskid ");
-	$results = $insertSQL->execute(array(":parentid" => $parentid, ':task' => $task, ':status' => $status, ':sdate' => $tskstartdate, ':edate' => $tskenddate, ':responsible' => $responsible, ':user_name' => $username, ':date_entered' => $current_date, ":taskid" => $taskid));
+	$insertSQL = $db->prepare("UPDATE tbl_task SET parenttask=:parentid,  task=:task, status=:status, sdate=:sdate, edate=:edate, changedby=:user_name,datechanged=:date_entered WHERE tkid=:taskid ");
+	$results = $insertSQL->execute(array(":parentid" => $parentid, ':task' => $task, ':status' => $status, ':sdate' => $tskstartdate, ':edate' => $tskenddate, ':user_name' => $username, ':date_entered' => $current_date, ":taskid" => $taskid));
 
 	if ($results === TRUE) {
 		$valid['success'] = true;
@@ -1882,45 +1867,80 @@ if (isset($_POST['deleteItem'])) {
 if (isset($_POST["finishAddItem"])) {
 	$current_date = date("Y-m-d");
 	$projid = $_POST['projid'];
+	$query_rsOutputs = $db->prepare("SELECT g.output as output, p.id as opid, g.indicator FROM tbl_project_details p INNER JOIN tbl_progdetails g ON g.id = p.outputid WHERE p.projid='$projid' ");
+	$query_rsOutputs->execute();
+	$row_rsOutputs = $query_rsOutputs->fetch();
+	$totalRows_rsOutputs = $query_rsOutputs->rowCount();
+	$message = "Please Add Activities!!";
+	$response = array();
 
-	// check if has milestones 
-	$query_rsMilestones = $db->prepare("SELECT * FROM tbl_milestone WHERE projid = :projid");
-	$query_rsMilestones->execute(array(":projid" => $projid));
-	$totalRows_rsMilestones = $query_rsMilestones->rowCount();
+	if ($totalRows_rsOutputs > 0) {
+		$message_array = array();
+		do {
+			$outputid = $row_rsOutputs['opid'];
+			$indid = $row_rsOutputs['indicator'];
 
-	if ($totalRows_rsMilestones > 0) {
-		// check if milestones have tasks 
-		while ($row_rsMilestones = $query_rsMilestones->fetch()) {
-			$msid = $row_rsMilestones["msid"];
-			$milestone = $row_rsMilestones["milestone"];
+			$query_rsMilestones = $db->prepare("SELECT * FROM tbl_milestone WHERE projid='$projid' and outputid ='$outputid' ORDER BY sdate");
+			$query_rsMilestones->execute();
+			$row_rsMilestones = $query_rsMilestones->fetch();
+			$totalRows_rsMilestones = $query_rsMilestones->rowCount();
+			$milestones_array = array();
+			$facts_array = array();
+			if ($totalRows_rsMilestones > 0) {
+				do {
+					$msid = $row_rsMilestones["msid"];
+					$milestone = $row_rsMilestones["milestone"];
+					$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE projid='$projid' and msid='$msid' ORDER BY sdate");
+					$query_rsTasks->execute();
+					$row_rsTasks = $query_rsTasks->fetch();
+					$totalRows_rsTasks = $query_rsTasks->rowCount();
+					$response[] = ($totalRows_rsTasks > 0) ? true : false;
+					$milestones_array[] = ($totalRows_rsTasks > 0) ? "" : $milestone;
+				} while ($row_rsMilestones = $query_rsMilestones->fetch());
+				$message_array[] = "Please add Task/s for milestones: " . implode(',', $milestones_array);
+			} else {
+				//get indicator
+				$query_rsIndicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indid='$indid'");
+				$query_rsIndicator->execute();
+				$row_rsIndicator = $query_rsIndicator->fetch();
+				$totalRows_rsIndicator = $query_rsIndicator->rowCount();
 
-			$query_rsMilestoneTasks = $db->prepare("SELECT * FROM tbl_task WHERE msid = :msid AND projid = :projid");
-			$query_rsMilestoneTasks->execute(array(":msid" => $msid, ":projid" => $projid));
-			$totalRows_rsMilestoneTasks = $query_rsMilestoneTasks->rowCount();
 
-			if ($totalRows_rsMilestoneTasks == 0) {
-				$valid['success'] = false;
-				$valid['messages'] = "Please add Task/s for milestone: " . $milestone;
-				echo json_encode($valid);
+				$unit = $row_rsIndicator['indicator_unit'];
+				$indicator_name = $row_rsIndicator['indicator_name'];
+
+				$query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id =:unit ");
+				$query_Indicator->execute(array(":unit" => $unit));
+				$row = $query_Indicator->fetch();
+				$op_unitofmeasure = $row['unit'];
+
+				$message_array[] = "Please add milestones for: " .  $op_unitofmeasure . " of " . $indicator_name;
+				$response[] = false;
 			}
+		} while ($row_rsOutputs = $query_rsOutputs->fetch());
+	} else {
+		$message_array[] = "No Outputs found";
+		$response[] = false;
+	}
+
+	$result1 = false;
+	if (!in_array(false, $response)) {
+		$query_project_stage = $db->prepare("SELECT projstage FROM tbl_projects WHERE projid=:projid");
+		$query_project_stage->execute(array(":projid" => $projid));
+		$row_project_stage = $query_project_stage->fetch();
+		$projstage = $row_project_stage['projstage'];
+		$projstage = $projstage + 1;
+		$insertSQL = $db->prepare("UPDATE tbl_projects SET projstage=:projstage WHERE projid=:projid ");
+		$results = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
+		if ($results) {
+			$message_array[] = "Successfully Added All Activities";
+			$result1 = true;
+		} else {
+			$message_array[] = "Error while finishing this stage!!";
+			$result1 = false;
 		}
-	} else {
-		$valid['success'] = false;
-		$valid['messages'] = "Please Add Activities!!";
-		echo json_encode($valid);
 	}
 
-	$projstage = 5;
-
-	$insertSQL = $db->prepare("UPDATE tbl_projects SET projstage=:projstage WHERE projid=:projid ");
-	$results = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
-
-	if ($results === TRUE) {
-		$valid['success'] = true;
-		$valid['messages'] = "Successfully Added All Activities";
-	} else {
-		$valid['success'] = false;
-		$valid['messages'] = "Error while finishing this stage!!";
-	}
-	echo json_encode($valid);
+	$message =  ($result1) ? "Record successfully saved" :  implode(",", $message_array);
+	echo json_encode(array("success" => $result1, "messages" => $message));
 }

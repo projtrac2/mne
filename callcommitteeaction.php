@@ -1,5 +1,4 @@
 <?php
-
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
@@ -162,14 +161,31 @@ try{
 	if(isset($_POST['coststatus']) && $_POST['coststatus']==1){
 		$projid = $_POST['projid'];
 		$issueid = $_POST['issueid'];
+		$currentdate = date['Y-m-d'];
 		
-		$query_projcat =  $db->prepare("SELECT projcategory FROM tbl_projects WHERE projid = '$projid'");
+		$query_projcat =  $db->prepare("SELECT projcategory, date_updated FROM tbl_projects WHERE projid = '$projid'");
 		$query_projcat->execute();		
 		$row_projcat = $query_projcat->fetch();
 		$projcat = $row_projcat["projcategory"];
-
-		$query_projtasks =  $db->prepare("SELECT * FROM tbl_task WHERE projid = '$projid' and changedstatus<>5 GROUP BY msid ORDER BY msid ASC");
-		$query_projtasks->execute();
+		
+		$query_projstatus_date =  $db->prepare("SELECT date_created FROM tbl_projissue_comments WHERE projid = '$projid' AND rskid='$issueid'");
+		$query_projstatus_date->execute();		
+		$row_projstatus_date = $query_projstatus_date->fetch();
+		$onholddate = $row_projstatus_date["date_created"];
+		
+		/* $query_projtasks =  $db->prepare("SELECT * FROM tbl_task WHERE projid = '$projid' and changedstatus<>5 GROUP BY msid ORDER BY msid ASC");
+		$query_projtasks->execute(); */
+		
+		if($projcat==1){
+			$query_projtasks =  $db->prepare("SELECT * FROM tbl_task t left join tbl_project_direct_cost_plan d on d.tasks=t.tkid WHERE t.projid = '$projid' and status=6 GROUP BY d.id ORDER BY d.id ASC");
+			$query_projtasks->execute();
+		}else{
+			$query_projtasks =  $db->prepare("SELECT * FROM tbl_task t left join tbl_project_tender_details d on d.tasks=t.tkid WHERE t.projid = '$projid' and status=6 GROUP BY d.id ORDER BY d.id ASC");
+			$query_projtasks->execute();
+		}
+				
+		$query_otheritems =  $db->prepare("SELECT *,d.id AS itemid FROM tbl_project_direct_cost_plan d left join tbl_project_expenditure_timeline e on e.plan_id=d.id left join tbl_projteam2 t on t.ptid=d.personnel left join tbl_budget_lines l on l.id=d.cost_type WHERE d.tasks IS NULL and d.projid = '$projid' and disbursement_date >= '$onholddate' GROUP BY d.id ORDER BY d.id ASC");
+		$query_otheritems->execute();
 			
 		echo '
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -177,28 +193,32 @@ try{
 				<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-money" aria-hidden="true"></i> Budget Changes</legend>
 				<input name="projid" type="hidden" value="'.$projid.'">
 				<input name="issueid" type="hidden" value="'.$issueid.'">
-				<input name="category" type="hidden" value="1">
 				<input name="type" type="hidden" value="cost">
 				<div class="table-responsive">
 					<table class="table table-bordered table-striped table-hover" style="width:100%">
 						<thead>
 							<tr id="colrow">
 								<th width="5%"><strong id="colhead">SN</strong></th>
-								<th width="50%">Task</th>
-								<th width="15%">Status</th>
+								<th width="20%">Item</th>
+								<th width="30%">Task</th>
+								<th width="10%">Unit Cost</th>
+								<th width="10%">Units</th>
 								<th width="10%">Budget</th>
-								<th width="20%">Added Amount</th>
+								<th width="15%">Added Unit Amount</th>
 							</tr>
 						</thead>
 						<tbody>';
 						$nm = 0;
 						while($rows = $query_projtasks->fetch()){
 							$nm++;
-							$milestone = $rows["milestone"];
-							$id = $rows["tkid"];
+							$itemid = $rows["id"];
+							$description = $rows["description"];
+							$taskid = $rows["tkid"];
 							$task = $rows["task"];
-							$statusid = $rows["changedstatus"];
-							$budget = $rows["taskbudget"];
+							$unit = $rows["unit"];
+							$unitcost = $rows["unit_cost"];
+							$units = $rows["units_no"];
+							$totalunitcost = $units * $unitcost;
 							
 							$query_status =  $db->prepare("SELECT statusname FROM tbl_task_status WHERE statusid = '$statusid'");
 							$query_status->execute();		
@@ -207,14 +227,52 @@ try{
 							
 							echo '<tr>
 								<td>'.$nm.'</td>
+								<td>'.$description.'</td>
 								<td>'.$task.'</td>
-								<td>'.$status.'</td>
-								<td>'.number_format($budget, 2).'</td>
-								<td><input type="number" name="budget[]" class="form-control" required></td>
-								<input type="hidden" name="itemid[]" value="'.$id.'">
+								<td>'.$unitcost.'</td>
+								<td>'.$unit.'</td>
+								<td>'.number_format($totalunitcost, 2).'</td>
+								<td><input type="number" name="cost[]" class="form-control" required></td>
+								<input type="hidden" name="itemid[]" value="'.$itemid.'">
+								<input name="category[]" type="hidden" value="1">
 							</tr>';
 						}
-						echo  '</tbody>
+						while($rows = $query_otheritems->fetch()){
+							$nm++;
+							$itemid = $rows["itemid"];
+							$description = $rows["description"];
+							$id = $rows["tkid"];
+							$costline = $rows["name"];
+							$personnel = $rows["personnel"];
+							$task = $rows["task"];
+							$unit = $rows["unit"];
+							$unitcost = $rows["unit_cost"];
+							$units = $rows["units_no"];
+							$totalunitcost = $units * $unitcost;
+							
+							if(!empty($personnel)){
+								$description = $rows["title"].".".$rows["fullname"];
+							}
+							
+							$query_status =  $db->prepare("SELECT statusname FROM tbl_task_status WHERE statusid = '$statusid'");
+							$query_status->execute();		
+							$row_status = $query_status->fetch();
+							$status = $row_status["statusname"];
+							
+							echo '<tr>
+								<td>'.$nm.'</td>
+								<td>'.$description.'</td>
+								<td>'.$costline.'</td>
+								<td>'.$unitcost.'</td>
+								<td>'.$unit.'</td>
+								<td>'.number_format($totalunitcost, 2).'</td>
+								<td><input type="number" name="cost[]" class="form-control" required></td>
+								<input type="hidden" name="itemid[]" value="'.$itemid.'">
+								<input name="category[]" type="hidden" value="2">
+							</tr>';
+						}
+						echo  '
+						</tbody>
 					</table>
 				</div>
 			</fieldset>
@@ -235,7 +293,12 @@ try{
 		$nmb = 1;
 		
 		$query_projmils =  $db->prepare("SELECT * FROM tbl_milestone WHERE projid = '$projid' and changedstatus<>5 GROUP BY msid ORDER BY msid ASC");
-		$query_projmils->execute();
+		$query_projmils->execute();	
+		
+		/* $query_projchange =  $db->prepare("SELECT * FROM tbl_projstatuschangereason WHERE projid = '$projid'");
+		$query_projchange->execute();		
+		$row_projchange = $query_projchange->fetch();
+		$onhold_date = $row_projchange["originalenddate"]; */
 		
 		echo '
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

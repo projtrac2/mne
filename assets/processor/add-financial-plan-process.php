@@ -1,47 +1,6 @@
 <?php
 include_once "controller.php";
 try {
-    // delete information on page readty 
-    if (isset($_POST['emptyTables'])) {
-        $projid = $_POST['projid'];
-        $deleteQuery = $db->prepare("DELETE FROM tbl_project_cost_funders_share WHERE  projid=:projid");
-        $results1 = $deleteQuery->execute(array(':projid' => $projid));
-
-        $deleteQuery = $db->prepare("DELETE FROM tbl_project_direct_cost_plan WHERE projid=:projid");
-        $results2 = $deleteQuery->execute(array(':projid' => $projid));
-
-        $deleteQuery = $db->prepare("DELETE FROM tbl_project_expenditure_timeline WHERE  projid=:projid");
-        $results3 = $deleteQuery->execute(array(':projid' => $projid));
-
-        if ($results1 && $results2 && $results3) {
-            $projstage = 5;
-            $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
-            $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
-            if ($results) {
-                echo json_encode("Data Deleted Successfully");
-            }
-        }
-    }
-
-    // get personnel from project team // select 
-    if (isset($_POST['getpersonel'])) {
-        $projid = $_POST['projid'];
-        $query_rsPersonel = $db->prepare("SELECT t.* FROM tbl_projmembers m inner join tbl_projteam2 t on t.ptid=m.ptid where m.projid = :projid");
-        $query_rsPersonel->execute(array(":projid" => $projid));
-        $row_rsPersonel = $query_rsPersonel->fetch();
-        $totalRows_rsPersonel = $query_rsPersonel->rowCount();
-
-        $input = '<option value="">.... Select from list ....</option>';
-        do {
-            $ptnid = $row_rsPersonel['ptid'];
-            $ptnname = $row_rsPersonel['fullname'];
-            $title = $row_rsPersonel['title'];
-            $input .= '<option value="' . $ptnid . '">' . $title. '.'. $ptnname . '</option>';
-        } while ($row_rsPersonel = $query_rsPersonel->fetch());
-		
-        echo $input;
-    }
-
     // get financiers // select 
     if (isset($_POST['getfinancier'])) {
         $projid = $_POST['getfinancier'];
@@ -123,6 +82,7 @@ try {
         $projid = $_POST['projid'];
         $type = $_POST['ftype'];
         $planid = $_POST['fplanid'];
+        $taskid = $_POST['taskid'];
         $createdby = $_POST['user_name'];
         $current_date = date("Y-m-d H:i:s");
         $financeids = [];
@@ -132,9 +92,22 @@ try {
         // add the remarks 
         if (isset($type) && !empty($type)) {
             $comments = trim(stripslashes($_POST['comments']));
-            //remarks
-            $insertSQL = $db->prepare("INSERT INTO tbl_project_direct_cost_plan (projid, outputid, comments, cost_type, created_by, date_created) VALUES (:projid, :outputid, :comments, :type, :created_by, :date_created)");
-            $result2  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid,  ":comments" => $comments, ":type" => $type, ':created_by' => $createdby, ':date_created' => $current_date));
+//             //remarks
+
+// plan_id
+// tasks
+// personnel
+// other_plan_id
+// description
+// unit
+// unit_cost
+// units_no
+
+
+
+
+            $insertSQL = $db->prepare("INSERT INTO tbl_project_direct_cost_plan (projid, outputid,plan_id,tasks, comments, cost_type, created_by, date_created) VALUES (:projid, :outputid, :comments, :type, :created_by, :date_created)");
+            $result2  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid, ":tasks"=>$planid, ":comments" => $comments, ":type" => $type, ':created_by' => $createdby, ':date_created' => $current_date));
             if ($result2) {
                 $remarkid = $db->lastInsertId();
             }
@@ -157,14 +130,14 @@ try {
         }
 
         $finids = implode(",", $financeids);
-        //add timeline 
+        //add timeline
         if (isset($_POST['timelinedate']) && !empty($_POST['timelinedate'])) {
             $timeline = $_POST['timelinedate'];
             $responsible = null;
             if (isset($_POST['responsible']) && !empty($_POST['responsible'])) {
                 $responsible = $_POST['responsible'];
             }
-			
+
             $insertSQL = $db->prepare("INSERT INTO tbl_project_expenditure_timeline (projid, outputid, type, plan_id, disbursement_date, responsible, created_by, date_created) VALUES (:projid, :outputid, :type, :plan_id, :disbursement_date, :responsible,  :created_by, :date_created)");
             $result3  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid, ":type" => $type, ":plan_id" => $remarkid, ":disbursement_date" => $timeline, ":responsible" => $responsible, ':created_by' => $createdby, ':date_created' => $current_date));
             if ($result3) {
@@ -192,6 +165,8 @@ try {
         $current_date = date("Y-m-d H:i:s");
         $financeids = [];
         $remarkid = $_POST['remarkid'];
+        var_dump("Things are done here");
+        return;
 
         // update remarks
         if (isset($_POST['comments'])) {
@@ -239,7 +214,7 @@ try {
         }
 
         if ($result1  && $result2 && $result3) {
-            $projstage = 6;
+            $projstage =4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -285,7 +260,7 @@ try {
         }
 
         if ($results1 && $results2 && $results3) {
-            $projstage = 5;
+            $projstage = 4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -302,7 +277,7 @@ try {
             $results1 = $deleteQuery->execute(array(':id' => $dfinid));
 
             if ($results1) {
-                $projstage = 5;
+                $projstage = 4;
                 $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
                 $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
                 if ($results) {
@@ -391,8 +366,7 @@ try {
                     $spent_plan_amount = $row_rsPlanFunding['amount'];
 					
 					
-                    $remaining = $projamount - $spent_plan_amount;
-					var_dump($spent_plan_amount);
+                    $remaining = $projamount - $spent_plan_amount; 
 
                     if ($fndid == $financierId) {
                         $plan_ceiling = $projamount - $spent_plan_amount;
@@ -417,7 +391,7 @@ try {
                     }
                 } while ($row_rsFunding = $query_rsFunding->fetch());
             }
-			
+
             $tp = $rowno - 1;
             $fin .=  '
 			<tr id="financierrow' . $rowno . '">
@@ -572,9 +546,7 @@ try {
                 }
             }
         }
- 
-        $implimentation_method = $_POST['implimentation_type'];
-        $projstage = ($implimentation_method == '1') ? 7 : 6;
+        $projstage = $implimentation_method == '1' ? 5 : 6;
         $url = ($implimentation_method == '1') ? 1 : 2;
         $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage = :projstage WHERE  projid = :projid");
         $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));

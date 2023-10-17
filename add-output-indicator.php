@@ -1,13 +1,4 @@
 <?php
-require('functions/strategicplan.php');
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
-
 require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
@@ -15,14 +6,10 @@ if ($permission) {
 	require('functions/measurement-unit.php');
 	$pageTitle = "Add Output Indicator";
 
+	$measurement_units = get_measurement_units();
+
+
 	try {
-		$strategic_plan = get_strategic_plan();
-		$currentYear = get_current_year();
-		$departments = get_departments();
-		$measurement_units = get_measurement_units();
-		$strategic_plan_objectives = get_strategic_objectives();
-		$years = $strategic_plan['years'];
-		$starting_year = $strategic_plan['starting_year'];
 		$editFormAction = $_SERVER['PHP_SELF'];
 
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -39,7 +26,7 @@ if ($permission) {
 			$baselinelevel = $_POST['baselinelevel'];
 			$user = $_POST['user_name'];
 			$mapping_type = $_POST['mapping_type'];
-			
+
 			$indcat = "Output";
 			$current_date = date("Y-m-d");
 			$indicator_type = 2;
@@ -47,7 +34,7 @@ if ($permission) {
 			$url = 'view-indicators.php';
 			if (!$indicators) {
 				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_type, indicator_category, indicator_unit, indicator_sector, indicator_dept, indicator_baseline_level, indicator_mapping_type, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indicator_type, :indcat, :indunit, :indsector, :inddept, :baselinelevel,:mapping_type, :user, :date)");
-				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indicator_type' => $indicator_type, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept, ':baselinelevel' => $baselinelevel,":mapping_type"=>$mapping_type, ':user' => $user, ':date' => $current_date));
+				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indicator_type' => $indicator_type, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept, ':baselinelevel' => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user, ':date' => $current_date));
 				if ($result) {
 					$msg = 'Indicator successfully added.';
 					$results = "<script type=\"text/javascript\">
@@ -104,12 +91,12 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
+					<?= $icon ?>
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-
-						</div>
+						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -144,10 +131,12 @@ if ($permission) {
 												<select name="indunit" id="indunit" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" false required>
 													<option value="" selected="selected" class="selection">....Select Unit....</option>
 													<?php
-													for ($i = 0; $i < count($measurement_units); $i++) {
+													if ($measurement_units) {
+														foreach ($measurement_units as $measurement_unit) {
 													?>
-														<option value="<?php echo $measurement_units[$i]['id'] ?>"><?php echo $measurement_units[$i]['unit'] ?></option>
+															<option value="<?php echo $measurement_unit['id'] ?>"><?php echo $measurement_unit['unit'] ?></option>
 													<?php
+														}
 													}
 													?>
 												</select>
@@ -167,11 +156,15 @@ if ($permission) {
 											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
 												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
 												<?php
-												for ($i = 0; $i < count($departments); $i++) {
+												$departments = get_departments();
+												if ($departments) {
+													foreach ($departments as $department) {
 												?>
-													<option value="<?php echo $departments[$i]['stid'] ?>"><?php echo $departments[$i]['sector'] ?></option>
+														<option value="<?php echo $department['stid'] ?>"><?php echo $department['sector'] ?></option>
 												<?php
+													}
 												}
+
 												?>
 											</select>
 										</div>
@@ -202,16 +195,17 @@ if ($permission) {
 										<div class="form-line">
 											<select name="mapping_type" id="mapping_type" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
 												<option value="" selected="selected" class="selection">....Select Mapping Type....</option>
+												<option value="0">Not Applicable</option>
 												<?php
-											    $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
-											    $query_rsMapType->execute();
-											    $row_rsMapType = $query_rsMapType->fetch();
-											    $totalRows_rsMapType = $query_rsMapType->rowCount();
-													do {
-														?>
-														<option value="<?=$row_rsMapType['id']?>"><?=$row_rsMapType['type']?></option>
-														<?php
-													} while ($row_rsMapType = $query_rsMapType->fetch());
+												$query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
+												$query_rsMapType->execute();
+												$row_rsMapType = $query_rsMapType->fetch();
+												$totalRows_rsMapType = $query_rsMapType->rowCount();
+												do {
+												?>
+													<option value="<?= $row_rsMapType['id'] ?>"><?= $row_rsMapType['type'] ?></option>
+												<?php
+												} while ($row_rsMapType = $query_rsMapType->fetch());
 												?>
 											</select>
 										</div>

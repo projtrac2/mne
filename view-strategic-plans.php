@@ -1,15 +1,7 @@
 <?php
 require('functions/strategicplan.php');
-$pageName = "Strategic Plans";
-$replacement_array = array(
-   'planlabel' => "CIDP",
-   'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
+// echo update_strategic_plan();
 if ($permission) {
    try {
       $strategicPlans = get_strategic_plans();
@@ -31,12 +23,12 @@ if ($permission) {
       <div class="container-fluid">
          <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
             <h4 class="contentheader">
-               <i class="fa fa-columns" aria-hidden="true"></i>
-               <?php echo $pageTitle ?>
+               <?= $icon ?>
+               <?= $pageTitle ?>
                <div class="btn-group" style="float:right">
                   <div class="btn-group" style="float:right">
                      <?php
-                     if ($file_rights->add) {
+                     if (in_array("create", $page_actions)) {
                      ?>
                         <a href="add-strategic-plan.php" class="btn btn-success" style="height:27px; ; margin-top:-1px; vertical-align:center">
                            Add New <?= $planlabel ?>
@@ -65,7 +57,7 @@ if ($permission) {
                                  <th style="width:31%"><strong>Mission</strong></th>
                                  <th style="width:8%"><strong>Status</strong></th>
                                  <?php
-                                 if ($file_rights->edit && $file_rights->delete_permission) {
+                                 if (in_array("update", $page_actions) || in_array("delete", $page_actions)) {
                                  ?>
                                     <th style="width:7%" data-orderable="false"><strong>Action</strong></th>
                                  <?php
@@ -80,12 +72,16 @@ if ($permission) {
                                  foreach ($strategicPlans as  $strategicPlan) {
                                     $sn = $sn + 1;
                                     $planid = $strategicPlan['id'];
-                                    $strplanid = base64_encode($strategicPlan['id']);
+                                    $strplanid = $strategicPlan['id'];
+                                    $strategicplanid = base64_encode("strplan1{$strplanid}");
                                     $plan = $strategicPlan['plan'];
                                     $starting_year = $strategicPlan['starting_year'];
                                     $vision = $strategicPlan['vision'];
                                     $mission = $strategicPlan['mission'];
                                     $active = $strategicPlan['current_plan'];
+                                    $years = $strategicPlan['years'];
+                                    $cyear = date("Y");
+                                    $eyear = $starting_year + $years;
                                     if ($active == 1) {
                                        $status = "<label class='label label-success'>Active</label>";
                                     } else if ($active == 2) {
@@ -97,13 +93,13 @@ if ($permission) {
                                     <tr style="border-bottom:thin solid #EEE">
                                        <td><?php echo $sn; ?></td>
                                        <td>
-                                          <a href="view-strategic-plan-framework.php?plan=<?php echo $strplanid; ?>" style="color:blue" title="More Details"><strong><?php echo $plan; ?></strong></a>
+                                          <a href="view-strategic-plan-framework.php?plan=<?php echo $strategicplanid; ?>" style="color:blue" title="More Details"><strong><?php echo $plan; ?></strong></a>
                                        </td>
                                        <td><?php echo $vision; ?></td>
                                        <td><?php echo $mission; ?></td>
                                        <td><?php echo $status; ?></td>
                                        <?php
-                                       if ($file_rights->edit && $file_rights->delete_permission) {
+                                       if (in_array("update", $page_actions) || in_array("delete", $page_actions)) {
                                        ?>
                                           <td>
                                              <?php
@@ -114,16 +110,26 @@ if ($permission) {
                                                       Options <span class="caret"></span>
                                                    </button>
                                                    <ul class="dropdown-menu">
-                                                      <li>
-                                                         <a type="button" id="editstrategicplan" href="edit-strategic-plan.php?stplan=<?= base64_encode($planid) ?>">
-                                                            <i class="fa fa-plus-square"></i> Edit
-                                                         </a>
-                                                      </li>
-                                                      <li>
-                                                         <a type="button" id="editstrategicplan" onclick="delete_plan(<?= $planid ?>)">
-                                                            <i class="fa fa-plus-square"></i> Delete
-                                                         </a>
-                                                      </li>
+                                                      <?php
+                                                      if (in_array("update", $page_actions)) {
+                                                      ?>
+                                                         <li>
+                                                            <a type="button" id="editstrategicplan" href="edit-strategic-plan.php?stplan=<?= base64_encode($planid) ?>">
+                                                               <i class="fa fa-plus-square"></i> Edit
+                                                            </a>
+                                                         </li>
+                                                      <?php // 9150677 fortitude
+                                                      }
+                                                      if (in_array("delete", $page_actions)) {
+                                                      ?>
+                                                         <li>
+                                                            <a type="button" id="editstrategicplan" onclick="delete_plan(<?= $planid ?>)">
+                                                               <i class="fa fa-plus-square"></i> Delete
+                                                            </a>
+                                                         </li>
+                                                      <?php
+                                                      }
+                                                      ?>
                                                    </ul>
                                                 </div>
                                              <?php
@@ -153,7 +159,6 @@ if ($permission) {
    $results =  restriction();
    echo $results;
 }
-
 require('includes/footer.php');
 ?>
 <script>
@@ -175,4 +180,4 @@ require('includes/footer.php');
             }
          });
    }
-</script> -->
+</script>

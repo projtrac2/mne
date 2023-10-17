@@ -215,7 +215,7 @@ function removeItem(itemId = null) {
 		$("#removeItemBtn").unbind('click').bind('click', function() {
 			var deleteItem = 1;
 			$.ajax({
-				url: 'general-settings/project-evaluation-types-action.php',
+				url: 'general-settings/project-evaluation-types-action',
 				type: 'post',
 				data: {itemId: itemId, deleteItem: deleteItem},
 				dataType: 'json',

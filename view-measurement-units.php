@@ -1,10 +1,4 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
@@ -21,12 +15,12 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageName ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <?php
-                            if ($file_rights->add) {
+                            if (in_array("create", $page_actions)) {
                             ?>
                                 <button type="button" id="modal_button" style="float:right; margin-top:-5px" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal"> <i class="fa fa-plus-square"></i> Add Item </button>
                             <?php
@@ -44,7 +38,7 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover" id="manageItemTable">
+                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable" >
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -52,7 +46,7 @@ if ($permission) {
                                             <th>Measurement Unit Description</th>
                                             <th>Status</th>
                                             <?php
-                                            if ($file_rights->edit && $file_rights->add) {
+                                            if (in_array("update", $page_actions) && in_array("delete", $page_actions)) {
                                             ?>
                                                 <th>Action</th>
                                             <?php
@@ -60,6 +54,61 @@ if ($permission) {
                                             ?>
                                         </tr>
                                     </thead>
+                                    <tbody>
+                                        <?php
+                                        $sql = $db->prepare("SELECT * FROM `tbl_measurement_units` ORDER BY `id` ASC");
+                                        $sql->execute();
+                                        $rows_count = $sql->rowCount();
+                                        $output = array('data' => array());
+                                        if ($rows_count > 0) {
+                                            $sn = 0;
+                                            while ($row = $sql->fetch()) {
+                                                $sn++;
+                                                $unit_id = $row['id'];
+                                                $active = ($row['active'] == 1) ? "<label class='label label-success'>Enabled</label>" : "<label class='label label-danger'>Disabled</label>";;
+                                                $unit = $row["unit"];
+                                                $description = $row["description"];
+                                        ?>
+                                                <tr>
+                                                    <td><?= $sn ?></td>
+                                                    <td><?= $unit ?></td>
+                                                    <td><?= $description ?></td>
+                                                    <td><?= $active ?></td>
+                                                    <?php
+                                                    if (in_array("update", $page_actions) && in_array("delete", $page_actions)) {
+                                                    ?>
+                                                        <td>
+                                                            <!-- Single button -->
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    Options <span class="caret"></span>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
+                                                                    <?php
+                                                                    if (in_array("update", $page_actions)) {
+                                                                    ?>
+                                                                        <li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(<?= $unit_id ?>)"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
+                                                                    <?php
+                                                                    }
+                                                                    if (in_array("delete", $page_actions)) {
+                                                                    ?>
+                                                                        <li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?= $unit_id ?>)"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    <?php
+                                                    }
+                                                    ?>
+
+                                                </tr>
+                                        <?php
+                                            } // /while 
+                                        } // if num_rows
+                                        ?>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -75,7 +124,7 @@ if ($permission) {
     <div class="modal fade" id="addItemModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form class="form-horizontal" id="submitItemForm" action="general-settings/action/measurement-units-action.php" method="POST" enctype="multipart/form-data">
+                <form class="form-horizontal" id="submitItemForm" action="general-settings/action/measurement-units-action" method="POST" enctype="multipart/form-data">
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Measurement Unit</h4>
@@ -132,7 +181,7 @@ if ($permission) {
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <div class="body">
                                     <div class="div-result">
-                                        <form class="form-horizontal" id="editItemForm" action="general-settings/action/measurement-units-action.php" method="POST">
+                                        <form class="form-horizontal" id="editItemForm" action="general-settings/action/measurement-units-action" method="POST">
                                             <br />
                                             <div class="col-md-12 id=" edit-product-messages"></div>
                                             <div class="col-md-4 form-input">
@@ -209,5 +258,4 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 
-<script src="assets/js/indicators/measurement_unit.js"></script>
-<!-- <script src="general-settings/js/fetch-measurement-units.js"></script> -->
+<script src="general-settings/js/fetch-measurement-units.js"></script>

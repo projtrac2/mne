@@ -1,5 +1,8 @@
 <?php
+session_start();
 $projid = (isset($_GET['plan'])) ? $_GET['plan'] : "";
+
+$user_name = $_SESSION['MM_Username'];
 
 //include_once 'projtrac-dashboard/resource/session.php';
 
@@ -9,6 +12,11 @@ require_once __DIR__ . '../../vendor/autoload.php';
 
 try {
     $projid = $_GET["projid"];
+	
+	$query_logged_in_user =  $db->prepare("SELECT title, fullname FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid=$user_name");
+	$query_logged_in_user->execute(array(":stid" => $stid));
+	$row_user = $query_logged_in_user->fetch();
+	$printedby = $row_user["title"].".".$row_user["fullname"];
 
     $query_rsProject = $db->prepare("SELECT * FROM tbl_projects WHERE projid='$projid'");
     $query_rsProject->execute();
@@ -82,7 +90,8 @@ try {
     $mpdf->AddPage('L');
     $body = '';
     $mpdf->WriteHTML($body);
-    $mpdf->SetFooter('Uasin Gishu County {PAGENO}');
+	$mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
+	$mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County');
     $mpdf->Output();
 
 } catch (PDOException $ex) {

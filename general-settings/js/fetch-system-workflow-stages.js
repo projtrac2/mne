@@ -81,7 +81,7 @@ $(document).ready(function() {
     } // /if validation is ok
     // /if validation is ok
     // /if validation is ok
-    return false;
+    //return false;
   }); // /submit Project Main Menu  form
 
   // add Project Main Menu  modal btn clicked

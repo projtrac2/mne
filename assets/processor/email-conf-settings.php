@@ -5,7 +5,7 @@
 	$query_settings->execute();		
 	$settings = $query_settings->fetch();
 	$sender  = $settings["username"]; 
-	$receipient = "denkytheka@gmail.com";
+	//$receipient = "denkytheka@gmail.com";
 	
 	$mail = new PHPMailer;
 	

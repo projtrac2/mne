@@ -161,7 +161,7 @@ if (isset($_POST['getUnits'])) {
 	$years = $_POST['years'];
 	$program_type = $_POST['program_type'];
 
-	$query_Indicator = $db->prepare("SELECT unit FROM tbl_indicator i INNER JOIN tbl_measurement_units u ON u.id = i.indicator_unit WHERE i.indid = :indid");
+	$query_Indicator = $db->prepare("SELECT unit, indicator_name FROM tbl_indicator i INNER JOIN tbl_measurement_units u ON u.id = i.indicator_unit WHERE i.indid = :indid");
 	$query_Indicator->execute(array(":indid" => $getUnits));
 	$row = $query_Indicator->fetch();
 	$total = $query_Indicator->rowCount();
@@ -189,7 +189,8 @@ if (isset($_POST['getUnits'])) {
 
 	if ($total > 0) {
 		$unit = $row['unit'];
-		echo json_encode(array('success' => true, 'unit' => $unit, 'targets' =>  $targets));
+		$indicator_name = $row['indicator_name'];
+		echo json_encode(array('success' => true, 'unit' => $unit, 'targets' =>  $targets, 'indicator_name' => $indicator_name));
 	} else {
 		echo json_encode(array('success' => false));
 	}

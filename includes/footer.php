@@ -1,15 +1,15 @@
                  <!-- Left Sidebar -->
                  <aside id="leftsidebar" class="sidebar">
-                 	<!-- Footer -->
-                 	<div class="legal">
-                 		<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-                 			ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-                 		</div>
-                 		<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-                 			Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
-                 		</div>
-                 	</div>
-                 	<!-- #Footer -->
+                     <!-- Footer -->
+                     <div class="legal">
+                         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
+                             ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
+                         </div>
+                         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
+                             Copyright @ 2017 -<?php echo date("Y"); ?>. ProjTrac Systems Ltd.
+                         </div>
+                     </div>
+                     <!-- #Footer -->
                  </aside>
 
                  <!-- bootstrap js  -->
@@ -80,6 +80,35 @@
                  <!-- date picker -->
                  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
 
+
+                 <script>
+                     // sweet alert notifications
+                     function success_alert(msg) {
+                         return swal({
+                             title: "Success",
+                             text: msg,
+                             type: "Success",
+                             icon: 'success',
+                             dangerMode: true,
+                             timer: 15000,
+                             showConfirmButton: false
+                         });
+                     }
+
+
+                     // sweet alert notifications
+                     function error_alert(msg) {
+                         return swal({
+                             title: "Error !!!",
+                             text: msg,
+                             type: "Error",
+                             icon: 'warning',
+                             dangerMode: true,
+                             timer: 15000,
+                             showConfirmButton: false
+                         });
+                     }
+                 </script>
                  </body>
 
                  </html>

@@ -1,14 +1,8 @@
 <?php
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 
 if ($permission) {
-    $pageTitle = "Projects Development Funding";
+
     try {
         $currentPage = $_SERVER["PHP_SELF"];
         $query_mainfunder = $db->prepare("SELECT sum(amount) as ttamt, year FROM tbl_main_funding f inner join tbl_fiscal_year y on y.id=f.financialyear GROUP BY financialyear");
@@ -41,8 +35,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -57,8 +51,8 @@ if ($permission) {
                                 <span class="label bg-black" style="font-size:18px">
                                     <img src="assets/images/proj-icon.png" alt="Project" title="Project" style="vertical-align:middle; height:25px" /> Menu
                                 </span>
-                                <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:4px"><i class="fa fa-money"></i> &nbsp; &nbsp; Funding</a>
-                                <a href="view-financiers.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><i class="fa fa-university"></i> &nbsp; &nbsp; Financiers</a>
+                                <a href="view-financiers.php" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><i class="fa fa-university"></i> &nbsp; &nbsp; Financiers</a>
+                                <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px"><i class="fa fa-money"></i> &nbsp; &nbsp; Funding</a>
                             </div>
                         </div>
                     </div>
@@ -165,7 +159,7 @@ if ($permission) {
                                                                     $row_plannedfunds = $query_plannedfunds->fetch();
                                                                     $plannedfunds = $row_plannedfunds["planned"];
 
-                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amountpaid) AS planned FROM tbl_payments_disbursed d inner join tbl_annual_dev_plan p on p.projid=d.projid WHERE p.status = 1 AND p.financial_year = :fyear AND d.fundsource = :fid");
+                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.request_id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid");
                                                                     $query_utilisedfunds->execute(array(":fyear" => $fyear, ":fid" => $fid));
                                                                     $row_utilisedfunds = $query_utilisedfunds->fetch();
                                                                     $utilisedfunds = $row_utilisedfunds["planned"];
@@ -194,15 +188,20 @@ if ($permission) {
                                                                             <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="moreInfo(' . $fnid . ')"><i class="fa fa-info"></i> More Info</a>
                                                                         </li>';
 
-                                                                    if ($plannedfunds == 0 && $fyr == $currentyear  && $file_rights->edit && $file_rights->delete_permission) {
-                                                                        $action .=
-                                                                            '<li>
-                                                                            <a type="button"  href="add-development-funds.php?fnd=' . $hashfnid2 . '">
-                                                                            <i class="glyphicon glyphicon-edit"></i> Edit </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $fnid . ')" alt="Delete"  title="Delete Funds"> <i class="glyphicon glyphicon-trash"></i>Remove</a>
-                                                                        </li>';
+                                                                    if ($plannedfunds == 0 && $fyr == $currentyear) {
+                                                                        if (in_array("updated", $page_actions)) {
+                                                                            $action .=
+                                                                                '<li>
+                                                                                    <a type="button"  href="add-development-funds.php?fnd=' . $hashfnid2 . '">
+                                                                                    <i class="glyphicon glyphicon-edit"></i> Edit </a>
+                                                                                </li> ';
+                                                                        }
+                                                                        if (in_array("delete", $page_actions)) {
+                                                                            $action .=
+                                                                                '<li>
+                                                                                    <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $fnid . ')" alt="Delete"  title="Delete Funds"> <i class="glyphicon glyphicon-trash"></i>Remove</a>
+                                                                                </li>';
+                                                                        }
                                                                     }
                                                                     $action .=
                                                                         '</ul>
@@ -262,7 +261,7 @@ if ($permission) {
                                                                     $row_plannedfunds = $query_plannedfunds->fetch();
                                                                     $plannedfunds = $row_plannedfunds["planned"];
 
-                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amountpaid) AS planned FROM tbl_payments_disbursed d inner join tbl_annual_dev_plan p on p.projid=d.projid WHERE p.status = 1 AND p.financial_year = :fyear AND d.fundsource = :fid");
+                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.request_id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid");
                                                                     $query_utilisedfunds->execute(array(":fyear" => $fyear, ":fid" => $fid));
                                                                     $row_utilisedfunds = $query_utilisedfunds->fetch();
                                                                     $utilisedfunds = $row_utilisedfunds["planned"];
@@ -293,18 +292,21 @@ if ($permission) {
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="moreInfo(' . $fnid . ')"><i class="fa fa-info"></i> More Info</a>
                                                                         </li>';
-                                                                    if ($plannedfunds == 0 && $fyr == $currentyear && $file_rights->edit && $file_rights->delete_permission) {
-                                                                        $action .= '
-                                                                        <li>
-                                                                            <a type="button"  href="add-development-funds.php?fnd=' . $hashfnid2 . '">
-                                                                            <i class="glyphicon glyphicon-edit"></i> Edit </a>
-                                                                        </li>
-                                                                        <li>
+                                                                    if ($plannedfunds == 0 && $fyr == $currentyear) {
+                                                                        if (in_array("update", $page_actions)) {
+                                                                            $action .= '
+                                                                            <li>
+                                                                                <a type="button"  href="add-development-funds.php?fnd=' . $hashfnid2 . '">
+                                                                                <i class="glyphicon glyphicon-edit"></i> Edit </a>
+                                                                            </li> ';
+                                                                        }
+
+                                                                        if (in_array("delete", $page_actions)) {
+                                                                            $action .= '
+                                                                            <li>
                                                                             <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $fnid . ')" alt="Delete"  title="Delete Funds"> <i class="glyphicon glyphicon-trash"></i>Remove</a>
                                                                         </li>';
-                                                                    }
-                                                                    if ($ftype == 2) {
-                                                                        //$action .= '<li><a  type="button" href="departmental-funds-distribution?fnd='.$hashfnid.'"><i class="fa fa-pie-chart"></i> Dept Shares</a></li>';
+                                                                        }
                                                                     }
                                                                     $action .= '</ul>
 											                        </div>';

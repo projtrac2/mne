@@ -1,21 +1,15 @@
-<?php
-$stplan = (isset($_GET['plan'])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
-$stplane = base64_encode($stplan);
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
+<?php 
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
+$stplanid_array = explode("strplan1", $decode_stplanid);
+$stplan = $stplanid_array[1];
 
-$page = "view";
+$stplane = $_GET['plan'];
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
     require('functions/strategicplan.php');
     try {
-        $strategicPlan = get_strategic_plan($stplan);
+        $strategicPlan = get_splan($stplan);
         if (!$strategicPlan) {
-            // redirect back to strategic plan  
             header("Location: view-strategic-plans.php");
         }
 
@@ -25,7 +19,7 @@ if ($permission) {
         $datecreated = $strategicPlan["date_created"];
         $spstatus  = $strategicPlan['current_plan'];
 
-        // get the key results areas under this strategic plan 
+        // get the key results areas under this strategic plan
         $kras = get_strategic_plan_kras($stplan);
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -36,12 +30,12 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?> KRAs (<?php echo $strategicplan ?>)
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <?php
-                            if ($file_rights->add) {
+                            if (in_array("create",$page_actions)) {
                             ?>
                                 <div style="float:right; margin-top:0px; margin-right:5px">
                                     <a type="button" class="btn btn-success" data-toggle="modal" data-target="#addItemModal" id="addItemModalBtn" onclick="addKRA()" style="margin-top:0px">ADD NEW KRA</a>
@@ -68,10 +62,9 @@ if ($permission) {
                                     <a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
                                     <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
                                     <a href="view-strategic-plan-objectives.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
-                                    <a href="view-strategic-workplan-budget.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Targets Distribution</a>
                                     <a href="view-program.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
                                     <a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
-                                    <a href="view-objective-performance.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Progress Report</a>
+                                    <a href="strategic-plan-implementation-matrix.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Implementation Matrix</a>
                                 </div>
                             </div>
                         </div>
@@ -84,7 +77,7 @@ if ($permission) {
                                             <th width="70%">Key Result Area </th>
                                             <th width="10%">Strategic Objectives</th>
                                             <?php
-                                            if ($file_rights->edit && $file_rights->delete_permission) {
+                                            if (in_array("update",$page_actions) || in_array("delete",$page_actions)) {
                                             ?>
                                                 <th width="15%" data-orderable="false">Action</th>
                                             <?php
@@ -100,7 +93,8 @@ if ($permission) {
                                                 $counter++;
                                                 $kraName = $kra['kra'];
                                                 $kraid = $kra['id'];
-                                                $encode_kraid = base64_encode($kra['id']);
+                                                $encode_kraid =$kra['id'];
+												$encoded_kraid = base64_encode("kraid{$encode_kraid}");
                                                 $kra_objectives = get_kra_strategic_objectives($kraid);
                                                 $total_kra_strategic_objectives  = ($kra_objectives) ? count($kra_objectives) : 0;
                                         ?>
@@ -116,7 +110,7 @@ if ($permission) {
                                                             <span class="badge bg-purple"><?php echo $total_kra_strategic_objectives ?> </span> </a>
                                                     </td>
                                                     <?php
-                                                    if ($file_rights->add && $file_rights->delete_permission) {
+                                                    if (in_array("update",$page_actions) || in_array("delete",$page_actions)) {
                                                     ?>
                                                         <td>
                                                             <div class="btn-group">
@@ -124,26 +118,44 @@ if ($permission) {
                                                                     Options <span class="caret"></span>
                                                                 </button>
                                                                 <?php
-                                                                if ($spstatus == 1) {
+                                                                // if ($spstatus == 1) {
                                                                 ?>
-                                                                    <ul class="dropdown-menu">
+                                                                <ul class="dropdown-menu">
+                                                                    <?php
+                                                                    if (in_array("create",$page_actions)) {
+                                                                    ?>
                                                                         <li>
-                                                                            <a type="button" id="addobjective" href="add-objective.php?kra=<?= $encode_kraid ?>">
+                                                                            <a type="button" id="addobjective" href="add-objective.php?kra=<?= $encoded_kraid ?>">
                                                                                 <i class="fa fa-plus-square"></i> Add Objective</a>
                                                                         </li>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                    <?php
+                                                                    if (in_array("update",$page_actions)) {
+                                                                    ?>
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" data-target="#editItemModal" id="editItemModalBtn" onclick="editItem(<?php echo $kraid ?>)">
                                                                                 <i class="glyphicon glyphicon-edit"></i> Edit
                                                                             </a>
                                                                         </li>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                    <?php
+                                                                    if (in_array("delete",$page_actions)) {
+                                                                    ?>
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?php echo $kraid ?>)">
                                                                                 <i class="glyphicon glyphicon-trash"></i> Remove
                                                                             </a>
                                                                         </li>
-                                                                    </ul>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </ul>
                                                                 <?php
-                                                                }
+                                                                // }
                                                                 ?>
                                                             </div>
                                                         </td>
@@ -178,17 +190,17 @@ if ($permission) {
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <div class="body">
                                     <div class="div-result">
-                                        <form class="form-horizontal" id="addItemForm" action="assets/processor/fetch-selected-kra-item" method="POST">
+                                        <form class="form-horizontal" id="addItemForm" action="assets/processor/fetch-selected-kra-item.php" method="POST">
                                             <br />
-                                            <div class="col-md-12 id=" edit-kra-messages"></div>
-                                            <div class="col-md-12 form-input">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="edit-kra-messages"></div>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 form-input">
                                                 <label>
                                                     <font color="#174082">Key Result Areas: </font>
                                                 </label>
-                                                <input type="text" class="form-control" id="addkra" placeholder="Key Result Areas" name="addkra" required autocomplete="off">
+                                                <input type="text" class="form-control" id="addkra" placeholder="Enter Key Result Area" name="addkra" required autocomplete="off">
                                             </div>
                                             <div class="modal-footer editItemFooter">
-                                                <div class="col-md-12 text-center">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                     <input type="hidden" name="username" id="username" value="<?= $user_name ?>">
                                                     <input type="hidden" name="spid" id="spid" value="<?= $stplan ?>">
                                                     <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
@@ -222,17 +234,17 @@ if ($permission) {
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <div class="body">
                                     <div class="div-result">
-                                        <form class="form-horizontal" id="editItemForm" action="fetch-selected-kra-item" method="POST">
+                                        <form class="form-horizontal" id="editItemForm" action="fetch-selected-kra-item.php" method="POST">
                                             <br />
-                                            <div class="col-md-12 id=" edit-kra-messages"></div>
-                                            <div class="col-md-12 form-input">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="edit-kra-messages"></div>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 form-input">
                                                 <label>
                                                     <font color="#174082">Key Result Areas: </font>
                                                 </label>
                                                 <input type="text" class="form-control" id="editname" placeholder="Key Result Areas" name="editname" required autocomplete="off">
                                             </div>
                                             <div class="modal-footer editItemFooter">
-                                                <div class="col-md-12 text-center">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                     <input type="hidden" name="edititem" id="edititem" value="edit">
                                                     <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                                     <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
@@ -262,7 +274,7 @@ if ($permission) {
                 <div class="modal-body" id="moreinfo">
                 </div>
                 <div class="modal-footer">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
                     </div>
                 </div>
@@ -284,7 +296,7 @@ if ($permission) {
                     <p align="center">Are you sure you want to delete this record?</p>
                 </div>
                 <div class="modal-footer removeContractor NationalityFooter">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-success" id="removeItemBtn"> <i class="fa fa-check-square-o"></i> Delete</button>
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Cancel</button>
                     </div>

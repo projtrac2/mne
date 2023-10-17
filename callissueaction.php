@@ -35,11 +35,11 @@ if(isset($_POST['rskid']) && !empty($_POST['rskid']))
 	$current_date = date("Y-m-d");
 	$datecreated = date("d M Y",strtotime($row_projdetails["date_created"]));
 	
-	$query_rsPMembers =  $db->prepare("SELECT tbl_projteam2.*, tbl_projmembers.pmid  FROM tbl_projteam2 LEFT JOIN tbl_projmembers ON tbl_projteam2.ptid=tbl_projmembers.ptid WHERE tbl_projmembers.projid = '$projid' ORDER BY tbl_projmembers.pmid ASC");
+	$query_rsPMembers =  $db->prepare("SELECT pmid, ptid FROM tbl_projmembers WHERE projid = '$projid' ORDER BY pmid ASC");
 	$query_rsPMembers->execute();		
 	$row_rsPMembers = $query_rsPMembers->fetch();
 	
-	$query_issuepriority =  $db->prepare("SELECT * FROM tbl_priorities");
+	$query_issuepriority =  $db->prepare("SELECT * FROM tbl_priorities where status=1");
 	$query_issuepriority->execute();		
 	
 	$query_user =  $db->prepare("SELECT title, fullname FROM tbl_projteam2 t INNER JOIN users u ON t.ptid=u.pt_id WHERE userid = '$userid'");
@@ -121,10 +121,11 @@ if(isset($_POST['rskid']) && !empty($_POST['rskid']))
 								<option value="" selected="selected" class="selection">Select Issue Owner</option>';
 								do { 
 									$ptid = $row_rsPMembers['ptid'];
-									$query_user =  $db->prepare("SELECT userid FROM users WHERE pt_id = '$ptid'");
+									
+									$query_user =  $db->prepare("SELECT t.*, u.userid FROM users u LEFT JOIN tbl_projteam2 t ON t.ptid=u.pt_id WHERE u.userid = '$ptid' ORDER BY u.userid ASC");
 									$query_user->execute();		
 									$row_user = $query_user->fetch(); 
-									echo '<option value="'.$row_user['userid'].'">'.$row_rsPMembers['title'].". ".$row_rsPMembers['fullname'].'</option>';
+									echo '<option value="'.$row_user['userid'].'">'.$row_user['title'].". ".$row_user['fullname'].'</option>';
 								} while ($row_rsPMembers = $query_rsPMembers->fetch());
 							echo '</select>
 						</div>

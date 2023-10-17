@@ -1,15 +1,6 @@
-<?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
-
+<?php 
 require('includes/head.php');
-if ($permission) {
-	$pageTitle = "Add Development Funds";
+if ($permission) { 
 	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -278,12 +269,12 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
+					<?=$icon?>
 					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-
-						</div>
+					<div class="btn-group" style="float:right">                 
+						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -404,29 +395,7 @@ if ($permission) {
 										<div class="col-md-12" id="ppprogram">
 											<label>Funds Purpose *:</label>
 											<div class="form-line">
-												<select name="purpose" id="purpose" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-													<option value="" selected="selected" class="selection">...Select Program...</option>
-													<?php
-
-													while ($row_programs = $query_programs->fetch()) {
-														if ($edit_form) {
-															if ($row_programs['progid'] == $purpose) {
-													?>
-																<option value="<?php echo $row_programs['progid'] ?>" selected="selected"><?php echo $row_programs['progname'] ?></option>
-															<?php
-															} else {
-															?>
-																<option value="<?php echo $row_programs['progid'] ?>"><?php echo $row_programs['progname'] ?></option>
-															<?php
-															}
-														} else {
-															?>
-															<option value="<?php echo $row_programs['progid'] ?>"><?php echo $row_programs['progname'] ?></option>
-													<?php
-														}
-													}
-													?>
-												</select>
+												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control currency" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
 											</div>
 										</div>
 									<?php
@@ -478,7 +447,7 @@ if ($permission) {
 													$totalRows_rsFile = $query_rsFile->rowCount();
 
 													if ($totalRows_rsFile > 0) {
-												?>
+														?>
 														<div class="header table-responsive">
 															<i class="ti-link"></i>MULTIPLE FILES UPLOAD - WITH CLICK & CHOOSE
 															<table class="table table-bordered" id="donation-attachment">
@@ -522,7 +491,7 @@ if ($permission) {
 																</tbody>
 															</table>
 														</div>
-												<?PHP
+														<?PHP
 													}
 												}
 
@@ -583,8 +552,11 @@ if ($permission) {
 					</div>
 				</div>
 			</div>
+		</div>
 	</section>
 	<!-- end body  -->
+	<!-- Bootstrap Datepicker Plugin Js -->
+	<script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
 <?php
 } else {
 	$results =  restriction();

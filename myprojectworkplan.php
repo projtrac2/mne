@@ -1,68 +1,22 @@
-<?php
-$pageName = "Strategic Plans";
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
-$page = "view";
+<?php 
 require('includes/head.php');
 $pageTitle = "Quarterly Targets";
 
 if ($permission) {
 	try {
-		if (isset($_GET["msstatus"])) {
-			$prjid = $_GET["projid"];
-			$msid = $_GET["msid"];
-			$tskid = $_GET["tkid"];
-			$mlstat = $_GET["msstatus"];
-			if (isset($_GET["edit"])) {
-				if ($mlstat == 0) {
-					$type = "error";
-					$msg = "Sorry, this milestone is being monitored hence it can not be edited!!";
-					$redirectGoTo = "myprojectmilestones.php?projid=" . $prjid . "&type=" . $type . "&msg=" . $msg . "";
-					header(sprintf("Location: %s", $redirectGoTo));
-				} elseif ($mlstat == 1) {
-					$insertGoTo = "addmilestone.php?projid=" . $prjid . "&msid=" . $msid . "&edit=1";
-					if (isset($_SERVER['QUERY_STRING'])) {
-						$insertGoTo .= (strpos($insertGoTo, '?')) ? "&" : "?";
-						$insertGoTo .= $_SERVER['QUERY_STRING'];
-					}
-					header(sprintf("Location: %s", $insertGoTo));
-				}
-			} elseif (isset($_GET["del"])) {
-				if ($mlstat == 0) {
-					$type = "error";
-					$msg = "Sorry, this milestone is being monitored hence it can not be deleted!!";
-
-					$redirectGoTo = "myprojectmilestones.php?projid=" . $prjid . "&type=" . $type . "&msg=" . $msg . "";
-					header(sprintf("Location: %s", $redirectGoTo));
-				} elseif ($mlstat == 1) {
-					$insertGoTo = "myprojectmilestones.php?del=1&msid=" . $msid . "&projid=" . $prjid . "";
-					header(sprintf("Location: %s", $insertGoTo));
-				}
-			}
-		}
-
 
 		if (isset($_GET['projid'])) {
-			$projectid_rsMyP = $_GET['projid'];
-			$query_rsMyP =  $db->prepare("SELECT *, FORMAT(projcost, 2), projstartdate AS sdate, projenddate AS edate, projcategory FROM tbl_projects WHERE tbl_projects.deleted='0' AND  projid = '$projectid_rsMyP'");
-			$query_rsMyP->execute();
+			$projid = $_GET['projid'];
+			$query_rsMyP =  $db->prepare("SELECT *, FORMAT(projcost, 2), projstartdate AS sdate, projenddate AS edate, projcategory FROM tbl_projects WHERE tbl_projects.deleted='0' AND  projid = :projid");
+			$query_rsMyP->execute(array(":projid" => $projid));
 			$row_rsMyP = $query_rsMyP->fetch();
 
 			$projcategory = $row_rsMyP["projcategory"];
+			$currentStatus =  $row_rsMyP['projstatus'];
 		}
 
-		if (isset($_GET['projid'])) {
-			$colname_rsMilestone = $_GET['projid'];
-		}
-
-		$projectID =  $row_rsMyP['projid'];
-		$currentStatus =  $row_rsMyP['projstatus'];
-
-		$query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = '$projectID'");
-		$query_rsMlsProg->execute();
+		$query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE  projid = :projid");
+		$query_rsMlsProg->execute(array(":projid" => $projid));
 		$row_rsMlsProg = $query_rsMlsProg->fetch();
 		$mlprogress = $row_rsMlsProg["mlprogress"];
 
@@ -71,7 +25,6 @@ if ($permission) {
 		if ($mlprogress != 0 && $nmb != 0) {
 			$prjprogress = $mlprogress / $nmb;
 		}
-
 		$percent2 = round($prjprogress, 2);
 
 
@@ -85,6 +38,9 @@ if ($permission) {
 	}
 ?>
 	<!-- start body  -->
+	<!-- JQuery Nestable Css -->
+	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
+	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
@@ -100,19 +56,19 @@ if ($permission) {
 			<div class="row clearfix">
 				<div class="block-header">
 					<?= $results; ?>
-					<div class="header" style="padding-bottom:0px">
-						<div class="button-demo" style="margin-top:-15px">
-							<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
-							<a href="myprojectdash.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Details</a>
-							<a href="myprojectmilestones.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
-							<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Quarterly Targets</a>
-							<a href="myprojectfinancialplan.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
-							<a href="myproject-key-stakeholders.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
-							<a href="projectissueslist.php?proj=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues Log</a>
-							<a href="myprojectfiles.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
-						</div>
-					</div>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="header" style="padding-bottom:0px">
+							<div class="button-demo" style="margin-top:-15px">
+								<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
+								<a href="myprojectdash.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Details</a>
+								<a href="myprojectmilestones.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Activities</a>
+								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Quarterly Targets</a>
+								<a href="myprojectfinancialplan.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Financial Plan</a>
+								<a href="myproject-key-stakeholders.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Stakeholders</a>
+								<a href="projectissueslist.php?proj=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues Log</a>
+								<a href="myprojectfiles.php?projid=<?php echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Files</a>
+							</div>
+						</div>
 						<h4>
 							<div class="col-md-8" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
 								Project Name: <font color="white"><?php echo $row_rsMyP['projname']; ?></font>
@@ -135,12 +91,26 @@ if ($permission) {
 							$projid = $row_rsMyP['projid'];
 							$query_rsOutput =  $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid ORDER BY id ASC");
 							$query_rsOutput->execute(array(":projid" => $projid));
-							$row_rsOutput = $query_rsOutput->fetch();
 							$totalRows_rsOutput = $query_rsOutput->rowCount();
+
+							function get_targets($projid, $opid)
+							{
+								global $db;
+								$query_rsYear_targets =  $db->prepare("SELECT * FROM tbl_workplan_targets WHERE projid=:projid AND outputid=:opid GROUP BY outputid");
+								$query_rsYear_targets->execute(array(":projid" => $projid, ":opid" => $opid));
+								$row_rsYear_targets = $query_rsYear_targets->fetchAll();
+								$totalrow_rsYear_targets = $query_rsYear_targets->rowCount();
+
+								if ($totalrow_rsYear_targets > 0) {
+									return $row_rsYear_targets;
+								} else {
+									return false;
+								}
+							}
 
 							if ($totalRows_rsOutput > 0) {
 								$ops = 0;
-								do {
+								while($row_rsOutput = $query_rsOutput->fetch()) {
 									$ops++;
 									$opid = $row_rsOutput['id'];
 									$oipid = $row_rsOutput['outputid'];
@@ -150,11 +120,11 @@ if ($permission) {
 									$outputBudget = $row_rsOutput['budget'];
 									$workplan_interval = $row_rsOutput['workplan_interval'];
 
-									$query_rsOPUnit =  $db->prepare("SELECT u.unit FROM tbl_indicator i inner join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid = :indid");
+									/* $query_rsOPUnit =  $db->prepare("SELECT u.unit FROM tbl_indicator i inner join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid = :indid");
 									$query_rsOPUnit->execute(array(":indid" => $indicatorID));
-									$row_rsOPUnit = $query_rsOPUnit->fetch();
+									$row_rsOPUnit = $query_rsOPUnit->fetch(); */
 
-									$query_Indicator = $db->prepare("SELECT indicator_name, u.unit FROM tbl_indicator i inner join tbl_measurement_units u WHERE indid = :indid");
+									$query_Indicator = $db->prepare("SELECT indicator_name, u.unit FROM tbl_indicator i inner join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid = :indid");
 									$query_Indicator->execute(array(":indid" => $indicatorID));
 									$row = $query_Indicator->fetch();
 									$indname = $row['indicator_name'];
@@ -171,79 +141,58 @@ if ($permission) {
 									$fscyear = $row_rsYear['year'];
 									$projstartyear = $row_rsYear['yr'];
 
-
-									function get_targets($projid, $opid)
-									{
-										global $db;
-										$query_rsYear_targets =  $db->prepare("SELECT * FROM tbl_workplan_targets WHERE projid=:projid AND outputid=:opid");
-										$query_rsYear_targets->execute(array(":projid" => $projid, ":opid" => $opid));
-										$row_rsYear_targets = $query_rsYear_targets->fetchAll();
-										$totalrow_rsYear_targets = $query_rsYear_targets->rowCount();
-
-										if ($totalrow_rsYear_targets > 0) {
-											return $row_rsYear_targets;
-										} else {
-											return false;
-										}
-									}
-
 									$workplan_targets = get_targets($projid, $opid);
 									if ($workplan_targets) {
-
-							?>
-										<div class="card" style="padding:15px">
-											<fieldset class="scheduler-border" style="padding:-15px">
-												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">OUTPUT <?= $ops ?></legend>
-												<div class="header">
-													<div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
-														<div class="col-md-12 list-group-item list-group-item-action active"><strong> Output: </strong><?= $outputName ?></div>
-														<div class="col-md-12 list-group-item list-group-item-action active"> <strong>Indicator: </strong><?= $opunit . " of " . $indname ?></div>
-													</div>
+										?>
+										<fieldset class="scheduler-border" style="padding:-15px">
+											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">OUTPUT <?= $ops ?></legend>
+											<div class="header">
+												<div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
+													<div class="col-md-12 list-group-item list-group-item-action active"><strong> Output: </strong><?= $outputName ?></div>
+													<div class="col-md-12 list-group-item list-group-item-action active"> <strong>Indicator: </strong><?= $opunit . " of " . $indname ?></div>
 												</div>
-												<div class="body">
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="" style="width:100%">
-															<thead>
-																<tr>
-																	<?php
-																	$quarters = "<tr>";
-																	foreach ($workplan_targets as $targets) {
-																	?>
-																		<th colspan="4" class="text-center"><?= $targets['year'] ?></th>
-																	<?php
-																		$quarters .=
-																			"<th>Q1</th>
+											</div>
+											<div class="table-responsive">
+												<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="" style="width:100%">
+													<thead>
+														<tr>
+															<?php
+															$quarters = "<tr>";
+															foreach ($workplan_targets as $targets) {
+															?>
+																<th colspan="4" class="text-center"><?= $targets['year'] ?></th>
+															<?php
+																$quarters .=
+																	"<th>Q1</th>
 																		<th>Q2</th>
 																		<th>Q3</th>
 																		<th>Q4</th>";
-																	}
-																	$quarters .= "</tr>"
-																	?>
-																</tr>
-																<?= $quarters ?>
-															</thead>
-															<tbody id="funding_table_body">
-																<tr>
-																	<?php
-																	foreach ($workplan_targets as $targets) {
-																	?>
-																		<td><?= $targets['Q1'] ?></td>
-																		<td><?= $targets['Q2'] ?></td>
-																		<td><?= $targets['Q3'] ?></td>
-																		<td><?= $targets['Q4'] ?></td>
-																	<?php
-																	}
-																	?>
-																</tr>
-															</tbody>
-														</table>
-													</div>
-												</div>
-											</fieldset>
-										</div>
-							<?php
+															}
+															$quarters .= "</tr>"
+															?>
+														</tr>
+														<?= $quarters ?>
+													</thead>
+													<tbody id="funding_table_body">
+														<tr>
+															<?php
+															foreach ($workplan_targets as $targets) {
+															?>
+																<td><?= $targets['Q1'] ?></td>
+																<td><?= $targets['Q2'] ?></td>
+																<td><?= $targets['Q3'] ?></td>
+																<td><?= $targets['Q4'] ?></td>
+															<?php
+															}
+															?>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</fieldset>
+										<?php
 									}
-								} while ($row_rsOutput = $query_rsOutput->fetch());
+								}
 							}
 							?>
 						</div>

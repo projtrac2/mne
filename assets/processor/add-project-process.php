@@ -1,7 +1,6 @@
 <?php
 include_once "controller.php";
 try {
-
     if (isset($_POST['projcode'])) {
         $data = $_POST['projcode'];
         $query_rsProject = $db->prepare("SELECT projcode FROM tbl_projects WHERE projcode=:data");
@@ -298,33 +297,42 @@ try {
         $indicatorid = $_POST['indicatorid'];
         $programid = $_POST['programid'];
         $outputYear = $_POST['outputYear'];
+        $outputduration = $_POST['outputduration'];
 
         $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id='$outputYear'");
         $query_rsYear->execute();
         $row_rsYear = $query_rsYear->fetch();
-        $fscyear = $row_rsYear['yr'];
+        $fscyear = $row_rsYear ?  $row_rsYear['yr'] : false;
+        $target = $budget = 0;
+        $msg = false;
+        if ($fscyear) {
+            $date = $fscyear . "-07-01";
+            $newDate = date('Y-m-d', strtotime($date . ' + ' . $outputduration . ' days'));
+            $endyear = date('Y', strtotime($newDate));
 
-        $query_rsprogBudget = $db->prepare("SELECT budget FROM tbl_progdetails WHERE indicator ='$indicatorid' and progid ='$programid' and year ='$fscyear'");
-        $query_rsprogBudget->execute();
-        $row_rsprogBudget = $query_rsprogBudget->fetch();
-        $totalRows_rsprogBudget = $query_rsprogBudget->rowCount();
-        $amountprogBudget = $row_rsprogBudget['budget'];
+            $query_rsprogBudget = $db->prepare("SELECT  SUM(target) as target, SUM(budget) as budget FROM tbl_progdetails WHERE indicator ='$indicatorid' and progid ='$programid' and year >= '$fscyear' AND year <= '$endyear'");
+            $query_rsprogBudget->execute();
+            $row_rsprogBudget = $query_rsprogBudget->fetch();
+            $totalRows_rsprogBudget = $query_rsprogBudget->rowCount();
+            $program_budget = $row_rsprogBudget ? $row_rsprogBudget['budget'] : 0;
+            $program_target = $row_rsprogBudget ? $row_rsprogBudget['target'] : 0;
 
-        $query_rsprojBudget = $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE indicator ='$indicatorid' and progid ='$programid' and year ='$outputYear' AND projid IS NOT NULL");
-        $query_rsprojBudget->execute();
-        $row_rsprojBudget = $query_rsprojBudget->fetch();
-        $totalRows_rsprojBudget = $query_rsprojBudget->rowCount();
-        $amountprojBudget = $row_rsprojBudget['budget'];
-        $remaining =  $amountprogBudget - $amountprojBudget;
+            $query_rsprojTarget =  $db->prepare("SELECT SUM(target) as target, SUM(budget) as budget FROM tbl_project_output_details WHERE indicator ='$indicatorid' and progid ='$programid' and year >= '$fscyear'  AND year <= '$endyear'");
+            $query_rsprojTarget->execute();
+            $row_rsprojTarget = $query_rsprojTarget->fetch();
+            $project_target = $row_rsprojTarget ? $row_rsprojTarget['target'] : 0;
+            $project_budget = $row_rsprogBudget ? $row_rsprojTarget['budget'] : 0;
 
-        $arr = [];
-        if ($remaining > 0) {
-            $arr =   array("remaining" => $remaining, "msg" => "true");
-        } else {
-            $arr =   array("remaining" => 0, "msg" => "false");
+            $remaining_budget =  $program_budget - $project_budget;
+            $remaining_target = $program_target - $project_target;
+
+            $budget = $remaining_budget > 0 ? $remaining_budget : 0;
+            $target = $remaining_target > 0 ? $remaining_target : 0;
+            $msg = true;
         }
-        echo json_encode($arr);
+        echo json_encode(array("budget" => $budget, "target" => $target, "msg" => $msg));
     }
+
 
     if (isset($_POST['getTarget'])) {
         $indicatorid = $_POST['indicator'];
@@ -339,7 +347,6 @@ try {
         $query_rsprojTarget->execute();
         $row_rsprojTarget = $query_rsprojTarget->fetch();
         $projTarget = $row_rsprojTarget['target'];
-
         $remaining =  $progTarget - $projTarget;
 
         $arr = [];
@@ -348,7 +355,6 @@ try {
         } else {
             $arr =   array("msg" => "false");
         }
-
         echo json_encode($arr);
     }
 
@@ -419,55 +425,56 @@ try {
         $outputbudget = $_POST['outputbudget'];
         $outputTarget = $_POST['outputTarget'];
         $unique_key = $_POST['key_unique'];
-        $mapping_type = isset($_POST['projwaypoints']) ? $_POST['projwaypoints'] : NULL;
 
         $datecreated = date("Y-m-d");
         $createdby = $_POST['user_name'];
+        $unit_type = isset($_POST['unit_type']) ?  $_POST['unit_type'] : 0;
 
         $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  unique_key='$unique_key'  and indicator='$outputIndicator'");
         $query_rsOutput->execute();
         $row_rsOutput = $query_rsOutput->fetch();
         $totalRows_rsOutput = $query_rsOutput->rowCount();
 
-        if ($totalRows_rsOutput == 0) { 
-            $last_id = 0;
-            if (isset($_POST['projid']) && !empty($_POST['projid'])) {
-                $projid = $_POST['projid'];
-                $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_details`(unique_key, progid, projid, outputid, indicator, year, duration, budget,mapping_type, total_target) VALUES(:unique_key,:progid, :projid, :output, :indicator, :outputfscyear,  :outputduration, :budget, :mapping_type,:outputTarget)");
-                $result1  = $insertSQL1->execute(array(":unique_key" => $unique_key, ":progid" => $progid, ":projid" => $projid, ":output" => $output, ":indicator" => $outputIndicator, ":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":mapping_type" => $mapping_type, ":outputTarget" => $outputTarget));
+        // var_dump($row_rsOutput);
 
-                $last_id = $db->lastInsertId();
+        // if ($totalRows_rsOutput == 0) {
+        $last_id = 0;
+        if (isset($_POST['projid']) && !empty($_POST['projid'])) {
+            $projid = $_POST['projid'];
+            $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_details`(unique_key, progid, projid, outputid, indicator, year, duration, budget, total_target,unit_type) VALUES(:unique_key,:progid, :projid, :output, :indicator, :outputfscyear,  :outputduration, :budget,:outputTarget,:unit_type)");
+            $result1  = $insertSQL1->execute(array(":unique_key" => $unique_key, ":progid" => $progid, ":projid" => $projid, ":output" => $output, ":indicator" => $outputIndicator, ":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":outputTarget" => $outputTarget, ":unit_type"=>$unit_type));
+
+            $last_id = $db->lastInsertId();
+            $diss_states_target = $_POST['diss_states_target'];
+            $state = $_POST['diss_states'];
+            for ($i = 0; $i < count($state); $i++) {
+                $insertSQL1 = $db->prepare("INSERT INTO `tbl_output_disaggregation`(projid, outputid, outputstate, total_target) VALUES(:projid, :output, :outputstate, :diss_states_target)");
+                $result1  = $insertSQL1->execute(array(":projid" => $projid, ":output" => $last_id, ":outputstate" => $state[$i], ":diss_states_target" => $diss_states_target[$i]));
+            }
+        } else {
+            $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_details`(unique_key,progid, outputid, indicator, year, duration, budget, total_target,unit_type) VALUES(:unique_key, :progid, :output, :indicator, :outputfscyear,:outputduration, :budget,:outputTarget,:unit_type)");
+            $result1  = $insertSQL1->execute(array(":unique_key" => $unique_key, ":progid" => $progid, ":output" => $output, ":indicator" => $outputIndicator, ":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":outputTarget" => $outputTarget, ":unit_type"=> $unit_type));
+            $last_id = $db->lastInsertId();
+            if (isset($_POST['diss_states_target'])) {
                 $diss_states_target = $_POST['diss_states_target'];
+                //$outputlocations = $_POST['diss_states_locations'];
                 $state = $_POST['diss_states'];
                 for ($i = 0; $i < count($state); $i++) {
-                    $insertSQL1 = $db->prepare("INSERT INTO `tbl_output_disaggregation`(projid, outputid, outputstate, total_target) VALUES(:projid, :output, :outputstate, :diss_states_target)");
-                    $result1  = $insertSQL1->execute(array(":projid" => $projid, ":output" => $last_id, ":outputstate" => $state[$i], ":diss_states_target" => $diss_states_target[$i]));
-                }
-            } else {
-                $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_details`(unique_key,progid, outputid, indicator, year, duration, budget,mapping_type, total_target) VALUES(:unique_key, :progid, :output, :indicator, :outputfscyear,:outputduration, :budget, :mapping_type,:outputTarget)");
-                $result1  = $insertSQL1->execute(array(":unique_key" => $unique_key, ":progid" => $progid, ":output" => $output, ":indicator" => $outputIndicator, ":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":mapping_type" => $mapping_type, ":outputTarget" => $outputTarget));
-                $last_id = $db->lastInsertId();
-                if (isset($_POST['diss_states_target'])) {
-                    $diss_states_target = $_POST['diss_states_target'];
-                    $outputlocations = $_POST['diss_states_locations'];
-                    $state = $_POST['diss_states'];
-                    for ($i = 0; $i < count($state); $i++) {
-                        $insertSQL1 = $db->prepare("INSERT INTO `tbl_output_disaggregation`(outputid, outputstate, total_target) VALUES(:output, :outputstate, :diss_states_target)");
-                        $result1  = $insertSQL1->execute(array(":output" => $last_id, ":outputstate" => $state[$i], ":diss_states_target" => $diss_states_target[$i]));
-                    }
+                    $insertSQL1 = $db->prepare("INSERT INTO `tbl_output_disaggregation`(outputid, outputstate, total_target) VALUES(:output, :outputstate, :diss_states_target)");
+                    $result1  = $insertSQL1->execute(array(":output" => $last_id, ":outputstate" => $state[$i], ":diss_states_target" => $diss_states_target[$i]));
                 }
             }
-            echo json_encode(array("success"=>true, "id"=>$last_id));
-        } else{
-            $last_id =0;
-            echo json_encode(array("success"=>false, "id"=>$last_id));
         }
+        echo json_encode(array("success" => true, "id" => $last_id));
+        // } else {
+        //     $last_id = 0;
+        //     echo json_encode(array("success" => false, "id" => $last_id));
+        // }
     }
 
     if (isset($_POST['editoutput'])) {
         $progid = $_POST['myprogid'];
         $output = $_POST['outputids'];
-        $mapping_type = isset($_POST['projwaypoints']) ? $_POST['projwaypoints'] : NULL;
         $opid = $_POST['opid'];
         $projid = null;
 
@@ -482,9 +489,10 @@ try {
         $datecreated = date("Y-m-d");
         $createdby = $_POST['user_name'];
         $outputbudget = $_POST['outputbudget'];
+        $unique_key = $_POST['key_unique'];
 
-        $insertSQL1 = $db->prepare("UPDATE  tbl_project_details SET year=:outputfscyear, duration=:outputduration, budget=:budget, mapping_type=:mapping_type, total_target=:outputTarget WHERE id =:opid");
-        $result1  = $insertSQL1->execute(array(":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":mapping_type" => $mapping_type, ":outputTarget" => $outputTarget, ":opid" => $opid));
+        $insertSQL1 = $db->prepare("UPDATE  tbl_project_details SET unique_key=:unique_key, year=:outputfscyear, duration=:outputduration, budget=:budget, total_target=:outputTarget WHERE id =:opid");
+        $result1  = $insertSQL1->execute(array(":unique_key" => $unique_key, ":outputfscyear" => $outputfscyear, ":outputduration" => $outputduration, ":budget" => $outputbudget, ":outputTarget" => $outputTarget, ":opid" => $opid));
 
         $deleteQuery = $db->prepare("DELETE FROM `tbl_output_disaggregation` WHERE outputid=:itemid");
         $results = $deleteQuery->execute(array(':itemid' => $opid));
@@ -499,7 +507,8 @@ try {
                 }
             }
         }
-        echo json_encode($opid);
+        echo json_encode(array("success" => true, "id" => $opid));
+        // echo json_encode($opid);
     }
 
     if (isset($_POST["deleteItem"])) {
@@ -525,7 +534,6 @@ try {
 
     if (isset($_POST["deleteItems"])) {
         $itemids = $_POST['itemIds'];
-
         for ($i = 0; $i < count($itemids); $i++) {
             $deleteQuery = $db->prepare("DELETE FROM `tbl_project_details` WHERE id=:itemid");
             $results = $deleteQuery->execute(array(':itemid' => $itemids[$i]));
@@ -562,7 +570,6 @@ try {
         $oipid = $row_rsOutput['outputid']; //outputid from program table 
         $indicatorid = $row_rsOutput['indicator'];
         $outputYear = $row_rsOutput['year'];
-        $mapping_type = $row_rsOutput['mapping_type'];
         $total_target = $row_rsOutput['total_target'];
 
         $outputDuration = $row_rsOutput['duration'];
@@ -575,14 +582,12 @@ try {
         $fscyear = $row_rsYear['yr'];
 
         // program target
-        $query_rsprogBudget = $db->prepare("SELECT sum(budget), sum(target) as target FROM tbl_progdetails WHERE indicator ='$indicatorid' and progid ='$programid' and year ='$fscyear'");
+        $query_rsprogBudget = $db->prepare("SELECT sum(budget) as budget, sum(target) as target FROM tbl_progdetails WHERE indicator ='$indicatorid' and progid ='$programid' and year ='$fscyear'");
         $query_rsprogBudget->execute();
         $row_rsprogBudget = $query_rsprogBudget->fetch();
         $totalRows_rsprogBudget = $query_rsprogBudget->rowCount();
-        $amountprogBudget = $row_rsprogBudget['budget'];
-        $progtarget = $row_rsprogBudget['target'];
-
-        echo $amountprogBudget;
+        $amountprogBudget = $totalRows_rsprogBudget > 0 ? $row_rsprogBudget['budget'] : 0;
+        $progtarget = $totalRows_rsprogBudget > 0 ?  $row_rsprogBudget['target'] : 0;
 
         // sum of used target by projects(outputs)
         $query_rsprojBudget = $db->prepare("SELECT SUM(budget) as budget, SUM(total_target) as ptarget FROM tbl_project_details WHERE indicator ='$indicatorid' and progid ='$programid' and year ='$outputYear' and projid IS NOT NULL");
@@ -650,7 +655,7 @@ try {
         $data  = array(
             "year" => $outputYear, "duration" => $outputDuration, "outputBudget" => $outputBudget,
             "opid" => $opid, "outputDuration" => $outputDuration, "actual_budget" => $actual_budget,
-            "remainingBudget" => $remainingBudget, "mapping_type" => $mapping_type,
+            "remainingBudget" => $remainingBudget,
             "total_target" => $total_target, "states" => $state_locations, "opfscyear" => $fscyear, "ceil_target" => $ceil_target, "remaining_target" => $remaining_target
         );
         echo json_encode($data);
@@ -670,7 +675,6 @@ try {
         $oipid = $row_rsOutput['outputid']; //outputid from program table 
         $indicatorid = $row_rsOutput['indicator'];
         $outputYear = $row_rsOutput['year'];
-        $mapping_type = $row_rsOutput['mapping_type'];
         $total_target = $row_rsOutput['total_target'];
 
         $query_Indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indicatorid' ");
@@ -903,6 +907,7 @@ try {
 
         if ($rows_OutpuData > 0) {
             $op_target = $row_OutputData['total_target'];
+            $op_budget = $row_OutputData['budget'];
             $indicator = $row_OutputData['indicator'];
             $query_rsIndicator = $db->prepare("SELECT indicator_name, indid, indicator_disaggregation FROM tbl_indicator WHERE indid ='$indicator'");
             $query_rsIndicator->execute();
@@ -910,9 +915,8 @@ try {
             $indname = $row_rsIndicator['indicator_name'];
             $ben_diss = $row_rsIndicator['indicator_disaggregation'];
 
-            if ($ben_diss  != 1) {
-                $ben_diss = 0;
-            }
+            $ben_diss = ($ben_diss  != 1)  ? 0 : $ben_diss;
+
 
             $query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit AS unit FROM tbl_indicator INNER JOIN tbl_measurement_units ON tbl_measurement_units.id = tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicator'");
             $query_Indicator->execute();
@@ -932,103 +936,147 @@ try {
             $outputName = $row_rsOutput['output'];
 
             $projoutputDValue = $row_OutputData['duration'];
-            $years = floor($projoutputDValue / 365);
-            $remainder = $projoutputDValue % 365;
-            if ($remainder > 0) {
-                $years = $years + 1;
-            }
-            $spanYear = '';
-            $TargetPlan = '';
-            $containerTH = '';
-            $containerTB = '';
+            $s_date = $projstartyear . "-07-01";
+            $project_end_date = date('Y-m-d', strtotime($s_date . ' + ' . $projoutputDValue . ' days'));
+            $end_month = date('m', strtotime($project_end_date));
+            $end_year_c = date('Y', strtotime($project_end_date));
+            $end_year = $end_month >= 7 && $end_month <= 12 ? $end_year_c : $end_year_c - 1;
 
+            $years = ($end_year - $projstartyear) + 1;
+
+            // $years = floor($projoutputDValue / 365);
+            // $remainder = $projoutputDValue % 365; 
+            // $years = ($remainder > 0) ?  $years + 1 : 0 ;
+
+            $spanYear = $TargetPlan = $containerTH = $containerTB = $containerTHYears =  $containerYears = '';
             for ($i = 0; $i < $years; $i++) {
                 $endyear = $projstartyear + 1;
-                $query_rsprogTarget =  $db->prepare("SELECT target FROM tbl_progdetails WHERE indicator ='$indicator' and progid ='$programid' and year ='$projstartyear'");
+                $query_rsprogTarget =  $db->prepare("SELECT target, budget FROM tbl_progdetails WHERE indicator ='$indicator' and progid ='$programid' and year ='$projstartyear'");
                 $query_rsprogTarget->execute();
                 $row_rsprogTarget = $query_rsprogTarget->fetch();
                 $totalRows_rsprogTarget = $query_rsprogTarget->rowCount();
-                $progTarget = $row_rsprogTarget['target'];
+                $progTarget = $totalRows_rsprogTarget > 0 ? $row_rsprogTarget['target'] : 0;
+                $program_budget = $totalRows_rsprogTarget > 0 ? $row_rsprogTarget['budget'] : 0;
 
-                $query_rsprojTarget =  $db->prepare("SELECT SUM(target) as target FROM tbl_project_output_details WHERE indicator ='$indicator' and progid ='$programid' and year ='$projstartyear'");
+                $query_rsprojTarget =  $db->prepare("SELECT SUM(target) as target,  SUM(budget) as budget FROM tbl_project_output_details WHERE indicator ='$indicator' and progid ='$programid' and year ='$projstartyear'");
                 $query_rsprojTarget->execute();
                 $row_rsprojTarget = $query_rsprojTarget->fetch();
                 $totalRows_rsprojTarget = $query_rsprojTarget->rowCount();
-                $projTarget = $row_rsprojTarget['target'];
+                $projTarget = $totalRows_rsprojTarget > 0 ?  $row_rsprojTarget['target'] : 0;
+                $project_budget = $totalRows_rsprojTarget > 0 ?  $row_rsprojTarget['budget'] : 0;
                 $remaining = $progTarget - $projTarget;
-
-                $arr = '';
-                if ($remaining > 0) {
-                    $arr =  $remaining;
-                } else {
-                    $arr =  0;
-                }
-                $containerTH .= ' <th>
-
-                ' . $projstartyear  . '/' . $endyear . '
-                <input type="hidden" class="output_years' . $outputIds  . '" name="output_years' . $outputIds  . '[]" value="' . $projstartyear . ' " >
-                <input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >  
-                <input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " > 
-                <input type="hidden"   id="cyear_target' . $outputIds .  $projstartyear . '" name="cyear_target' . $outputIds . '[]" value="' . $arr . ' " >
-                  <span>Program Target Bal: </span><span style="color:red" id="year_target' . $outputIds .  $projstartyear . '" > ' . number_format($arr, 2) . '</span>
+                $remaining_budget = $program_budget - $project_budget;
+                $arr =  ($remaining > 0) ? $remaining : 0;
+                $budget_remaining =  ($remaining_budget > 0) ? $remaining_budget : 0;
+                // targets
+                $containerTH .=
+                    '<th>' . $projstartyear  . '/' . $endyear . '
+                    <input type="hidden" class="output_years' . $outputIds  . '" name="output_years' . $outputIds  . '[]" value="' . $projstartyear . ' " >
+                    <input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >  
+                    <input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " > 
+                    <input type="hidden"   id="cyear_target' . $outputIds .  $projstartyear . '" name="cyear_target' . $outputIds . '[]" value="' . $arr . ' " >
+                    <span>Program Target Bal: </span><span style="color:red" id="year_target' . $outputIds .  $projstartyear . '" > ' . number_format($arr, 2) . '</span>
                 </th>';
                 $containerTB .= '<td> 
-                <input type="number" data-id=""  name="target_year' . $outputIds . '[]" placeholder="target"  id="target_year' . $outputIds . $projstartyear . '" class="form-control workplanTarget' . $outputIds . '"
-                 onkeyup=get_op_sum_target(' . $outputIds . ',' . $projstartyear . ') required >
+                <input type="number" data-id=""  min="0"   name="target_year' . $outputIds . '[]" placeholder="target"  id="target_year' . $outputIds . $projstartyear . '" class="form-control workplanTarget' . $outputIds . '" min="0" onkeyup=get_op_sum_target(' . $outputIds . ',' . $projstartyear . ') required >
                 </td>';
+
+                // budgets
+                $containerTHYears .= '<th>' . $projstartyear  . '/' . $endyear . '
+                <input type="hidden" name="b_dboutputId[]" value="' . $outputName . ' " >  
+                <input type="hidden" id="b_outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " > 
+                <input type="hidden"   id="b_cyear_budget' . $outputIds .  $projstartyear . '" name="cyear_budget' . $outputIds . '[]" value="' . $budget_remaining . ' " >
+                  <span>Program Budget Bal: </span><span style="color:red" id="year_budget' . $outputIds .  $projstartyear . '" > ' . number_format($budget_remaining, 2) . '</span>
+                </th>';
+
+                $containerYears .= '<td> 
+                <input type="number" data-id="" min="0"  name="budget_year' . $outputIds . '[]" placeholder="Budget"  id="budget_year' . $outputIds . $projstartyear . '" class="form-control output_budget' . $outputIds . '" min="0" onkeyup=get_op_sum_budget(' . $outputIds . ',' . $projstartyear . ') required >
+                </td>';
+
                 $projstartyear++;
             }
 
-            $data = ' 
-            <div class="row clearfix " id="Targetrowcontainer">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="header">
-                            <div class="col-md-5 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                <h5 style="color:#2B982B"><strong> Output: ' . $outputName . '</strong></h5>
-                                <input type="hidden" value="' . $outputName . '" id="workplan_opName' . trim($outputIds) . '">
+            $data = '
+            <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output: ' . $outputName . ' </legend>
+                <div class="row clearfix " id="Targetrowcontainer">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="header">
+                                <div class="col-md-5 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                    <h5 style="color:#2B982B"><strong> Output: ' . $outputName . '</strong></h5>
+                                    <input type="hidden" value="' . $outputName . '" id="workplan_opName' . trim($outputIds) . '">
+                                    </div>
+                                <div class="col-md-5 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                    <h5 style="color:#2B982B"><strong> Indicator: ' . $unit . ' of ' . $indname . '</strong></h5>
+                                    <input type="hidden" value="' . $indname . '" id="indicatorName' . trim($outputIds) . '">
+                                    </div>
+                                <div class="col-md-2 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                    <h5 style="color:#2B982B"><strong> Unit : ' . $unit . '</strong></h5>
+                                    <input type="hidden" value="' . $unit . '" id="unit' . trim($outputIds) . '">
+                                    <input type="hidden" value="' . $ben_diss . '" id="ben_diss_value' . trim($outputIds) . '">
+                                </div>  
+                            </div>
+                            <div class="body">
+                                <div class="row clearfix "> 
+                                    <div class="col-md-12 ">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped table-hover" id="targets" style="width:100%">
+                                                <thead> 
+                                                    <tr>
+                                                        <th colspan="' . $years . '" >
+                                                        <input type="hidden"   id="opid_name' . $outputIds . '" name="opid_name' . $outputIds . '[]" value="' . $outputName . ' " >
+                                                        <input type="hidden"   id="coptarget_target' . $outputIds . '" name="coptarget_target' . $outputIds . '[]" value="' . $op_target . ' " >
+                                                            <span>Output Target Bal: </span>
+                                                            <span style="color:red" id="op_target' . $outputIds . '" >
+                                                                ' . number_format($op_target, 2) . '
+                                                            </span>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        ' . $containerTH . '
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr> ' .  $containerTB . ' </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                            <div class="col-md-5 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                <h5 style="color:#2B982B"><strong> Indicator: ' . $unit . ' of ' . $indname . '</strong></h5>
-                                <input type="hidden" value="' . $indname . '" id="indicatorName' . trim($outputIds) . '">
-                                </div>
-                            <div class="col-md-2 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                <h5 style="color:#2B982B"><strong> Unit : ' . $unit . '</strong></h5>
-                                <input type="hidden" value="' . $unit . '" id="unit' . trim($outputIds) . '">
-                                <input type="hidden" value="' . $ben_diss . '" id="ben_diss_value' . trim($outputIds) . '">
-                            </div>  
-                        </div>
-                        <div class="body">
+                            </div>
+                            <div class="body">
                             <div class="row clearfix "> 
                                 <div class="col-md-12 ">
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-striped table-hover" id="targets" style="width:100%">
-                                            <thead> 
+                                        <table class="table table-bordered table-striped table-hover" id="budgets" style="width:100%">
+                                            <thead>
                                                 <tr>
                                                     <th colspan="' . $years . '" >
-                                                    <input type="hidden"   id="opid_name' . $outputIds . '" name="opid_name' . $outputIds . '[]" value="' . $outputName . ' " >
-                                                    <input type="hidden"   id="coptarget_target' . $outputIds . '" name="coptarget_target' . $outputIds . '[]" value="' . $op_target . ' " >
-                                                        <span>Output Target Bal: </span>
-                                                        <span style="color:red" id="op_target' . $outputIds . '" >
-                                                            ' . number_format($op_target, 2) . '
+                                                    <input type="hidden"   id="y_opid_name' . $outputIds . '" name="opid_name' . $outputIds . '[]" value="' . $outputName . ' " >
+                                                    <input type="hidden"   id="y_copbudget_budget' . $outputIds . '" name="copbudget_budget' . $outputIds . '[]" value="' . $op_budget . ' " >
+                                                        <span>Output Budget Bal: </span>
+                                                        <span style="color:red" id="y_op_budget' . $outputIds . '" >
+                                                            ' . number_format($op_budget, 2) . '
                                                         </span>
                                                     </th>
                                                 </tr>
                                                 <tr>
-                                                    ' . $containerTH . '
+                                                    ' . $containerTHYears . '
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                            <tr> ' .  $containerTB . ' </tr>
+                                            <tr> ' .  $containerYears . ' </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
                 </div>
-            </div>';
+            </fieldset>';
             echo $data;
         }
     }
@@ -1126,15 +1174,7 @@ try {
             $outcomeYear = $row_rsOutput['year'];
             $outcomeDuration = $row_rsOutput['duration'];
             $outputBudget = $row_rsOutput['budget'];
-            $projwaypoints = $row_rsOutput['mapping_type'];
             $total_target = $row_rsOutput['total_target'];
-
-
-            $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type WHERE id=:id");
-            $query_rsMapType->execute(array(":id" => $projwaypoints));
-            $row_rsMapType = $query_rsMapType->fetch();
-            $totalRows_rsMapType = $query_rsMapType->rowCount();
-            $mapping_type = $row_rsMapType['type'];
 
             $query_Indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indicatorID' ");
             $query_Indicator->execute();
@@ -1164,8 +1204,7 @@ try {
                 <td>' .  $opunit . ' of ' . $indname . '  </td>  
                 <td>' . $fscyear . '  </td> 
                 <td>' . number_format($outcomeDuration) . ' Days</td> 
-                <td>' . number_format($outputBudget, 2) . '  </td>  
-                <td>' . $mapping_type . '  </td>  
+                <td>' . number_format($outputBudget, 2) . '  </td>   
                 <td>' . number_format($total_target, 2) . '  </td>  
             </tr> 
             ';
@@ -1187,8 +1226,7 @@ try {
                                                     <th>Indicator </th> 
                                                     <th>Start Year</th>
                                                     <th>Duration </th>
-                                                    <th>Budget (Ksh)</th>  
-                                                    <th>Mapping Type</th>  
+                                                    <th>Budget (Ksh)</th>
                                                     <th>Total Output</th>  
                                                 </tr>
                                             </thead>
@@ -1473,6 +1511,19 @@ try {
         } else {
             echo json_encode(array("success" => false));
         }
+    }
+
+    if (isset($_GET['get_start_year'])) {
+        $starting_year = $_GET['starting_year'];
+        $projduration = $_GET['projduration'];
+        $s_date = $starting_year . "-07-01";
+        $project_end_date = date('Y-m-d', strtotime($s_date . ' + ' . $projduration . ' days'));
+        $end_month = date('m', strtotime($project_end_date));
+        $end_year_c = date('Y', strtotime($project_end_date));
+        $endyear = $end_month >= 7 && $end_month <= 12 ? $end_year_c : $end_year_c - 1;
+
+
+        echo json_encode(array("msg" => true, "endyear" => $endyear, "project_end_date" => $project_end_date));
     }
 } catch (PDOException $ex) {
     // $result = flashMessage("An error occurred: " .$ex->getMessage());

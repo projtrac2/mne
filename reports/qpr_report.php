@@ -1,5 +1,7 @@
 <?php
 //include_once 'projtrac-dashboard/resource/session.php';
+session_start();
+$user_name = $_SESSION['MM_Username'];
 
 include_once '../projtrac-dashboard/resource/Database.php';
 include_once '../projtrac-dashboard/resource/utilities.php';
@@ -7,7 +9,16 @@ require_once __DIR__ . '../../vendor/autoload.php';
 
 $id = (isset($_GET['reportid'])) ? base64_decode($_GET['reportid']) : header("location:dashboard.php");
 // $id = 1;
-try {
+try {	
+	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+	$query_company->execute(array(":stid" => $stid));
+	$row_company = $query_company->fetch();
+	
+    $query_user =  $db->prepare("SELECT p.*, u.username, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
+    $query_user->execute(array(":user_id" => $user_name));
+    $row_rsUser = $query_user->fetch();
+	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
+	
     $query_rsConclusion = $db->prepare("SELECT * FROM `tbl_qapr_report_conclusion` WHERE id='$id'");
     $query_rsConclusion->execute();
     $Rows_rsConclusion = $query_rsConclusion->fetch();
@@ -38,9 +49,6 @@ try {
         $financial_year = $fscyear . "/" . $end;
         $start = $fscyear - 1;
         $b_financial_year = $start . "/" . $fscyear;
-
-        
-
 
         $basedate = $fscyear . "-06-30";
         $start_date = $end_date = "";
@@ -75,16 +83,16 @@ try {
         $cover_page =
             '<div style="text-align: center;">
                 <img src="' . $logo . '" height="180px" style="max-height: 200px; text-align: center;"/>
-                <h2 style="" >COUNTY GOVERNMENT OF UASIN GISHU</h2>
+                <h2 style="" >'.$row_company["company_name"].'</h2>
                 <br/>
                 <hr/>
                 <h3 style="margin-top:10px;" >' . $financial_year . ' ANNUAL PROGRESS REPORT</h3> 
                 <hr/>
                 <div style="margin-top:80px;" >
                     <address>
-                        <h5>The County Treasury P. O. Box 40-30100 ELDORET, KENYA </h5>
-                        <h5>Email: info@uasingishu.go.ke </h5>
-                        <h5>Website: www.uasingishu.go.ke </h5>
+                        <h5>The County Treasury '.$row_company["postal_address"].', KENYA </h5>
+                        <h5>Email: '.$row_company["email_address"].' </h5>
+                        <h5>Website: '.$row_company["domain_address"].' </h5>
                     </address>
                 </div>
             </div>';
@@ -266,7 +274,7 @@ try {
         $mpdf->WriteHTML($append, \Mpdf\HTMLParserMode::HTML_BODY);
 
 
-        $mpdf->WriteHTML('<h4 style="color:green">Printed By: </h4>');
+        $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
         $mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County {PAGENO}');
         // $mpdf->Output("Output.pdf", "D");
         $mpdf->Output();

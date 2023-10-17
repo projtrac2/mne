@@ -2,19 +2,9 @@
 
 $stplan = (isset($_GET['stplan'])) ? base64_decode($_GET['stplan']) : header("Location:view-strategic-plans.php");
 $stplane = base64_encode($stplan);
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
 require('includes/head.php');
 require('functions/strategicplan.php');
-$pageTitle = $planlabelplural;
-
 if ($permission) {
-
     try {
         $strategicPlan = get_strategic_plan_by_id($stplan);
         if (!$strategicPlan) {
@@ -97,10 +87,13 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
+                            <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+                                Go Back
+                            </button>
                         </div>
                     </div>
                 </h4>

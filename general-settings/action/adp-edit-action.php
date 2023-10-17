@@ -1,7 +1,6 @@
 <?php
-
 include_once "controller.php";
-include_once '../../system-labels.php';
+
 try {
 	$valid['success'] = array('success' => false, 'messages' => array());
 
@@ -19,7 +18,7 @@ try {
 		$queryODetails->execute();
 		$data_ODetails =  $queryODetails->fetch();
 		$mapping_type = 0;
-		if(!empty($data_ODetails['mapping_type'])){
+		if (!empty($data_ODetails['mapping_type'])) {
 			$mapping_type = $data_ODetails['mapping_type'];
 		}
 
@@ -37,10 +36,10 @@ try {
 			$queryuserdetails->execute();
 			$row_user_details =  $queryuserdetails->fetch();
 			$userid = $row_user_details["userid"];
-			
+
 			$insertbudget = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created)  VALUES(:projid, :year, :amount, :createdby, :datecreated)");
 			$results  = $insertbudget->execute(array(":projid" => $projid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $userid, ":datecreated" => $date));
-			
+
 			for ($i = 0; $i < count($_POST['projoutput']); $i++) {
 				$outputid = $_POST['projoutput'][$i];
 				$projoutputid = $_POST['projoutputid'][$i];
@@ -211,7 +210,7 @@ try {
 		$queryODetails->execute();
 		$data_ODetails =  $queryODetails->fetch();
 		$mapping_type = 0;
-		if(!empty($data_ODetails['mapping_type'])){
+		if (!empty($data_ODetails['mapping_type'])) {
 			$mapping_type = $data_ODetails['mapping_type'];
 		}
 
@@ -756,7 +755,7 @@ try {
 		$row_rsCategory = $query_rsCategory->fetch();
 		$totalRows_rsCategory = $query_rsCategory->rowCount();
 		$category = $row_rsCategory['category'];
-		
+
 
 		$query_rsFunder = $db->prepare("SELECT *, s.id as fnid FROM tbl_financiers s  
 		INNER JOIN tbl_funds f ON s.id =f.funder WHERE f.financial_year=:financial_year AND s.type=:sourcecategory");
@@ -778,13 +777,13 @@ try {
 			$row_rsUsedFunds = $query_rsUsedFunds->fetch();
 			$totalRows_rsUsedFunds = $query_rsUsedFunds->rowCount();
 			$used_amount = $row_rsUsedFunds['amount'];
-			
-			if($used_amount == NULL){
+
+			if ($used_amount == NULL) {
 				$used_amount = 0;
 			}
-			
+
 			$remaining = $funding_amount - $used_amount;
-			
+
 			if ($remaining > 0 && !in_array($fndid, $funderId)) {
 				$inputs .= '<option value="' . $fndid . '">' . $funder . '</option>';
 			}
@@ -802,7 +801,7 @@ try {
 		$row_rsUsed_category_Funds = $query_rsUsed_category_Funds->fetch();
 		$totalRows_rsUsed_category_Funds = $query_rsUsed_category_Funds->rowCount();
 		$used_amount = $row_rsUsed_category_Funds['amount'];
-		if(is_null($used_amount)){
+		if (is_null($used_amount)) {
 			$used_amount = 0;
 		}
 		$remaining = $funding_amount - $used_amount;
@@ -814,19 +813,19 @@ try {
 		$sourceid = $_POST['sourceid'];
 		$sourcecategory = $_POST['sourcecategory'];
 		$projfscyear = $_POST['projfscyear'];
-		
+
 		$query_rsprojFunding =  $db->prepare("SELECT SUM(amountfunding) as amountfunding FROM tbl_myprojfunding f INNER JOIN tbl_projects p ON  p.projid= f.projid WHERE f.financier=:financier AND p.projfscyear=:projfscyear AND  f.sourcecategory=:sourcecategory");
-		$query_rsprojFunding->execute(array(":financier"=>$sourceid, ":projfscyear"=>$projfscyear, ":sourcecategory" => $sourcecategory));
+		$query_rsprojFunding->execute(array(":financier" => $sourceid, ":projfscyear" => $projfscyear, ":sourcecategory" => $sourcecategory));
 		$row_rsprojFunding = $query_rsprojFunding->fetch();
 		$totalRows_rsprojFunding = $query_rsprojFunding->rowCount();
 		$amountprojFunding = $row_rsprojFunding['amountfunding'];
 		//var_dump($sourceid);
-		
+
 		$remaining = 0;
-		
-		if(is_null($amountprojFunding)){
+
+		if (is_null($amountprojFunding)) {
 			$amountprojFunding = 0;
-		}else{
+		} else {
 			$amountprojFunding = $row_rsprojFunding['amountfunding'];
 		}
 
@@ -845,7 +844,7 @@ try {
 		$rate = $row_rsFunder['exchange_rate'];
 		$funding_amount = $row_rsFunder['amount'] * $rate; // check 
 		$remaining  = $funding_amount - $amountprojFunding;
-			
+
 		$arr = [];
 		if ($remaining > 0) {
 			$arr =   array("remaining" => $remaining, "msg" => "true");
@@ -1109,22 +1108,22 @@ try {
 													<tr>
 														<th colspan="' . $years . '" >
 															<input type="hidden"   id="opid_name' . $outputIds . '" name="opid_name' . $outputIds . '[]" value="' . $outputName . ' " >';
-															if ($target_plan == 1) {
-																$data .= '
+			if ($target_plan == 1) {
+				$data .= '
 																<input type="hidden"   id="coptarget_target' . $outputIds . '" class="form-control" name="coptarget_target' . $outputIds . '[]" value="' . $op_target . ' " >
 																	<span>Output Target Bal: </span>
 																	<span style="color:red" id="op_target' . $outputIds . '" >
 																		' . number_format($op_target, 2) . '
 																	</span>';
-															} else {
-																$data .= '<input type="hidden"   id="coptarget_target' . $outputIds . '" class="form-control" name="coptarget_target' . $outputIds . '[]" value="' . $opbal . '" >
+			} else {
+				$data .= '<input type="hidden"   id="coptarget_target' . $outputIds . '" class="form-control" name="coptarget_target' . $outputIds . '[]" value="' . $opbal . '" >
 																<span>Output Target Bal: </span>
 																<span style="color:red" id="op_target' . $outputIds . '" >
 																' . number_format($opbal) . '
 																</span>';
-															}
+			}
 
-															$data .= '
+			$data .= '
 														</th>
 													</tr>
 													<tr>
@@ -1146,11 +1145,222 @@ try {
 		}
 	}
 
-	
+
 	if (isset($_POST['create_padp_div'])) {
 		$progid = $_POST['progid'];
-		$year = date("Y") - 1;
+		$year = date("Y");
+		//$year = date("Y") - 1;
 
+		//get program sector 
+		$query_year = $db->prepare("SELECT id, year FROM `tbl_fiscal_year` WHERE yr=:adpyr");
+		$query_year->execute(array(":adpyr" => $year));
+		$rowyear = $query_year->fetch();
+		$yearid = $rowyear["id"];
+		$fnyear = $rowyear["year"];
+
+		// get program output details  
+		$query_inddetails = $db->prepare("SELECT d.id, d.progid, d.projid, d.outputid, d.indicator, d.total_target FROM tbl_project_details d inner join tbl_annual_dev_plan a on a.projid=d.projid inner join tbl_adp_projects_budget b on b.projid=d.projid WHERE b.progid ='$progid' AND b.year='$yearid' GROUP BY d.outputid");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
+
+		// get program name  
+		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
+		$query_program->execute();
+		$row_program = $query_program->fetch();
+		$progname = $row_program["progname"];
+
+		//get program budget
+		$query_prgbudget =  $db->prepare("SELECT SUM(b.amount) as prjbudget FROM tbl_adp_projects_budget b left join tbl_annual_dev_plan a on a.projid=b.projid WHERE b.progid ='$progid' AND b.year='$yearid' AND a.status=0");
+		$query_prgbudget->execute();
+		$row_prgbudget = $query_prgbudget->fetch();
+		$progbudget = number_format($row_prgbudget['prjbudget'], 2);
+
+		$optable  = '
+		<div class="card-header">
+			<div class="ol-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px">
+				<h5>
+					<strong> Program: ' . $progname . '</strong>
+					<input type="hidden" name="progid" value="' . $progid . '">
+					<input type="hidden" name="finyear" value="' . $year . '">
+				</h5>
+			</div>                                
+		</div>
+		<div class="body"> 
+			<div class="row clearfix"> 
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px">  
+					<div class=" class="col-lg-12 col-md-12 col-sm-12 col-xs-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Output</th>
+									<th>Indicator</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_inddetails = $query_inddetails->fetch()) {
+									$sn++;
+									
+									$outputid = $row_inddetails["outputid"];
+									$indicatorid = $row_inddetails["indicator"];
+									
+									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE id ='$outputid' AND year='$year'");
+									$query_outputdetails->execute();
+									$row_outputdetails = $query_outputdetails->fetch();
+									
+									$output = $row_outputdetails["output"];
+
+									$query_Indicator = $db->prepare("SELECT i.indicator_name, u.unit FROM tbl_indicator i INNER JOIN tbl_measurement_units u ON u.id =i.indicator_unit WHERE i.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output'");
+									$query_Indicator->execute();
+									$row = $query_Indicator->fetch();
+									$unit = $row['unit'];
+									$indicator = $row['indicator_name'];
+
+									$optable  .= '<tr>
+											<td>' . $sn . '</td>
+											<td>' . $output . '</td>
+											<td>' . $unit . " of " . $indicator . '</td>
+											<input type="hidden" name="indid[]" value="' . $indicatorid . '">
+											<input type="hidden" name="opid[]" value="' . $outputid . '">
+										</tr>';
+								}
+								$optable  .= '	
+							</tbody>
+						</table>
+					</div>
+					<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">					  
+						<label>Requested Program Budget (Ksh):</label>
+						<div class="form-line">
+							<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $progbudget . '</div>	
+						</div>
+					</div>	
+					<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">				  
+						<label>Progranm Adusted Budget *:</label>
+						<div class="form-line">
+							<input type="number"  name="progadpbudget" value="" id="progadpbudget" placeholder="Enter program ADP budget for the financial year ' . $fnyear . '" class="form-control" class="form-control" required />	
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>';
+		echo $optable;
+	}
+
+	if (isset($_POST['edit_padp_div'])) {
+		$progid = $_POST['progid'];
+		$year = $_POST['adpyr'];
+		$progid = $_POST['progid'];
+		$year = date("Y");
+		//$year = date("Y") - 1;
+
+		//get program sector 
+		$query_year = $db->prepare("SELECT id, year FROM `tbl_fiscal_year` WHERE yr=:adpyr");
+		$query_year->execute(array(":adpyr" => $year));
+		$rowyear = $query_year->fetch();
+		$yearid = $rowyear["id"];
+		$fnyear = $rowyear["year"];
+
+		// get program output details  
+		$query_inddetails = $db->prepare("SELECT d.id, d.progid, d.projid, d.outputid, d.indicator, d.total_target FROM tbl_project_details d inner join tbl_annual_dev_plan a on a.projid=d.projid inner join tbl_adp_projects_budget b on b.projid=d.projid WHERE b.progid ='$progid' AND b.year='$yearid' GROUP BY d.outputid");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
+
+		// get program name  
+		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
+		$query_program->execute();
+		$row_program = $query_program->fetch();
+		$progname = $row_program["progname"];
+
+		//get program budget
+		$query_prgbudget =  $db->prepare("SELECT SUM(b.amount) as prjbudget FROM tbl_adp_projects_budget b left join tbl_annual_dev_plan a on a.projid=b.projid WHERE b.progid ='$progid' AND b.year='$yearid' AND a.status=0");
+		$query_prgbudget->execute();
+		$row_prgbudget = $query_prgbudget->fetch();
+		$progbudget = number_format($row_prgbudget['prjbudget'], 2);
+		
+		$query_budgetdetails = $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND finyear='$year'");
+		$query_budgetdetails->execute();
+		$row_budgetdetails = $query_budgetdetails->fetch();
+		
+		$pbbid = $row_budgetdetails['id'];
+		$budgetvalue = $row_budgetdetails['budget'];
+
+		$optable  = '
+		<div class="header">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px">
+				<h5>
+					<strong> Program: ' . $progname . '</strong>
+					<input type="hidden" name="progid" value="' . $progid . '">
+					<input type="hidden" name="finyear" value="' . $year . '">
+					<input type="hidden" name="pbbid" value="' . $pbbid . '">
+				</h5>
+			</div>                                
+		</div>
+		<div class="body"> 
+			<div class="row clearfix"> 
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px">  
+					<div class=" class="col-lg-12 col-md-12 col-sm-12 col-xs-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Output</th>
+									<th>Indicator</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_inddetails = $query_inddetails->fetch()) {
+									$sn++;
+									
+									$outputid = $row_inddetails["outputid"];
+									$indicatorid = $row_inddetails["indicator"];
+									
+									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE id ='$outputid' AND year='$year'");
+									$query_outputdetails->execute();
+									$row_outputdetails = $query_outputdetails->fetch();
+									$output = $row_outputdetails["output"];
+
+									$query_Indicator = $db->prepare("SELECT i.indicator_name, u.unit FROM tbl_indicator i INNER JOIN tbl_measurement_units u ON u.id =i.indicator_unit WHERE i.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output' ");
+									$query_Indicator->execute();
+									$row = $query_Indicator->fetch();
+									$indicator = $row['indicator_name'];
+									$unit = $row['unit'];
+									
+									$optable  .= '
+									<tr>
+										<td>' . $sn . '</td>
+										<td>' . $output . '</td>
+										<td>' . $unit . " of " . $indicator . '</td>
+									</tr>';
+								}
+								$optable  .= '
+							</tbody>
+						</table>
+					</div>
+					<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">					  
+						<label>Requested Program Budget (Ksh):</label>
+						<div class="form-line">
+							<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $progbudget . '</div>	
+						</div>
+					</div>	
+					<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">				  
+						<label>Progranm Adusted Budget *:</label>
+						<div class="form-line">
+							<input type="number"  name="progadpbudget" value="'.$budgetvalue.'" id="progadpbudget" placeholder="Enter program ADP budget for the financial year ' . $fnyear . '" class="form-control" class="form-control" required />	
+						</div>
+					</div>		
+				</div>
+			</div>
+		</div>';
+
+		echo $optable;
+	}
+
+	if (isset($_POST['view_padp_div'])) {
+		$progid = $_POST['progid'];
+		$year = $_POST['adpyr'];
+		
 		//get program sector 
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
@@ -1158,267 +1368,9 @@ try {
 		$yearid = $rowyear["id"];
 		
 		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE progid ='$progid' AND year='$year'");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
-
-		// get program name  
-		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
-		$query_program->execute();
-		$row_program = $query_program->fetch();
-		$progname = $row_program["progname"];
-
-		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th>
-											<th>Output</th>
-											<th>Indicator</th>
-											<th>Initial Target</th>
-											<th>Target</th>
-											<th>Initial Budget</th>
-											<th>Budget</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$sn++;
-											$outputid = $row_outputdetails["id"];
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											
-
-											//get program budget
-											$query_prgbudget =  $db->prepare("SELECT SUM(budget) as prjbudget FROM tbl_project_details d left join tbl_annual_dev_plan a on a.projid=d.projid WHERE d.progid ='$progid' AND  outputid='$outputid' AND d.year='$yearid' AND a.status=0");
-											$query_prgbudget->execute();
-											$row_prgbudget = $query_prgbudget->fetch();
-											$progbudget = number_format($row_prgbudget['prjbudget'], 2);
-											
-											$query_indicator =  $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indicatorid'");
-											$query_indicator->execute();
-											$row_indicator = $query_indicator->fetch();
-											$indicator = $row_indicator['indicator_name'];
-
-											$query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit FROM tbl_indicator  INNER JOIN tbl_measurement_units ON tbl_measurement_units.id =tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output' ");
-											$query_Indicator->execute();
-											$row = $query_Indicator->fetch();
-											$unit = $row['unit'];
-
-											$query_initials =  $db->prepare("SELECT * FROM `tbl_progdetails` WHERE progid = '$progid' AND indicator ='$indicatorid' AND year= '$year' ");
-											$query_initials->execute();
-											$row_initials = $query_initials->fetch();
-											$initial_target = $row_initials['target'];
-											$initial_budget = $row_initials['budget'];
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td>'.$unit . " of " . $indicator.'</td>
-												<td>'.number_format($initial_target, 2).'</td>
-												<td>
-													<input type="text" id="optarget'.$outputid.'" class="form-control" name="optarget[]" placeholder="Enter approved target">
-												</td>
-												<td>'.$progbudget.'</td>
-												<td>
-													<input type="number" id="opbudget'.$outputid.'" class="form-control" name="opbudget[]" placeholder="Enter approved budget">
-												</td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
-					</div>
-			</div>';
-
-		echo $optable;
-	}		
-/* 	
-	if (isset($_POST['create_padp_div'])) {
-		$progid = $_POST['progid'];
-		$year = date("Y");
-
-		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE progid ='$progid' AND year='$year'");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
-
-		// get program name  
-		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
-		$query_program->execute();
-		$row_program = $query_program->fetch();
-		$progname = $row_program["progname"];
-
-		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th><th>Output</th><th>Indicator</th><th>Target</th><th>Budget</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$sn++;
-											$outputid = $row_outputdetails["id"];
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											
-											$query_indicator =  $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indicatorid'");
-											$query_indicator->execute();
-											$row_indicator = $query_indicator->fetch();
-											$indicator = $row_indicator['indicator_name'];
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td>'.$indicator.'</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optarget[]" placeholder="Enter approved target"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="opbudget[]" placeholder="Enter approved budget"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
-					</div>
-			</div>';
-
-		echo $optable;
-	} */
-	
-	if (isset($_POST['edit_padp_div'])) {
-		$progid = $_POST['progid'];
-		$year = $_POST['adpyr'];
-
-		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
-
-		// get program name  
-		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
-		$query_program->execute();
-		$row_program = $query_program->fetch();
-		$progname = $row_program["progname"];
-
-		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th>
-											<th>Output</th>
-											<th>Indicator</th>
-											<th>Initial Target</th>
-											<th>Target</th>
-											<th>Initial Budget</th>
-											<th>Budget</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											
-											$query_budgetdetails = $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND finyear='$year' AND opid='$outputid'");
-											$query_budgetdetails->execute();
-											$row_budgetdetails = $query_budgetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_budgetdetails['id'];
-											$targetvalue = $row_budgetdetails['target'];
-											$budgetvalue = $row_budgetdetails['budget'];
-
-											$query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit FROM tbl_indicator  INNER JOIN tbl_measurement_units ON tbl_measurement_units.id =tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output' ");
-											$query_Indicator->execute();
-											$row = $query_Indicator->fetch();
-											$unit = $row['unit'];
-											
-
-											$query_initials =  $db->prepare("SELECT * FROM `tbl_progdetails` WHERE progid = '$progid' AND indicator ='$indicatorid' AND year= '$year' ");
-											$query_initials->execute();
-											$row_initials = $query_initials->fetch();
-											$initial_target = $row_initials['target'];
-											$initial_budget = $row_initials['budget'];
-
-											$sn++;
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td>'.$unit . " of " .$indicator.'</td>
-												<td>'.number_format($initial_target, 2).'</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optarget[]" placeholder="Enter approved target" value="'.$targetvalue.'"></td>
-												<td>'.number_format($initial_budget, 2).'</td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="opbudget[]" placeholder="Enter approved budget" value="'.$budgetvalue.'"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
-					</div>
-			</div>';
-
-		echo $optable;
-	}
-	
-	if (isset($_POST['view_padp_div'])) {
-		$progid = $_POST['progid'];
-		$year = $_POST['adpyr'];
-
-		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
+		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid  inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
 
 		// get program name  
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
@@ -1445,41 +1397,47 @@ try {
 										</tr>
 									</thead>
 									<tbody>';
-										$sn=0;
-										$totalbudget=0;
-										$totaltarget=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											
-											$query_budgetdetails = $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND finyear='$year' AND opid='$outputid'");
-											$query_budgetdetails->execute();
-											$row_budgetdetails = $query_budgetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_budgetdetails['id'];
-											$targetvalue = $row_budgetdetails['target'];
-											$budgetvalue = $row_budgetdetails['budget'];
-											$totalbudget=$totalbudget+$budgetvalue;
-											$totaltarget=$totaltarget+$targetvalue;
+		$sn = 0;
+		$totalbudget = 0;
+		$totaltarget = 0;
+		while ($row_inddetails = $query_inddetails->fetch()) {
+			$sn++;
+			
+			$outputid = $row_inddetails["outputid"];
+			$indicatorid = $row_inddetails["indicator"];
+			
+			$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.id ='$outputid' AND d.year='$year' GROUP BY d.id");
+			$query_outputdetails->execute();
+			$row_outputdetails = $query_outputdetails->fetch();
+			
+			$output = $row_outputdetails["output"];
+			$indicator = $row_outputdetails['indicator_name'];
 
-											$query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit FROM tbl_indicator  INNER JOIN tbl_measurement_units ON tbl_measurement_units.id =tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output' ");
-											$query_Indicator->execute();
-											$row = $query_Indicator->fetch();
-											$unit = $row['unit'];
-											
-											$sn++;
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td>'.$unit . " of " .$indicator.'</td>
-												<td>'.number_format($targetvalue).'</td>
-												<td>'.number_format($budgetvalue, 2).'</td>
+			$query_budgetdetails = $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND finyear='$year' AND opid='$outputid'");
+			$query_budgetdetails->execute();
+			$row_budgetdetails = $query_budgetdetails->fetch();
+
+			$pbbid = $row_budgetdetails['id'];
+			$targetvalue = $row_budgetdetails['target'];
+			$budgetvalue = $row_budgetdetails['budget'];
+			$totalbudget = $totalbudget + $budgetvalue;
+			$totaltarget = $totaltarget + $targetvalue;
+
+			$query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit FROM tbl_indicator  INNER JOIN tbl_measurement_units ON tbl_measurement_units.id =tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicatorid' AND baseline=1 AND indicator_category='Output' ");
+			$query_Indicator->execute();
+			$row = $query_Indicator->fetch();
+			$unit = $row['unit'];
+
+			$optable  .= '<tr>
+												<td>' . $sn . '</td>
+												<td>' . $output . '</td>
+												<td>' . $unit . " of " . $indicator . '</td>
+												<td>' . number_format($targetvalue) . '</td>
+												<td>' . number_format($budgetvalue, 2) . '</td>
 											</tr>';
-										}
-										$optable  .= '<tr>
-											<td></td><td colspan="2"><strong>Total</strong></td><td><strong>'.number_format($totaltarget).'</strong></td><td><strong>'.number_format($totalbudget, 2).'</strong></td>
+		}
+		$optable  .= '<tr>
+											<td></td><td colspan="2"><strong>Total</strong></td><td></td><td><strong>' . number_format($totalbudget, 2) . '</strong></td>
 										</tr>
 									</tbody>
                                 </table>
@@ -1489,16 +1447,28 @@ try {
 			</div>';
 
 		echo $optable;
-	}		
-	
+	}
+
 	if (isset($_POST['create_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
+		
+		//get program sector 
+		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
+		$query_year->execute(array(":adpyr" => $year));
+		$rowyear = $query_year->fetch();
+		$yearid = $rowyear["id"];
+		
+		// get program output details  
+		$query_inddetails = $db->prepare("SELECT d.id, d.progid, d.projid, d.indicator, b.year, b.amount FROM tbl_project_details d inner join tbl_annual_dev_plan a on a.projid=d.projid inner join tbl_adp_projects_budget b on b.projid=d.projid WHERE b.progid ='$progid' AND b.year='$yearid' GROUP BY indicator");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
+		$total_inddetails = $query_inddetails->rowCount();
 
 		// get program output details 
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
-		$query_outputdetails->execute();
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
+		//$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
 		// get program name  
@@ -1514,11 +1484,11 @@ try {
 							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
 								<h5>
 									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
+									<input type="hidden" name="progid" value="' . $progid . '">
+									<input type="hidden" name="finyear" value="' . $year . '">
 									<br>
 									<br>
-									<strong>Financial Year: '.$year.'/'.$yearnxt.'</strong>
+									<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 								</h5>
 							</div>                                
 						</div>
@@ -1531,38 +1501,48 @@ try {
 										</tr>
 									</thead>
 									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$sn++;
-											$outputid = $row_outputdetails["id"];
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$unitid = $row_outputdetails["indicator_unit"];
-											
-											$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
-											$query_pbb->execute();
-											$rows_pbb = $query_pbb->fetch();
-											$yearlytarget = $rows_pbb['target'];
-											$pbbid = $rows_pbb['id'];
-											
-											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
-											$query_indunit->execute();
-											$rows_indunit = $query_indunit->fetch();
-											$unit = $rows_indunit['unit'];
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.' (Ceiling: <span id="'.$progid.$outputid.'">'.$yearlytarget.'</span> '.$unit.')</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target"></td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-												<input type="hidden" name="pbbid[]" value="'.$pbbid.'">
-											</tr>';
+										if ($total_inddetails > 0) {
+											$sn = 0;
+											while ($row_inddetails = $query_inddetails->fetch()) {
+												$sn++;
+												
+												$outputid = $row_inddetails["id"];
+												$indicatorid = $row_inddetails["indicator"];
+												
+												$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.indicator ='$indicatorid' AND d.year='$year' GROUP BY d.id");
+												$query_outputdetails->execute();
+												$row_outputdetails = $query_outputdetails->fetch();
+												
+												$output = $row_outputdetails["output"];
+												$indicator = $row_outputdetails['indicator_name'];
+												$unitid = $row_outputdetails["indicator_unit"];
+
+												$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
+												$query_pbb->execute();
+												$rows_pbb = $query_pbb->fetch();
+												$pbbid = $rows_pbb['id'];
+
+												$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
+												$query_indunit->execute();
+												$rows_indunit = $query_indunit->fetch();
+												$unit = $rows_indunit['unit'];
+
+												$optable  .= '<tr>
+													<td>' . $sn . '</td>
+													<td>' . $output . ' (<span id="' . $progid . $outputid . '">' . $unit . '</span> )</td>
+													<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target"></td>
+													<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target"></td>
+													<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target"></td>
+													<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target"></td>
+													<input type="hidden" name="indid[]" value="' . $indicatorid . '">
+													<input type="hidden" name="opid[]" value="' . $outputid . '">
+													<input type="hidden" name="pbbid[]" value="' . $pbbid . '">
+												</tr>';
+											}
+										} else {
+											$optable .= '<tr><td colspan="7"> Sorry you cannot add targets and budget</td></tr>';
 										}
-                                    $optable  .= '</tbody>
+									$optable  .= '</tbody>
                                 </table>
                             </div>
 						</div>
@@ -1570,8 +1550,8 @@ try {
 			</div>';
 
 		echo $optable;
-	}	
-	
+	}
+
 	if (isset($_POST['create_independent_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
@@ -1595,11 +1575,11 @@ try {
 							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
 								<h5>
 									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
+									<input type="hidden" name="progid" value="' . $progid . '">
+									<input type="hidden" name="finyear" value="' . $year . '">
 									<br>
 									<br>
-									<strong>Financial Year: '.$year.'/'.$yearnxt.'</strong>
+									<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 								</h5>
 							</div>                                
 						</div>
@@ -1608,35 +1588,43 @@ try {
 								<table class="table table-bordered table-striped table-hover" style="width:100%">
 									<thead>
 										<tr>
-											<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
+											<th>#</th>
+											<th>Output</th>
+											<th>' . $year . '/' . $yearnxt . ' Targets</th>
+											<th>Quarter 1</th>
+											<th>Quarter 2</th>
+											<th>Quarter 3</th>
+											<th>Quarter 4</th>
 										</tr>
 									</thead>
 									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
+										$sn = 0;
+										while ($row_outputdetails = $query_outputdetails->fetch()) {
 											$sn++;
 											$outputid = $row_outputdetails["id"];
 											$output = $row_outputdetails["output"];
 											$indicatorid = $row_outputdetails["indicator"];
 											$unitid = $row_outputdetails["indicator_unit"];
-											
+											$target = $row_outputdetails["target"];
+
 											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
 											$query_indunit->execute();
 											$rows_indunit = $query_indunit->fetch();
 											$unit = $rows_indunit['unit'];
-											
+
 											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target"></td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
+												<td>' . $sn . '</td>
+												<td>' . $output . '</td>
+												<td>' . $target . '</td>
+												<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target"></td>
+												<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target"></td>
+												<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target"></td>
+												<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target"></td>
+												<input type="hidden" name="indid[]" value="' . $indicatorid . '">
+												<input type="hidden" name="opid[]" value="' . $outputid . '">
 											</tr>';
 										}
-                                    $optable  .= '</tbody>
+									$optable  .= '</tbody>
                                 </table>
                             </div>
 						</div>
@@ -1645,15 +1633,23 @@ try {
 
 		echo $optable;
 	}
-	
+
+
 	if (isset($_POST['edit_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
-
+		
+		//get program sector 
+		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
+		$query_year->execute(array(":adpyr" => $year));
+		$rowyear = $query_year->fetch();
+		$yearid = $rowyear["id"];
+		
 		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
+		$query_inddetails = $db->prepare("SELECT d.id, d.progid, d.projid, d.indicator, b.year, b.amount FROM tbl_project_details d inner join tbl_annual_dev_plan a on a.projid=d.projid inner join tbl_adp_projects_budget b on b.projid=d.projid WHERE b.progid ='$progid' AND b.year='$yearid' GROUP BY indicator");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
+		$total_inddetails = $query_inddetails->rowCount();
 
 		// get program name  
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
@@ -1662,79 +1658,77 @@ try {
 		$progname = $row_program["progname"];
 
 		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th<th>Quarter 3</th><th>Quarter 4</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											$unitid = $row_outputdetails["indicator_unit"];
-											
-											$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
-											$query_pbb->execute();
-											$rows_pbb = $query_pbb->fetch();
-											$yearlytarget = $rows_pbb['target'];
-											$pbbid = $rows_pbb['id'];
-											
-											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
-											$query_indunit->execute();
-											$rows_indunit = $query_indunit->fetch();
-											$unit = $rows_indunit['unit'];
-											
-											$query_targetdetails = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
-											$query_targetdetails->execute();
-											$row_targetdetails = $query_targetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_targetdetails['id'];
-											$targetQ1 = $row_targetdetails['Q1'];
-											$targetQ2 = $row_targetdetails['Q2'];
-											$targetQ3 = $row_targetdetails['Q3'];
-											$targetQ4 = $row_targetdetails['Q4'];
-											
-											$sn++;
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.' (Ceiling: <span id="'.$progid.$outputid.'">'.$yearlytarget.'</span> '.$unit.')</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target" value="'.$targetQ1.'"></td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target" value="'.$targetQ2.'"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target" value="'.$targetQ3.'"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target" value="'.$targetQ4.'"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-												<input type="hidden" name="pbbid[]" value="'.$pbbid.'">
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<div class="card">
+				<div class="header">
+					<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
+						<h5>
+							<strong> Program: ' . $progname . '</strong>
+							<input type="hidden" name="progid" value="' . $progid . '">
+							<input type="hidden" name="finyear" value="' . $year . '">
+						</h5>
+					</div>                                
+				</div>
+				<div class="body">
+					<div class=" class="col-md-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_inddetails = $query_inddetails->fetch()) {
+									$sn++;
+									
+									$outputid = $row_inddetails["id"];
+									$indicatorid = $row_inddetails["indicator"];
+									
+									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE i.indid ='$indicatorid' AND d.year='$year' GROUP BY d.id");
+									$query_outputdetails->execute();
+									$row_outputdetails = $query_outputdetails->fetch();
+									
+									$output = $row_outputdetails["output"];
+									$indicator = $row_outputdetails['indicator_name'];
+									$unitid = $row_outputdetails["indicator_unit"];
+
+									$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
+									$query_indunit->execute();
+									$rows_indunit = $query_indunit->fetch();
+									$unit = $rows_indunit['unit'];
+
+									$query_targetdetails = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
+									$query_targetdetails->execute();
+									$row_targetdetails = $query_targetdetails->fetch();
+									$indicatorid = $row_outputdetails["indicator"];
+									$targetQ1 = $row_targetdetails['Q1'];
+									$targetQ2 = $row_targetdetails['Q2'];
+									$targetQ3 = $row_targetdetails['Q3'];
+									$targetQ4 = $row_targetdetails['Q4'];
+
+									$optable  .= '<tr>
+										<td>' . $sn . '</td>
+										<td>' . $output . ' (<span id="' . $progid . $outputid . '">' . $unit . '</span> )</td>
+										<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target" value="' . $targetQ1 . '"></td>
+										<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target" value="' . $targetQ2 . '"></td>
+										<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target" value="' . $targetQ3 . '"></td>
+										<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target" value="' . $targetQ4 . '"></td>
+										<input type="hidden" name="indid[]" value="' . $indicatorid . '">
+										<input type="hidden" name="opid[]" value="' . $outputid . '">
+										<input type="hidden" name="pbbid[]" value="' . $pbbid . '">
+									</tr>';
+								}
+							$optable  .= '</tbody>
+						</table>
 					</div>
-			</div>';
+				</div>
+			</div>
+		</div>';
 
 		echo $optable;
 	}
-	
+
 	if (isset($_POST['edit_indepedent_programs_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
@@ -1751,82 +1745,91 @@ try {
 		$progname = $row_program["progname"];
 
 		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<input type="hidden" name="progid" value="'.$progid.'">
-									<input type="hidden" name="finyear" value="'.$year.'">
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th<th>Quarter 3</th><th>Quarter 4</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											$unitid = $row_outputdetails["indicator_unit"];
-											
-											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
-											$query_indunit->execute();
-											$rows_indunit = $query_indunit->fetch();
-											$unit = $rows_indunit['unit'];
-											
-											$query_targetdetails = $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
-											$query_targetdetails->execute();
-											$row_targetdetails = $query_targetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_targetdetails['id'];
-											$targetQ1 = $row_targetdetails['Q1'];
-											$targetQ2 = $row_targetdetails['Q2'];
-											$targetQ3 = $row_targetdetails['Q3'];
-											$targetQ4 = $row_targetdetails['Q4'];
-											
-											$sn++;
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.'</td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target" value="'.$targetQ1.'"></td>
-												<td><input type="text" id="optarget'.$outputid.'" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target" value="'.$targetQ2.'"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target" value="'.$targetQ3.'"></td>
-												<td><input type="text" id="opbudget'.$outputid.'" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target" value="'.$targetQ4.'"></td>
-												<input type="hidden" name="indid[]" value="'.$indicatorid.'">
-												<input type="hidden" name="opid[]" value="'.$outputid.'">
-												<input type="hidden" name="pbbid[]" value="'.$pbbid.'">
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<div class="card">
+				<div class="header">
+					<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
+						<h5>
+							<strong> Program: ' . $progname . '</strong>
+							<input type="hidden" name="progid" value="' . $progid . '">
+							<input type="hidden" name="finyear" value="' . $year . '">
+						</h5>
+					</div>                                
+				</div>
+				<div class="body">
+					<div class=" class="col-md-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th><th>Output</th><th>' . $year . '/' . $yearnxt . ' Targets</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_outputdetails = $query_outputdetails->fetch()) {
+									$outputid = $row_outputdetails["id"];
+									$unitid = $row_outputdetails["indicator_unit"];
+
+									$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
+									$query_indunit->execute();
+									$rows_indunit = $query_indunit->fetch();
+									$unit = $rows_indunit['unit'];
+
+									$query_targetdetails = $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
+									$query_targetdetails->execute();
+									$row_targetdetails = $query_targetdetails->fetch();
+
+									$output = $row_outputdetails["output"];
+									$indicatorid = $row_outputdetails["indicator"];
+									$indicator = $row_outputdetails['indicator_name'];
+									$target = $row_outputdetails['target'];
+									$pbbid = $row_targetdetails['id'];
+									$targetQ1 = $row_targetdetails['Q1'];
+									$targetQ2 = $row_targetdetails['Q2'];
+									$targetQ3 = $row_targetdetails['Q3'];
+									$targetQ4 = $row_targetdetails['Q4'];
+
+									$sn++;
+
+									$optable  .= '<tr>
+										<td>' . $sn . '</td>
+										<td>' . $output . '</td>
+										<td>' . $target . '</td>
+										<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq1[]" placeholder="Enter Q1 Target" value="' . $targetQ1 . '"></td>
+										<td><input type="text" id="optarget' . $outputid . '" class="form-control" name="optargetq2[]" placeholder="Enter Q2 Target" value="' . $targetQ2 . '"></td>
+										<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq3[]" placeholder="Enter Q3 Target" value="' . $targetQ3 . '"></td>
+										<td><input type="text" id="opbudget' . $outputid . '" class="form-control" name="optargetq4[]" placeholder="Enter Q4 Target" value="' . $targetQ4 . '"></td>
+										<input type="hidden" name="indid[]" value="' . $indicatorid . '">
+										<input type="hidden" name="opid[]" value="' . $outputid . '">
+										<input type="hidden" name="pbbid[]" value="' . $pbbid . '">
+									</tr>';
+								}
+							$optable  .= '</tbody>
+						</table>
 					</div>
-			</div>';
+				</div>
+			</div>
+		</div>';
 
 		echo $optable;
 	}
-	
+
 	if (isset($_POST['view_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
-
+		
+		//get program sector 
+		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
+		$query_year->execute(array(":adpyr" => $year));
+		$rowyear = $query_year->fetch();
+		$yearid = $rowyear["id"];
+		
 		// get program output details  
-		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
-		$query_outputdetails->execute();
-		//$row_outputdetails = $query_outputdetails->fetch();
+		$query_inddetails = $db->prepare("SELECT d.id, d.progid, d.projid, d.indicator, b.year, b.amount FROM tbl_project_details d inner join tbl_annual_dev_plan a on a.projid=d.projid inner join tbl_adp_projects_budget b on b.projid=d.projid WHERE b.progid ='$progid' AND b.year='$yearid' GROUP BY indicator");
+		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
+		$query_inddetails->execute();
+		$total_inddetails = $query_inddetails->rowCount();
 
 		// get program name  
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
@@ -1835,77 +1838,85 @@ try {
 		$progname = $row_program["progname"];
 
 		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<br>
-									<br>
-									<strong>Financial Year: '.$year.'/'.$yearnxt.'</strong>
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											$unitid = $row_outputdetails["indicator_unit"];
-											
-											$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
-											$query_pbb->execute();
-											$rows_pbb = $query_pbb->fetch();
-											$yearlytarget = $rows_pbb['target'];
-											$pbbid = $rows_pbb['id'];
-											
-											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
-											$query_indunit->execute();
-											$rows_indunit = $query_indunit->fetch();
-											$unit = $rows_indunit['unit'];
-											
-											$query_targetdetails = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
-											$query_targetdetails->execute();
-											$row_targetdetails = $query_targetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_targetdetails['id'];
-											$targetQ1 = $row_targetdetails['Q1'];
-											$targetQ2 = $row_targetdetails['Q2'];
-											$targetQ3 = $row_targetdetails['Q3'];
-											$targetQ4 = $row_targetdetails['Q4'];
-											
-											$sn++;
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.' (Ceiling: <span id="'.$progid.$outputid.'">'.$yearlytarget.'</span> '.$unit.')</td>
-												<td>'.$targetQ1.'</td>
-												<td>'.$targetQ2.'</td>
-												<td>'.$targetQ3.'</td>
-												<td>'.$targetQ4.'</td>
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<div class="card">
+				<div class="header">
+					<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
+						<h5>
+							<strong> Program: ' . $progname . '</strong>
+							<br>
+							<br>
+							<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
+						</h5>
+					</div>                                
+				</div>
+				<div class="body">
+					<div class=" class="col-md-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_inddetails = $query_inddetails->fetch()) {
+									$sn++;
+									
+									$outputid = $row_inddetails["outputid"];
+									$indicatorid = $row_inddetails["indicator"];
+									
+									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE i.indid ='$indicatorid' AND d.year='$year' GROUP BY d.id");
+									$query_outputdetails->execute();
+									$row_outputdetails = $query_outputdetails->fetch();
+									
+									$output = $row_outputdetails["output"];
+									$indicator = $row_outputdetails['indicator_name'];
+									$unitid = $row_outputdetails["indicator_unit"];
+
+									$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
+									$query_pbb->execute();
+									$rows_pbb = $query_pbb->fetch();
+									$yearlytarget = $rows_pbb['target'];
+									$pbbid = $rows_pbb['id'];
+
+									$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
+									$query_indunit->execute();
+									$rows_indunit = $query_indunit->fetch();
+									$unit = $rows_indunit['unit'];
+
+									$query_targetdetails = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
+									$query_targetdetails->execute();
+									$row_targetdetails = $query_targetdetails->fetch();
+
+									$output = $row_outputdetails["output"];
+									$indicatorid = $row_outputdetails["indicator"];
+									$indicator = $row_outputdetails['indicator_name'];
+									$pbbid = $row_targetdetails['id'];
+									$targetQ1 = $row_targetdetails['Q1'];
+									$targetQ2 = $row_targetdetails['Q2'];
+									$targetQ3 = $row_targetdetails['Q3'];
+									$targetQ4 = $row_targetdetails['Q4'];
+
+									$optable  .= '<tr>
+										<td>' . $sn . '</td>
+										<td>' . $output . ' (Ceiling: <span id="' . $progid . $outputid . '">' . $yearlytarget . '</span> ' . $unit . ')</td>
+										<td>' . $targetQ1 . '</td>
+										<td>' . $targetQ2 . '</td>
+										<td>' . $targetQ3 . '</td>
+										<td>' . $targetQ4 . '</td>
+									</tr>';
+								}
+							$optable  .= '</tbody>
+						</table>
 					</div>
-			</div>';
+				</div>
+			</div>
+		</div>';
 
 		echo $optable;
-	}	
-	
+	}
+
 	if (isset($_POST['view_independent_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
@@ -1923,72 +1934,74 @@ try {
 		$progname = $row_program["progname"];
 
 		$optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
-								<h5>
-									<strong> Program: ' . $progname . '</strong>
-									<br>
-									<br>
-									<strong>Financial Year: '.$year.'/'.$yearnxt.'</strong>
-								</h5>
-							</div>                                
-						</div>
-						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
-								<table class="table table-bordered table-striped table-hover" style="width:100%">
-									<thead>
-										<tr>
-											<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
-										</tr>
-									</thead>
-									<tbody>';
-										$sn=0;
-										while($row_outputdetails = $query_outputdetails->fetch()) {
-											$outputid = $row_outputdetails["id"];
-											$unitid = $row_outputdetails["indicator_unit"];
-											
-											$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
-											$query_indunit->execute();
-											$rows_indunit = $query_indunit->fetch();
-											$unit = $rows_indunit['unit'];
-											
-											$query_targetdetails = $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
-											$query_targetdetails->execute();
-											$row_targetdetails = $query_targetdetails->fetch();
-											
-											$output = $row_outputdetails["output"];
-											$indicatorid = $row_outputdetails["indicator"];
-											$indicator = $row_outputdetails['indicator_name'];
-											$pbbid = $row_targetdetails['id'];
-											$targetQ1 = $row_targetdetails['Q1'];
-											$targetQ2 = $row_targetdetails['Q2'];
-											$targetQ3 = $row_targetdetails['Q3'];
-											$targetQ4 = $row_targetdetails['Q4'];
-											
-											$sn++;
-											
-											$optable  .= '<tr>
-												<td>'.$sn.'</td>
-												<td>'.$output.' (Ceiling: <span id="'.$progid.$outputid.'">'.$yearlytarget.'</span> '.$unit.')</td>
-												<td>'.$targetQ1.'</td>
-												<td>'.$targetQ2.'</td>
-												<td>'.$targetQ3.'</td>
-												<td>'.$targetQ4.'</td>
-											</tr>';
-										}
-                                    $optable  .= '</tbody>
-                                </table>
-                            </div>
-						</div>
-					</div>
-			</div>';
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<div class="card">
+				<div class="header">
+					<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
+						<h5>
+							<strong> Program: ' . $progname . '</strong>
+							<br>
+							<br>
+							<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
+						</h5>
+					</div>                                
+				</div>
+				<div class="body">
+					<div class=" class="col-md-12" table-responsive">
+						<table class="table table-bordered table-striped table-hover" style="width:100%">
+							<thead>
+								<tr>
+									<th>#</th><th>Output</th><th>Quarter 1</th><th>Quarter 2</th><th>Quarter 3</th><th>Quarter 4</th>
+								</tr>
+							</thead>
+							<tbody>';
+								$sn = 0;
+								while ($row_outputdetails = $query_outputdetails->fetch()) {
+									$outputid = $row_outputdetails["id"];
+									$unitid = $row_outputdetails["indicator_unit"];
 
+									$query_indunit =  $db->prepare("SELECT * FROM tbl_measurement_units WHERE id ='$unitid'");
+									$query_indunit->execute();
+									$rows_indunit = $query_indunit->fetch();
+									$unit = $rows_indunit['unit'];
+
+									$query_targetdetails = $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid ='$progid' AND year='$year' AND opid='$outputid'");
+									$query_targetdetails->execute();
+									$row_targetdetails = $query_targetdetails->fetch();
+
+
+									$output = $row_outputdetails["output"];
+									$indicatorid = $row_outputdetails["indicator"];
+									$indicator = $row_outputdetails['indicator_name'];
+									$pbbid = $row_targetdetails ? $row_targetdetails['id'] : "";
+									$targetQ1 = $row_targetdetails ? $row_targetdetails['Q1'] : 0;
+									$targetQ2 = $row_targetdetails ? $row_targetdetails['Q2'] : 0;
+									$targetQ3 = $row_targetdetails ? $row_targetdetails['Q3'] : 0;
+									$targetQ4 = $row_targetdetails ? $row_targetdetails['Q4'] : 0;
+
+									$sn++;
+
+									$yearlytarget = $targetQ1 + $targetQ2 + $targetQ3 + $targetQ4;
+
+									$optable  .= '<tr>
+										<td>' . $sn . '</td>
+										<td>' . $output . ' (Ceiling: <span id="' . $progid . $outputid . '">' . $yearlytarget . '</span> ' . $unit . ')</td>
+										<td>' . $targetQ1 . '</td>
+										<td>' . $targetQ2 . '</td>
+										<td>' . $targetQ3 . '</td>
+										<td>' . $targetQ4 . '</td>
+									</tr>';
+								}
+							$optable  .= '</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>';
 		echo $optable;
 	}
-	
-	
+
+
 	if (isset($_POST["approvedbudget"])) {
 		$projid = $_POST['projid'];
 		$budget = $_POST['projapprovedbudget'];
@@ -2000,7 +2013,7 @@ try {
 		$queryuserdetails->execute();
 		$row_user_details =  $queryuserdetails->fetch();
 		$userid = $row_user_details["userid"];
-		
+
 		$insertbudget = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created)  VALUES(:projid, :year, :amount, :createdby, :datecreated)");
 		$results  = $insertbudget->execute(array(":projid" => $projid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $userid, ":datecreated" => $date));
 

@@ -1,19 +1,15 @@
-<?php
-$stplan = (isset($_GET['plan'])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
-$stplane = base64_encode($stplan);
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
+<?php 
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
+$stplanid_array = explode("strplan1", $decode_stplanid);
+$stplan = $stplanid_array[1];
 
-$page = "view";
+$stplane = $_GET['plan'];
 require('includes/head.php');
-$pageTitle = $planlabelplural;
-
-if ($permission) {
-    require('functions/strategicplan.php');
+if ($permission) { 
+	require('functions/strategicplan.php');
+    // delete edit add_strategy add_program
     try {
-        $strategicPlan = get_strategic_plan($stplan);
+        $strategicPlan = get_splan($stplan);
         if (!$strategicPlan) {
             header("Location: view-strategic-plans.php");
         }
@@ -27,14 +23,14 @@ if ($permission) {
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
-?>
+	?>
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?> OBJECTIVES
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -54,10 +50,9 @@ if ($permission) {
                                     <a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
                                     <a href="view-kra.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
                                     <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
-                                    <a href="view-strategic-workplan-budget.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Targets Distribution</a>
                                     <a href="view-program.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
                                     <a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
-                                    <a href="view-objective-performance.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Progress Report</a>
+                                    <a href="strategic-plan-implementation-matrix.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Implementation Matrix</a>
                                 </div>
                             </div>
                         </div>
@@ -87,10 +82,14 @@ if ($permission) {
 
                                                 $objective_strategy = get_strategic_objectives_strategy($objid);
                                                 $objective_programs = strategic_objective_programs($objid);
-                                                $total_strategies = ($objective_strategy) ? count($objective_strategy) : 0;
-                                                $total_programs = ($objective_programs) ? count($objective_programs) : 0;
+                                                
+                                                $total_strategies = ($objective_strategy) ? count($objective_strategy) : 0; 
+												$objectiveid = base64_encode("obj321{$objid}");
 
-                                        ?>
+                                                $query_objPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE program_type=1 AND strategic_obj=:objid");	
+                                                $query_objPrograms->execute(array(":objid"=>$objid));   
+                                                $totalRows_objPrograms = $query_objPrograms->rowCount();
+												?>
                                                 <tr>
                                                     <td>
                                                         <?php echo $counter ?>
@@ -106,8 +105,8 @@ if ($permission) {
                                                             <span class="badge bg-orange"><?php echo $total_strategies ?> </span> </a>
                                                     </td>
                                                     <td>
-                                                        <a href="view-strategicplan-programs.php?objid=<?= base64_encode($objid) ?>">
-                                                            <span class="badge bg-deep-purple"><?php echo $total_programs ?> </span>
+                                                        <a href="view-strategicplan-programs.php?obj=<?= $objectiveid ?>">
+                                                            <span class="badge bg-deep-purple"><?php echo $totalRows_objPrograms ?> </span>
                                                         </a>
                                                     </td>
                                                     <td>
@@ -123,36 +122,32 @@ if ($permission) {
                                                                 </li>
                                                                 <?php
                                                                 if ($spstatus  != 2) {
-                                                                    if ($role_group == 2) {
-                                                                ?>
-                                                                        <li>
-                                                                            <a type="button" id="addprogram" href="add-program.php?objid=<?php echo base64_encode($objid) ?>">
-                                                                                <i class="fa fa-plus-square"></i> Add Program
-                                                                            </a>
-                                                                        </li>
-                                                                    <?php
-                                                                    } else if ($role_group == 1 && $file_rights->add && $file_rights->edit && $file_rights->delete_permission) {
+                                                                    if (in_array("create",$page_actions)) {
                                                                     ?>
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreItemModalBtn" onclick="addstrategy(<?php echo $objid ?>)">
                                                                                 <i class="fa fa-plus-square"></i> Add Strategy
                                                                             </a>
                                                                         </li>
-                                                                        <?php
-                                                                        if ($total_programs == 0) {
-                                                                        ?>
-                                                                            <li>
-                                                                                <a href="edit-objective.php?obj=<?php echo base64_encode($objid) ?>">
-                                                                                    <i class="glyphicon glyphicon-edit"></i> Edit Objective
-                                                                                </a>
-                                                                            </li>
-                                                                            <li>
-                                                                                <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?php echo $objid ?>)">
-                                                                                    <i class="glyphicon glyphicon-trash"></i> Remove Objective
-                                                                                </a>
-                                                                            </li>
+                                                                    <?php
+                                                                    }
+                                                                    if (in_array("update",$page_actions)) {
+                                                                    ?>
+                                                                        <li>
+                                                                            <a href="edit-objective.php?obj=<?php echo $objectiveid ?>">
+                                                                                <i class="glyphicon glyphicon-edit"></i> Edit Objective
+                                                                            </a>
+                                                                        </li>
+                                                                    <?php
+                                                                    }
+                                                                    if (in_array("delete",$page_actions)) {
+                                                                    ?>
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?php echo $objid ?>)">
+                                                                                <i class="glyphicon glyphicon-trash"></i> Remove Objective
+                                                                            </a>
+                                                                        </li>
                                                                 <?php
-                                                                        }
                                                                     }
                                                                 }
                                                                 ?>
@@ -190,7 +185,7 @@ if ($permission) {
                                         <form class="form-horizontal" id="addstrategyForm" action="assets/processor/add-new-strategy.php" method="POST" autocomplete="off">
                                             <br>
                                             <div id="result">
-                                                <div class="col-md-12">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                     <label>Strategy:</label>
                                                     <div class="form-line">
                                                         <input type="text" name="strategy" id="strategy" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter a new strategy" />
@@ -198,7 +193,7 @@ if ($permission) {
                                                 </div>
                                             </div>
                                             <div class="modal-footer editItemFooter">
-                                                <div class="col-md-12 text-center strat">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center strat">
                                                     <input type="hidden" name="username" id="username" value="<?= $user_name ?>">
                                                     <input type="hidden" name="addstrategy" value="addstrategy">
                                                     <input name="save" type="submit" id="addStrategyBtn" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
@@ -229,7 +224,7 @@ if ($permission) {
                 <div class="modal-body" id="moreinformation">
                 </div>
                 <div class="modal-footer">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
                     </div>
                 </div>
@@ -250,7 +245,7 @@ if ($permission) {
                 <div class="modal-body" id="moreinfo">
                 </div>
                 <div class="modal-footer">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
                     </div>
                 </div>
@@ -272,7 +267,7 @@ if ($permission) {
                     <p align="center">Are you sure you want to delete this record?</p>
                 </div>
                 <div class="modal-footer removeContractor NationalityFooter">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Cancel</button>
                         <button type="button" class="btn btn-success" id="removeItemBtn"> <i class="fa fa-check-square-o"></i> Delete</button>
                     </div>
@@ -296,7 +291,7 @@ if ($permission) {
                     <p align="center">Are you sure you want to delete this record?</p>
                 </div>
                 <div class="modal-footer removeContractor NationalityFooter">
-                    <div class="col-md-12 text-center">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Cancel</button>
                         <button type="button" class="btn btn-success" id="removeStrategyBtn"> <i class="fa fa-check-square-o"></i> Delete</button>
                     </div>

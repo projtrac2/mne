@@ -1,22 +1,10 @@
 <?php
-$results = "";
-
 require('functions/strategicplan.php');
-$pageName = "Strategic Plans";
-$replacement_array = array(
-    'planlabel' => "CIDP",
-    'plan_id' => base64_encode(6),
-);
-
-$page = "view";
-
 require('includes/head.php');
 if ($permission) {
-    $pageTitle = "Contractor Details";
 
     try {
         $currentPage = $_SERVER["PHP_SELF"];
-
         if (isset($_GET['contrid'])) {
             $contrid_rsInfo = $_GET['contrid'];
 
@@ -55,7 +43,7 @@ if ($permission) {
             $totalRows_rsContrDocs = $query_rsContrDocs->rowCount();
 
 
-            $query_rsContrProj = $db->prepare("SELECT p.*, g.projsector as sector FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND projcontractor = '$contrid_rsInfo' Order BY projid ASC");
+            $query_rsContrProj = $db->prepare("SELECT p.*, g.projsector as sector, g.projsector, g.projdept,g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND projcontractor = '$contrid_rsInfo' Order BY projid ASC");
             $query_rsContrProj->execute();
             $totalRows_rsContrProj = $query_rsContrProj->rowCount();
 
@@ -74,9 +62,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle;?>
-
+                    <?= $icon ?>
+                    <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <a href="view-contractors.php" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">Go Back to Contractors</a>
@@ -189,7 +176,7 @@ if ($permission) {
                                                         <td width="20%">ID/Passport Number</td>
                                                         <td width="20%">Nationality</td>
                                                         <?php
-                                                        if ($file_rights->edit) {
+                                                        if (in_array("create", $page_actions)) {
                                                         ?>
                                                             <td width="5%" data-orderable="false"></td>
                                                         <?php
@@ -216,7 +203,7 @@ if ($permission) {
                                                             <td style="padding-left:15px"><?php echo $DirID; ?></td>
                                                             <td style="padding-left:15px"><?php echo $row_rsDirNat['nationality']; ?></td>
                                                             <?php
-                                                            if ($file_rights->edit) {
+                                                            if (in_array("create", $page_actions)) {
                                                             ?>
                                                                 <td align="center">
                                                                     <a href="add-contractor.php?edit=1&contrid=<?php echo $contrid_rsInfo; ?>" class="edit-link" title="Edit"><i class="fa fa-edit text-primary" style="font-size:20px"></i></a>
@@ -308,9 +295,13 @@ if ($permission) {
                                                         $nm = $nm + 1;
                                                         $projsc = $row_rsContrProj['projcommunity'];
                                                         $projwd = $row_rsContrProj['projlga'];
-                                                        $projloc = $row_rsContrProj['projstate'];
                                                         $finyear = $row_rsContrProj['projfscyear'];
                                                         $sector = $row_rsContrProj['sector'];
+
+                                                        $project_department = $row_rsContrProj['projsector'];
+                                                        $project_section = $row_rsContrProj['projdept'];
+                                                        $project_directorate = $row_rsContrProj['directorate'];
+
 
                                                         $query_projsc = $db->prepare("SELECT state FROM tbl_state WHERE id='$projsc'");
                                                         $query_projsc->execute();
@@ -322,15 +313,10 @@ if ($permission) {
                                                         $row_projwd = $query_projwd->fetch();
                                                         $ward = $row_projwd["state"];
 
-                                                        $query_projloc = $db->prepare("SELECT state FROM tbl_state WHERE id='$projloc'");
-                                                        $query_projloc->execute();
-                                                        $row_projloc = $query_projloc->fetch();
-                                                        $loc = $row_projloc["state"];
-
                                                         if ($subcounty == "All") {
-                                                            $ContrProjLoc = $subcounty . " " . $level1labelplural . "; " . $ward . " " . $level2labelplural . "; " . $loc . " " . $level3labelplural;
+                                                            $ContrProjLoc = $subcounty . " " . $level1labelplural . "; " . $ward . " " . $level2labelplural;
                                                         } else {
-                                                            $ContrProjLoc = $subcounty . " " . $level1label . "; " . $ward . " " . $level2label . "; " . $loc . " " . $level3label;
+                                                            $ContrProjLoc = $subcounty . " " . $level1label . "; " . $ward . " " . $level2label;
                                                         }
 
                                                         $query_rsProjSect = $db->prepare("SELECT * FROM tbl_sectors WHERE stid = '$sector'");
@@ -350,187 +336,188 @@ if ($permission) {
                                                         } else {
                                                             $projstatus = "Approved";
                                                         }
+
+                                                        $filter_department = view_record($project_department, $project_section, $project_directorate);
+                                                        if ($filter_department) {
                                                     ?>
-                                                        <tr data-toggle="collapse" data-target=".order<?php echo $nm; ?>">
-                                                            <td align="center" class="mb-0">
-                                                                <button class="btn btn-link" title="Click once to expand and Click twice to Collapse!!">
-                                                                    <i class="fa fa-plus-square" style="font-size:16px"></i>
-                                                                </button>
-                                                            </td>
-                                                            <td align="center"><?php echo $nm; ?></td>
-                                                            <td><?php echo $row_rsContrProj['projname']; ?></td>
-                                                            <td><?php echo $ContrProjLoc; ?></td>
-                                                            <td><?php echo number_format($row_rsContrProj['projcost'], 2); ?></td>
-                                                            <td><?php echo $row_rsProjSect['sector']; ?></td>
-                                                            <td><?php echo $row_rsProjFY['year']; ?></td>
-                                                            <td><?php echo $projstatus; ?></td>
-                                                        </tr>
-                                                        <tr class="collapse order<?php echo $nm; ?>">
-                                                            <td style="height:1px; background-color:#000" COLSPAN=8></td>
-                                                        </tr>
-                                                        <?php
-                                                        $contrPrj = $row_rsContrProj["projid"];
-
-                                                        $query_rsProjTenderInfo = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid = '$contrPrj'");
-                                                        $query_rsProjTenderInfo->execute();
-                                                        $row_rsProjTenderInfo = $query_rsProjTenderInfo->fetch();
-                                                        $totalRows_rsProjTenderInfo = $query_rsProjTenderInfo->rowCount();
-
-                                                        $tndid = $row_rsProjTenderInfo["td_id"];
-                                                        $tndType = $row_rsProjTenderInfo["tendertype"];
-                                                        $tndCat = $row_rsProjTenderInfo["tendercat"];
-                                                        $procMethod = $row_rsProjTenderInfo["procurementmethod"];
-
-                                                        $query_rsTDTP = $db->prepare("SELECT * FROM tbl_tender_type WHERE id = '$tndType'");
-                                                        $query_rsTDTP->execute();
-                                                        $row_rsTDTP = $query_rsTDTP->fetch();
-
-                                                        $query_rsTDCat = $db->prepare("SELECT * FROM tbl_tender_category WHERE id = '$tndCat'");
-                                                        $query_rsTDCat->execute();
-                                                        $row_rsTDCat = $query_rsTDCat->fetch();
-
-                                                        $query_rsPcMtd = $db->prepare("SELECT * FROM tbl_procurementmethod WHERE id = '$procMethod'");
-                                                        $query_rsPcMtd->execute();
-                                                        $row_rsPcMtd = $query_rsPcMtd->fetch();
-
-                                                        $query_rsAtt = $db->prepare("SELECT * FROM tbl_files WHERE projid = '$contrPrj'");
-                                                        $query_rsAtt->execute();
-                                                        $totalRows_rsAtt = $query_rsAtt->rowCount();
-
-                                                        if ($totalRows_rsProjTenderInfo > 0) {
-                                                        ?>
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Contract Ref Number</td>
-                                                                <td COLSPAN=5><?php echo $row_rsProjTenderInfo["contractrefno"]; ?></td>
+                                                            <tr data-toggle="collapse" data-target=".order<?php echo $nm; ?>">
+                                                                <td align="center" class="mb-0">
+                                                                    <button class="btn btn-link" title="Click once to expand and Click twice to Collapse!!">
+                                                                        <i class="fa fa-plus-square" style="font-size:16px"></i>
+                                                                    </button>
+                                                                </td>
+                                                                <td align="center"><?php echo $nm; ?></td>
+                                                                <td><?php echo $row_rsContrProj['projname']; ?></td>
+                                                                <td><?php echo $ContrProjLoc; ?></td>
+                                                                <td><?php echo number_format($row_rsContrProj['projcost'], 2); ?></td>
+                                                                <td><?php echo $row_rsProjSect['sector']; ?></td>
+                                                                <td><?php echo $row_rsProjFY['year']; ?></td>
+                                                                <td><?php echo $projstatus; ?></td>
                                                             </tr>
-
                                                             <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender Title</td>
-                                                                <td COLSPAN=5><?php echo $row_rsProjTenderInfo["tendertitle"]; ?></td>
+                                                                <td style="height:1px; background-color:#000" COLSPAN=8></td>
                                                             </tr>
+                                                            <?php
+                                                            $contrPrj = $row_rsContrProj["projid"];
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender Number</td>
-                                                                <td COLSPAN=5><?php echo $row_rsProjTenderInfo["tenderno"]; ?></td>
-                                                            </tr>
+                                                            $query_rsProjTenderInfo = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid = '$contrPrj'");
+                                                            $query_rsProjTenderInfo->execute();
+                                                            $row_rsProjTenderInfo = $query_rsProjTenderInfo->fetch();
+                                                            $totalRows_rsProjTenderInfo = $query_rsProjTenderInfo->rowCount();
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender Amount</td>
-                                                                <td COLSPAN=5><?php echo "Ksh." . number_format($row_rsProjTenderInfo["tenderamount"], 2); ?></td>
-                                                            </tr>
+                                                            $tndid = $row_rsProjTenderInfo["td_id"];
+                                                            $tndType = $row_rsProjTenderInfo["tendertype"];
+                                                            $tndCat = $row_rsProjTenderInfo["tendercat"];
+                                                            $procMethod = $row_rsProjTenderInfo["procurementmethod"];
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender Type</td>
-                                                                <td COLSPAN=5><?php echo $row_rsTDTP["type"]; ?></td>
-                                                            </tr>
+                                                            $query_rsTDTP = $db->prepare("SELECT * FROM tbl_tender_type WHERE id = '$tndType'");
+                                                            $query_rsTDTP->execute();
+                                                            $row_rsTDTP = $query_rsTDTP->fetch();
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender category</td>
-                                                                <td COLSPAN=5><?php echo $row_rsTDCat["category"]; ?></td>
-                                                            </tr>
+                                                            $query_rsTDCat = $db->prepare("SELECT * FROM tbl_tender_category WHERE id = '$tndCat'");
+                                                            $query_rsTDCat->execute();
+                                                            $row_rsTDCat = $query_rsTDCat->fetch();
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Procurement Method</td>
-                                                                <td COLSPAN=5><?php echo $row_rsPcMtd["method"]; ?></td>
-                                                            </tr>
+                                                            $query_rsPcMtd = $db->prepare("SELECT * FROM tbl_procurementmethod WHERE id = '$procMethod'");
+                                                            $query_rsPcMtd->execute();
+                                                            $row_rsPcMtd = $query_rsPcMtd->fetch();
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Evaluation Completion Date</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["evaluationdate"])); ?></td>
-                                                            </tr>
+                                                            $query_rsAtt = $db->prepare("SELECT * FROM tbl_files WHERE projid = '$contrPrj'");
+                                                            $query_rsAtt->execute();
+                                                            $totalRows_rsAtt = $query_rsAtt->rowCount();
 
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Tender Award Date</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["awarddate"])); ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Award Notification Date</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["notificationdate"])); ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Date of Signature</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["signaturedate"])); ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Contract Start Date</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["startdate"])); ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Contract End Date</td>
-                                                                <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["enddate"])); ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Financial Score</td>
-                                                                <td COLSPAN=5><?php echo round($row_rsProjTenderInfo["financialscore"], 2) . " Marks"; ?></td>
-                                                            </tr>
-
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td style="width:20%" COLSPAN=2>Technical Score</td>
-                                                                <td COLSPAN=5><?php echo round($row_rsProjTenderInfo["technicalscore"], 2) . " Marks"; ?></td>
-                                                            </tr>
-                                                            <?php if ($totalRows_rsAtt > 0) {
-                                                                $nmb = 0;
-                                                                while ($row_rsAtt = $query_rsAtt->fetch()) {
-                                                                    $nmb = $nmb + 1;
+                                                            if ($totalRows_rsProjTenderInfo > 0) {
                                                             ?>
-                                                                    <tr class="collapse order<?php echo $nm; ?>">
-                                                                        <td COLSPAN=1></td>
-                                                                        <td COLSPAN=4>Attachment <?php echo $nmb; ?> [Purpose: <font color="green"><?php echo $row_rsAtt["reason"]; ?></font>] </td>
-                                                                        <td COLSPAN=3><?php echo $row_rsAtt["filename"]; ?> <a href="<?php echo $row_rsAtt["floc"]; ?>" type="button" class="btn bg-light-blue waves-effect" target="_blank"> Download</a></td>
-                                                                    </tr>
-                                                                <?php
-                                                                }
-                                                            } else {
-                                                                ?>
                                                                 <tr class="collapse order<?php echo $nm; ?>">
                                                                     <td COLSPAN=1></td>
-                                                                    <td COLSPAN=7>
-                                                                        <font color="red">NO ATTACHED TENDER DOCUMENT(S)</font>
+                                                                    <td style="width:20%" COLSPAN=2>Contract Ref Number</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsProjTenderInfo["contractrefno"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender Title</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsProjTenderInfo["tendertitle"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender Number</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsProjTenderInfo["tenderno"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender Amount</td>
+                                                                    <td COLSPAN=5><?php echo "Ksh." . number_format($row_rsProjTenderInfo["tenderamount"], 2); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender Type</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsTDTP["type"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender category</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsTDCat["category"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Procurement Method</td>
+                                                                    <td COLSPAN=5><?php echo $row_rsPcMtd["method"]; ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Evaluation Completion Date</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["evaluationdate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Tender Award Date</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["awarddate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Award Notification Date</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["notificationdate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Date of Signature</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["signaturedate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Contract Start Date</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["startdate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Contract End Date</td>
+                                                                    <td COLSPAN=5><?php echo date("d M Y", strtotime($row_rsProjTenderInfo["enddate"])); ?></td>
+                                                                </tr>
+
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Financial Score</td>
+                                                                    <td COLSPAN=5><?php echo round($row_rsProjTenderInfo["financialscore"], 2) . " Marks"; ?></td>
+                                                                </tr>
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td style="width:20%" COLSPAN=2>Technical Score</td>
+                                                                    <td COLSPAN=5><?php echo round($row_rsProjTenderInfo["technicalscore"], 2) . " Marks"; ?></td>
+                                                                </tr>
+                                                                <?php if ($totalRows_rsAtt > 0) {
+                                                                    $nmb = 0;
+                                                                    while ($row_rsAtt = $query_rsAtt->fetch()) {
+                                                                        $nmb = $nmb + 1;
+                                                                ?>
+                                                                        <tr class="collapse order<?php echo $nm; ?>">
+                                                                            <td COLSPAN=1></td>
+                                                                            <td COLSPAN=4>Attachment <?php echo $nmb; ?> [Purpose: <font color="green"><?php echo $row_rsAtt["reason"]; ?></font>] </td>
+                                                                            <td COLSPAN=3><?php echo $row_rsAtt["filename"]; ?> <a href="<?php echo $row_rsAtt["floc"]; ?>" type="button" class="btn bg-light-blue waves-effect" target="_blank"> Download</a></td>
+                                                                        </tr>
+                                                                    <?php
+                                                                    }
+                                                                } else {
+                                                                    ?>
+                                                                    <tr class="collapse order<?php echo $nm; ?>">
+                                                                        <td COLSPAN=1></td>
+                                                                        <td COLSPAN=7>
+                                                                            <font color="red">NO ATTACHED TENDER DOCUMENT(S)</font>
+                                                                        </td>
+                                                                    </tr>
+                                                                <?php  } ?>
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td style="height:2px; background-color:#000" COLSPAN=8></td>
+                                                                </tr>
+                                                            <?php
+                                                            } else {
+                                                            ?>
+                                                                <tr class="collapse order<?php echo $nm; ?>">
+                                                                    <td COLSPAN=1></td>
+                                                                    <td COLSPAN=7 align="center">
+                                                                        <font color="red">NO TENDER INFORMATION AVAILABLE</font>
                                                                     </td>
                                                                 </tr>
-                                                            <?php  } ?>
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td style="height:2px; background-color:#000" COLSPAN=8></td>
-                                                            </tr>
-                                                        <?php
-                                                        } else {
-                                                        ?>
-                                                            <tr class="collapse order<?php echo $nm; ?>">
-                                                                <td COLSPAN=1></td>
-                                                                <td COLSPAN=7 align="center">
-                                                                    <font color="red">NO TENDER INFORMATION AVAILABLE</font>
-                                                                </td>
-                                                            </tr>
                                                     <?php
+                                                            }
                                                         }
                                                     }
                                                     ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                         <script src="others/js/dataTable/jquery.dataTables.min.js"></script>
-
                                         <script>
                                             $(document).ready(function() {
                                                 $('#tSortable22').dataTable({

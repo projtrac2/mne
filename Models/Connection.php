@@ -1,10 +1,10 @@
-<?php 
+<?php
 
 class Connection
 {
-   private $server = "mysql:host=localhost;dbname=county";
+   private $server = "mysql:host=localhost;dbname=mne";
    private $user = "root";
-   private $pass = "Password@9570";
+   private $pass = "3!&o@8ProjTrack4";
    private $options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ);
    protected $con;
 

@@ -97,7 +97,7 @@ function get_coordinates(projid=null, outputid=null){
     if(projid){
         $.ajax({
             type: "get",
-            url: "markers/add-map-data-manual.php",
+            url: "markers/add-map-data-manual",
             data: {
                 get_markers:"get_markers", 
                 projid:projid, 

@@ -23,7 +23,7 @@ function more(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-projects-item.php",
+      url: "general-settings/selected-items/fetch-selected-projects-item",
       type: "post",
       data: { itemId: itemId },
       dataType: "html",
@@ -45,7 +45,7 @@ $("#approveItems").click(function(e) {
   if (itemId != "") {
     $.ajax({
       type: "post",
-      url: "general-settings/action/project-edit-action.php",
+      url: "general-settings/action/project-edit-action",
       data: {
         approveMultiple: "approveMultiple",
         itemId: itemId
@@ -76,7 +76,7 @@ $("#approveMultipleProjects").click(function(e) {
   if (projid.length > 0) {
     $.ajax({
       type: "post",
-      url: "general-settings/action/project-edit-action.php",
+      url: "general-settings/action/project-edit-action",
       data: {
         approveItems: approveItems,
         projid: projid
@@ -112,7 +112,7 @@ $("#deleteMultiple").click(function(e) {
   if (itemId != "") {
     $.ajax({
       type: "post",
-      url: "general-settings/action/project-edit-action.php",
+      url: "general-settings/action/project-edit-action",
       data: {
         fetchItems: "fetchItems",
         itemId: itemId
@@ -139,7 +139,7 @@ $("#deleteMultipleProjects").click(function(e) {
   if (itemId != "") {
     $.ajax({
       type: "post",
-      url: "general-settings/action/project-edit-action.php",
+      url: "general-settings/action/project-edit-action",
       data: {
         deleteItems: "deleteM",
         itemId: itemId
@@ -171,7 +171,7 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-edit-action.php",
+          url: "general-settings/action/project-edit-action",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -196,7 +196,7 @@ function removeItem(itemId = null) {
 function approveItem(itemId = null) {
   if (itemId) {
     $.ajax({
-      url: "general-settings/action/project-approval.php",
+      url: "general-settings/action/project-approval",
       type: "post",
       data: { itemId: itemId },
       dataType: "html",
@@ -236,7 +236,7 @@ $("#approveItemForm")
 
     if (difference == 0) {
       $.ajax({
-        url: "general-settings/action/project-edit-action.php",
+        url: "general-settings/action/project-edit-action",
         type: "post",
         data: formData,
         dataType: "json",
@@ -266,7 +266,7 @@ function Undo(itemId = null) {
       .bind("click", function() {
         var unapproveitem = 1;
         $.ajax({
-          url: "general-settings/action/project-edit-action.php",
+          url: "general-settings/action/project-edit-action",
           type: "post",
           data: { itemId: itemId, unapproveitem: unapproveitem },
           dataType: "json",
