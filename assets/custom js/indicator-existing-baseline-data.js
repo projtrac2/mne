@@ -33,7 +33,7 @@ $(document).ready(function () {
 
 function check_val() {
   var base_value_type = $('.base_value_type').val();
-  $("#submit_div").hide(); 
+  $("#submit_div").hide();
   if (base_value_type == "1") {
     $("#submit_div").show();
   }
@@ -172,3 +172,49 @@ function get_baseline(indid) {
   });
 }
 
+
+
+function delete_baseline(ward_id, ward) {
+  var indicator_id = $("#indicator_id").val();
+  swal({
+    title: "Are you sure?",
+    text: `You want to delete baseline for  ${ward} ward !`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  })
+    .then((willDelete) => {
+      if (willDelete) {
+        $.ajax({
+          type: "post",
+          url: url1,
+          data: {
+            delete_baseline: 'delete_baseline',
+            indicator_id: indicator_id,
+            ward_id: ward_id,
+          },
+          dataType: "json",
+          success: function (response) {
+            if (response.success == true) {
+              swal({
+                title: "Indicator baseline !",
+                text: "Successfully deleted",
+                icon: "success",
+              });
+            } else {
+              swal({
+                title: "Indicator baseline !",
+                text: "Error deleting baseline",
+                icon: "error",
+              });
+            }
+
+            get_filter();
+            check_val();
+          },
+        });
+      } else {
+        swal("You cancelled the action!");
+      }
+    });
+}

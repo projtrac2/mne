@@ -224,7 +224,7 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                         <tbody id="scbody">
                                                             <?php
                                                             $level = $indicator_level == 1 ? 1 : 0;
-                                                            $arr_= [];
+                                                            $arr_ = [];
                                                             $query_location_level1 = $db->prepare("SELECT * FROM tbl_state WHERE level=:level AND parent IS NULL ORDER BY state ASC");
                                                             $query_location_level1->execute(array(":level" =>  $level));
                                                             $row_level1 = $query_location_level1->rowCount();
@@ -272,8 +272,12 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                                                     <td><?= $level2 . ' ' . $level2label ?></td>
                                                                                     <td>
                                                                                         <input id="level2<?= $lv2id ?>" type="hidden" value="<?= $level2 ?>" />
-                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?= htmlspecialchars($level2)?>', <?=$base_val?>)">
+                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>', <?= $base_val ?>)">
                                                                                             Edit Baseline Value (<?= $base_val ?>)
+                                                                                        </button>
+                                                                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" onclick="delete_baseline(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>')">
+                                                                                            Delete Baseline Value
                                                                                         </button>
                                                                                     </td>
                                                                                 </tr>
@@ -285,8 +289,9 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                                                     <td><?= $level2 . ' ' . $level2label ?></td>
                                                                                     <td>
                                                                                         <input id="level2<?= $lv2id ?>" type="hidden" value="<?= $level2 ?>" />
-                                                                                        <button type="button" class="btn bg-blue btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?=htmlspecialchars($level2)?>', <?=''?>)">Add Baseline Value
+                                                                                        <button type="button" class="btn bg-blue btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>', <?= '' ?>)">Add Baseline Value
                                                                                         </button>
+
                                                                                     </td>
                                                                                 </tr>
                                                             <?php
@@ -301,7 +306,7 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                 </div>
                                             </div>
                                             <input class="base_value_type" name="base_value_type" type="hidden" value="<?= in_array(true, $arr_) ? 1 : 0 ?>" />
-                                            <?php if ($baseline == 0 ) { ?>
+                                            <?php if ($baseline == 0) { ?>
                                                 <div class="row clearfix" id="submit_div">
                                                     <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
                                                     </div>
@@ -342,9 +347,9 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="modal-body">
                                         <div class="col-md-5">
-                                            <label for="base_val" id="" >Baseline Value *:</label>
+                                            <label for="base_val" id="">Baseline Value *:</label>
                                             <div class="form-input">
-                                                <input type="number" name="base_value" id="base_val_id" value="" placeholder="Enter Value" class="form-control" required >
+                                                <input type="number" name="base_value" id="base_val_id" value="" min="0" placeholder="Enter Value" class="form-control" required>
                                             </div>
                                         </div>
                                     </div>

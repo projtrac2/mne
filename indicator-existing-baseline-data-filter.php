@@ -115,8 +115,12 @@ if (isset($_POST['get_all'])) {
 						<td>' . $level2 . ' ' . $level2label . '</td>
 						<td>
 							<input id="level2' . $lv2id . '" type="hidden" value="' . $level2 . '" />
-							<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddissedit_inputs(' . $lv2id . ')">
+							<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(' . $lv2id . ',  \'' . htmlspecialchars($level2) . '\', ' . $base_val . ')">
 								Edit Baseline Value (' . $base_val . ')
+							</button>
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" onclick="delete_baseline(' . $lv2id . ',  \'' . htmlspecialchars($level2) . '\')">
+								Delete Baseline Value
 							</button>
 						</td>
 					</tr>';
@@ -207,8 +211,12 @@ if (isset($_POST['subcountydata'])) {
 								<td>' . $level2 . ' ' . $level2label . '</td>
 								<td>
 									<input id="level2' . $lv2id . '" type="hidden" value="' . $level2 . '" />
-									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddissedit_inputs(' . $lv2id . ')">
+									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(' . $lv2id . ',  \'' . htmlspecialchars($level2) . '\', ' . $base_val . ')">
 										Edit Baseline Value (' . $base_val . ')
+									</button>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" onclick="delete_baseline(' . $lv2id . ', \'' . htmlspecialchars($level2) . '\')">
+										Delete Baseline Value
 									</button>
 								</td>
 							</tr>';
@@ -235,7 +243,6 @@ if (isset($_POST['warddata'])) {
 	$body = "";
 	$indid = $_POST['indid'];
 	$subcounty_id = $_POST['subcounty_id'];
-
 	$query_rsIndicator =  $db->prepare("SELECT * FROM tbl_indicator WHERE indid = :indid and active = '1'");
 	$query_rsIndicator->execute(array(":indid" => $indid));
 	$row_rsIndicator = $query_rsIndicator->fetch();
@@ -300,8 +307,12 @@ if (isset($_POST['warddata'])) {
 								<td>' . $level2 . ' ' . $level2label . '</td>
 								<td>
 									<input id="level2' . $lv2id . '" type="hidden" value="' . $level2 . '" />
-									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddissedit_inputs(' . $lv2id . ')">
+									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(' . $lv2id . ', \'' . htmlspecialchars($level2) . '\', ' . $base_val . ')">
 										Edit Baseline Value (' . $base_val . ')
+									</button>
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									<button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" onclick="delete_baseline(' . $lv2id . ',  \'' . htmlspecialchars($level2) . '\')">
+										Delete Baseline Value
 									</button>
 								</td>
 							</tr>';

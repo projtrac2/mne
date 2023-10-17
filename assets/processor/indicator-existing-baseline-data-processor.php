@@ -30,16 +30,22 @@ try {
 		echo json_encode($valid);
 	}
 
-	if (isset($_POST['validate'])) {
-		$indid = $_POST['indid'];
-		$disaggregated = $_POST['disaggregated'];
-		$query_rsIndicator = $db->prepare("SELECT * FROM tbl_indicator WHERE  indid ='$indid' ");
-		$query_rsIndicator->execute();
-		$row_rsIndicator = $query_rsIndicator->fetch();
-		$totalrow_rsIndicator = $query_rsIndicator->rowCount();
-		$msg = ($totalrow_rsIndicator > 0) ? true : false;
-		echo json_encode(array("msg" => $msg));
+	if (isset($_POST['delete_baseline'])) {
+		$indicator_id = $_POST['indicator_id'];
+		$ward_id = $_POST['ward_id'];
+		$deleteQueryD = $db->prepare("DELETE FROM `tbl_indicator_output_baseline_values` WHERE indid=:indid AND level3=:level3");
+		$resultsD = $deleteQueryD->execute(array(':indid' => $indicator_id, ':level3' => $ward_id));
+		if ($resultsD === TRUE) {
+			$valid['success'] = true;
+			$valid['messages'] = "Successfully Added";
+		} else {
+			$valid['success'] = false;
+			$valid['messages'] = "Error while Adding the record!!";
+		}
+		echo json_encode($valid);
 	}
+
+
 } catch (PDOException $ex) {
 	// $result = flashMessage("An error occurred: " .$ex->getMessage());
 	echo $ex->getMessage();

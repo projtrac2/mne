@@ -133,56 +133,6 @@ if ($permission) {
                                 <!-- ============================================================== -->
                                 <!-- Start Page Content -->
                                 <!-- ============================================================== -->
-
-                                <form role="form" id="<?= $formName ?>" name="<?= $formName ?>" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                    <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?php echo $action; ?> Location (If adding Level-2, first Select Parent Location .i.e Level-1/Level-2)</legend>
-                                        <div class="col-md-4">
-                                            <label class="control-label">Level-1 *:</label>
-                                            <div class="form-line">
-                                                <select name="subcounty" class="form-control" id="subcounty" required="required" style="border:#CCC thin solid; border-radius:5px">
-                                                    <option value="">.... Select Level-1 ....</option>
-                                                    <?php
-                                                    $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
-                                                    $query_rsState->execute();
-                                                    $rows_rsState = $query_rsState->rowCount();
-                                                    if ($rows_rsState > 0) {
-                                                        while ($row_rsState = $query_rsState->fetch()) {
-                                                            if ($row_rsState['id'] == '0') {
-                                                                $SCounty = "Level-1";
-                                                            } else {
-                                                                $SCounty = $row_rsState['state'];
-                                                            }
-                                                    ?>
-                                                            <option value="<?php echo $row_rsState['id'] ?>"><?php echo $row_rsState['state']; ?></option>
-                                                    <?php
-                                                        }
-                                                    }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="projduration">Level-2 *:</label><span id="dept" style="color:darkgoldenrod"></span>
-                                            <div class="form-line">
-                                                <div class="myward">
-                                                    <select name="wards" class="form-control" id="wards" required="required" style="border:#CCC thin solid; border-radius:5px">
-                                                        <option value="">.... Select Level-1 first ....</option>
-                                                    </select>
-                                                </div>
-                                                <div class="myward2"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <ul class="list-inline" align="center">
-                                                <li>
-                                                    <input name="<?= $submitValue ?>" type="submit" class="btn btn-success" id="submit" value="<?= $submitValue ?>" style="margin-bottom:10px" />
-                                                    <input type="hidden" name="<?= $submitAction ?>" value="<?= $formName ?>" />
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </fieldset>
-                                </form>
                                 <!-- js-basic-example dataTable -->
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-striped table-hover ">
@@ -261,8 +211,8 @@ if ($permission) {
                                                                         </li>
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#myModal" onclick="add_state(<?= $projid ?>)">
-                                                                            <i class="fa fa-check-square-o"></i> Edit
-                                                                        </a>
+                                                                                <i class="fa fa-check-square-o"></i> Edit
+                                                                            </a>
                                                                         </li>
                                                                         <li>
                                                                             <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
