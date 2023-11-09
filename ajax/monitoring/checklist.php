@@ -225,11 +225,10 @@ try {
     function get_subtasks($milestone_id, $output_id, $site_id)
     {
         global $db;
-        $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks s INNER JOIN tbl_task t ON t.tkid = s.subtask_id WHERE output_id=:output_id AND  milestone_id=:milestone_id AND complete=1");
+        $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks s INNER JOIN tbl_task t ON t.tkid = s.subtask_id WHERE output_id=:output_id AND  milestone_id=:milestone_id AND complete=0");
         $query_rsChecked->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
         $totalRows_rsChecked = $query_rsChecked->rowCount();
         $subtasks = '';
-
         if ($totalRows_rsChecked > 0) {
             $count = 0;
             while ($Rows_rsChecked = $query_rsChecked->fetch()) {
@@ -238,14 +237,18 @@ try {
                 $tkid = $Rows_rsChecked['tkid'];
                 $msid = $Rows_rsChecked['msid'];
                 $unit = $Rows_rsChecked['unit_of_measure'];
-                if (validate_subtasks($tkid)) {
+
+                $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE output_id = :output_id AND site_id=:site_id  AND subtask_id=:subtask_id AND complete=0 ");
+                $query_rsPlan->execute(array(":output_id" => $output_id, ':site_id' => $site_id, ":subtask_id" => $tkid));
+                $totalRows_plan = $query_rsPlan->rowCount();
+
+                if (validate_subtasks($tkid) && $totalRows_plan > 0) {
                     $unit_of_measure =  get_measurement($unit);
                     $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE site_id=:site_id  AND subtask_id=:subtask_id");
                     $query_rsOther_cost_plan->execute(array(':site_id' => $site_id, ":subtask_id" => $tkid));
                     $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
                     $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
                     $target = ($totalRows_rsOther_cost_plan > 0) ? $row_rsOther_cost_plan['units_no'] : 0;
-
                     $cummulative = get_milestone_subtask_progress($milestone_id, $tkid, $site_id);
                     $subtasks .= '
                     <tr id="s_row">
@@ -330,10 +333,10 @@ try {
             array(
                 "success" => $success,
                 "subtask" => $subtask,
-                'target' => $target,
-                "project_cummulative" => get_project_subtask_progress($subtask_id),
-                "milestone_cummulative" => get_milestone_subtask_progress($milestone_id, $subtask_id, $site_id),
-                "previous_record" => get_milestone_subtask_previous_record($milestone_id, $subtask_id, $site_id),
+                'target' => $target  . " " . $unit_of_measure,
+                "project_cummulative" => get_project_subtask_progress($subtask_id) . " " . $unit_of_measure,
+                "milestone_cummulative" => get_milestone_subtask_progress($milestone_id, $subtask_id, $site_id) . " " . $unit_of_measure,
+                "previous_record" => get_milestone_subtask_previous_record($milestone_id, $subtask_id, $site_id) . " " . $unit_of_measure,
                 "previous_remarks" => $bq,
             )
         );
@@ -352,8 +355,13 @@ try {
         $origin = 3;
         $complete = $_POST['button'];
 
-        $sql = $db->prepare("UPDATE tbl_milestone_output_subtasks SET complete=:complete WHERE  milestone_id=:milestone_id AND projid=:projid AND subtask_id=:subtask_id");
-        $result  = $sql->execute(array(":complete" => $complete, ":milestone_id" => $milestone_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
+        if ($complete == 1) {
+            $sql = $db->prepare("UPDATE tbl_program_of_works SET complete=:complete WHERE  site_id=:site_id AND projid=:projid AND subtask_id=:subtask_id");
+            $result  = $sql->execute(array(":complete" => $complete, ":site_id" => $site_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
+
+            $sql = $db->prepare("UPDATE tbl_milestone_output_subtasks SET complete=:complete WHERE  milestone_id=:milestone_id AND projid=:projid AND subtask_id=:subtask_id");
+            $result  = $sql->execute(array(":complete" => $complete, ":milestone_id" => $milestone_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
+        }
 
         $sql = $db->prepare("INSERT INTO tbl_project_monitoring_checklist_score (projid,output_id,milestone_id,site_id,task_id,subtask_id,formid,achieved,created_by,created_at) VALUES(:projid,:output_id,:milestone_id,:site_id,:task_id,:subtask_id,:formid,:achieved,:created_by,:created_at)");
         $results = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ":formid" => $formid, ":achieved" => $achieved, ":created_by" => $user_name, ":created_at" => $created_at));

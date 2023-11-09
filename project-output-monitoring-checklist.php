@@ -6,6 +6,34 @@ if ($permission) {
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $team_type = 4;
+
+        function check_observation_responsible($projid, $workflow_stage, $team_type, $role)
+        {
+            global $db,  $user_name, $workflow_stage, $user_designation;
+            $output_responsible = $standin_responsible = false;
+            if ($user_designation == 1) {
+                $output_responsible = true;
+            } else {
+                $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
+                $query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => $team_type, ":responsible" => $user_name, ":role" => $role));
+                $total_rsOutput = $query_rsOutput->rowCount();
+                $output_responsible = $total_rsOutput > 0 ? true : false;
+
+                $query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND assignee=:user_name AND status = 1 AND team_type =:team_type");
+                $query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name, ":team_type" => $team_type));
+                $row_rsOutput_standin = $query_rsOutput_standin->fetch();
+                $total_rsOutput_standin = $query_rsOutput_standin->rowCount();
+
+                if ($total_rsOutput_standin > 0) {
+                    $owner_id = $row_rsOutput_standin['owner'];
+                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
+                    $query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => $team_type, ":responsible" => $owner_id, ":role" => $role));
+                    $total_rsOutput = $query_rsOutput->rowCount();
+                    $standin_responsible = $total_rsOutput > 0 ? true : false;
+                }
+            }
+            return $output_responsible || $standin_responsible ? true : false;
+        }
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -56,7 +84,7 @@ if ($permission) {
                                                 $project_directorate = $row_rsProjects['directorate'];
                                                 $projname = $row_rsProjects['projname'];
                                                 $projcode = $row_rsProjects['projcode'];
-                                                $progress = calculate_project_progress($projid, $implementation);
+                                                $progress = number_format(calculate_project_progress($projid, $implementation), 2);
                                                 $projstatus = $row_rsProjects['projstatus'];
                                                 $projectid = base64_encode("projid54321{$projid}");
 
@@ -67,6 +95,8 @@ if ($permission) {
                                                 $projcontractor =  $row_rsProjects['projcategory'];
 
                                                 $monitoring_responsible = check_monitoring_responsible($projid, $workflow_stage, $team_type);
+                                                $team_leader_responsible = check_observation_responsible($projid, $workflow_stage, $team_type, 2);
+
                                                 if ($monitoring_responsible) {
                                                     $counter++;
                                                     $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
@@ -139,14 +169,25 @@ if ($permission) {
                                                                             <i class="fa fa-check"></i> Monitor
                                                                         </a>
                                                                     </li>
+                                                                    <?php
+                                                                    if ($team_leader_responsible) {
+                                                                    ?>
+                                                                        <li>
+                                                                            <a type="button" href="project-monitoring-observations?projid=<?= $projid_hashed ?>">
+                                                                                <i class="fa fa-check"></i> Observations
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues(<?= $projid ?>, '<?= htmlspecialchars($projname) ?>')">
+                                                                                <i class="fa fa-warning"></i> Issues
+                                                                            </a>
+                                                                        </li>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
                                                                     <li>
-                                                                        <a type="button" href="project-monitoring-observations?projid=<?= $projid_hashed ?>">
-                                                                            <i class="fa fa-check"></i> Observations
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues(<?= $projid ?>, '<?= htmlspecialchars($projname) ?>')">
-                                                                            <i class="fa fa-warning"></i> Issues
+                                                                        <a type="button" href="project-collaboration.php?projid=<?= $projid_hashed ?>">
+                                                                            <i class="fa fa-check"></i> Collaboration
                                                                         </a>
                                                                     </li>
                                                                 </ul>

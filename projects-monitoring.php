@@ -2,8 +2,6 @@
 require('includes/head.php');
 if ($permission) {
     try {
-        // projstatus
-
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
@@ -116,21 +114,55 @@ if ($permission) {
                                                 $projname = $row_rsProjects['projname'];
                                                 $projcode = $row_rsProjects['projcode'];
                                                 $projstatus = $row_rsProjects['projstatus'];
+                                                $projstartdate = $row_rsProjects['projstartdate'];
+                                                $monitoring_frequency =  $row_rsProjects['monitoring_frequency'];
                                                 $schedule_team  = scheduled_team($projid, $workflow_stage);
                                                 $daily_team = daily_team($projid, $workflow_stage, 2);
 
                                                 $record_type = 0;
+                                                $Date = date("Y-m-d");
+                                                $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
                                                 if ($schedule_team) {
                                                     $record_type = 2;
+                                                    $query_rsFrequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE fqid = :fqid");
+                                                    $query_rsFrequency->execute(array(":fqid" => $monitoring_frequency));
+                                                    $row_rsFrequency = $query_rsFrequency->fetch();
+                                                    $total_rsFrequency = $query_rsFrequency->rowCount();
+                                                    if ($total_rsFrequency > 0) {
+                                                        $days = $row_rsFrequency['days'];
+                                                        $due_date = date("Y-m-d");
+                                                        $Date = date("Y-m-d");
+
+                                                        $query_rsCummulative = $db->prepare("SELECT  * FROM tbl_monitoringoutput WHERE projid=:projid AND record_type=:record_type");
+                                                        $query_rsCummulative->execute(array(":projid" => $projid, ":record_type" => $record_type));
+                                                        $Rows_rsCummulative = $query_rsCummulative->fetch();
+                                                        $Row_rsCummulative = $query_rsCummulative->rowCount();
+                                                        if ($Row_rsCummulative > 0) {
+                                                            $Date = $Rows_rsCummulative['date_created'];
+                                                        } else {
+                                                            $Date = $projstartdate;
+                                                            if ($implementation == 2) {
+                                                                $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
+                                                                $query_rsTender->execute(array(":projid" => $projid));
+                                                                $row_rsTender = $query_rsTender->fetch();
+                                                                $totalRows_rsTender = $query_rsTender->rowCount();
+                                                                if ($totalRows_rsTender > 0) {
+                                                                    $Date = $row_rsTender['startdate'];
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $due_date = date('Y-m-d', strtotime($Date . ' + ' . $days));
+                                                    }
                                                 } else if ($daily_team) {
                                                     $record_type = 1;
+                                                    $Date = date("Y-m-d");
+                                                    $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
                                                 }
 
                                                 if ($schedule_team || $daily_team) {
                                                     $counter++;
                                                     $monitored = false;
-                                                    $project_progress = calculate_project_progress($projid, $implementation);
-                                                    $due_date = date("Y-m-d");
                                                     $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
                                                     $query_Projstatus->execute(array(":projstatus" => $projstatus));
                                                     $row_Projstatus = $query_Projstatus->fetch();
@@ -142,6 +174,23 @@ if ($permission) {
                                                         $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
                                                     }
                                                     $projectid = base64_encode("projid54321{$projid}");
+                                                    $progress = number_format(calculate_project_progress($projid, $implementation), 2);
+
+                                                    $project_progress = '
+                                                    <div class="progress" style="height:20px; font-size:10px; color:black">
+                                                        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+                                                            ' . $progress . '%
+                                                        </div>
+                                                    </div>';
+
+                                                    if ($progress == 100) {
+                                                        $project_progress = '
+                                                        <div class="progress" style="height:20px; font-size:10px; color:black">
+                                                            <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+                                                            ' . $progress . '%
+                                                            </div>
+                                                        </div>';
+                                                    }
                                         ?>
                                                     <tr>
                                                         <td style="width:5%" align="center"><?= $counter ?></td>
@@ -157,7 +206,7 @@ if ($permission) {
                                                                 </button>
                                                                 <ul class="dropdown-menu">
                                                                     <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_project_outputs(<?= $projid ?>,'<?=$record_type?>', '<?= htmlspecialchars($projname) ?>')">
+                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_project_outputs(<?= $projid ?>,'<?= $record_type ?>', '<?= htmlspecialchars($projname) ?>')">
                                                                             <i class="fa fa-check"></i> Monitor
                                                                         </a>
                                                                     </li>
@@ -244,15 +293,15 @@ if ($permission) {
                                     <div class="row clearfix" style="margin-top: 30px;">
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                             <label for="projendyear">Target *:</label>
-                                            <input type="text" name="target" id="target" placeholder="Enter the current output measurement" class="form-control" readonly />
+                                            <input type="text" name="target" id="target" placeholder="" class="form-control" readonly />
                                         </div>
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                             <label for="projendyear">Cummulative Measurement *:</label>
-                                            <input type="text" name="cummulative" id="cummulative" placeholder="Enter the current output measurement" class="form-control" readonly />
+                                            <input type="text" name="cummulative" id="cummulative" placeholder="" class="form-control" readonly />
                                         </div>
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                             <label for="projendyear">Previous Measurement *:</label>
-                                            <input type="text" name="previous" id="previous" placeholder="Enter the current output measurement" class="form-control" readonly />
+                                            <input type="text" name="previous" id="previous" placeholder="" class="form-control" readonly />
                                         </div>
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                             <label for="projendyear">Current Measurement *:</label>
@@ -316,6 +365,7 @@ if ($permission) {
                                     <input type="hidden" name="store_outputs" id="store_outputs" value="new">
                                     <input type="hidden" name="monitoring_type" id="monitoring_type" value="1">
                                     <input type="hidden" name="record_type" id="record_type" value="">
+                                    <input type="hidden" name="completed" id="completed" value="">
                                     <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="">Save</button>
                                     <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                 </div>

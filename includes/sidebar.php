@@ -9,10 +9,9 @@
 </style>
 <div class="menu">
     <div class="span2 sidemenu">
-
         <ul id="accordion" class="accordion">
             <?php
-            // Access to sidebar detaills  
+            // Access to sidebar detaills
             $sidebar_sql = $db->prepare("SELECT p.id, p.url,p.name,p.icon FROM tbl_pages p INNER JOIN tbl_page_designations d ON p.id = d.page_id WHERE parent=0 and d.designation_id=:designation_id ORDER BY p.priority ASC");
             $sidebar_sql->execute(array(":designation_id" => $designation_id));
             while ($row = $sidebar_sql->fetch()) {
@@ -41,7 +40,7 @@
                                     if ($child_validation) {
                                 ?>
                                         <li class="<?php echo $child_id == $subId ? 'active' : ''; ?>">
-                                            <a href="<?= $child_url ?>.php">&nbsp; <?= $child_name ?></a>
+                                            <a href="<?= $child_url ?>.php">&nbsp; <?= $child_name  ?></a>
                                         </li>
                                 <?php
                                     }

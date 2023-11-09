@@ -3,11 +3,11 @@ require('includes/head.php');
 if ($permission) {
 
   try {
-    $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency  FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
     $query_impact_baseline_survey->execute(array(":user_name" => $user_name));
 
     if ( $designation == 1) {
-      $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
       $query_impact_baseline_survey->execute();
     }
     //$rows = $query_baseline_survey->fetch();
@@ -22,21 +22,13 @@ if ($permission) {
         $impactprojstatus = $row["projstatus"];
         $impactprojstage = $row["projstage"];
 		if($impactprojstage == 9){
-			$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1 and created_by=:responsible");
-			$query_survey_forms->execute(array(":impactid" => $impactid, ":responsible" => $user_name));
-			if ( $designation == 1) {
-			  $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1");
-			  $query_survey_forms->execute(array(":impactid" => $impactid));
-			}
+			$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1");
+			$query_survey_forms->execute(array(":impactid" => $impactid));
 			$totalrows_survey_forms = $query_survey_forms->rowCount();
 
 			if ($totalrows_survey_forms > 0) {
-			  $query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1 and created_by=:responsible and status = 1");
-			  $query_survey_forms_status->execute(array(":impactid" => $impactid, ":responsible" => $user_name));
-			  if ( $designation == 1) {
-				$query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1 and status = 1");
-				$query_survey_forms_status->execute(array(":impactid" => $impactid));
-			  }
+			  $query_survey_forms_status = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1 and status = 1");
+			  $query_survey_forms_status->execute(array(":impactid" => $impactid));
 			  $totalrows_survey_forms_status = $query_survey_forms_status->rowCount();
 			  if ($totalrows_survey_forms_status > 0) {
 				$newsurveys++;
@@ -46,12 +38,8 @@ if ($permission) {
 			}
 		}else{
 			if($impactprojstatus == 5){
-				$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1 and created_by=:responsible");
-				$query_survey_forms->execute(array(":impactid" => $impactid, ":responsible" => $user_name));
-				if ( $designation == 1) {
-				  $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1");
-				  $query_survey_forms->execute(array(":impactid" => $impactid));
-				}
+				$query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1");
+				$query_survey_forms->execute(array(":impactid" => $impactid));
 				$totalrows_survey_forms = $query_survey_forms->rowCount();
 
 				if ($totalrows_survey_forms > 0) {
@@ -245,7 +233,6 @@ if ($permission) {
                           <?php
                           if ($count_impact_baseline_step1 > 0) {
                             $sn = 0;
-                            $outcome_link = '';
                             $impact_link = '';
                             while ($row = $query_impact_baseline_step1->fetch()) {
                               $impactid = $row['id'];
@@ -257,23 +244,22 @@ if ($permission) {
                               $impactindid = $row['indid'];
                               $projdatecompleted = $row['projdatecompleted'];
                               $responsible = $row['responsible'];
+                              $date_changed = $row['date_changed'];
+                              $date_added = $row['date_added'];
+                              $endline_timing = $row['evaluation_frequency'];
+							  
                               $resultstype = 1;
 
                               $impactindicator = "";
                               $indicatorunitid = "";
                               $indicatorunit = "";
                               if (!empty($impactindid)) {
-                                $query_impact_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
+                                $query_impact_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
                                 $query_impact_ind->execute(array(":indid" => $impactindid));
                                 $rows_impact_ind = $query_impact_ind->fetch();
                                 $impactindicator = $rows_impact_ind['indicator_name'];
                                 $indicatorunitid = $rows_impact_ind['indicator_unit'];
-
-                                $query_ind_unit = $db->prepare("SELECT * FROM tbl_measurement_units WHERE id=:unitid");
-                                $query_ind_unit->execute(array(":unitid" => $indicatorunitid));
-                                $rows_ind_unit = $query_ind_unit->fetch();
-                                $impactindicator = $rows_impact_ind['indicator_name'];
-                                $indicatorunit = $rows_ind_unit['unit'];
+                                $indicatorunit = $rows_impact_ind['unit'];
                               }
 
                               if ($projstage == 9) {
@@ -288,16 +274,8 @@ if ($permission) {
                               $count_due_date = $query_due_date->rowCount();
                               $rows_due_date = $query_due_date->fetch();
                               $days = $rows_due_date['time']; // 30
-
-                              $query_impact_date = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE id=:impactid");
-                              $query_impact_date->execute(array(":impactid" => $impactid));
-                              $count_impact_date = $query_impact_date->rowCount();
-                              $rows_impact_date = $query_impact_date->fetch();
+							  
                               $survey_date = '';
-
-                              $date_changed = $rows_impact_date['date_changed'];
-                              $date_added = $rows_impact_date['date_added'];
-                              $endline_timing = $rows_impact_date['evaluation_frequency'];
 
                               if ($projstage == 9) {
                                 if ($date_changed != NULL) {
@@ -316,16 +294,15 @@ if ($permission) {
 
                               $query_rs_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and resultstypeid = :resultstypeid and status=1");
                               $query_rs_survey->execute(array(":projid" => $projid, ":resultstypeid" => $impactid));
-                              $row_rs_survey = $query_rs_survey->fetch();
                               $totalrows_rs_survey = $query_rs_survey->rowCount();
                               $status = [];
                               $form_name = [];
                               // $evaluation_responsible = verify_created_by($responsible);
 
                               if ($totalrows_rs_survey > 0) {
-                                do {
+                                while ($row_rs_survey = $query_rs_survey->fetch()) {
                                   $form_name[]  = trim($row_rs_survey['form_name']);
-                                } while ($row_rs_survey = $query_rs_survey->fetch());
+                                }
                               }
                               $resultsoc = base64_encode("results{$impactid}");
 
@@ -374,17 +351,10 @@ if ($permission) {
                               } else {
                                 $active = "<label class='label label-danger'>Behind Schedule</label>";
                               }
-
-
-                              $query_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:resultstypeid and status>1");
-                              $query_survey->execute(array(":resultstypeid" => $impactid));
+							  
+                              $query_survey = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstype=1 and resultstypeid=:resultstypeid and form_name=:stagetype and status>1");
+                              $query_survey->execute(array(":resultstypeid" => $impactid, ":stagetype" => $stagetype));
                               $totalrows_survey = $query_survey->rowCount();
-
-                              $survey_form = [];
-
-                              while ($row_survey = $query_survey->fetch()) {
-                                $survey_form[]  = trim($row_survey['form_name']);
-                              }
 
                               if ($projstage == 9) {
                                 $resultstagetype = "Impact Baseline";
@@ -392,8 +362,7 @@ if ($permission) {
                                 $resultstagetype = "Impact Endline";
                               }
 
-                              if (!in_array($stagetype, $survey_form)) {
-
+                              if ($totalrows_survey == 0) {
 								  if ($projstage == 9) {
 									$sn++;
 									echo '
@@ -509,13 +478,14 @@ if ($permission) {
                                 $query_impact_ind->execute(array(":indid" => $indid));
                                 $rows_impact_ind = $query_impact_ind->fetch();
                                 $impactindicator = $rows_impact_ind['indicator_name'];
+                                $impactindicatorunit = $rows_impact_ind['unit'];
 
                                 $deploy_counter++;
 
                                 echo '
                                 <tr>
                                   <td style="width:3%">' . $deploy_counter . '</td>
-                                  <td style="width:20%">' . $impactindicator . '</td>
+                                  <td style="width:20%">' . $impactindicatorunit.' of '.$impactindicator . '</td>
                                   <td style="width:35%">' . $projname . '</td>
                                   <td style="width:15%">' . $form_name . '</td>
                                   <td style="width:10%">' . $startdate . '</td>
@@ -603,17 +573,19 @@ if ($permission) {
 										$count_count = $query_count->rowCount();
 										$rows_count = $query_count->fetch();
 
-										$query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
-										$query_outcome_ind->execute(array(":indid" => $indid));
-										$rows_outcome_ind = $query_outcome_ind->fetch();
-										$impactindicator = $rows_outcome_ind['indicator_name'];
+										$query_impact_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
+										$query_impact_ind->execute(array(":indid" => $indid));
+										$rows_impact_ind = $query_impact_ind->fetch();
+										$impactindicator = $rows_impact_ind['indicator_name'];
+										$impactindicatorunit = $rows_impact_ind['unit'];
+										
 										$frmid = base64_encode("surveydata{$form_id}");
 										
 										$deploy_counter++;
 										echo '
 										<tr>
 											<td style="width:3%">' . $deploy_counter . '</td>
-											<td style="width:20%">' . $impactindicator . '</td>
+											<td style="width:20%">' . $impactindicatorunit.' of '.$impactindicator . '</td>
 											<td style="width:35%">' . $projname . '</td>
 											<td style="width:12%">' . $form_name . '</td>
 											<td style="width:10%">' . $startdate . '</td>

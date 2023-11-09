@@ -2,29 +2,29 @@
 require('includes/head.php');
 if ($permission) {
     try {
-		$accesslevel = "";
-		$sector = 0;
-		$indicator_data = '<option value="" >Select Indicator</option>';
-		$query_fy = $db->prepare("SELECT i.indicator_name, i.indid, m.unit FROM tbl_indicator i INNER JOIN tbl_measurement_units m ON m.id  = i.indicator_unit WHERE indicator_sector = :indicator_sector AND indicator_mapping_type != 0");
-		$query_fy->execute(array(":indicator_sector" => $department_id));
-		while ($row = $query_fy->fetch()) {
-			$indid = $row['indid'];
-			$indicator_data .= '<option value="' . $indid . '"> ' . $row['unit'] . " of " . $row['indicator_name'] . '</option>';
-		}
+        $accesslevel = "";
+        $sector = 0;
+        $indicator_data = '<option value="" >Select Indicator</option>';
+        $query_fy = $db->prepare("SELECT i.indicator_name, i.indid, m.unit FROM tbl_indicator i INNER JOIN tbl_measurement_units m ON m.id  = i.indicator_unit WHERE indicator_sector = :indicator_sector AND indicator_mapping_type != 0");
+        $query_fy->execute(array(":indicator_sector" => $department_id));
+        while ($row = $query_fy->fetch()) {
+            $indid = $row['indid'];
+            $indicator_data .= '<option value="' . $indid . '"> ' . $row['unit'] . " of " . $row['indicator_name'] . '</option>';
+        }
 
-		if($designation == 1 || ($designation < 5)){
+        if ($designation == 1 || ($designation < 5)) {
             $accesslevel = "";
-			$sector = 1;
-			$query_rsSectors = $db->prepare("SELECT * FROM tbl_sectors WHERE parent='0'");
-			$query_rsSectors->execute();
-			$totalRows_rsSectors = $query_rsSectors->rowCount();
-		}elseif($designation == 5){
+            $sector = 1;
+            $query_rsSectors = $db->prepare("SELECT * FROM tbl_sectors WHERE parent='0'");
+            $query_rsSectors->execute();
+            $totalRows_rsSectors = $query_rsSectors->rowCount();
+        } elseif ($designation == 5) {
             $accesslevel = " AND g.projsector=$department_id";
-		}elseif($designation == 6){
+        } elseif ($designation == 6) {
             $accesslevel = " AND g.projsector=$department_id AND g.projdept=$section_id";
-		}elseif($designation > 6){
+        } elseif ($designation > 6) {
             $accesslevel = " AND g.projsector=$department_id AND g.projdept=$section_id AND g.directorate=$directorate_id";
-		}
+        }
 
         function projfy()
         {
@@ -85,14 +85,30 @@ if ($permission) {
                         <div class="body">
                             <input type="hidden" name="lat" id="lat" value="-1.2864">
                             <input type="hidden" name="long" id="long" value="36.8172">
-
-							<!--Eldoret Centre
-                            <input type="hidden" name="lat" id="lat" value="0.459995">
-                            <input type="hidden" name="long" id="long" value="35.250637"> -->
-
                             <div class="header">
                                 <div class="row clearfix">
                                     <form id="searchform" name="searchform" method="get" style="margin-top:-10px" action="s">
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                            <select name="department" onchange="get_indicators()" id="department" class="form-control show-tick" data-live-search="true" data-live-search-style="startsWith">
+                                                <option value="" selected="selected">Select Department</option>
+                                                <?php
+                                                while ($row_rsSectors = $query_rsSectors->fetch()) {
+                                                ?>
+                                                    <option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
+                                                <?php
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                            <select name="indicators" id="indicator" onchange="get_coordinates()" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
+                                                <?php if ($sector == 1) { ?>
+                                                    <option value="" selected="selected">Select Department First</option>
+                                                <?php } else {
+                                                    echo $indicator_data;
+                                                } ?>
+                                            </select>
+                                        </div>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <select name="projfyfrom" id="fyfrom" onchange="finyearfrom()" class="form-control show-tick " data-live-search="true" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
                                                 <option value="" selected="selected">Select Financial Year From</option>
@@ -106,27 +122,7 @@ if ($permission) {
                                                 <option value="" selected="selected">Select To Financial Year</option>
                                             </select>
                                         </div>
-										<?php if($sector==1){ ?>
-											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-												<select name="department" onchange="get_indicators()" id="department" class="form-control show-tick" data-live-search="true" data-live-search-style="startsWith">
-													<option value="" selected="selected">Select Department</option>
-													<?php
-													while ($row_rsSectors = $query_rsSectors->fetch()) {
-													?>
-														<option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
-													<?php
-													}
-													?>
-												</select>
-											</div>
-										<?php } ?>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <select name="indicators" id="indicator" onchange="get_coordinates()" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
-												<?php if($sector==1){ ?>
-													<option value="" selected="selected">Select Department First</option>
-												<?php } else { echo $indicator_data; }?>
-                                            </select>
-                                        </div>
+
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <select name="projscounty" id="projcommunity" onchange="conservancy()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
                                                 <option value="">Select <?= $level1label ?></option>
@@ -155,17 +151,11 @@ if ($permission) {
                                                 ?>
                                             </select>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <select name="projward" id="projlga" onchange="ecosystem()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12"> 
+                                            <select name="projward" id="projlga" onchange="get_coordinates()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
                                                 <option value="">Select <?= $level2label ?></option>
                                             </select>
                                         </div>
-                                        <!--<div class="col-md-4">
-                                            <select name="projlocation" class="form-control show-tick" data-live-search="false" id="projloc" style="border:#CCC thin solid; border-radius:5px;">
-                                                <option value="" selected="selected">Select <?//= $level3label ?></option>
-                                            </select>
-                                        </div>-->
-
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">
                                             <input type="hidden" name="get_indicator_markers" value="get_indicator_markers">
                                             <a href="view-indicator-map-dashboard" type="button" class="btn btn-warning" onclick="" id="btnback">RESET</a>
@@ -193,5 +183,7 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 
-<script src="assets/js/maps/get_output_coordinates.js"></script>
+<!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
+<!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script> -->
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
+<script src="assets/js/map/output.js"></script>

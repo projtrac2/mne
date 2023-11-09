@@ -14,7 +14,6 @@ if ($permission) {
 		$currentplan = $row_strategic_plan ? $row_strategic_plan["plan"] : "";
 		$currentplanid = $row_strategic_plan ? $row_strategic_plan["id"] : "";
 
-
 		function get_source_categories()
 		{
 			global $db;
@@ -29,7 +28,7 @@ if ($permission) {
 			}
 			return $input;
 		}
-		
+
 		function get_partner_roles()
 		{
 			global $db;
@@ -121,6 +120,7 @@ if ($permission) {
 												$username = $row['user_name'];
 												$project_department = $row['projsector'];
 												$project_section = $row['projdept'];
+												$budget = $row['projcost'];
 												$project_directorate = $row['directorate'];
 												$projid_hashed = base64_encode("projid54321{$projid}");
 
@@ -130,19 +130,12 @@ if ($permission) {
 												$totalRows_adp = $query_adp->rowCount();
 												$adpstatus = $totalRows_adp > 0 ? $row_adp["status"] : "";
 
-												$query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE projid = :projid");
-												$query_rsBudget->execute(array(":projid" => $projid));
-												$row_rsBudget = $query_rsBudget->fetch();
-												$totalRows_rsBudget = $query_rsBudget->rowCount();
-												$projbudget = $totalRows_rsBudget > 0 ? $row_rsBudget['budget'] : 0;
-
 												$query_sector = $db->prepare("SELECT sector FROM tbl_sectors WHERE stid = :stid");
 												$query_sector->execute(array(":stid" => $stid));
 												$row_sector = $query_sector->fetch();
 
-												$projname = $row["projname"];
+												$projname = htmlspecialchars($row["projname"]);
 												$username = $row["user_name"];
-												$budget = number_format($projbudget, 2);
 												$progid = $row["progid"];
 												$srcfyear = $row["projfscyear"];
 
@@ -171,7 +164,6 @@ if ($permission) {
 												$button = '';
 
 												$details = "{
-													projname: '$projname',
 													plan:'$plan',
 													projid:'$projid',
 													currentfy:'$currentfy'
@@ -205,9 +197,9 @@ if ($permission) {
 															if ($currentyr <= $yr) {
 																if (in_array("add_to_adp", $page_actions)) {
 																	$button .= '<li><a type="button" onclick="add_to_adp(' . $details . ')"><i class="glyphicon glyphicon-plus"></i> Add to ADP</a></li>';
-																} else {
-																	$button .= '<li><a type="button" data-toggle="modal" data-target="#fyItemModal" id="fyItemModalBtn" onclick="adjustFy(' . $details . ')"> <i class="glyphicon glyphicon-calendar"></i> Adjust Output FY</a></li>';
 																}
+															} else {
+																$button .= '<li><a type="button" data-toggle="modal" data-target="#fyItemModal" id="fyItemModalBtn" onclick="adjustFy(' . $details . ')"> <i class="glyphicon glyphicon-calendar"></i> Adjust Output FY</a></li>';
 															}
 
 															if (in_array("create", $page_actions)) {
@@ -228,7 +220,6 @@ if ($permission) {
 														}
 													}
 												}
-												$progbudgetbal = number_format(($row_rsBudget['budget'] - $projbudget), 2);
 												$filter_department = view_record($project_department, $project_section, $project_directorate);
 												if ($filter_department) {
 													$sn++;
@@ -239,10 +230,11 @@ if ($permission) {
 														<td><?= $projname ?> </td>
 														<td><?= $progname ?> </td>
 														<td><?= $sector ?> </td>
-														<td><?= $budget ?> </td>
+														<td><?= number_format($budget, 2) ?> </td>
 														<td><?= $projYear ?> </td>
 														<td><?= $active ?> </td>
 														<td>
+															<input type="hidden" name="projname" id="projname<?= $projid ?>" value="<?= $projname ?>">
 															<!-- Single button -->
 															<div class="btn-group">
 																<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

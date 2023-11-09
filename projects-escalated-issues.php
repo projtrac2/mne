@@ -1,10 +1,38 @@
-<?php
-require('includes/head.php');
+<?php 
+require('includes/head.php'); 
 
 if ($permission) {
     try {
-        $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.catid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)");
-        $query_escalatedissues->execute();
+        /* $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.rskid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)"); */
+        $query_escalated_issues = $db->prepare("SELECT i.id, i.issue_area, i.issue_priority, i.issue_impact, category, issue_description, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate, i.projid, projname FROM tbl_projissues i INNER JOIN tbl_projects p on i.projid=p.projid inner join tbl_projrisk_categories c ON c.catid=i.risk_category WHERE status=0 OR status=2");
+        $query_escalated_issues->execute();
+		$totalRows_escalated_issues = $query_escalated_issues->rowCount();
+		
+		function string_length($x, $length)
+		{
+			$y = "";
+			if(strlen($x)<=$length)
+			{
+				$y = $x;
+				return $y;
+			}
+			else
+			{
+				$y=substr($x,0,$length) . ' <span class="text-danger"><strong>...</strong></span>';
+				return $y;
+			}
+		}
+		
+		
+		function super_user($roleid){
+			$x = false;
+			if($roleid == 1){
+				$x = true;
+			}
+			return $x;
+		}
+		
+		$superuser = super_user($designation_id);
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -34,121 +62,131 @@ if ($permission) {
                                     <div id="home" class="tab-pane fade in active">
                                         <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                                             <thead>
-                                                <tr class="bg-brown">
-                                                    <th style="width:3%">#</th>
-                                                    <th style="width:32%">Project Name</th>
-                                                    <th style="width:12%">Project Status</th>
-                                                    <th style="width:13%">Project Issue</th>
-                                                    <th style="width:12%">Severity Level</th>
+                                                <tr id="colrow">
+                                                    <th style="width:4%">#</th>
+                                                    <th style="width:25%">Issue Description</th>
+                                                    <th style="width:25%">Project Name</th>
                                                     <th style="width:12%">Issue Priority</th>
                                                     <th style="width:12%">Date Escalated</th>
-                                                    <th style="width:6%" data-orderable="false">Action</th>
+                                                    <th style="width:12%">Issue Status</th>
+                                                    <th style="width:10%" data-orderable="false">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                $nm = 0;
-                                                while ($rows = $query_escalatedissues->fetch()) {
-                                                    $nm = $nm + 1;
-                                                    $evalid = $rows['id'];
-                                                    $issueid = $rows['issueid'];
-                                                    $projid = $rows['projid'];
-                                                    $project = $rows['projname'];
-                                                    $projstatusid = $rows['projstatus'];
-                                                    $severity = $rows['name'];
-                                                    $severityvalue = $rows['score'];
-                                                    $priority = $rows['priority'];
-                                                    $dateescalated = $rows['date_escalated'];
-                                                    $issuesno = $rows['issues'];
-                                                    $recommendation = $rows['recommendation'];
-                                                    $issueassessment = $rows['assessment'];
-                                                    $issuedate = $rows['issuedate'];
-                                                    $escalatedissues = $rows['cat'];
-                                                    $escalateditemid = $rows['itemid'];
+												if($totalRows_escalated_issues > 0){
+													$nm = 0;
+													while ($row_issues = $query_escalated_issues->fetch()) {
+														$nm = $nm + 1;
+														$issueid = $row_issues['id'];
+														$projid = $row_issues['projid'];
+														$project = $row_issues['projname'];
+														$risk_category = $row_issues['category'];
+														$issue_description = $row_issues['issue_description'];
+														$issue_priority = $row_issues['issue_priority'];
+														$issue_areaid = $row_issues['issue_area'];
+														$issue_impact = $row_issues['issue_impact'];
+														$monitorid = $row_issues['monitor'];
+														$recommendation = $row_issues['recommendation'];
+														$issuedate = $row_issues['issuedate'];
 
-                                                    $query_projstatus = $db->prepare("SELECT * FROM tbl_status WHERE statusid='$projstatusid'");
-                                                    $query_projstatus->execute();
-                                                    $row_projstatus = $query_projstatus->fetch();
-                                                    $projstatus = $row_projstatus["statusname"];
+														if($superuser || $monitorid == $user_name){
+															$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=1 and active=1");
+															$query_timeline->execute();
+															$row_timeline = $query_timeline->fetch();
+															$timelineid = $row_timeline["id"];
+															$time = $row_timeline["time"];
+															$units = $row_timeline["units"];
+															$stgstatus = $row_timeline["status"];
+															
+															if($issue_priority == 1){
+																$priority = "High";
+															}elseif($issue_priority == 2){
+																$priority = "Medium";
+															}elseif($issue_priority == 3){
+																$priority = "Low";
+															}else{
+																$priority = "Unknown";
+															}
+																																	
+															if($issue_areaid == 1){
+																$issue_area = "Quality";
+															}elseif($issue_areaid == 2){
+																$issue_area = "Scope";
+															}elseif($issue_areaid == 3){
+																$issue_area = "Schedule";
+															}else{
+																$issue_area = "Cost";
+															}
 
-                                                    $query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and rskid='$escalateditemid'");
-                                                    $query_escalationstage->execute();
-                                                    $escalationstage_count = $query_escalationstage->rowCount();
-                                                    $assessmentcomments = array();
-                                                    while ($row_escalationstage = $query_escalationstage->fetch()) {
-                                                        $assessmentcomments[] = $row_escalationstage["stage"];
-                                                    }
-                                                    //$escalationstage = $row_escalationstage["stage"];
+															$duedate = strtotime($issuedate . "+ " . $time . " " . $units);
+															$actionnduedate = date("d M Y", $duedate);
 
-                                                    if ($severityvalue == 1) {
-                                                        $style = 'style="background-color:#4CAF50; color:#fff"';
-                                                    } elseif ($severityvalue == 2) {
-                                                        $style = 'style="background-color:#CDDC39; color:#fff"';
-                                                    } elseif ($severityvalue == 3) {
-                                                        $style = 'style="background-color:#FFEB3B; color:#000"';
-                                                    } elseif ($severityvalue == 4) {
-                                                        $style = 'style="background-color:#FF9800; color:#fff"';
-                                                    } elseif ($severityvalue == 5) {
-                                                        $style = 'style="background-color:#F44336; color:#fff"';
-                                                    }
+															$current_date = date("Y-m-d");
+															$actduedate = date("Y-m-d", $duedate);
 
-                                                    $query_subcounty = $db->prepare("SELECT state FROM tbl_state WHERE id='$subcounty'");
-                                                    $query_subcounty->execute();
-                                                    $count_subcounty = $query_subcounty->fetch();
-                                                    $subcounty = $count_subcounty["state"];
+															if ($actduedate >= $current_date) {
+																$actionstatus = $stgstatus;
+																$styled = 'style="color:blue"';
+															} elseif ($actduedate < $current_date) {
+																$actionstatus = "Behind Schedule";
+																$styled = 'style="color:red"';
+															}
 
-                                                    $query_ward = $db->prepare("SELECT state FROM tbl_state WHERE id='$ward'");
-                                                    $query_ward->execute();
-                                                    $count_ward = $query_ward->fetch();
-                                                    $ward = $count_ward["state"];
-                                                    $loc = $count_loc["state"];
+															$actiondate = $actionnduedate;
+															$query_owner = $db->prepare("SELECT tt.title, fullname FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid='$monitorid'");
+															$query_owner->execute();
+															$row_owner = $query_owner->fetch();
+															$monitor = $row_owner["title"] . '.' . $row_owner["fullname"];
 
-                                                    $query_loc = $db->prepare("SELECT state FROM tbl_state WHERE id='$loc'");
-                                                    $query_loc->execute();
-                                                    $count_loc = $query_loc->fetch();
-
-                                                    //$location = $count_subcounty["state"]." Sub-County; ".$count_ward["state"]." Ward; ".$count_loc["state"]." Location";
-
-                                                    if ($subcounty == "All") {
-                                                        $location = $subcounty . " " . $level1labelplural . "; " . $ward . " " . $level2labelplural . "; " . $loc . " " . $level3labelplural;
-                                                    } else {
-                                                        $location = $subcounty . " " . $level1label . "; " . $ward . " " . $level2label . "; " . $loc . " " . $level3label;
-                                                    }
-                                                ?>
-                                                    <tr style="background-color:#eff9ca">
-                                                        <td align="center"><?php echo $nm; ?></td>
-                                                        <td><?php echo $project; ?></td>
-                                                        <td><?php echo $projstatus; ?></td>
-                                                        <td><?php echo $escalatedissues; ?></td>
-                                                        <td <?php echo $style; ?> align="center"><?php echo $severity; ?></td>
-                                                        <td><?php echo $priority; ?></td>
-                                                        <td><?php echo date("d M Y", strtotime($dateescalated)); ?></td>
-                                                        <td align="center">
-                                                            <?php
-                                                            if ($escalationstage_count > 0) {
-                                                                if (in_array(4, $assessmentcomments) && !in_array(5, $assessmentcomments)) { ?>
-                                                                    <?php
-                                                                    if ($issueassessment == 1) { ?>
-                                                                        <a href="project-escalated-issue-assessment.php?issueid=<?php echo $issueid; ?>" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Add issue assessment feedback"><i class="fa fa-file-code-o fa-2x text-primary" aria-hidden="true"></i></a>
-                                                                    <?php
-                                                                    } else {
-                                                                    ?>
-                                                                        <a href="project-escalated-issue.php?issueid=<?php echo $issueid; ?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Action required"></i></a>
-                                                                    <?php
-                                                                    }
-                                                                } elseif (in_array(4, $assessmentcomments) && in_array(5, $assessmentcomments)) {
-                                                                    ?>
-                                                                    <a href="project-escalated-issue.php?issueid=<?php echo $issueid; ?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
-                                                                <?php
-                                                                } else {
-                                                                ?>
-                                                                    <a href="project-escalated-issue.php?issueid=<?php echo $issueid; ?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue requiring your ACTION!!"></i></a>
-                                                            <?php
-                                                                }
-                                                            } ?>
-                                                        </td>
-                                                    </tr>
-                                                <?php
+															$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and rskid='$issueid'");
+															$query_escalationstage->execute();
+															$escalationstage_count = $query_escalationstage->rowCount();
+															$assessmentcomments = array();
+															while ($row_escalationstage = $query_escalationstage->fetch()) {
+																$assessmentcomments[] = $row_escalationstage["stage"];
+															}
+																												
+															$issuedescription = string_length($issue_description, 100);
+															
+															$issueid = base64_encode("issueid254{$issueid}");
+															?>
+															<tr style="background-color:#eff9ca">
+																<td align="center"><?php echo $nm; ?></td>
+																<td><?php echo $issuedescription; ?></td>
+																<td><?php echo $project; ?></td>
+																<td><?php echo $priority; ?></td>
+																<td class="text-primary"><span data-toggle="tooltip" data-placement="bottom" title="Recorded By: <?= $monitor ?>"><?php echo date("d M Y", strtotime($issuedate)); ?></span></td>
+																<td <?= $styled ?>><?= $actionstatus ?></td>
+																<td align="center">
+																	<?php
+																	if ($escalationstage_count > 0) {
+																		if (in_array(4, $assessmentcomments) && !in_array(5, $assessmentcomments)) { ?>
+																			<?php
+																			if ($issueassessment == 1) { ?>
+																				<a href="project-escalated-issue-assessment.php?issue=<?=$issueid?>" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Add issue assessment feedback"><i class="fa fa-file-code-o fa-2x text-primary" aria-hidden="true"></i></a>
+																			<?php
+																			} else {
+																			?>
+																				<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Action required"></i></a>
+																			<?php
+																			}
+																		} elseif (in_array(4, $assessmentcomments) && in_array(5, $assessmentcomments)) {
+																			?>
+																			<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
+																		<?php
+																		}
+																	} else {
+																	?>
+																		<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue requiring your ACTION!!"></i></a>
+																	<?php
+																	}
+																	?>
+																</td>
+															</tr>
+														<?php
+														}
+													}
                                                 }
                                                 ?>
                                             </tbody>

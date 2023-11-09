@@ -177,7 +177,7 @@ if ($permission) {
                                         <li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
                                         <li class="list-group-item"><strong><?= $level2label ?>: </strong> <?= implode(",", $state) ?> </li>
                                         <li class="list-group-item"><strong>Site: </strong> <?= $site ?> </li>
-                                        <li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li> 
+                                        <li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li>
                                     </ul>
                                 </div>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="sbutton">

@@ -181,7 +181,7 @@ if ($permission) {
                                                 <select name="department_id" id="department_id" onchange="get_sections()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px">
                                                     <option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
                                                     <?php
-                                                    $query_rsDepartments =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent =0 ORDER BY stid ASC");
+                                                    $query_rsDepartments =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent =0 AND deleted=1 ORDER BY stid ASC");
                                                     $query_rsDepartments->execute();
                                                     $totalRows_rsDepartments = $query_rsDepartments->rowCount();
                                                     if ($totalRows_rsDepartments > 0) {
@@ -244,7 +244,7 @@ if ($permission) {
                                     $spid = $row_rsStrategicPlan['id'];
                                     $years = $row_rsStrategicPlan['years'];
                                     $endyear = ($syear + $years) - 1; // strategic plan end year
-                                    
+
                                     $query_rsStrategicObjectives = $db->prepare("SELECT o.id, o.objective FROM tbl_key_results_area k JOIN tbl_strategicplan p ON p.id = k.spid INNER JOIN tbl_strategic_plan_objectives o ON o.kraid = k.id WHERE p.current_plan=1 ");
                                     $query_rsStrategicObjectives->execute();
                                     $totalRows_rsStrategicObjectives = $query_rsStrategicObjectives->rowCount();

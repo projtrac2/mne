@@ -304,7 +304,7 @@ if ($permission) {
                                                         <th width="10%">Status </th>
                                                         <th width="8%">Action</th>
                                                     </tr>
-                                                </thead>
+                                                </thead>  
                                                 <tbody>
                                                     <?php
                                                     $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE g.program_type=0 AND p.deleted='0' ORDER BY `projfscyear` DESC");
@@ -388,7 +388,7 @@ if ($permission) {
                                                                 <tr>
                                                                     <td><?= $sn ?> </td>
                                                                     <td><?= $projname ?> </td>
-                                                                    <td><?= $projcost ?> </td>
+                                                                    <td><?= number_format($projcost, 2) ?> </td>
                                                                     <td><?= $projfscyear ?> </td>
                                                                     <td><?= $projduration ?> </td>
                                                                     <td><?= $sp_link ?> </td>

@@ -3,7 +3,7 @@ require('includes/head.php');
 if ($permission) {
     try {
         $directorate_responsible = 42;
-        $implimentation_stage = 9;
+        $implimentation_stage = 10;
         function get_members($member_id)
         {
             global $db, $directorate_responsible;
@@ -202,7 +202,6 @@ if ($permission) {
             $mnecode = "AB123" . $projid;
             $members = $_POST['member'];
             $roles = $_POST['role'];
-            $implimentation_stage =9;
 
             $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type <= 3");
             $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage));
@@ -212,6 +211,7 @@ if ($permission) {
             for ($i = 0; $i < $total_members; $i++) {
                 $role = $roles[$i];
                 $ptid = $members[$i];
+                $implimentation_stage =  $role == 1 ? 10 : 9;
                 $insertSQL = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
                 $result = $insertSQL->execute(array(':projid' => $projid, ':role' => $role, ":stage" => $implimentation_stage, ':team_type' => $role, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $today));
             }
@@ -338,327 +338,329 @@ if ($permission) {
                             <div class="table-responsive">
                                 <div class="tab-content">
                                     <div id="output" class="tab-pane fade in active">
-										<fieldset class="scheduler-border" style="border-radius:3px">
-											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-												<i class="fa fa-list" style="color:#F44336" aria-hidden="true"></i> Output Details
-											</legend>
-											<div class="body">
-												<div class="row clearfix">
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"><h4><u>Project: <?= $project ?></u></h4></div>
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-														<div class="table-responsive">
-															<table class="table table-bordered table-striped table-hover">
-																<thead class="bg-grey">
-																  <tr>
-																	<th style="width:5%">#</th>
-																	<th style="width:95%">Output</th>
-																  </tr>
-																</thead>
-																<tbody>
-																	<?php
-																	$query_OutputData = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator  WHERE projid = :projid ORDER BY id ASC");
-																	$query_OutputData->execute(array(":projid" => $projid));
-																	$countrows_OutpuData = $query_OutputData->rowCount();
-																	if ($countrows_OutpuData > 0) {
-																		$counter = 0;
-																		while ($row_rsOutput =  $query_OutputData->fetch()) {
-																			$output = $row_rsOutput['indicator_name'];
-																			$counter++;
-																			?>
-																			<tr id="guarantee_row">
-																			  <td style="width:5%"><?= $counter ?></td>
-																			  <td style="width:95%"><?= $output ?></td>
-																			</tr>
-																		<?php
-																		}
-																	}
-																	?>
-																</tbody>
-															</table>
-														</div>
-													</div>
-												</div>
-												<div class="row clearfix">
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-														<form class="form-horizontal" id="outputform" action="" method="POST">
-															<br />
-															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-																<label class="control-label">Monitoring Frequency *: </label>
-																<div class="form-line">
-																	<select name="monitoring_frequency" id="" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-																		<option value="">.... Select from list ....</option>
-																		<?php
-																		$query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");
-																		$query_frequency->execute();
-																		$totalRows_frequency = $query_frequency->rowCount();
-																		$input = '';
-																		if ($totalRows_frequency > 0) {
-																			while ($row_frequency = $query_frequency->fetch()) {
-																				$selected =  $row_frequency['fqid'] == $monitoring_frequency ? 'selected' : '';
-																				$input .= '<option value="' . $row_frequency['fqid'] . '" ' . $selected . ' >' . $row_frequency['frequency'] . ' </option>';
-																			}
-																		}
-																		echo $input;
-																		?>
-																	</select>
-																</div>
-															</div>
-															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-																<input type="hidden" name="store_project_details" id="store_project_details" value="store_project_details">
-																<input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
-																<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-																<?php
-																if (!$approval_stage) {
-																?>
-																	<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="Save" />
-																<?php
-																}
-																?>
-															</div>
-														</form>
-													</div>
-												</div>
-											</div>
-										</fieldset>
+                                        <fieldset class="scheduler-border" style="border-radius:3px">
+                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                <i class="fa fa-list" style="color:#F44336" aria-hidden="true"></i> Output Details
+                                            </legend>
+                                            <div class="body">
+                                                <div class="row clearfix">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <h4><u>Project: <?= $project ?></u></h4>
+                                                    </div>
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-striped table-hover">
+                                                                <thead class="bg-grey">
+                                                                    <tr>
+                                                                        <th style="width:5%">#</th>
+                                                                        <th style="width:95%">Output</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <?php
+                                                                    $query_OutputData = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator  WHERE projid = :projid ORDER BY id ASC");
+                                                                    $query_OutputData->execute(array(":projid" => $projid));
+                                                                    $countrows_OutpuData = $query_OutputData->rowCount();
+                                                                    if ($countrows_OutpuData > 0) {
+                                                                        $counter = 0;
+                                                                        while ($row_rsOutput =  $query_OutputData->fetch()) {
+                                                                            $output = $row_rsOutput['indicator_name'];
+                                                                            $counter++;
+                                                                    ?>
+                                                                            <tr id="guarantee_row">
+                                                                                <td style="width:5%"><?= $counter ?></td>
+                                                                                <td style="width:95%"><?= $output ?></td>
+                                                                            </tr>
+                                                                    <?php
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row clearfix">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <form class="form-horizontal" id="outputform" action="" method="POST">
+                                                            <br />
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                                <label class="control-label">Monitoring Frequency *: </label>
+                                                                <div class="form-line">
+                                                                    <select name="monitoring_frequency" id="" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                        <option value="">.... Select from list ....</option>
+                                                                        <?php
+                                                                        $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");
+                                                                        $query_frequency->execute();
+                                                                        $totalRows_frequency = $query_frequency->rowCount();
+                                                                        $input = '';
+                                                                        if ($totalRows_frequency > 0) {
+                                                                            while ($row_frequency = $query_frequency->fetch()) {
+                                                                                $selected =  $row_frequency['fqid'] == $monitoring_frequency ? 'selected' : '';
+                                                                                $input .= '<option value="' . $row_frequency['fqid'] . '" ' . $selected . ' >' . $row_frequency['frequency'] . ' </option>';
+                                                                            }
+                                                                        }
+                                                                        echo $input;
+                                                                        ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                                                <input type="hidden" name="store_project_details" id="store_project_details" value="store_project_details">
+                                                                <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
+                                                                <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
+                                                                <?php
+                                                                if (!$approval_stage) {
+                                                                ?>
+                                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $monitoring_frequency == "" ? "Save" : "Update" ?>" />
+                                                                <?php
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
                                     </div>
-									<?php if ($outcomeactive) { ?>
+                                    <?php if ($outcomeactive) { ?>
                                         <div id="outcome" class="tab-pane fade <?= $outcomebody ?>">
-											<fieldset class="scheduler-border" style="border-radius:3px">
-												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-													<i class="fa fa-tasks" style="color:#F44336" aria-hidden="true"></i> Outcome Details
-												</legend>
-												<div class="header row">
-													<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
-													</div>
-													<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-														<?php
-														if (!$approval_stage) {
-														?>
-															<button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
-														<?php
-														}
-														?>
-													</div>
-												</div>
-												<div class="body">
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-														<div class="table-responsive">
-															<table class="table table-bordered table-striped table-hover" id="manageOutcomeTable" style="width:100%">
-																<thead>
-																	<tr>
-																		<th width="5%">#</th>
-																		<th width="40%">Outcome</th>
-																		<th width="15%">Source of Data</th>
-																		<th width="18%">Evaluation Frequency</th>
-																		<th width="15%">Number of Endline Evaluations</th>
-																		<th width="7%">Action</th>
-																	</tr>
-																</thead>
-																<tbody>
-																</tbody>
-															</table>
-														</div>
-													</div>
-												</div>
-											</fieldset>
+                                            <fieldset class="scheduler-border" style="border-radius:3px">
+                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                    <i class="fa fa-tasks" style="color:#F44336" aria-hidden="true"></i> Outcome Details
+                                                </legend>
+                                                <div class="header row">
+                                                    <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                                                    </div>
+                                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                                        <?php
+                                                        if (!$approval_stage) {
+                                                        ?>
+                                                            <button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
+                                                        <?php
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="body">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-striped table-hover" id="manageOutcomeTable" style="width:100%">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th width="5%">#</th>
+                                                                        <th width="40%">Outcome</th>
+                                                                        <th width="15%">Source of Data</th>
+                                                                        <th width="18%">Evaluation Frequency</th>
+                                                                        <th width="15%">Number of Endline Evaluations</th>
+                                                                        <th width="7%">Action</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
                                         </div>
                                     <?php }
                                     if ($impactactive) { ?>
                                         <div id="impact" class="tab-pane fade <?= $impactbody ?>">
-											<fieldset class="scheduler-border" style="border-radius:3px">
-												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-													<i class="fa fa-id-card-o" style="color:#F44336" aria-hidden="true"></i> Impact Details
-												</legend>
-												<div class="header row">
-													<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
-													</div>
-													<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-														<?php
-														if (!$approval_stage) {
-														?>
-															<button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
-														<?php
-														}
-														?>
-													</div>
-												</div>
-												<div class="body">
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover" id="manageImpactTable" style="width:100%">
-															<thead>
-																<tr>
-																	<th width="5%">#</th>
-																	<th width="40%">Impact</th>
-																	<th width="15%">Source of Data</th>
-																	<th width="18%">Evaluation Frequency</th>
-																	<th width="15%">Number of Endline Evaluations</th>
-																	<th width="7%">Action</th>
-																</tr>
-															</thead>
-															<tbody>
-															</tbody>
-														</table>
-													</div>
-												</div>
-											</fieldset>
-										</div>
+                                            <fieldset class="scheduler-border" style="border-radius:3px">
+                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                    <i class="fa fa-id-card-o" style="color:#F44336" aria-hidden="true"></i> Impact Details
+                                                </legend>
+                                                <div class="header row">
+                                                    <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                                                    </div>
+                                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                                        <?php
+                                                        if (!$approval_stage) {
+                                                        ?>
+                                                            <button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
+                                                        <?php
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                </div>
+                                                <div class="body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered table-striped table-hover" id="manageImpactTable" style="width:100%">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th width="5%">#</th>
+                                                                    <th width="40%">Impact</th>
+                                                                    <th width="15%">Source of Data</th>
+                                                                    <th width="18%">Evaluation Frequency</th>
+                                                                    <th width="15%">Number of Endline Evaluations</th>
+                                                                    <th width="7%">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </div>
                                     <?php } ?>
                                     <div id="team" class="tab-pane ">
-										<fieldset class="scheduler-border" style="border-radius:3px">
-											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-												<i class="fa fa-users" style="color:#F44336" aria-hidden="true"></i> M&E Team
-											</legend>
-											<div class="body">
-												<div class="row clearfix">
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-														<form class="form-horizontal" id="add_team_form" action="" method="POST">
-															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-																<div class="table-responsive">
-																	<table class="table table-bordered" id="members_table">
-																		<thead>
-																			<tr>
-																				<th style="width:5%;">#</th>
-																				<th style="width:40%">Result Level *:</th>
-																				<th style="width:45%">Member *:</th>
-																				<th style="width:5%">
-																					<?php
-																					if (!$approval_stage) {
-																					?>
-																						<button type="button" name="addplus" id="add_row_gen" onclick="add_member()" class="btn btn-success btn-sm">
-																							<span class="glyphicon glyphicon-plus">
-																							</span>
-																						</button>
-																					<?php
-																					}
-																					?>
-																				</th>
-																			</tr>
-																		</thead>
-																		<tbody id="members_table_body">
-																			<?php
-																			$query_rsProject_Members =  $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND team_type <= 3 AND stage=:stage");
-																			$query_rsProject_Members->execute(array(":projid" => $projid,":stage" => $implimentation_stage));
-																			$totalRows_rsProject_Members = $query_rsProject_Members->rowCount();
-																			if ($totalRows_rsProject_Members > 0) {
-																				$counter = 0;
-																				while ($row_rsProject_Members = $query_rsProject_Members->fetch()) {
-																					$counter++;
-																					$responsible = $row_rsProject_Members['responsible'];
-																					$role = $row_rsProject_Members['role'];
-																					?>
-																					<tr id="memrow<?= $counter ?>">
-																						<td><?= $counter ?></td>
-																						<td>
-																							<select name="role[]" id="rolesrow001" class="form-control" required="required">
-																								<?= get_roles($role) ?>
-																							</select>
-																						</td>
-																						<td>
-																							<select name="member[]" id="membersrow001" class="form-control members" required="required">
-																								<?= get_members($responsible) ?>
-																							</select>
-																						</td>
-																						<td>
-																							<?php
-																							if ($counter != 1 && !$approval_stage) {
-																							?>
-																								<button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_member("memrow<?= $counter ?>")'>
-																									<span class="glyphicon glyphicon-minus"></span>
-																								</button>
-																							<?php
-																							}
-																							?>
-																						</td>
-																					</tr>
-																				<?php
-																				}
-																			} else {
-																				?>
-																				<tr id="finrow001">
-																					<td>1</td>
-																					<td>
-																						<select name="role[]" id="rolesrow001" class="form-control" required="required">
-																							<?= get_roles(0) ?>
-																						</select>
-																					</td>
-																					<td>
-																						<select name="member[]" id="membersrow001" class="form-control members" required="required">
-																							<?= get_members(0) ?>
-																						</select>
-																					</td>
-																				</tr>
-																			<?php
-																			}
-																			?>
-																		</tbody>
-																	</table>
-																</div>
-															</div>
-															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-																<input type="hidden" name="store_project_team" id="store_project_team" value="store_project_team">
-																<input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
-																<input type="hidden" name="projevaluation" id="projevaluation" value="<?= $projevaluation ?>" />
-																<input type="hidden" name="project_impact" id="project_impact" value="<?= $project_impact ?>" />
-																<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-																<?php
-																if (!$approval_stage) {
-																?>
-																	<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="Save" />
-																<?php
-																}
-																?>
-															</div>
-														</form>
-													</div>
-												</div>
-											</div>
-										</fieldset>
+                                        <fieldset class="scheduler-border" style="border-radius:3px">
+                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                <i class="fa fa-users" style="color:#F44336" aria-hidden="true"></i> M&E Team
+                                            </legend>
+                                            <div class="body">
+                                                <div class="row clearfix">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <form class="form-horizontal" id="add_team_form" action="" method="POST">
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-bordered" id="members_table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th style="width:5%;">#</th>
+                                                                                <th style="width:40%">Result Level *:</th>
+                                                                                <th style="width:45%">Member *:</th>
+                                                                                <th style="width:5%">
+                                                                                    <?php
+                                                                                    if (!$approval_stage) {
+                                                                                    ?>
+                                                                                        <button type="button" name="addplus" id="add_row_gen" onclick="add_member()" class="btn btn-success btn-sm">
+                                                                                            <span class="glyphicon glyphicon-plus">
+                                                                                            </span>
+                                                                                        </button>
+                                                                                    <?php
+                                                                                    }
+                                                                                    ?>
+                                                                                </th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="members_table_body">
+                                                                            <?php
+                                                                            $query_rsProject_Members =  $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND team_type <= 3 AND stage=:stage");
+                                                                            $query_rsProject_Members->execute(array(":projid" => $projid, ":stage" => $implimentation_stage));
+                                                                            $totalRows_rsProject_Members = $query_rsProject_Members->rowCount();
+                                                                            if ($totalRows_rsProject_Members > 0) {
+                                                                                $counter = 0;
+                                                                                while ($row_rsProject_Members = $query_rsProject_Members->fetch()) {
+                                                                                    $counter++;
+                                                                                    $responsible = $row_rsProject_Members['responsible'];
+                                                                                    $role = $row_rsProject_Members['role'];
+                                                                            ?>
+                                                                                    <tr id="memrow<?= $counter ?>">
+                                                                                        <td><?= $counter ?></td>
+                                                                                        <td>
+                                                                                            <select name="role[]" id="rolesrow001" class="form-control" required="required">
+                                                                                                <?= get_roles($role) ?>
+                                                                                            </select>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <select name="member[]" id="membersrow001" class="form-control members" required="required">
+                                                                                                <?= get_members($responsible) ?>
+                                                                                            </select>
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <?php
+                                                                                            if ($counter != 1 && !$approval_stage) {
+                                                                                            ?>
+                                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_member("memrow<?= $counter ?>")'>
+                                                                                                    <span class="glyphicon glyphicon-minus"></span>
+                                                                                                </button>
+                                                                                            <?php
+                                                                                            }
+                                                                                            ?>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                <?php
+                                                                                }
+                                                                            } else {
+                                                                                ?>
+                                                                                <tr id="finrow001">
+                                                                                    <td>1</td>
+                                                                                    <td>
+                                                                                        <select name="role[]" id="rolesrow001" class="form-control" required="required">
+                                                                                            <?= get_roles(0) ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <select name="member[]" id="membersrow001" class="form-control members" required="required">
+                                                                                            <?= get_members(0) ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            <?php
+                                                                            }
+                                                                            ?>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                                                <input type="hidden" name="store_project_team" id="store_project_team" value="store_project_team">
+                                                                <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
+                                                                <input type="hidden" name="projevaluation" id="projevaluation" value="<?= $projevaluation ?>" />
+                                                                <input type="hidden" name="project_impact" id="project_impact" value="<?= $project_impact ?>" />
+                                                                <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
+                                                                <?php
+                                                                if (!$approval_stage) {
+                                                                ?>
+                                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $totalRows_rsProject_Members  == 0 ? "Save" : "Update" ?>" />
+                                                                <?php
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
                                     </div>
                                     <div id="budget" class="tab-pane fade">
-										<fieldset class="scheduler-border" style="border-radius:3px">
-											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-												<i class="fa fa-money" style="color:#F44336" aria-hidden="true"></i> M&E Budget (Ksh. <?=$mne_budget?>)
-											</legend>
-											<div class="card-header">
-												<ul class="nav nav-tabs" style="font-size:14px">
-													<li class="active">
-														<a data-toggle="tab" href="#monitoring"><i class="fa fa-list bg-deep-orange" aria-hidden="true"></i> Monitoring&nbsp;<span class="badge bg-deep-orange"></span></a>
-													</li>
-													<?php
-													if ($mappingactivite) {
-													?>
-														<li>
-															<a data-toggle="tab" href="#mapping"><i class="fa fa-map bg-deep-orange" aria-hidden="true"></i> Mapping &nbsp;<span class="badge bg-deep-orange"></span></a>
-														</li>
-													<?php
-													}
-													if ($outcomeactive) {
-													?>
-														<li>
-															<a data-toggle="tab" href="#evaluation"><i class="fa fa-book  bg-deep-orange" aria-hidden="true"></i> Evaluation Cost&nbsp;<span class="badge  bg-deep-orange"></span></a>
-														</li>
-													<?php
-													}
-													?>
-												</ul>
-											</div>
-											<div class="body tab-content">
-												<div id="monitoring" class="tab-pane fade in active">
-													<?php
-													$cost_type = 4;
-													$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-													$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-													$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-													$edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
+                                        <fieldset class="scheduler-border" style="border-radius:3px">
+                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                <i class="fa fa-money" style="color:#F44336" aria-hidden="true"></i> M&E Budget (Ksh. <?= number_format($mne_budget,2)?>)
+                                            </legend>
+                                            <div class="card-header">
+                                                <ul class="nav nav-tabs" style="font-size:14px">
+                                                    <li class="active">
+                                                        <a data-toggle="tab" href="#monitoring"><i class="fa fa-list bg-deep-orange" aria-hidden="true"></i> Monitoring&nbsp;<span class="badge bg-deep-orange"></span></a>
+                                                    </li>
+                                                    <?php
+                                                    if ($mappingactivite) {
+                                                    ?>
+                                                        <li>
+                                                            <a data-toggle="tab" href="#mapping"><i class="fa fa-map bg-deep-orange" aria-hidden="true"></i> Mapping &nbsp;<span class="badge bg-deep-orange"></span></a>
+                                                        </li>
+                                                    <?php
+                                                    }
+                                                    if ($outcomeactive) {
+                                                    ?>
+                                                        <li>
+                                                            <a data-toggle="tab" href="#evaluation"><i class="fa fa-book  bg-deep-orange" aria-hidden="true"></i> Evaluation Cost&nbsp;<span class="badge  bg-deep-orange"></span></a>
+                                                        </li>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </ul>
+                                            </div>
+                                            <div class="body tab-content">
+                                                <div id="monitoring" class="tab-pane fade in active">
+                                                    <?php
+                                                    $cost_type = 4;
+                                                    $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
+                                                    $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                    $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
+                                                    $edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
 
-													$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-													$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-													$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-													$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-													$sum_cost = $totalRows_rs_output_cost_plan > 0 ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-													$budget_line = "Monitoring";
-													$budget_line_details =
-														"{
+                                                    $query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
+                                                    $query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                    $row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
+                                                    $totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
+                                                    $sum_cost = $totalRows_rs_output_cost_plan > 0 ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
+                                                    $budget_line = "Monitoring";
+                                                    $budget_line_details =
+                                                        "{
 														cost_type : $cost_type,
 														output_id: 0,
 														budget_line_id: 0,
@@ -668,92 +670,92 @@ if ($permission) {
 														edit:$edit,
 														sum_cost:$sum_cost
 													}";
-													?>
-													<div class="card-header">
-														<div class="row clearfix" style="margin-top:10px">
-															<div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
-															<h4><u>Monitoring Cost:  <?= number_format($sum_cost, 2) ?> </u></h4>
-															</div>
-															<div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-																<?php
-																if (!$approval_stage) {
-																?>
-																	<button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-																		<?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span> ' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-																	</button>
-																<?php
-																}
-																?>
-															</div>
-														</div>
-													</div>
-													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-														<input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
-														<div class="table-responsive">
-															<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-																<thead>
-																	<tr>
-																		<th># </th>
-																		<th>Description </th>
-																		<th>Unit</th>
-																		<th>Unit Cost</th>
-																		<th>No. of Units</th>
-																		<th>Total Cost</th>
-																	</tr>
-																</thead>
-																<tbody id="budget_lines_tableA">
+                                                    ?>
+                                                    <div class="card-header">
+                                                        <div class="row clearfix" style="margin-top:10px">
+                                                            <div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
+                                                                <h4><u>Monitoring Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
+                                                            </div>
+                                                            <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                                                                <?php
+                                                                if (!$approval_stage) {
+                                                                ?>
+                                                                    <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                        <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span> ' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                    </button>
+                                                                <?php
+                                                                }
+                                                                ?>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th># </th>
+                                                                        <th>Description </th>
+                                                                        <th>Unit</th>
+                                                                        <th>Unit Cost</th>
+                                                                        <th>No. of Units</th>
+                                                                        <th>Total Cost</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="budget_lines_tableA">
 
-																	<?php
-																	if ($totalRows_rs_output_cost_plan > 0) {
-																		$table_counter = 0;
-																		while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																			$table_counter++;
-																			$unit = $row_rsOther_cost_plan['unit'];
-																			$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																			$units_no = $row_rsOther_cost_plan['units_no'];
-																			$rmkid = $row_rsOther_cost_plan['id'];
-																			$description = $row_rsOther_cost_plan['description'];
-																			$financial_year = $row_rsOther_cost_plan['financial_year'];
-																			$end_year = $financial_year + 1;
-																			$total_cost = $unit_cost * $units_no;
-																			$unit_of_measure =  get_measurement($unit);
-																	?>
-																			<tr id="row">
-																				<td> <?= $table_counter ?></td>
-																				<td> <?= $description ?></td>
-																				<td> <?= $unit_of_measure ?></td>
-																				<td> <?= number_format($unit_cost, 2) ?></td>
-																				<td> <?= number_format($units_no) ?></td>
-																				<td> <?= number_format($total_cost, 2) ?></td>
-																			</tr>
-																	<?php
-																		}
-																	}
-																	?>
-																</tbody>
-															</table>
-														</div>
-													</div>
-												</div>
-												<?php
-												if ($mappingactivite) {
-												?>
-													<div id="mapping" class="tab-pane fade ">
-														<?php
-														$cost_type = 3;
-														$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-														$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-														$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-														$edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
+                                                                    <?php
+                                                                    if ($totalRows_rs_output_cost_plan > 0) {
+                                                                        $table_counter = 0;
+                                                                        while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
+                                                                            $table_counter++;
+                                                                            $unit = $row_rsOther_cost_plan['unit'];
+                                                                            $unit_cost = $row_rsOther_cost_plan['unit_cost'];
+                                                                            $units_no = $row_rsOther_cost_plan['units_no'];
+                                                                            $rmkid = $row_rsOther_cost_plan['id'];
+                                                                            $description = $row_rsOther_cost_plan['description'];
+                                                                            $financial_year = $row_rsOther_cost_plan['financial_year'];
+                                                                            $end_year = $financial_year + 1;
+                                                                            $total_cost = $unit_cost * $units_no;
+                                                                            $unit_of_measure =  get_measurement($unit);
+                                                                    ?>
+                                                                            <tr id="row">
+                                                                                <td> <?= $table_counter ?></td>
+                                                                                <td> <?= $description ?></td>
+                                                                                <td> <?= $unit_of_measure ?></td>
+                                                                                <td> <?= number_format($unit_cost, 2) ?></td>
+                                                                                <td> <?= number_format($units_no) ?></td>
+                                                                                <td> <?= number_format($total_cost, 2) ?></td>
+                                                                            </tr>
+                                                                    <?php
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php
+                                                if ($mappingactivite) {
+                                                ?>
+                                                    <div id="mapping" class="tab-pane fade ">
+                                                        <?php
+                                                        $cost_type = 3;
+                                                        $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
+                                                        $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                        $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
+                                                        $edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
 
-														$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-														$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-														$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-														$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-														$sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-														$budget_line = "Mapping";
-														$budget_line_details =
-															"{
+                                                        $query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
+                                                        $query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                        $totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
+                                                        $row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
+                                                        $sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
+                                                        $budget_line = "Mapping";
+                                                        $budget_line_details =
+                                                            "{
 															cost_type : $cost_type,
 															output_id: 0,
 															budget_line_id: 0,
@@ -763,93 +765,93 @@ if ($permission) {
 															edit:$edit,
 															sum_cost:$sum_cost
 														}";
-														?>
-														<div class="card-header">
-															<div class="row clearfix" style="margin-top:10px">
-																<div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
-																<h4><u>Mapping Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
-																</div>
-																<div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-																	<?php
-																	if (!$approval_stage) {
-																	?>
-																		<button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-																			<?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-																		</button>
-																	<?php
-																	}
-																	?>
-																</div>
-															</div>
-														</div>
-														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-															<input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-																	<thead>
-																		<tr>
-																			<th># </th>
-																			<th>Description </th>
-																			<th>Unit</th>
-																			<th>Unit Cost</th>
-																			<th>No. of Units</th>
-																			<th>Total Cost</th>
-																		</tr>
-																	</thead>
-																	<tbody id="budget_lines_tableB">
-																		<?php
-																		if ($totalRows_rs_output_cost_plan > 0) {
-																			$table_counter = 0;
-																			while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																				$table_counter++;
-																				$unit = $row_rsOther_cost_plan['unit'];
-																				$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																				$units_no = $row_rsOther_cost_plan['units_no'];
-																				$rmkid = $row_rsOther_cost_plan['id'];
-																				$description = $row_rsOther_cost_plan['description'];
-																				$financial_year = $row_rsOther_cost_plan['financial_year'];
-																				$total_cost = $unit_cost * $units_no;
-																				$unit_of_measure =  get_measurement($unit);
-																		?>
-																				<tr id="row">
-																					<td> <?= $table_counter ?></td>
-																					<td> <?= $description ?></td>
-																					<td> <?= $unit_of_measure ?></td>
-																					<td> <?= number_format($unit_cost, 2) ?></td>
-																					<td> <?= number_format($units_no) ?></td>
-																					<td> <?= number_format($total_cost, 2) ?></td>
-																				</tr>
-																		<?php
+                                                        ?>
+                                                        <div class="card-header">
+                                                            <div class="row clearfix" style="margin-top:10px">
+                                                                <div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
+                                                                    <h4><u>Mapping Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
+                                                                </div>
+                                                                <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                                                                    <?php
+                                                                    if (!$approval_stage) {
+                                                                    ?>
+                                                                        <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                            <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                        </button>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th># </th>
+                                                                            <th>Description </th>
+                                                                            <th>Unit</th>
+                                                                            <th>Unit Cost</th>
+                                                                            <th>No. of Units</th>
+                                                                            <th>Total Cost</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="budget_lines_tableB">
+                                                                        <?php
+                                                                        if ($totalRows_rs_output_cost_plan > 0) {
+                                                                            $table_counter = 0;
+                                                                            while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
+                                                                                $table_counter++;
+                                                                                $unit = $row_rsOther_cost_plan['unit'];
+                                                                                $unit_cost = $row_rsOther_cost_plan['unit_cost'];
+                                                                                $units_no = $row_rsOther_cost_plan['units_no'];
+                                                                                $rmkid = $row_rsOther_cost_plan['id'];
+                                                                                $description = $row_rsOther_cost_plan['description'];
+                                                                                $financial_year = $row_rsOther_cost_plan['financial_year'];
+                                                                                $total_cost = $unit_cost * $units_no;
+                                                                                $unit_of_measure =  get_measurement($unit);
+                                                                        ?>
+                                                                                <tr id="row">
+                                                                                    <td> <?= $table_counter ?></td>
+                                                                                    <td> <?= $description ?></td>
+                                                                                    <td> <?= $unit_of_measure ?></td>
+                                                                                    <td> <?= number_format($unit_cost, 2) ?></td>
+                                                                                    <td> <?= number_format($units_no) ?></td>
+                                                                                    <td> <?= number_format($total_cost, 2) ?></td>
+                                                                                </tr>
+                                                                        <?php
 
-																			}
-																		}
-																		?>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-												<?php
-												}
-												if ($outcomeactive) {
-												?>
-													<div id="evaluation" class="tab-pane fade">
-														<?php
-														$cost_type = 5;
-														$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-														$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-														$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-														$edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
+                                                                            }
+                                                                        }
+                                                                        ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                }
+                                                if ($outcomeactive) {
+                                                ?>
+                                                    <div id="evaluation" class="tab-pane fade">
+                                                        <?php
+                                                        $cost_type = 5;
+                                                        $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
+                                                        $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                        $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
+                                                        $edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
 
-														$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-														$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-														$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-														$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-														$sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] != null ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-														$budget_line = "Outcome Baseline Evaluation";
+                                                        $query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
+                                                        $query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                                        $row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
+                                                        $totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
+                                                        $sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] != null ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
+                                                        $budget_line = "Outcome Baseline Evaluation";
 
-														$budget_line_details =
-															"{
+                                                        $budget_line_details =
+                                                            "{
 																cost_type : $cost_type,
 																output_id: 0,
 																budget_line_id: 0,
@@ -859,76 +861,76 @@ if ($permission) {
 																edit:$edit,
 																sum_cost:$sum_cost
 															}";
-														?>
-														<div class="card-header">
-															<div class="row clearfix" style="margin-top:10px">
-																<div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
-																<h4><u>Evaluation Cost:  <?= number_format($sum_cost, 2) ?> </u></h4>
-																</div>
-																<div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-																	<?php
-																	if (!$approval_stage) {
-																	?>
-																		<button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right">
-																			<?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-																		</button>
-																	<?php
-																	}
-																	?>
-																</div>
-															</div>
-														</div>
+                                                        ?>
+                                                        <div class="card-header">
+                                                            <div class="row clearfix" style="margin-top:10px">
+                                                                <div class="col-lg-11 col-md-11 col-sm-12 col-xs-12">
+                                                                    <h4><u>Evaluation Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
+                                                                </div>
+                                                                <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
+                                                                    <?php
+                                                                    if (!$approval_stage) {
+                                                                    ?>
+                                                                        <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right">
+                                                                            <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                        </button>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-															<input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-																	<thead>
-																		<tr>
-																			<th># </th>
-																			<th>Description </th>
-																			<th>Unit</th>
-																			<th>Unit Cost</th>
-																			<th>No. of Units</th>
-																			<th>Total Cost</th>
-																		</tr>
-																	</thead>
-																	<tbody id="budget_lines_tableC">
-																		<?php
-																		if ($totalRows_rs_output_cost_plan > 0) {
-																			$table_counter = 0;
-																			while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																				$table_counter++;
-																				$unit = $row_rsOther_cost_plan['unit'];
-																				$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																				$units_no = $row_rsOther_cost_plan['units_no'];
-																				$rmkid = $row_rsOther_cost_plan['id'];
-																				$description = $row_rsOther_cost_plan['description'];
-																				$total_cost = $unit_cost * $units_no;
-																				$unit_of_measure =  get_measurement($unit);
-																		?>
-																				<tr id="row">
-																					<td> <?= $table_counter ?></td>
-																					<td> <?= $description ?></td>
-																					<td> <?= $unit_of_measure ?></td>
-																					<td> <?= number_format($unit_cost, 2) ?></td>
-																					<td> <?= number_format($units_no) ?></td>
-																					<td> <?= number_format($total_cost, 2) ?></td>
-																				</tr>
-																		<?php
-																			}
-																		}
-																		?>
-																	</tbody>
-																</table>
-															</div>
-														</div>
-													</div>
-												<?php
-												}
-												?>
-											</div>
-										</fieldset>
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <input type="hidden" name="budgetlineid<?= $cost_type ?>[]" id="budgetlineid<?= $cost_type ?>" value="<?= $sum_cost ?>" class="task_costs">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th># </th>
+                                                                            <th>Description </th>
+                                                                            <th>Unit</th>
+                                                                            <th>Unit Cost</th>
+                                                                            <th>No. of Units</th>
+                                                                            <th>Total Cost</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="budget_lines_tableC">
+                                                                        <?php
+                                                                        if ($totalRows_rs_output_cost_plan > 0) {
+                                                                            $table_counter = 0;
+                                                                            while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
+                                                                                $table_counter++;
+                                                                                $unit = $row_rsOther_cost_plan['unit'];
+                                                                                $unit_cost = $row_rsOther_cost_plan['unit_cost'];
+                                                                                $units_no = $row_rsOther_cost_plan['units_no'];
+                                                                                $rmkid = $row_rsOther_cost_plan['id'];
+                                                                                $description = $row_rsOther_cost_plan['description'];
+                                                                                $total_cost = $unit_cost * $units_no;
+                                                                                $unit_of_measure =  get_measurement($unit);
+                                                                        ?>
+                                                                                <tr id="row">
+                                                                                    <td> <?= $table_counter ?></td>
+                                                                                    <td> <?= $description ?></td>
+                                                                                    <td> <?= $unit_of_measure ?></td>
+                                                                                    <td> <?= number_format($unit_cost, 2) ?></td>
+                                                                                    <td> <?= number_format($units_no) ?></td>
+                                                                                    <td> <?= number_format($total_cost, 2) ?></td>
+                                                                                </tr>
+                                                                        <?php
+                                                                            }
+                                                                        }
+                                                                        ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                }
+                                                ?>
+                                            </div>
+                                        </fieldset>
                                     </div>
                                 </div>
                             </div>
@@ -1031,24 +1033,28 @@ if ($permission) {
                                                     <input type="text" name="outcom_calc_method" readonly id="outcom_calc_method" class="form-control" required="required">
                                                 </div>
                                             </div>
-                                            <?php if ($impactactive) { ?>
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <?php //if ($impactactive) {
+                                            ?>
+                                            <!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                     <label class="control-label">Parent Impact</label>
                                                     <div class="form-line">
                                                         <select name="parentimpact" id="parentimpact" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
                                                             <option value="">.... Select from list ....</option>
                                                             <?php
-                                                            while ($row_parent_impact = $query_parent_impact->fetch()) {
-                                                                $parentimpactId = $row_parent_impact['id'];
+                                                            /*  while ($row_parent_impact = $query_parent_impact->fetch()) {
+                                                                $parentimpactId = $row_parent_impact['id']; */
                                                             ?>
-                                                                <option value="<?php echo $parentimpactId ?>"><?php echo $row_parent_impact['impact'] ?></option>
+                                                                <option value="<?php //echo $parentimpactId
+                                                                                ?>"><?php //echo $row_parent_impact['impact']
+                                                                                    ?></option>
                                                             <?php
-                                                            }
+                                                            // }
                                                             ?>
                                                         </select>
                                                     </div>
-                                                </div>
-                                            <?php } ?>
+                                                </div>-->
+                                            <?php //}
+                                            ?>
                                             <br />
                                             <br />
                                             <br />
@@ -1232,114 +1238,6 @@ if ($permission) {
                                                     </table>
                                                 </div>
                                             </div>
-                                            <!--<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <label class="control-label">Outcome Risks and Assumptions </label>
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped table-hover" id="outcome_table" style="width:100%">
-                                                        <thead>
-                                                            <tr>
-                                                                <th width="5%">#</th>
-                                                                <th width="30%">Outcome Risks Category</th>
-                                                                <th width="60%">Assumption/s</th>
-                                                                <th width="5%">
-                                                                    <button type="button" name="addplus" id="addplus" onclick="add_row_outcome();" class="btn btn-success btn-sm">
-                                                                        <span class="glyphicon glyphicon-plus"></span>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="outcome_table_body">
-                                                            <tr id="outcomerow0">
-                                                                <td> 1 </td>
-                                                                <td>
-                                                                    <select data-id="0" name="outcomerisk[]" id="outcomeriskrow0" class="form-control  selected_outcome" required="required">
-                                                                        <?php
-                                                                        /* $query_rsRisk =  $db->prepare("SELECT * FROM tbl_projrisk_categories ");
-                                                                        $query_rsRisk->execute();
-                                                                        $row_rsRisk = $query_rsRisk->fetch();
-                                                                        $totalRows_rsRisk = $query_rsRisk->rowCount();
-
-                                                                        $input = '<option value="">... Select from list ...</option>';
-                                                                        if ($totalRows_rsRisk > 0) {
-                                                                            do {
-                                                                                $type = explode(',', $row_rsRisk['type']);
-                                                                                if (in_array(2, $type)) {
-                                                                                    $input .= '<option value="' . $row_rsRisk['rskid'] . '">' . $row_rsRisk['category'] . ' </option>';
-                                                                                }
-                                                                            } while ($row_rsRisk = $query_rsRisk->fetch());
-                                                                        } else {
-                                                                            $input .= '<option value="">No Risks Found</option>';
-                                                                        }
-                                                                        echo $input; */
-                                                                        ?>
-                                                                    </select>
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" name="outcome_assumptions[]" id="outcome_assumptions0" placeholder="Enter outcome risk assumption" class="form-control" required />
-                                                                </td>
-                                                                <td>
-
-                                                                <td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Responsible *:</label>
-                                                <div class="form-line">
-                                                    <select name="outcomeresponsible" id="outcomeresponsible" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <option value="">.... Select from list ....</option>
-                                                        <?php
-                                                       /*  $query_reportUser =  $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE directorate=42");
-                                                        $query_reportUser->execute();
-                                                        $row_reportUser = $query_reportUser->fetch();
-                                                        do {
-                                                        ?>
-                                                            <option value="<?php echo $row_reportUser['userid'] ?>"><?php echo $row_reportUser['fullname'] ?></option>
-                                                        <?php
-                                                        } while ($row_reportUser = $query_reportUser->fetch()); */
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Report User *:</label>
-                                                <div class="form-line">
-                                                    <select name="outcomereportUser[]" multiple id="outcomereportUser" data-actions-box="true" class="form-control show-tick selectpicker" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <?php
-                                                        /* $query_reportUser =  $db->prepare("SELECT * FROM tbl_pmdesignation where active=1");
-                                                        $query_reportUser->execute();
-                                                        $row_reportUser = $query_reportUser->fetch();
-                                                        do {
-                                                        ?>
-                                                            <option value="<?php echo $row_reportUser['moid'] ?>"><?php echo $row_reportUser['designation'] ?></option>
-                                                        <?php
-                                                        } while ($row_reportUser = $query_reportUser->fetch()); */
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Reporting Frequency *: </label>
-                                                <div class="form-line">
-                                                    <select name="outcomeReportingFreq[]" multiple id="" data-actions-box="true" class="form-control show-tick selectpicker" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <option value="">.... Select from list ....</option>
-                                                        <?php
-                                                        /* $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 AND level >=4");
-                                                        $query_frequency->execute();
-                                                        $totalRows_frequency = $query_frequency->rowCount();
-                                                        $input = '';
-                                                        if ($totalRows_frequency > 0) {
-                                                            while ($row_frequency = $query_frequency->fetch()) {
-                                                                $input .= '<option value="' . $row_frequency['fqid'] . '">' . $row_frequency['frequency'] . ' </option>';
-                                                            }
-                                                        }
-                                                        echo $input; */
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>-->
                                             <div class="modal-footer">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                     <input type="hidden" name="addoutcome" id="addoutcome" value="addoutcome">
@@ -1843,7 +1741,6 @@ $details = "{
 ?>
 <script>
     const redirect_url = "view-mne-plan.php";
-
     const details = <?= $details ?>
 </script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>

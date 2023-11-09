@@ -1,9 +1,9 @@
-<?php 
-$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects"); 
+<?php
+$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
 $currentdate = date("Y-m-d");
- 
+
 $original_projid = $_GET['proj'];
 
 require('includes/head.php');
@@ -12,20 +12,20 @@ if ($permission) {
 		$query_project = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_project->execute(array(":projid" => $projid));
 		$row_project = $query_project->fetch();
-		$percent2 = number_format($row_project['progress'], 2);
 		$projname = $row_project['projname'];
 		$projstage = $row_project["projstage"];
 		$projcat = $row_project["projcategory"];
-		
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
+
 		$data = '<option value="" >Select Output Indicator</option>';
 		$query_outputs = $db->prepare("SELECT indid, indicator_name AS indicator, unit, output FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE projid = :projid GROUP BY p.indicator ORDER BY p.indicator ASC");
 		$query_outputs->execute(array(":projid" => $projid));
-		
+
 		while ($row = $query_outputs->fetch()) {
 			$id = $row['indid'];
 			$data .= '<option value="' . $id . '"> ' . $row['unit'] . ' of ' . $row['indicator'] . '</option>';
 		}
-		  
+
     } catch (PDOException $ex) {
         $result = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -54,7 +54,7 @@ if ($permission) {
                 <h4 class="contentheader">
                     <?= $icon ?>
                     <?= $pageTitle ?>
-					
+
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -73,7 +73,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>
@@ -97,14 +97,15 @@ if ($permission) {
                         <div class="body">
                             <input type="hidden" name="lat" id="lat" value="-1.2864">
                             <input type="hidden" name="long" id="long" value="36.8172">
+                            <input type="hidden" name="projid" id="projid" value="<?=$projid?>">
 
-                            <div class="header">
+                            <!-- <div class="header">
                                 <div class="row clearfix">
                                     <form id="searchform" name="searchform" method="get" style="margin-top:-10px" action="s">
                                         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="test">
                                             <select name="outputs" id="outputs" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
-												<?php 
-												echo $data;
+												<?php
+												// echo $data;
 												?>
                                             </select>
                                         </div>
@@ -113,7 +114,7 @@ if ($permission) {
                                         </div>
                                     </form>
                                 </div>
-                            </div>
+                            </div> -->
                             <div class="mt-map-wrapper">
                                 <div class="mt-map propmap" id="map">
                                     <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
@@ -134,63 +135,6 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 
-<script src="assets/js/maps/get_output_coordinates.js"></script>
+
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
-<script>
-    function finyearfrom() {
-        var fyfrom = $("#fyfrom").val();
-        if (fyfrom != "") {
-            $.ajax({
-                type: "post",
-                url: "assets/processor/dashboard-processor",
-                data: {
-                    get_fyto: fyfrom
-                },
-                dataType: "html",
-                success: function(response) {
-                    $("#fyto").html(response);
-                },
-            });
-        }
-    }
-
-    function get_projects() {
-        var deptid = $("#department").val();
-        var start_year = $("#fyfrom").val();
-        var end_year = $("#fyto").val();
-        if (deptid != "") {
-            $.ajax({
-                type: "post",
-                url: "assets/processor/dashboard-processor",
-                data: {
-                    get_dept_projects: deptid,
-                    start_year: start_year,
-                    end_year: end_year,
-                },
-                dataType: "html",
-                success: function(response) {
-                    $("#projid").html(response);
-                },
-            });
-        }
-    }
-
-    // get outputs for a particular project 
-    function get_outputs() {
-        var projid = $("#projid").val();
-        if (projid) {
-            $.ajax({
-                type: "post",
-                url: "assets/processor/dashboard-processor",
-                data: {
-                    get_outputs: "get_outputs",
-                    projid: projid,
-                },
-                dataType: "html",
-                success: function(response) {
-                    $("#outputs").html(response);
-                }
-            });
-        }
-    }
-</script>
+<script src="assets/js/map/project.js"></script>

@@ -19,8 +19,8 @@ if ($permission) {
 		$row_rsProjects = $query_rsProjects->fetch();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
-		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projcategory'] : "";
-		$projcategory = $totalRows_rsProjects > 0 ? number_format($row_rsProjects['progress'], 2) : "";
+		$projcategory = $totalRows_rsProjects > 0 ? $row_rsProjects['projcategory'] : "";
+		$percent2 = $totalRows_rsProjects > 0 ? number_format($row_rsProjects['progress'], 2) : "";
 		$percent2 = calculate_project_progress($projid, $projcategory);
 
 		function get_roles($role)

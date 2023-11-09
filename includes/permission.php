@@ -15,6 +15,7 @@ require 'Models/Connection.php';
 session_start();
 (!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
 
+
 $user_name = $_SESSION['MM_Username'];
 $designation_id = $_SESSION['designation'];
 $department_id = $_SESSION['ministry'];
@@ -121,6 +122,7 @@ function get_page_details()
 {
     global $db, $designation_id;
     $path = get_current_url();
+
     $stmt = $db->prepare("SELECT p.id, p.name, p.icon, p.allow_read, p.url, p.parent, p.workflow_stage FROM tbl_pages p INNER JOIN tbl_page_designations d ON p.id = d.page_id WHERE url=:url and d.designation_id=:designation_id LIMIT 1");
     $stmt->execute(array(":designation_id" => $designation_id, ":url" => $path));
     $row_stmt = $stmt->fetch();
@@ -161,19 +163,104 @@ function get_child_id($page_detials)
 }
 
 
+
+
+
+function validate_program_url($progid, $program_type)
+{
+    global $db;
+
+    if ($program_type == "" && $progid != '') {
+        $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid=:progid");
+        $query_rsProgram->execute(array(":progid" => $progid));
+        $row_rsProgram = $query_rsProgram->fetch();
+        $totalRows_rsProgram = $query_rsProgram->rowCount();
+        $program_type = $totalRows_rsProgram > 0 ?  $row_rsProgram['program_type'] : 0;
+    }
+    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
+}
+
+function validate_project_url($progid)
+{
+    global $db;
+    $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid=:progid");
+    $query_rsProgram->execute(array(":progid" => $progid));
+    $row_rsProgram = $query_rsProgram->fetch();
+    $totalRows_rsProgram = $query_rsProgram->rowCount();
+    $program_type = $totalRows_rsProgram > 0 ?  $row_rsProgram['program_type'] : 0;
+    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
+}
+
+function validate_output_url($projid)
+{
+    global $db;
+    $sql = $db->prepare("SELECT * FROM `tbl_projects` p inner join `tbl_programs` g ON g.progid=p.progid WHERE p.projid=:projid LIMIT 1");
+    $sql->execute(array(":projid" => $projid));
+    $rows_count = $sql->rowCount();
+    $row = $sql->fetch();
+    $program_type =  ($rows_count > 0) ? $row['program_type'] : 0;
+    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
+}
+
+function child_ids($page_url)
+{
+    global $db;
+    $stmt = $db->prepare("SELECT * FROM tbl_pages  WHERE url=:page_url LIMIT 1");
+    $stmt->execute(array(":page_url" => $page_url));
+    $row_stmt = $stmt->fetch();
+    return $row_stmt;
+}
+
+
+
 $page_actions = get_page_actions();
 $permission =  (in_array("read", $page_actions)) ? true : false;
 $page_detials = get_page_details();
 
 $pageTitle = $icon = $allow_read_records = $workflow_stage = $Id = $subId = '';
+
 if ($page_detials) {
     $pageTitle = $page_detials['name'];
     $icon = $page_detials['icon'];
     $allow_read_records = $page_detials['allow_read'];
     $workflow_stage = $page_detials['workflow_stage'];
+
+    if (isset($_GET['progid']) ||  isset($_GET['program_type'])) {
+        $url_pages = '';
+        if (get_current_url() == "add-project") {
+            $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
+            $progid_array = explode("progid54321", $decode_progid);
+            $progid = $progid_array[1];
+            $url_pages = validate_project_url($progid);
+        } else  if (get_current_url() == 'edit-program') {
+            $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
+            $progid_array = explode("progid54321", $decode_progid);
+            $progid = $progid_array[1];
+            $url_pages = validate_program_url($progid, '');
+        } else if (get_current_url() ==  'add-program') {
+            $program_type = $_GET['program_type'];
+            $url_pages = validate_program_url('', $program_type);
+        }
+        $page_detials = child_ids($url_pages);
+    } else if (get_current_url() == 'add-project-outputs' && isset($_GET['projid'])) {
+        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid = $projid_array[1];
+        $url_pages = validate_output_url($projid);
+        $page_detials = child_ids($url_pages);
+    } else if (isset($_GET['projid']) && get_current_url() == "add-project") {
+        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid = $projid_array[1];
+        $url_pages = validate_output_url($projid);
+        $page_detials = child_ids($url_pages);
+    }
+
     $Id = get_parent_id($page_detials);
     $subId = get_child_id($page_detials);
 }
+
+
 
 
 function view_record($department, $section, $directorate)
@@ -552,37 +639,61 @@ function calculate_project_progress($projid, $implimentation_type)
     global $db;
     $direct_cost = 0;
     if ($implimentation_type == 1) {
-        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE tasks =:task_id AND cost_type=1 ");
-        $query_rsOther_cost_plan_budget->execute(array(":task_id" => $projid));
+        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=1 ");
+        $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid));
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
     } else {
-        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE tasks =:task_id ");
-        $query_rsOther_cost_plan_budget->execute(array(":task_id" => $projid));
+        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE projid =:projid ");
+        $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid));
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
     }
 
-    $query_rsPercentage =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan d INNER JOIN tbl_project_monitoring_checklist_score s ON s.subtask_id = d.subtask_id WHERE s.projid =:projid ");
-    $query_rsPercentage->execute(array(":projid" => $projid));
+    $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid=:projid");
+    $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+    $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
     $progress = 0;
-    while ($row_rsPercentage = $query_rsPercentage->fetch()) {
-        $subtask_id = $row_rsPercentage['subtask_id'];
-        $cost =   $row_rsPercentage['unit_cost'] * $row_rsPercentage['units_no'];
-        $percentage =   ($row_rsPercentage['achieved'] / $row_rsPercentage['units_no']) * 100;
+    $cost_used = 0;
+    $project_complete = [];
+    if ($totalRows_rsTask_Start_Dates > 0) {
+        while ($Rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch()) {
+            $subtask_id = $Rows_rsTask_Start_Dates['subtask_id'];
+            $site_id = $Rows_rsTask_Start_Dates['site_id'];
+            $complete = $Rows_rsTask_Start_Dates['complete'];
 
-        if ($percentage >= 100) {
-            $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE subtask_id=:subtask_id  AND complete=1");
-            $query_rsTask_Start_Dates->execute(array(':subtask_id' => $subtask_id));
-            $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-            $percentage = $totalRows_rsTask_Start_Dates > 1 ? 100 : 99;
+
+            $query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_direct_cost_plan WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND cost_type=1 ");
+            $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+            $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+            if ($implimentation_type == 2) {
+                $query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_tender_details WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id");
+                $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+                $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+            }
+
+            $units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] : 0;
+            $unit_cost = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['unit_cost'] : 0;
+            $cost = $units * $unit_cost;
+            $cost_used += $units * $unit_cost;
+            $percentage = 100;
+
+            if ($complete == 0) {
+                $project_complete[] = false;
+                $query_rsPercentage =  $db->prepare("SELECT SUM(achieved)  as achieved FROM tbl_project_monitoring_checklist_score WHERE projid =:projid  AND site_id=:site_id AND subtask_id=:subtask_id");
+                $query_rsPercentage->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+                $row_rsPercentage = $query_rsPercentage->fetch();
+                $sub_percentage = $row_rsPercentage['achieved'] != null ?  ($row_rsPercentage['achieved'] / $units) * 100 : 0;
+                $percentage = $sub_percentage >= 100 ? 99 : $sub_percentage;
+            }
+            $progress += $cost > 0 && $direct_cost > 0 ? $cost / $direct_cost * $percentage : 0;
         }
-
-        $progress += $cost > 0 && $direct_cost > 0 ? $cost / $direct_cost * $percentage : 0;
     }
 
 
-    return $progress;
+    return  !in_array(false, $project_complete) ? 100 : $progress;
 }
 
 
@@ -596,7 +707,7 @@ function calculate_output_progress($output_id, $implimentation_type)
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
     } else {
-        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE output_id =:output_id ");
+        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE outputid =:output_id ");
         $query_rsOther_cost_plan_budget->execute(array(":output_id" => $output_id));
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
@@ -680,7 +791,7 @@ function calculate_output_site_progress($output_id, $implimentation_type, $site_
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
     } else {
-        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE output_id =:output_id  AND site_id=:site_id");
+        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE outputid =:output_id  AND site_id=:site_id");
         $query_rsOther_cost_plan_budget->execute(array(":output_id" => $output_id, ':site_id' => $site_id));
         $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
         $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
@@ -751,6 +862,7 @@ function calculate_subtask_site_progress($subtask_id, $site_id)
     $query_rsTask_Start_Dates->execute(array(':subtask_id' => $subtask_id, ':site_id' => $site_id));
     $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
     $complete = $totalRows_rsTask_Start_Dates > 1 ? true : false;
+
     return $progress >= 100 && !$complete ? 99 : $progress;
 }
 
@@ -789,3 +901,52 @@ function calculate_site_progress($implimentation_type, $site_id)
 
     return $progress;
 }
+
+
+
+function update_projects_status()
+{
+    global $db;
+    $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = 10  and (p.projstatus=3  OR p.projstatus=4 OR p.projstatus=11) ORDER BY p.projid DESC");
+    $query_rsProjects->execute();
+    $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+    if ($totalRows_rsProjects > 0) {
+        while ($row_rsProjects = $query_rsProjects->fetch()) {
+            $projid = $row_rsProjects['projid'];
+            $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date FROM tbl_program_of_works WHERE projid=:projid and complete=0");
+            $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+            $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
+            if ($totalRows_rsTask_Start_Dates > 0) {
+                $status = array();
+                while ($row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch()) {
+                    $start_date = $row_rsTask_Start_Dates['start_date'];
+                    $end_date = $row_rsTask_Start_Dates['end_date'];
+                    $today = date('Y-m-d');
+                    if ($start_date  <= $today) {
+                        if ($end_date < $today) {
+                            $status[] = 11;
+                        } else {
+                            $status[] = 4;
+                        }
+                    } else {
+                        $status[] = 3;
+                    }
+                }
+
+                $projstatus = 3;
+                if (in_array(11, $status)) {
+                    $projstatus = 11;
+                } else if (in_array(4, $status)) {
+                    $projstatus = 4;
+                }
+                $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
+                $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
+            }
+        }
+    }
+}
+
+
+update_projects_status();

@@ -1,5 +1,5 @@
-<?php 
-$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects"); 
+<?php
+$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
 
@@ -11,15 +11,13 @@ if ($permission) {
 		$query_rsMyP = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
-		$count_rsMyP = $query_rsMyP->rowCount();
-		$percent2 =0;
+		$count_rsMyP = $query_rsMyP->rowCount(); 
 		$projstage = 0;
 		if ($row_rsMyP) {
 			$projstatusid = $row_rsMyP["projstatus"];
 			$projcat = $row_rsMyP["projcategory"];
 			$projstage = $row_rsMyP["projstage"];
 			$projdesc = $row_rsMyP["projdesc"];
-			$percent2 = number_format($row_rsMyP["progress"], 2);
 			$projcommunity = explode(",", $row_rsMyP['projcommunity']);
 			$projlga = explode(",", $row_rsMyP['projlga']);
 			//$projstate = explode(",", $row_rsMyP['projstate']);
@@ -70,15 +68,15 @@ if ($permission) {
 			$query_rsContractDates->execute(array(":projid" => $projid));
 			$row_rsContractDates = $query_rsContractDates->fetch();
 			$totalRows_rsContractDates = $query_rsContractDates->rowCount();
-			
+
 			$query_tenderdetails =  $db->prepare("SELECT * FROM tbl_project_tender_details WHERE projid = :projid");
 			$query_tenderdetails->execute(array(":projid" => $projid));
-			
+
 			$totalRows_tenderdetails = $query_tenderdetails->rowCount();
 			$tenderamount = 0;
-			
+
 			if($totalRows_tenderdetails > 0){
-				while($row_tenderdetails = $query_tenderdetails->fetch()){					
+				while($row_tenderdetails = $query_tenderdetails->fetch()){
 					$unitcost = $row_tenderdetails["unit_cost"];
 					$unitsno = $row_tenderdetails["units_no"];
 					$itemcost = $unitcost * $unitsno;
@@ -206,7 +204,7 @@ if ($permission) {
 			}
 
 			$rate = $othercost > 0 ? (($consumed / $othercost) * 100) : 0;
-			
+
 			$projcost = number_format($othercost, 2);
 			$balance = $othercost - $consumed;
 			$balance = number_format($balance, 2);
@@ -223,7 +221,7 @@ if ($permission) {
 
 		// $prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
-		// $percent2 = round($prjprogress, 2);
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
 		$percentage_progress_remaining = 100 - $percent2;
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
@@ -250,7 +248,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?php echo $pageTitle ?>
-					
+
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -270,7 +268,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>
@@ -345,7 +343,7 @@ if ($permission) {
 											<hr style="border-top: 1px dashed red;">
 											<!--<div>
 												<strong><?//= $level3label ?>:</strong> <?php //echo implode(",", $level3); ?>
-											</div>-->	
+											</div>-->
 										</li>
 									</div>
 									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
@@ -363,7 +361,7 @@ if ($permission) {
 											<hr style="border-top: 1px dashed red;">
 											<div>
 												<strong>Remaining Duration: </strong><?= $durationtoenddate ?> Days
-											</div>	
+											</div>
 										</li>
 									</div>
 									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
@@ -381,7 +379,7 @@ if ($permission) {
 											<hr style="border-top: 1px dashed red;">
 											<div>
 												<strong>Budget Balance: </strong>Ksh.<?php echo $balance; ?>
-											</div>											
+											</div>
 										</li>
 									</div>
 								</div>

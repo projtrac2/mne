@@ -1,5 +1,5 @@
 <?php
-include '../controller.php';  
+include '../controller.php';
 if (isset($_POST["deleteItem"])) {
     $itemid = $_POST['itemId'];
     $deleteQuery = $db->prepare("DELETE FROM `tbl_projects` WHERE projid=:itemid");
@@ -52,54 +52,30 @@ if (isset($_POST["remove_from_adp"])) {
 if (isset($_POST["financialyear"])) {
     $projid = $_POST['projid'];
     $year = $_POST['financialyear'];
-    $user_name = $_POST['user_name'];
     $date = date("Y-m-d");
 
-    $query_year = $db->prepare("SELECT id FROM tbl_fiscal_year WHERE yr=:yr");
+    $query_year = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr=:yr");
     $query_year->execute(array(":yr" => $year));
     $rows_year = $query_year->fetch();
-    $yrid = $rows_year["id"];
 
-    $query_project_details = $db->prepare("SELECT * FROM tbl_project_details WHERE projid=:projid");
-    $query_project_details->execute(array(":projid" => $projid));
-    $project_details_row_rsCount = $query_project_details->rowCount();
+    $query_project = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
+    $query_project->execute(array(":projid" => $projid));
+    $rows_project = $query_project->fetch();
+    $msg = "Financial year successfully updated";
 
-    $result2 = false;   
-    if ($project_details_row_rsCount > 0) {
-        while ($row_project_details = $query_project_details->fetch()) {
-            $prjopid = $row_project_details['id'];
-            $opyear = $row_project_details['output_start_year'];
-            $difference = $yrid - $opyear;
-            $fyid = $opyear + $difference;
-            $query_update = $db->prepare("UPDATE tbl_project_details SET output_start_year=:fyid WHERE id=:opid");
-            $result2  = $query_update->execute(array(":fyid" => $fyid, ":opid" => $prjopid));
+    if ($rows_year && $rows_project) {
+        $yrid = $rows_year["id"];
+        $yr = $rows_year["yr"];
+        $start_date = $yr . "-07-01";
+        $project_duration = $rows_project['projduration'] - 1;
+        $end_date =  date($start_date, strtotime('+' . $project_duration . ' days'));
+        $end_date = date('Y-m-d', strtotime($start_date . ' + ' . $project_duration . ' days'));
+        $query_update = $db->prepare("UPDATE tbl_projects SET projfscyear=:year, projstartdate=:projstartdate, projenddate=:projenddate WHERE projid=:projid");
+        $result2  = $query_update->execute(array(":year" => $yrid, ":projstartdate" => $start_date, ":projenddate" => $end_date, ":projid" => $projid));
+        if ($result2) {
+            $msg = "Financial year successfully updated";
         }
     }
 
-    $query_output_details = $db->prepare("SELECT * FROM tbl_project_output_details WHERE projid=:projid");
-    $query_output_details->execute(array(":projid" => $projid));
-    $row_rsCount = $query_output_details->rowCount();
-
-    $msg = "Error while updating financial year!!";
-    if ($row_rsCount > 0) {
-        while ($row_output_details = $query_output_details->fetch()) {
-            $opid = $row_output_details['id'];
-            $outputyear = $row_output_details['year'];
-            $difference = $year - $outputyear;
-            $fy = $outputyear + $difference;
-
-            $query_update = $db->prepare("UPDATE tbl_project_output_details SET year=:year WHERE id=:opid");
-            $result2  = $query_update->execute(array(":year" => $fy, ":opid" => $opid));
-        }
-    }
-    $msg = "Error updating financial year!";
-
-    $query_update = $db->prepare("UPDATE tbl_projects SET projfscyear=:year WHERE projid=:projid");
-    $result2  = $query_update->execute(array(":year" => $yrid, ":projid" => $projid));
-    if ($result2) {
-        $msg = "Financial year successfully updated";
-    }
     echo json_encode(array("msg" => $msg, "success" => $result2));
 }
-
-

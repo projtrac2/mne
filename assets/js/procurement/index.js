@@ -91,7 +91,7 @@ function add_milestone() {
     <tr id="row${$rowno}">
         <td></td>
         <td>
-            <input type="text" name="payment_phase[]" id="payment_phaserow${$rowno}" class="form-control percent"  placeholder="Enter the payment phase" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
+            <input type="text" name="payment_phase[]" id="payment_phaserow${$rowno}" class="form-control"  placeholder="Enter the payment phase" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
         </td>
         <td>
             <select name="milestone_name${$rowno}[]" multiple id="milestone_namerow${$rowno}" data-id="${$rowno}" class="form-control require output_location_select show-tick selectpicker"  data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>

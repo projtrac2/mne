@@ -9,25 +9,19 @@ if ($permission) {
             if (!empty(($projcode)) && empty($projsector)) {
                 $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projcode" => $projcode));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
             } elseif (empty(($projcode)) && !empty($projsector)) {
                 $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE g.projdept = :projsector and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
             } elseif (!empty(($projcode)) && !empty($projsector)) {
                 $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and g.projdept = :projsector and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projcode" => $projcode, ":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
             }
         } else {
             $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
             $query_rsProjects->execute();
-            $row_rsProjects = $query_rsProjects->fetch();
-            $totalRows_rsProjects = $query_rsProjects->rowCount();
         }
+		$row_rsProjects = $query_rsProjects->fetch();
+		$totalRows_rsProjects = $query_rsProjects->rowCount();
 
         $query_rsTP = $db->prepare("SELECT COUNT(projname) FROM tbl_projects WHERE deleted='0' and projplanstatus='1'");
         $query_rsTP->execute();
@@ -88,7 +82,7 @@ if ($permission) {
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped table-hover js-basic-example " id="manageItemTable">
                                     <thead>
-                                        <tr style="background-color:#0b548f; color:#FFF">
+                                        <tr id="colrow">
                                             <th style="width:5%" align="center">#</th>
                                             <th style="width:7%">Project Code</th>
                                             <th style="width:50%">Project Name </th>
@@ -133,9 +127,10 @@ if ($permission) {
                                                 $project_directorate = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['directorate'] : "";
 
                                                 $filter_department = view_record($project_department, $project_section, $project_directorate);
-												$query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND origin >= 1 AND origin <= 4");
+												$query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
 												$query_rsProjissues->execute(array(":projid" => $projid));
 												$projissues = $query_rsProjissues->rowCount();
+                                                $projid_hashed = base64_encode("projrisk047{$projid}");
 
                                                 if ($filter_department) {
 													$counter++;
@@ -146,7 +141,9 @@ if ($permission) {
 														<td><?php echo $row_rsProjects['projname'] ?></td>
 														<td><?php echo $department ?></td>
 														<td>
-															<a href="projectissueslist.php?proj=<?=$projid?>" style="color:#FF5722"><?php echo '<i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i> <font size="5px">' . $projissues . '</font>'; ?></a>
+															<a href="projectissueslist.php?proj=<?=$projid_hashed?>" style="color:#FF5722">
+																<?php echo '<i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Project Issues"></i> <font size="5px">' . $projissues . '</font>'; ?>
+															</a>
 														</td>
 													</tr>
 													<?php

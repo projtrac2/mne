@@ -6,7 +6,7 @@ try {
     function get_department($department_id)
     {
         global $db;
-        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 ");
+        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent =0 AND deleted='0'");
         $query_department->execute();
         $row_department = $query_department->fetch();
         $input = '<option value="">Select Department</option>';
@@ -24,7 +24,7 @@ try {
     function get_section($department_id, $section_id)
     {
         global $db;
-        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent=:stid ");
+        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent=:stid AND deleted='0'");
         $query_department->execute(array(":stid" => $department_id));
         $row_department = $query_department->fetch();
 
@@ -43,7 +43,7 @@ try {
     function get_directorate($section_id, $directorate_id)
     {
         global $db;
-        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent=:stid ");
+        $query_department = $db->prepare("SELECT * FROM `tbl_sectors` WHERE parent=:stid AND deleted='0'");
         $query_department->execute(array(":stid" => $section_id));
         $row_department = $query_department->fetch();
         $input = '<option value="">Select Directorate From List</option>';
@@ -221,7 +221,7 @@ try {
         $department_id = $_GET['department_id'];
         $projid = $_GET['projid'];
         $members = get_members($projid, $department_id, 0, 0, 0, 0);
-        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent");
+        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent AND deleted='0'");
         $result = $sql->execute(array(":parent" => $department_id));
         $sections = '<option value="">Select Section</option>';
         while ($row = $sql->fetch()) {
@@ -236,7 +236,7 @@ try {
         $projid = $_GET['projid'];
 
         $members = get_members($projid, $department_id, $sector_id, 0, 0, 0);
-        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent");
+        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent AND deleted='0'");
         $result = $sql->execute(array(":parent" => $sector_id));
         $directorates = '<option value="">Select Directorate</option>';
         while ($row = $sql->fetch()) {

@@ -44,7 +44,7 @@ if ($permission) {
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
         $projcode = $totalRows_rsProjects > 0 ? $row_rsProjects['projcode'] : "";
-        $projcost = $totalRows_rsProjects > 0 ? $row_rsProjects['projcost'] : "";
+        $projcost = $totalRows_rsProjects > 0 ? $row_rsProjects['direct_cost'] : "";
         $proj_substage = $totalRows_rsProjects > 0 ? $row_rsProjects['proj_substage'] : "";
         $approval_stage = ($proj_substage  >= 2) ? true : false;
 
@@ -173,7 +173,7 @@ if ($permission) {
 
                                                             $procurement_cost = '';
                                                             $procurement_units  = 0;
-                                                            $procurement_total_cost = '';
+                                                            $procurement_total_cost = 0;
                                                             if ($totalRows_rsProcurement > 0) {
                                                                 $procurement_cost = $row_rsProcurement['unit_cost'];
                                                                 $procurement_units = $row_rsProcurement['units_no'];
@@ -210,12 +210,13 @@ if ($permission) {
                                                                 <td>
                                                                     <?= number_format($units_no, 2) ?>
                                                                     <input type="hidden" name="units_no[]" value="<?= $units_no ?>" id="total_units<?= $taskid ?>">
+                                                                    <input type="hidden" name="subtotal[]" value="<?= $units_no ?>" id="subtotal<?= $taskid ?>" class="subtotal" value="<?= $procurement_total_cost ?>">
                                                                 </td>
                                                                 <td>
                                                                     <input type="number" min="0" name="unit_cost[]" value="<?= $procurement_cost ?>" id="unit_cost<?= $taskid ?>" onkeyup="cost_change(<?= $data_details ?>)" onchange="cost_change(<?= $data_details ?>)" class="form-control" placeholder="<?= number_format($unit_cost, 2) ?>" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
                                                                 </td>
                                                                 <td>
-                                                                    <input type="text" name="dtotalcost[]" value="<?= number_format($procurement_total_cost, 2) ?>" id="total_cost<?= $taskid ?>" class="form-control subtotal" placeholder="Total Cost" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required disabled>
+                                                                    <input type="text" name="dtotalcost[]" value="<?= number_format($procurement_total_cost, 2) ?>" id="total_cost<?= $taskid ?>" class="form-control " placeholder="Total Cost" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required disabled>
                                                                 </td>
                                                             </tr>
                                                     <?php
@@ -240,7 +241,7 @@ if ($permission) {
                                                     </tr>
                                                     <tr>
                                                         <td colspan="3"></td>
-                                                        <td colspan="2"> <strong>Planned amount Balance</strong></td>
+                                                        <td colspan="2"> <strong>Contract Cost Estimate</strong></td>
                                                         <td colspan="1">
                                                             <input type="text" name="outputBal" id="output_cost_bal" class="form-control output_cost_bal" value="<?= number_format(($contribution_amount), 2) ?>" placeholder="" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
                                                         </td>
@@ -298,17 +299,20 @@ require('includes/footer.php');
         var task_cost = details.task_cost;
         var new_unit_cost = $(`#unit_cost${taskid}`).val();
         var new_units = $(`#total_units${taskid}`).val();
-        if (task_cost != "" && parseFloat(task_cost) > 0) {
-            if (new_unit_cost != "" && parseFloat(new_unit_cost) > 0) {
-                new_units = parseFloat(new_units);
-                total_cost = new_units >= 0 ? new_unit_cost * new_units : 0;
-                $(`#total_cost${taskid}`).val(commaSeparateNumber(total_cost));
-            } else {
-                $(`#total_cost${taskid}`).val(0);
-            }
+
+        // if (task_cost != "" && parseFloat(task_cost) > 0) {
+        if (new_unit_cost != "" && parseFloat(new_unit_cost) > 0) {
+            new_units = parseFloat(new_units);
+            total_cost = new_units >= 0 ? new_unit_cost * new_units : 0;
+            $(`#total_cost${taskid}`).val(commaSeparateNumber(total_cost));
+            $(`#subtotal${taskid}`).val(total_cost);
         } else {
             $(`#total_cost${taskid}`).val(0);
+            $(`#subtotal${taskid}`).val(0);
         }
+        // } else {
+        //     $(`#total_cost${taskid}`).val(0);
+        // }
         calculate_total_cost();
     }
 
@@ -321,6 +325,7 @@ require('includes/footer.php');
                 subtotal += ($(this).val() != "") ? parseFloat($(this).val()) : 0;
             });
         }
+
         var sub_total_percentage = ((subtotal / project_cost) * 100);
         $("#d_sub_total_amount").val(commaSeparateNumber(subtotal));
         $("#d_sub_total_percentage").val(commaSeparateNumber(sub_total_percentage));

@@ -1,325 +1,374 @@
 <?php
 require('includes/head.php');
-
+$permission = true;
 if ($permission) {
-    try {
-        $editFormAction = $_SERVER['PHP_SELF'];
-        if (isset($_SERVER['QUERY_STRING'])) {
-            $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-        }
-
-        if ((isset($_GET["del"])) && ($_GET["del"] == "1")) {
-            $stid = "-1";
-            if (isset($_GET['stid'])) {
-                $stid = $_GET['stid'];
-            }
-
-            $deleteSQL = $db->prepare("DELETE FROM tbl_state WHERE id='$stid'");
-            $result = $deleteSQL->execute();
-
-            if ($result) {
-                $msg = 'Location successfully deleted.';
-                $results = "<script type=\"text/javascript\">
-                    swal({
-                    title: \"Success!\",
-                    text: \" $msg\",
-                    type: 'Success',
-                    timer: 5000,
-                    showConfirmButton: false });
-                    setTimeout(function(){
-                            window.location.href = 'locations.php';
-                        }, 5000);
-                </script>";
-            } else {
-                $type = 'error';
-                $msg = 'Error deleting the location, kindly try again!!';
-
-                $results = "<script type=\"text/javascript\">
-                    swal({
-                    title: \"Error!\",
-                    text: \" $msg \",
-                    type: 'Danger',
-                    timer: 5000,
-                    showConfirmButton: false });
-                </script>";
-            }
-        } else {
-            $action = "Add";
-            $submitAction = "MM_insert";
-            $formName = "addsectorfrm";
-            $submitValue = "Submit";
-
-            if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addsectorfrm")) {
-
-                $parent = $_POST['wards'];
-
-                if (!empty($parent) || $parent !== '') {
-                    $query_rsLocID = $db->prepare("SELECT * FROM tbl_state WHERE id='$parent'");
-                    $query_rsLocID->execute();
-                    $row_rsLocID = $query_rsLocID->fetch();
-
-                    if (empty($row_rsLocID["parent"]) || $row_rsLocID["parent"] == '') {
-                        $islocation = 0;
-                    } else {
-                        $islocation = 1;
-                    }
-                } else {
-                    $islocation = 0;
-                }
-
-                if (!empty($parent)) {
-                    $insertSQL = $db->prepare("INSERT INTO tbl_state (parent,state,location) VALUES (:parent, :state, :location)");
-                    $result = $insertSQL->execute(array(":parent" => $_POST['wards'], ":state" => $_POST['location'], ":location" => $islocation));
-                } else {
-                    $insertSQL = $db->prepare("INSERT INTO tbl_state (state,location) VALUES (:state, :location)");
-                    $result = $insertSQL->execute(array(":state" => $_POST['location'], ":location" => $islocation));
-                }
-
-                if ($result) {
-                    $msg = 'The location successfully added.';
-                    $results = "<script type=\"text/javascript\">
-                        swal({
-                        title: \"Success!\",
-                        text: \" $msg\",
-                        type: 'Success',
-                        timer: 5000,
-                        showConfirmButton: false });
-                        setTimeout(function(){
-                                window.location.href = 'locations.php';
-                            }, 5000);
-                    </script>";
-                } else {
-                    $type = 'error';
-                    $msg = 'Error saving the sector, kindly try again!!';
-
-                    $results = "<script type=\"text/javascript\">
-                        swal({
-                        title: \"Error!\",
-                        text: \" $msg \",
-                        type: 'Danger',
-                        timer: 5000,
-                        showConfirmButton: false });
-                    </script>";
-                }
-            }
-        }
-
-        $query_rsAllLocations = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL and id<>'1' ORDER BY state ASC");
-        $query_rsAllLocations->execute();
-        $row_rsAllLocations = $query_rsAllLocations->fetch();
-
 ?>
-
-        <!-- start body  -->
-        <section class="content">
-            <div class="container-fluid">
-                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                    <h4 class="contentheader">
-                        <?= $icon ?>
-                        <?= $pageTitle ?>
+    <!-- start body  -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                <h4 class="contentheader">
+                    <?= $icon ?>
+                    <?php echo $pageTitle ?>
+                    <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <div class="btn-group" style="float:right">
-                            </div>
+                            <button type="button" id="modal_button" onclick="add('0', 'subcounty')" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
+                                <i class="fa fa-plus-square"></i> Add Location
+                            </button>
                         </div>
-                    </h4>
-                </div>
-                <div class="row clearfix">
-                    <div class="block-header">
-                        <?= $results; ?>
                     </div>
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                        <div class="card">
-                            <div class="body">
-                                <!-- ============================================================== -->
-                                <!-- Start Page Content -->
-                                <!-- ============================================================== -->
-                                <!-- js-basic-example dataTable -->
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped table-hover ">
-                                        <thead>
-                                            <tr id="colrow">
-                                                <th width="10%" height="35">
-                                                    <div align="center"><strong id="colhead">SN</strong></div>
-                                                </th>
-                                                <th width="85%">
-                                                    <div align="center"><strong id="colhead">Level-1/Level-2</strong></div>
-                                                </th>
-                                                <th width="5%" align="center" data-orderable="false">Action</th>
+            </div>
+            </h4>
+        </div>
+        <div class="row clearfix">
+            <div class="block-header">
+                <?= $results; ?>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover " id="manageItemTable">
+                                <thead>
+                                    <tr style="background-color:#0b548f; color:#FFF">
+                                        <th></th>
+                                        <th>#</th>
+                                        <th colspan="2"> <?= $level1label ?></th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $counter = 0;
+                                    $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
+                                    $query_rsState->execute();
+                                    $rows_rsState = $query_rsState->rowCount();
+                                    if ($rows_rsState > 0) {
+                                        while ($row_rsState = $query_rsState->fetch()) {
+                                            $counter++;
+                                            $level1_id = $row_rsState['id'];
+                                            $level1 = $row_rsState['state'];
+                                            $status ='';
+                                    ?>
+                                            <tr class="projects" style="background-color:#eff9ca">
+                                                <td align="center" class="mb-0" id="projects<?php echo $level1_id ?>" data-toggle="collapse" data-target=".project<?php echo $level1_id ?>" style="background-color:#0b548f">
+                                                    <button class="btn btn-link " title="Click once to expand and Click once to Collapse!!" style="color:#FFF">
+                                                        <i class="fa fa-plus-square" style="font-size:16px"></i>
+                                                    </button>
+                                                </td>
+                                                <td align="center"><?= $counter ?></td>
+                                                <td colspan="2"><?= $level1 ?></td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            Options <span class="caret"></span>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreModalBtn" onclick="edit(0, 'subcounty',<?= $level1_id ?>)">
+                                                                    <i class="fa fa-file-text"></i> Edit  <?= $level1label ?>
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a type="button" onclick="destroy(<?= $level1_id ?>,'<?= $status ?>', <?= $deleted ? 0 : 1 ?>)">
+                                                                    <i class="fa fa-file-text"></i> <?= $deleted ? "Enable" : "Disable" ?>  <?= $level1label ?>
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a type="button" id="modal_button" onclick="add(<?= $level1_id ?>, 'ward')" class="" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
+                                                                    <i class="fa fa-plus-square"></i> Add <?= $level2label ?>
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
                                             <?php
-                                            $sn = 0;
-                                            $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
-                                            $query_rsState->execute();
-                                            $rows_rsState = $query_rsState->rowCount();
-                                            while ($row_rsState = $query_rsState->fetch()) {
-                                                $sn++;
+                                            $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE parent=:parent ORDER BY id ASC");
+                                            $query_rsAllWards->execute(array(":parent"=>$level1_id));
+                                            $rows_rsAllWards = $query_rsAllWards->rowCount();
+                                            if ($rows_rsAllWards > 0) {
                                             ?>
-                                                <tr id="rowlines" style="background-color:#e8eef7">
-                                                    <td width="10%" height="35">
-                                                        <div align="center"><?php echo $sn; ?></div>
-                                                    </td>
-                                                    <td width="80%">
-                                                        <div align="left">&nbsp;&nbsp;<?php echo $row_rsState['state']; ?></div>
-                                                    </td>
-                                                    <td width="5%">
-                                                        <div class="btn-group">
-                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-                                                                Options <span class="caret"></span>
-                                                            </button>
-                                                            <ul class="dropdown-menu">
-                                                                <li>
-                                                                    <a type="button" id="edit_location" href="edit-locations.phpedit=1&amp;stid=<?php echo $row_rsState['id']; ?>">
-                                                                        <i class="fa fa-pencil"></i> Edit
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsState['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                        <i class="fa fa-trash"></i> Delete
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </td>
+                                                <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#2d8bd6; color:#FFF">
+                                                    <th width="5%"></th>
+                                                    <th width="5%">#</th>
+                                                    <th colspan="2" width="40%"> <?= $level2label ?></th>
+                                                    <th width="10%">Action</th>
                                                 </tr>
                                                 <?php
-                                                $ward = $row_rsState['id'];
-                                                $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE parent='$ward' ORDER BY id ASC");
-                                                $query_rsAllWards->execute();
-                                                $rows_rsAllWards = $query_rsAllWards->rowCount();
-                                                if ($rows_rsAllWards > 0) {
-                                                    while ($row_rsAllWards = $query_rsAllWards->fetch()) {
+                                                $Ocounter = 0;
+                                                while ($row_rsAllWards = $query_rsAllWards->fetch()) {
+                                                    $Ocounter++;
+                                                    $level2 = $row_rsAllWards['state'];
+                                                    $level2_id = $row_rsAllWards['id'];
                                                 ?>
-                                                        <tr id="rowlines" style="background-color:#f9fbfc; border-bottom:#000 thin dashed">
-                                                            <td width="10%" height="35">
-                                                                <div align="center"><b> . </b></div>
-                                                            </td>
-                                                            <td width="80%">
-                                                                <div align="left">&nbsp;&nbsp;-- <?php echo $row_rsAllWards['state']; ?></div>
-                                                            </td>
-                                                            <td width="5%">
-                                                                <div class="btn-group">
-                                                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-                                                                        Options <span class="caret"></span>
-                                                                    </button>
-                                                                    <ul class="dropdown-menu">
-                                                                        <li>
-                                                                            <a type="button" id="edit_location" href="edit-locations.php?edit=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>">
-                                                                                <i class="fa fa-pencil"></i> Edit
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#myModal" onclick="add_state(<?= $projid ?>)">
-                                                                                <i class="fa fa-check-square-o"></i> Edit
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a type="button" id="edit_location" href="locations?del=1&amp;stid=<?php echo $row_rsAllWards['id']; ?>" onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                                <i class="fa fa-trash"></i> Delete
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                <?php
-                                                    }
+                                                    <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#dbdbdb">
+                                                        <td align="center" class="mb-0" id="outputs" data-toggle="collapse" data-parent="#accordion" data-target=".output" style="background-color:#2d8bd6">
+                                                        </td>
+                                                        <td align="center"> <?php echo $counter . "." . $Ocounter ?></td>
+                                                        <td colspan="2"><?= $level2; ?></td>
+                                                        <td>
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    Options <span class="caret"></span>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreModalBtn" onclick="edit($level1_id, 'ward' ,<?= $level2_id ?>)">
+                                                                            <i class="fa fa-file-text"></i> Edit <?= $level2label ?>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a type="button" onclick="destroy(<?= $level2_id ?>, <?= $deleted ? 0 : 1 ?>)">
+                                                                            <i class="fa fa-file-text"></i> <?= $deleted ? "Enable" : "Disable" ?>
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                        <?php
                                                 }
-                                                ?>
-                                            <?php
                                             }
-                                            ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!-- ============================================================== -->
-                                <!-- End PAge Content -->
-                                <!-- ============================================================== -->
-                            </div>
+                                        }
+                                    } else {
+                                        ?>
+                                        <tr>
+                                            <td colspan="7">No Locations Currently</td>
+                                        </tr>
+                                    <?php
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-        </section>
-        <!-- end body  -->
-        <!-- Modal Request Payment -->
-        <div class="modal fade" id="myModal" role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
+            </div>
+        </div>
+    </section>
+    <!-- end body  -->
+
+    <!-- add item -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form class="form-horizontal" id="submitItemForm" action="" method="POST" enctype="multipart/form-data">
                     <div class="modal-header" style="background-color:#03A9F4">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h3 class="modal-title" align="center">
-                            <font color="#FFF"><span id="locationName"></span> Add Locations</font>
-                        </h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add </h4>
                     </div>
-                    <form class="tagForm" action="" method="post" id="state_form" enctype="multipart/form-data">
-                        <div class="row clearfix">
-                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                <div class="modal-body">
-                                    <label for="base_val" id=""> <span id="label_name"></span> *:</label>
-                                    <div class="form-input">
-                                        <input type="number" name="state_id" id="state_id" value="" placeholder="Enter Value" class="form-control" required>
+
+                    <div class="modal-body">
+                        <div class="card">
+                            <div class="row clearfix">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div class="body">
+                                        <div class="col-md-12 form-input">
+                                            <label>
+                                                <font color="#174082"> <span id="value_type"></span> </font>
+                                            </label>
+                                            <div class="form-input">
+                                                <input type="text" name="sector" class="form-control" id="sector" value="" style="height:35px; width:98%" placeholder="" required />
+                                                <input type="hidden" name="parent" id="parent">
+                                                <span id="projdurationmsg1" style="color:red"></span>
+                                            </div>
+                                        </div>
+                                        <!-- /form-group-->
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <div class="row clearfix">
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                                    <input type="hidden" name="add_state" id="add_state" class="form-control" value="new">
-                                    <input type="hidden" name="parent_id" id="parent_id" class="form-control" value="0">
-                                    <input name="submit" type="submit" class="btn btn-success waves-effect waves-light" id="tag-form-base-submit" value="Save" />
-                                    <button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+                    </div> <!-- /modal-body -->
+                    <div class="modal-footer">
+                        <div class="col-md-12 text-center">
+                            <input type="hidden" name="newitem" id="newitem" value="new">
+                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                            <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                        </div>
+                    </div> <!-- /modal-footer -->
+                </form> <!-- /.form -->
+            </div> <!-- /modal-content -->
+        </div> <!-- /modal-dailog -->
+    </div>
+    <!-- End add item -->
+
+
+    <!-- Start Modal Item Edit -->
+    <div class="modal fade" id="editItemModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Edit Project Funding Type</h4>
+                </div>
+                <div class="modal-body" style="max-height:450px; overflow:auto;">
+                    <div class="card">
+                        <div class="row clearfix">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <div class="body">
+                                    <div class="div-result">
+                                        <form class="form-horizontal" id="editItemForm" action="" method="POST">
+                                            <div class="col-md-3">
+                                                <label>Role Group *:</label>
+                                                <div class="form-line">
+                                                    <select name="role_group" id="role_group1" class=" form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
+                                                        <option value="" class="selection">...Select Role Group Type...</option>
+                                                        <option value="1" class="selection">...Role Group 1...</option>
+                                                        <option value="2" class="selection">...Role Group 2...</option>
+                                                        <option value="3" class="selection">...Role Group 3...</option>
+                                                        <option value="4" class="selection">...Role Group 4...</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12 form-input">
+                                                <label>
+                                                    <font color="#174082"> <span id="value_type1"></span> </font>
+                                                </label>
+                                                <div class="form-input">
+                                                    <input type="text" name="sector" class="form-control" id="sector1" value="<?php echo (isset($_GET['sctid'])) ? $row_sctparent['sector'] : ""; ?>" style="height:35px; width:98%" placeholder="Enter sector/department" required />
+                                                    <input type="hidden" name="parent" id="parent1">
+                                                    <input type="hidden" name="stid" id="stid1">
+                                                    <span id="projdurationmsg1" style="color:red"></span>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer editItemFooter">
+                                                <div class="col-md-12 text-center">
+                                                    <input type="hidden" name="edititem" id="edititem" value="edit">
+                                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                                                    <input name="edit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                                                </div>
+                                            </div> <!-- /modal-footer -->
+                                        </form> <!-- /.form -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </div> <!-- /modal-body -->
             </div>
+            <!-- /modal-content -->
         </div>
-        <!-- #END# Modal Request Payment -->
+        <!-- /modal-dailog -->
+    </div>
+    <!-- End Item Edit -->
 <?php
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-        print($result);
-    }
 } else {
     $results =  restriction();
     echo $results;
 }
+
 require('includes/footer.php');
 ?>
-<script type="text/javascript">
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
     $(document).ready(function() {
-        $('#subcounty').on('change', function() {
-            var scID = $(this).val();
-            if (scID) {
-                $.ajax({
-                    type: 'POST',
-                    url: 'addLocations',
-                    data: 'sc_id=' + scID,
-                    success: function(html) {
-                        $('#wards').html(html);
-                    }
-                });
-            } else {
-                $('#wards').html('<option value="">Select Level-1 first</option>');
-            }
+        $(".collapse td").click(function(e) {
+            e.preventDefault();
+            $(this)
+                .find("i")
+                .toggleClass("fa-plus-square fa-minus-square");
         });
 
-        $('#wards').on('change', function() {
-            var wdID = $(this).val();
-            var subCID = $("#subcounty").val();
-            if (wdID) {
-                $.ajax({
-                    type: 'POST',
-                    url: 'addWards',
-                    data: 'wd_id=' + wdID + '&subc_ID=' + subCID,
-                    success: function(html) {
-                        $('.locations').html(html);
+        $(".projects td").click(function(e) {
+            e.preventDefault();
+            $(this)
+                .find("i")
+                .toggleClass("fa-plus-square fa-minus-square");
+        });
+
+        $(".output td").click(function(e) {
+            e.preventDefault();
+            $(this)
+                .find("i")
+                .toggleClass("fa-plus-square fa-minus-square");
+        });
+
+        $("#submitItemForm").submit(function(e) {
+            e.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                type: "post",
+                url: "ajax/sectors/index",
+                data: form_data,
+                dataType: "json",
+                success: function(response) {
+                    if (response) {
+                        swal("Success!", "Record created successfully!", "success");
+                    } else {
+                        swal("Error!", "Could not create record!", "error");
                     }
-                });
-            }
+                    window.location.reload(true)
+                }
+            });
+        });
+
+        $("#editItemForm").submit(function(e) {
+            e.preventDefault();
+            var form_data = $(this).serialize();
+            $.ajax({
+                type: "post",
+                url: "ajax/sectors/index",
+                data: form_data,
+                dataType: "json",
+                success: function(response) {
+                    if (response) {
+                        swal("Success!", "Record updated successfully!", "success");
+                    } else {
+                        swal("Error!", "Could not update record!", "error");
+                    }
+                    window.location.reload(true)
+                }
+            });
         });
     });
+
+
+    function add(parent, value_type) {
+        $("#parent").val(parent);
+        $("#value_type").html(value_type);
+    }
+
+    function edit(parent, value_type, sector, role_group, stid) {
+        $("#parent1").val(parent);
+        $("#value_type1").html(value_type);
+        $("#sector1").val(sector);
+        $("#parent1").val(parent);
+        $("#role_group1").val(role_group);
+        $("#stid1").val(stid);
+    }
+
+    function destroy(stid, status, statusid) {
+        swal({
+                title: "Are you sure?",
+                text: `${status}`,
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((willDelete) => {
+                if (willDelete) {
+                    $.ajax({
+                        type: "post",
+                        url: "ajax/sectors/index",
+                        data: {
+                            deleteItem: "deleteItem",
+                            stid: stid,
+                            status: statusid,
+                        },
+                        dataType: "json",
+                        success: function(response) {
+                            if (response) {
+                                swal("Success!", "Status updated successfully!", "success");
+                            } else {
+                                swal("Error!", "Could not update status!", "error");
+                            }
+                            window.location.reload(true)
+                        }
+                    });
+                } else {
+                    swal("You have canceled the action!");
+                }
+            });
+    }
 </script>

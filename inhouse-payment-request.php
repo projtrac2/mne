@@ -347,7 +347,7 @@ if ($permission) {
                                 <?php
                                 }
                                 ?>
-                                <fieldset class="scheduler-border">
+                                <fieldset class="scheduler-border" id="direct_cost">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                         <i class="fa fa-calendar" aria-hidden="true"></i> Request Details
                                     </legend>
@@ -584,6 +584,8 @@ require('includes/footer.php');
                 }
             });
         });
+
+        $("#direct_cost").hide();
     });
 
 
@@ -600,6 +602,7 @@ require('includes/footer.php');
         var purpose = $("#purpose").val();
         if (purpose != '') {
             get_details();
+
             $("#output_div").hide();
             $("#site_div").hide();
             $("#tasks_div").hide();

@@ -292,8 +292,6 @@ if (isset($_POST["approveitem"])) {
    $approved = $_POST['approveitem'];
    $user_name = $_POST['user_name'];
    $year = $_POST['budgetyear'];
-   $updatedprojectstartdate = date('Y-m-d', strtotime($_POST['projstartYears']));
-   $updatedprojectenddate = date('Y-m-d', strtotime($_POST['updateprojendYears']));
    $date = date("Y-m-d");
 
    $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid='$projid'");
@@ -372,15 +370,16 @@ if (isset($_POST["approveitem"])) {
 
       $projbudget = isset($_POST['projapprovedbudget']) ? $_POST['projapprovedbudget'] : $projcost;
       $stage = 1;
-      $status = 0;
+      $status = 1;
       $mne_budget = $_POST['mne_budget'];
       $direct_cost = $_POST['direct_budget'];
       $administrative_cost = $_POST['administrative_budget'];
+
       $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created) VALUES(:projid, :year,:amount, :created_by, :date_created)");
       $result1  = $insertSQL1->execute(array(":projid" => $projid, ":year" => $year, ":amount" => $projbudget, ":created_by" => $user_name, ":date_created" => $date));
 
-      $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, mne_budget=:mne_budget, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, projstage=:stage, projstartdate=:projstartdate, projenddate=:projenddate, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-      $approveItemQuery->execute(array(":project_status" => $project_status, ":mne_budget" => $mne_budget,":direct_cost"=>$direct_cost,":administrative_cost"=>$administrative_cost, ":approved" => $approved, ":stage" => $stage, ":projstartdate" => $updatedprojectstartdate, ":projenddate" => $updatedprojectenddate, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
+      $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, mne_budget=:mne_budget, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+      $approveItemQuery->execute(array(":project_status" => $project_status, ":mne_budget" => $mne_budget, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
 
       if ($program_type == 1) {
          $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:approved_date WHERE projid=:projid");
@@ -404,7 +403,6 @@ if (isset($_POST["approveitem"])) {
 
 if (isset($_POST['unapproveitem'])) {
    $projid = $_POST['projid'];
-
    // delete tbl_project_output_details table
    $deleteQuery = $db->prepare("DELETE FROM `tbl_myprojfunding` WHERE projid=:projid");
    $results = $deleteQuery->execute(array(':projid' => $projid));
@@ -418,9 +416,11 @@ if (isset($_POST['unapproveitem'])) {
    $deleteQuery = $db->prepare("DELETE FROM `tbl_project_approved_yearly_budget` WHERE projid=:projid ");
    $results = $deleteQuery->execute(array(':projid' => $projid));
 
-   $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projcost=:projcost,  projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-   $approved = $approveItemQuery->execute(array(":projcost" => 0, ":approved" => 0, ":stage" => 1, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
+   $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=0 WHERE projid=:projid");
+   $approved = $approveQuery->execute(array(':projid' => $projid));
 
+   $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET  projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+   $approved = $approveItemQuery->execute(array( ":approved" => 0, ":stage" => 0, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
 
    if ($approved) {
       $valid['success'] = true;
@@ -465,49 +465,49 @@ if (isset($_POST['change_start_date'])) {
 
 
 if (isset($_POST["addADPBudget"]) && $_POST["addADPBudget"] == 1) {
-	$projid = $_POST['projid'];
-	$year = $_POST['year'];
+   $projid = $_POST['projid'];
+   $year = $_POST['year'];
 
-	$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
-	$query_rsProjects->execute(array(":projid" => $projid));
-	$row_rsProjects = $query_rsProjects->fetch();
-	$totalRows_rsProjects = $query_rsProjects->rowCount();
+   $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
+   $query_rsProjects->execute(array(":projid" => $projid));
+   $row_rsProjects = $query_rsProjects->fetch();
+   $totalRows_rsProjects = $query_rsProjects->rowCount();
 
-	$projname = $row_rsProjects['projname'];
-	$projstartdate = $row_rsProjects['projstartdate'];
-	$projenddate = $row_rsProjects['projenddate'];
-	$projdurationInDays = $row_rsProjects['projduration'];
-	$projfscyear = $row_rsProjects['projfscyear'];
-	$projcode = $row_rsProjects['projcode'];
-	$projbudget = number_format($row_rsProjects['projcost'], 2);
+   $projname = $row_rsProjects['projname'];
+   $projstartdate = $row_rsProjects['projstartdate'];
+   $projenddate = $row_rsProjects['projenddate'];
+   $projdurationInDays = $row_rsProjects['projduration'];
+   $projfscyear = $row_rsProjects['projfscyear'];
+   $projcode = $row_rsProjects['projcode'];
+   $projbudget = number_format($row_rsProjects['projcost'], 2);
 
-	//convert project duration to years, months, and days
-	$date1 = new DateTime($projstartdate);
-	$date2 = new DateTime($projenddate);
+   //convert project duration to years, months, and days
+   $date1 = new DateTime($projstartdate);
+   $date2 = new DateTime($projenddate);
 
-	$interval = $date2->diff($date1);
-	$project_duration = $interval->format('%Y Years, %m Months, %d Days');
+   $interval = $date2->diff($date1);
+   $project_duration = $interval->format('%Y Years, %m Months, %d Days');
 
-	$query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
-	$query_rsYear->execute();
-	$row_rsYear = $query_rsYear->fetch();
-	$projstartyear =  $row_rsYear['yr'];
-	$projstart = $projstartyear  . '-07-01';
+   $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
+   $query_rsYear->execute();
+   $row_rsYear = $query_rsYear->fetch();
+   $projstartyear =  $row_rsYear['yr'];
+   $projstart = $projstartyear  . '-07-01';
 
-	$yr = date("Y");
-	$mnth = date("m");
+   $yr = date("Y");
+   $mnth = date("m");
 
-	if ($mnth >= 7 && $mnth <= 12) {
-		$yr = $yr;
-	} elseif ($mnth >= 1 && $mnth <= 6) {
-		$yr = $yr - 1;
-	}
+   if ($mnth >= 7 && $mnth <= 12) {
+      $yr = $yr;
+   } elseif ($mnth >= 1 && $mnth <= 6) {
+      $yr = $yr - 1;
+   }
 
-	$yearnxt = $yr + 1;
-	$finyear = $yr . "/" . $yearnxt;
+   $yearnxt = $yr + 1;
+   $finyear = $yr . "/" . $yearnxt;
 
 
-	$TargetB = '
+   $TargetB = '
 	<div class="row clearfix">
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 			<div class="card">
@@ -555,32 +555,32 @@ if (isset($_POST["addADPBudget"]) && $_POST["addADPBudget"] == 1) {
 			</div>
 		</div>
 	</div>';
-	echo $TargetB;
+   echo $TargetB;
 }
 
 if (isset($_POST["addProjADPBudget"])) {
-	$projid = $_POST['projid'];
-	$budget = $_POST['projadpbudget'];
-	$budgetyear = $_POST['budgetyear'];
-	$userid = $_POST['user_name'];
-	$date = date("Y-m-d");
+   $projid = $_POST['projid'];
+   $budget = $_POST['projadpbudget'];
+   $budgetyear = $_POST['budgetyear'];
+   $userid = $_POST['user_name'];
+   $date = date("Y-m-d");
 
-	$query_progid =  $db->prepare("SELECT progid FROM tbl_projects WHERE projid = :projid");
-	$query_progid->execute(array(":projid" => $projid));
-	$row_progid = $query_progid->fetch();
-	$progid =  $row_progid['progid'];
+   $query_progid =  $db->prepare("SELECT progid FROM tbl_projects WHERE projid = :projid");
+   $query_progid->execute(array(":projid" => $projid));
+   $row_progid = $query_progid->fetch();
+   $progid =  $row_progid['progid'];
 
-	$insertbudget = $db->prepare("INSERT INTO `tbl_adp_projects_budget`(projid, progid, year, amount, created_by, date_created)  VALUES(:projid, :progid, :year, :amount, :createdby, :datecreated)");
-	$results  = $insertbudget->execute(array(":projid" => $projid, ":progid" => $progid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $userid, ":datecreated" => $date));
+   $insertbudget = $db->prepare("INSERT INTO `tbl_adp_projects_budget`(projid, progid, year, amount, created_by, date_created)  VALUES(:projid, :progid, :year, :amount, :createdby, :datecreated)");
+   $results  = $insertbudget->execute(array(":projid" => $projid, ":progid" => $progid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $userid, ":datecreated" => $date));
 
 
-	if ($results === TRUE) {
+   if ($results === TRUE) {
 
-		$valid['success'] = true;
-		$valid['messages'] = "Budget successfully requested";
-	} else {
-		$valid['success'] = false;
-		$valid['messages'] = "Error while requesting the budget!!";
-	}
-	echo json_encode($valid);
+      $valid['success'] = true;
+      $valid['messages'] = "Budget successfully requested";
+   } else {
+      $valid['success'] = false;
+      $valid['messages'] = "Error while requesting the budget!!";
+   }
+   echo json_encode($valid);
 }

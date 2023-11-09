@@ -242,7 +242,6 @@ if ($permission) {
                                                                     while ($row_rsMilestone = $query_rsMilestone->fetch()) {
                                                                         $milestone = $row_rsMilestone['milestone'];
                                                                         $msid = $row_rsMilestone['msid'];
-
                                                                         $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id ");
                                                                         $query_rsTask_Start_Dates->execute(array(':task_id' => $msid, ':site_id' => $site_id));
                                                                         $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
@@ -258,12 +257,12 @@ if ($permission) {
                                                                                             <h5><u>
                                                                                                     TASK <?= $task_counter ?>: <?= $milestone ?>
                                                                                                     <?php
-                                                                                                    if (!$approval_stage) {
+                                                                                                    if (!$approval_stage && $implimentation_type == 1 ) {
                                                                                                     ?>
                                                                                                         <div class="btn-group" style="float:right">
                                                                                                             <div class="btn-group" style="float:right">
-                                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                                    <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px"> 
+                                                                                                                    <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                                                                                                 </button>
                                                                                                             </div>
                                                                                                         </div>
@@ -398,7 +397,7 @@ if ($permission) {
                                                                                             <div class="btn-group" style="float:right">
                                                                                                 <div class="btn-group" style="float:right">
                                                                                                     <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                        <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                                                        <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                                                                                     </button>
                                                                                                 </div>
                                                                                             </div>

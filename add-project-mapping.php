@@ -10,14 +10,18 @@ if ($permission) {
         $query_rsProjects->execute(array(":projid" => $projid));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-        $projname = $workflow_stage = $sub_stage = $projcode = $project_directorate = '';
+        $projname = $workflow_stage = $sub_stage = $projcode = $project_directorate = $implementation = '';
+        $project_impact = $project_evaluation = '';
 
         if ($totalRows_rsProjects > 0) {
             $projname = $row_rsProjects['projname'];
             $workflow_stage =  $row_rsProjects['projstage'];
+            $implementation =  $row_rsProjects['projcategory'];
             $sub_stage = $row_rsProjects['proj_substage'];
             $projcode = $row_rsProjects['projcode'];
             $project_directorate = $row_rsProjects['directorate'];
+            $project_impact = $row_rsProjects['projimpact'];
+            $project_evaluation = $row_rsProjects['projevaluation'];
         }
 
         $approval_stage = ($sub_stage  >= 2) ? true : false;
@@ -46,12 +50,13 @@ if ($permission) {
                     $output_id = $row_rsOutput['id'];
                     $mapping_type = $row_rsOutput['indicator_mapping_type'];
                     if ($mapping_type == 1 || $mapping_type == 3) {
-                        $querysSite = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid = :projid ");
-                        $querysSite->execute(array(":projid" => $projid));
+                        $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
+                        $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                         $totalsSite = $querysSite->rowCount();
                         if ($totalsSite > 0) {
                             while ($row_rsSite = $querysSite->fetch()) {
                                 $site_id = $row_rsSite['site_id'];
+                                $site = $row_rsSite['site'];
                                 $query_rsMapping = $db->prepare("SELECT * FROM tbl_markers  WHERE site_id=:site_id AND opid=:output_id");
                                 $query_rsMapping->execute(array(":site_id" => $site_id, ":output_id" => $output_id));
                                 $total_rsMapping = $query_rsMapping->rowCount();
@@ -81,7 +86,7 @@ if ($permission) {
                     <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                            <a type="button" id="outputItemModalBtnrow" href="project-mapping.php" class="btn btn-warning pull-right">
                                 Go Back
                             </a>
                         </div>
@@ -137,7 +142,7 @@ if ($permission) {
                                                 $responsible =    check_if_map_responsible($projid, $workflow_stage, $sub_stage, 1);
 
                                                 if ($responsible['member']) {
-                                                    if ($mapping_type == 1) {
+                                                    if ($mapping_type == 1 || $mapping_type == 3) {
                                                         $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                                                         $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                         $totalsSite = $querysSite->rowCount();
@@ -294,17 +299,18 @@ if ($permission) {
                                         $proceed = validate_mapping();
                                         if ($proceed) {
                                             $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
-                                            $approve_details =
-                                                "{
-                                                get_edit_details: 'details',
-                                                projid:$projid,
-                                                workflow_stage:$workflow_stage,
-                                                project_directorate:$project_directorate,
-                                                project_name:'$projname',
-                                                sub_stage:'$sub_stage',
-                                            }";
                                             if ($assigned_responsible) {
                                                 if ($approval_stage) {
+                                                    $workflow_stage = $project_impact == 0 && $project_evaluation ? $workflow_stage + 1 : $workflow_stage;
+                                                    $approve_details =
+                                                        "{
+                                                        get_edit_details: 'details',
+                                                        projid:$projid,
+                                                        workflow_stage:$workflow_stage,
+                                                        project_directorate:$project_directorate,
+                                                        project_name:'$projname',
+                                                        sub_stage:'$sub_stage',
+                                                    }";
                                         ?>
                                                     <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
                                                 <?php
@@ -344,7 +350,7 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script>
-   const redirect_url = "project-mapping.php";
+    const redirect_url = "project-mapping.php";
 </script>
 <script src="assets/js/map/index.js"></script>
 <script src="assets/js/master/index.js"></script>

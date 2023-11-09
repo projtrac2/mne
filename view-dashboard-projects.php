@@ -253,7 +253,7 @@ if ($permission) {
                                                             $fscyear = $detail['projfscyear'];
                                                             $row_progid = $detail['progid'];
                                                             $projcategory =  $detail['projcategory'];
-                                                            $percent2 =  $detail['progress'];
+                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory),2);
 															$projectid = base64_encode("projid54321{$projid}");
 															$project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
 															$project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
@@ -276,8 +276,8 @@ if ($permission) {
 																	$project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
 																	$project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
 																}
-															} 
-															
+															}
+
                                                             $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
                                                             $query_rsSect->execute(array(":progid" => $progid));
                                                             $row_rsSector = $query_rsSect->fetch();
@@ -294,7 +294,7 @@ if ($permission) {
                                                             $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
                                                             $query_rsProjissues->execute(array(":projid" => $projid));
                                                             $totalRows_rsProjissues = $query_rsProjissues->rowCount();
-															
+
                                                             $projcontractor = "In House";
 
 															if($projcategory == 2){
@@ -435,7 +435,7 @@ if ($permission) {
                                                             $fscyear = $detail['projfscyear'];
                                                             $row_progid = $detail['progid'];
                                                             $projcategory =  $detail['projcategory'];
-                                                            $percent2 = $detail['progress'];
+                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory),2);
 															$projectid = base64_encode("projid54321{$projid}");
 															$project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
 															$project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
@@ -476,7 +476,7 @@ if ($permission) {
                                                             $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
                                                             $query_rsProjissues->execute(array(":projid" => $projid));
                                                             $totalRows_rsProjissues = $query_rsProjissues->rowCount();
-															
+
                                                             $projcontractor = "In House";
 
 															if($projcategory == 2){

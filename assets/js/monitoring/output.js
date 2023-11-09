@@ -3,7 +3,7 @@ var ajax_url = "ajax/monitoring/output";
 $(document).ready(function () {
     $("#add_items").submit(function (e) {
         e.preventDefault();
-        // $("#tag-form-submit").prop("disabled", true);
+        $("#tag-form-submit").prop("disabled", true);
         var data = $(this)[0];
         var form = new FormData(data);
         $.ajax({
@@ -32,12 +32,6 @@ $(document).ready(function () {
 });
 
 
-const set_output_details = (details) => {
-    $("#target").val(details.target);
-    $("#cummulative").val(details.achieved);
-    $("#previous").val(details.previous);
-}
-
 function get_project_outputs(projid, record_type) {
     $(".modal").each(function () {
         $(this).modal("hide");
@@ -64,12 +58,12 @@ function get_project_outputs(projid, record_type) {
                 if (response.success) {
                     $("#output").html(response.outputs);
                 } else {
-                    console.log("Sorrry could not find milestone outputs");
+                    error_alert("Sorrry could not find milestone outputs");
                 }
             },
         });
     } else {
-        console.log("Please select a milestone");
+        error_alert("Please select a milestone");
     }
 }
 
@@ -96,16 +90,22 @@ function get_sites() {
                     $("#output_type").val(output_type);
                     $("#output_project_type").val(output_project_type);
                     $("#site").html(response.sites);
-
                     var output_details = response.output_details;
-                    set_output_details(output_details);
+                    $("#target").val(output_details.output_target);
+                    $("#cummulative").val(output_details.output_cummulative_record);
+                    $("#previous").val(output_details.previous);
+                    $("#completed").val(output_details.output_complete);
                 } else {
-                    console.log("Sorrry could not find output sites");
+                    error_alert("Sorrry could not find output sites");
+                    $("#site").html('<option value="">.... Select Site ....</option>');
+                    $("#milestone").html('<option value="">.... Select Milestone ....</option>');
                 }
             },
         });
     } else {
-        console.log("Please select output");
+        error_alert("Please select output");
+        $("#site").html('<option value="">.... Select Site ....</option>');
+        $("#milestone").html('<option value="">.... Select Milestone ....</option>');
     }
 }
 
@@ -116,9 +116,8 @@ function get_milestones() {
     var site_id = $("#site").val();
     var output_project_type = $("#output_project_type").val();
     var record_type = $("#record_type").val();
-
     if (output_id != "") {
-        if (output_project_type == 2) {
+        if (output_project_type == "2") {
             hide_milestone_divs(true);
             $.ajax({
                 type: "get",
@@ -135,9 +134,16 @@ function get_milestones() {
                     if (response.success) {
                         $("#milestone").html(response.milestones);
                         var output_details = response.output_details;
-                        set_output_details(output_details);
+                        var site_details = response.site_details;
+                        $("#target").val(site_details.site_target);
+                        $("#site_target").val(site_details.site_target);
+                        $("#site_achieved").val(site_details.site_cummulative_record);
+                        $("#cummulative").val(site_details.site_cummulative_record);
+                        $("#previous").val(site_details.site_previous_record);
+                        $("#completed").val(site_details.output_completed);
                     } else {
-                        console.log("Sorrry could not find milestone outputs");
+                        error_alert("Sorrry could not find milestone outputs");
+                        $("#milestone").html('<option value="">.... Select Milestone ....</option>');
                     }
                 },
             });
@@ -145,7 +151,8 @@ function get_milestones() {
             get_output_details();
         }
     } else {
-        console.log("Please select a milestone");
+        error_alert("Please select a milestone");
+        $("#milestone").html('<option value="">.... Select Milestone ....</option>');
     }
 }
 
@@ -172,19 +179,32 @@ function get_output_details() {
             success: function (response) {
                 if (response.success) {
                     var output_details = response.output_details;
-                    $("#site_target").val(output_details.site_target);
-                    $("#site_achieved").val(output_details.site_achieved);
-                    $("#milestone_target").val(output_details.milestone_target);
-                    $("#milestone_achieved").val(output_details.milestone_achieved);
-                    var details = response.details;
-                    set_output_details(details);
+                    var site_details = response.site_details;
+                    var milestone_details = response.milestone_details;
+                    var output_project_type = $("#output_project_type").val();
+                    if (output_project_type == "1") {
+                        $("#target").val(site_details.site_target);
+                        $("#cummulative").val(site_details.site_cummulative_record);
+                        $("#previous").val(site_details.site_previous_record);
+                        $("#completed").val(site_details.site_completed);
+                    } else {
+                        $("#milestone_target").val(milestone_details.milestone_target);
+                        $("#milestone_achieved").val(milestone_details.milestone_achieved);
+                        $("#target").val(milestone_details.milestone_target);
+                        $("#cummulative").val(milestone_details.milestone_cummulative_record);
+                        $("#previous").val(milestone_details.milestone_previous_record);
+                        $("#completed").val(milestone_details.milestone_completed);
+                    }
+
+                    $("#site_target").val(site_details.site_target);
+                    $("#site_achieved").val(site_details.site_achieved);
                 } else {
-                    console.log("Sorrry could not find milestone outputs");
+                    error_alert("Sorrry could not find milestone outputs");
                 }
             },
         });
     } else {
-        console.log("Please select a milestone");
+        error_alert("Please select a milestone");
     }
 }
 
@@ -236,39 +256,27 @@ function number_table() {
 
 const validateCeiling = () => {
     let measure = $("#current_measure").val();
-    let milestone_target = $("#milestone_target").val();
-    let milestone_achieved = $("#milestone_achieved").val();
-    let site_target = $("#site_target").val();
-    let site_achieved = $("#site_achieved").val();
-    let output_project_type = $("#output_project_type").val();
-    console.log(site_target);
+    let completed = $("#completed").val();
+    let target = $("#target").val();
+    let cummulative = $("#cummulative").val();
 
-    if (site_target != '') {
-        console.log(site_target);
-        milestone_target = parseFloat(milestone_target);
-        milestone_achieved = parseFloat(milestone_achieved);
-        site_target = parseFloat(site_target);
-        site_achieved = parseFloat(site_achieved);
-        if (measure != '' && parseFloat(measure) >= 0) {
-            measure = parseFloat(measure);
-            total = site_achieved + measure;
-            if (total > site_target) {
+    if (measure != '') {
+        measure = parseFloat(measure);
+        if (target != '') {
+            target = parseFloat(target);
+            cummulative = parseFloat(cummulative);
+            total = cummulative + measure;
+            if (total > target) {
                 error_alert("Please ensure you do not exceed site target");
                 $("#current_measure").val("");
-            } else {
-                console.log(output_project_type);
-                if (output_project_type == '2') {
-                    milestone_total = milestone_achieved + measure;
-                    if (milestone_total > milestone_target) {
-                        error_alert("Please ensure you do not exceed milestone target")
-                        $("#current_measure").val("");
-                    }
-                }
+            } else if (total == target && completed == '1') {
+                error_alert("Activity Monitoring is not complete");
+                $("#current_measure").val("");
             }
         } else {
-            console.log(site_target);
-            $("#current_measure").val("");
-            error_alert('Please ensure that the current measurement is greater than zero.');
+            error_alert("Ensure you have Site/Ward Target");
         }
+    } else {
+        console.log("Please enter value");
     }
 }

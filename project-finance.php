@@ -13,15 +13,13 @@ if ($permission) {
 		$row_rsMyP = $query_rsMyP->fetch();
 		$projname = $row_rsMyP['projname'];
 		$projstage = $row_rsMyP["projstage"];
-		$projcat = $row_rsMyP["projcategory"];
-		$percent2 = number_format($row_rsMyP['progress'], 2);
+		$projcat = $row_rsMyP["projcategory"]; 
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
 
 		$query_rsOutputs = $db->prepare("SELECT p.output as  output, o.id as opid, p.indicator, o.budget as budget, o.total_target FROM tbl_project_details o INNER JOIN tbl_progdetails p ON p.id = o.outputid WHERE projid = :projid");
 		$query_rsOutputs->execute(array(":projid" => $projid));
 		$row_rsOutputs = $query_rsOutputs->fetch();
 		$totalRows_rsOutputs = $query_rsOutputs->rowCount();
-
-		// $percent2 = get_project_percentage($projid);
 
 
 		function get_task_compliance($state_id, $site_id, $task_id)
@@ -65,7 +63,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?= $pageTitle ?>
-					
+
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -85,7 +83,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>
@@ -128,7 +126,7 @@ if ($permission) {
 											$row_rsProjFinancier = $query_rsProjFinancier->fetch();
 											$totalRows_rsProjFinancier = $query_rsProjFinancier->rowCount();
 											?>
-											
+
 											<fieldset class="scheduler-border" style="border-radius:3px">
 												<legend class="scheduler-border" style="background-color:orange; border-radius:3px">
 												   <i class="fa fa-university" aria-hidden="true"></i> Funding Details
@@ -213,9 +211,9 @@ if ($permission) {
 															<?php
 															$query_payment_requests = $db->prepare("SELECT r.requested_amount,d.receipt_no, d.request_id, d.receipt, d.created_by, d.date_paid FROM tbl_contractor_payment_requests r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.request_id WHERE r.projid=:projid AND r.status = 3 GROUP BY r.request_id");
 															$query_payment_requests->execute(array(":projid" => $projid));
-															
+
 															$counter = $totalPaid = 0;
-															
+
 															while ($rows_payment_requests = $query_payment_requests->fetch()){
 																$receipt_no = $rows_payment_requests['receipt_no'];
 																$costline_id = $rows_payment_requests['request_id'];

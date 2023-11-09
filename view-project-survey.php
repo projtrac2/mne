@@ -104,8 +104,9 @@ if ($permission) {
 	
 	while($row_survey_data = $query_survey_data->fetch()){
 		$projid = $row_survey_data["projid"];
+		$resultstypeid = $row_survey_data["resultstypeid"];
 		$query_outcome_evaluation_concluded = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=2 AND resultstypeid=:resultstypeid AND projid=:projid");
-		$query_outcome_evaluation_concluded->execute(array(":resultstypeid" => $outcomeid, ":projid" => $projid));
+		$query_outcome_evaluation_concluded->execute(array(":resultstypeid" => $resultstypeid, ":projid" => $projid));
 		$rows_outcome_evaluation_concluded = $query_outcome_evaluation_concluded->rowCount();
 
 		if ($rows_outcome_evaluation_concluded == 0) {
@@ -128,6 +129,7 @@ if ($permission) {
       $projid = $rows_survey_submissions['projid'];
       $form_id = $rows_survey_submissions['id'];
       $samplesize = $rows_survey_submissions['sample_size'];
+	  $resultstypeid = $rows_survey_submissions['resultstypeid'];
 
       $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
       $query_projects->execute(array(":projid" => $projid));
@@ -142,7 +144,7 @@ if ($permission) {
       $totalsamplesize = $locations * $samplesize;
 
       $query_evaluation_conclusion = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype = 2 AND resultstypeid=:resultstypeid");
-      $query_evaluation_conclusion->execute(array(":resultstypeid" => $outcomeid));
+      $query_evaluation_conclusion->execute(array(":resultstypeid" => $resultstypeid));
       $count_evaluation_conclusion = $query_evaluation_conclusion->rowCount();
 
       if ($totalsamplesize == $count_total_submissions && $count_evaluation_conclusion == 0) {
@@ -575,8 +577,9 @@ if ($permission) {
 								$deploy_counter = 0;
 								while ($rows_survey_data = $query_survey_data_inner->fetch()) {
 									$projid = $rows_survey_data['projid'];
+									$resultstypeid = $rows_survey_data['resultstypeid'];
 									$query_impact_evaluation_concluded = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=2 AND resultstypeid=:resultstypeid AND projid=:projid");
-									$query_impact_evaluation_concluded->execute(array(":resultstypeid" => $outcomeid, ":projid" => $projid));
+									$query_impact_evaluation_concluded->execute(array(":resultstypeid" => $resultstypeid, ":projid" => $projid));
 									$rows_impact_evaluation_concluded = $query_impact_evaluation_concluded->rowCount();
 
 									if ($rows_impact_evaluation_concluded == 0) {
@@ -587,7 +590,6 @@ if ($permission) {
 										$projname = $rows_projects['projname'];
 										$startdate = date_format(date_create($rows_survey_data['startdate']), "d M Y");
 										$enddate = date_format(date_create($rows_survey_data['enddate']), "d M Y");
-										$resultstypeid = $rows_survey_data['resultstypeid'];
 										$resultstype = $rows_survey_data['resultstype'];
 										$status = $rows_survey_data['status'];
 										$form_name = $rows_survey_data['form_name'];

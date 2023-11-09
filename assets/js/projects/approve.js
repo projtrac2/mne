@@ -67,9 +67,9 @@ function validate_approval() {
         project_cost = parseFloat(project_cost);
         var financierTotal = 0;
         $(".financierTotal").each(function (k, v) {
-            financierTotal +=$(v).val() != '' ? parseFloat($(v).val()) : 0;
+            financierTotal += $(v).val() != '' ? parseFloat($(v).val()) : 0;
         });
-        if(financierTotal == project_cost) {
+        if (financierTotal == project_cost) {
             financiers = true;
         }
     }
@@ -267,10 +267,10 @@ function unapprove_project(projid) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: ajax_url,
+                    url: project_approve_url,
                     data: {
-                        deleteItem: 'deleteItem',
-                        itemId: projid,
+                        unapproveitem: 'unapproveitem',
+                        projid: projid,
                     },
                     dataType: "json",
                     success: function (response) {
@@ -341,9 +341,9 @@ function calculate_budget(rowno) {
         project_cost = parseFloat(project_cost);
         var financierTotal = 0;
         $(".financierTotal").each(function (k, v) {
-            financierTotal +=$(v).val() != '' ? parseFloat($(v).val()) : 0;
+            financierTotal += $(v).val() != '' ? parseFloat($(v).val()) : 0;
         });
-        if(financierTotal > project_cost) {
+        if (financierTotal > project_cost) {
             $(`#amountfundingrow${rowno}`).val("");
             error_alert(`Financiers contribution contribution should be less than ${project_cost}`);
         }
@@ -355,114 +355,114 @@ function calculate_budget(rowno) {
 
 //Add ADP budget for all projects
 function addADPBudget(projid = null, year = null) {
-  if (projid) {
-    $.ajax({
-      url: "ajax/projects/approve",
-      type: "post",
-      data: {
-        addADPBudget: 1,
-        projid: projid,
-        year: year,
-      },
-      dataType: "html",
-      success: function (response) {
-        $("#addADPBudgetBody").html(response);
-      },
-    });
-  } else {
-    alert("error please refresh the page");
-  }
+    if (projid) {
+        $.ajax({
+            url: "ajax/projects/approve",
+            type: "post",
+            data: {
+                addADPBudget: 1,
+                projid: projid,
+                year: year,
+            },
+            dataType: "html",
+            success: function (response) {
+                $("#addADPBudgetBody").html(response);
+            },
+        });
+    } else {
+        alert("error please refresh the page");
+    }
 }
 
 // submit approved budget
 $("#addADPBudgetForm")
-  .unbind("submit")
-  .bind("submit", function (e) {
-    e.preventDefault();
-    var form = $(this);
-    var formData = new FormData(this);
+    .unbind("submit")
+    .bind("submit", function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var formData = new FormData(this);
 
-    var budget = $("#addProjADPBudget").val();
-	console.log("bhandler = " + budget);
-    if (budget == 1) {
-      $.ajax({
-        url: "ajax/projects/approve",
-        type: "post",
-        data: formData,
-        dataType: "json",
-        cache: false,
-        contentType: false,
-        processData: false,
-        success: function (response) {		  
-			if (response.success) {
-				success_alert(response.messages);
-				$(".modal").each(function () {
-					$(this).modal("hide");
-				});
-				$("#tag-form-submit").prop("disabled", false);
-			} else {
-				error_alert("Sorry couldn't approve project");
-			}
+        var budget = $("#addProjADPBudget").val();
+        console.log("bhandler = " + budget);
+        if (budget == 1) {
+            $.ajax({
+                url: "ajax/projects/approve",
+                type: "post",
+                data: formData,
+                dataType: "json",
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        success_alert(response.messages);
+                        $(".modal").each(function () {
+                            $(this).modal("hide");
+                        });
+                        $("#tag-form-submit").prop("disabled", false);
+                    } else {
+                        error_alert("Sorry couldn't approve project");
+                    }
 
-			setTimeout(() => {
-				window.location.reload();
-				// manageItemTable.ajax.reload(null, true);
-			}, 3000);
-        },
-      });
-    }
-  });
+                    setTimeout(() => {
+                        window.location.reload();
+                        // manageItemTable.ajax.reload(null, true);
+                    }, 3000);
+                },
+            });
+        }
+    });
 
 
 //Add Approved budget for on  going projects
 function approvedBudget(itemId = null) {
-  if (itemId) {
-    $.ajax({
-      url: "ajax/projects/approve",
-      type: "post",
-      data: {
-        approveBudget: "approveBudget",
-        itemId: itemId,
-      },
-      dataType: "html",
-      success: function (response) {
-        $("#aprovedBudgetBody").html(response);
-      },
-    });
-  } else {
-    alert("error please refresh the page");
-  }
+    if (itemId) {
+        $.ajax({
+            url: "ajax/projects/approve",
+            type: "post",
+            data: {
+                approveBudget: "approveBudget",
+                itemId: itemId,
+            },
+            dataType: "html",
+            success: function (response) {
+                $("#aprovedBudgetBody").html(response);
+            },
+        });
+    } else {
+        alert("error please refresh the page");
+    }
 }
 
 // submit approved budget
 $("#approvedBudgetForm")
-  .unbind("submit")
-  .bind("submit", function (e) {
-    e.preventDefault();
-    var form = $(this);
-    var formData = new FormData(this);
+    .unbind("submit")
+    .bind("submit", function (e) {
+        e.preventDefault();
+        var form = $(this);
+        var formData = new FormData(this);
 
-    var bhandler = validate_location_state();
-    if (bhandler) {
-      $.ajax({
-        url: "ajax/projects/approve",
-        type: "post",
-        data: formData,
-        dataType: "json",
-        cache: false,
-        contentType: false,
-        processData: false,
-        success: function (response) {
-          if (response) {
-            $("#editProductBtn").button("reset");
-            manageItemTable.ajax.reload(null, true);
-            alert(response.messages);
-            $(".modal").each(function () {
-              $(this).modal("hide");
+        var bhandler = validate_location_state();
+        if (bhandler) {
+            $.ajax({
+                url: "ajax/projects/approve",
+                type: "post",
+                data: formData,
+                dataType: "json",
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    if (response) {
+                        $("#editProductBtn").button("reset");
+                        manageItemTable.ajax.reload(null, true);
+                        alert(response.messages);
+                        $(".modal").each(function () {
+                            $(this).modal("hide");
+                        });
+                    }
+                    window.location.reload(true);
+                },
             });
-          }
-          window.location.reload(true);
-        },
-      });
-    }
-  });
+        }
+    });

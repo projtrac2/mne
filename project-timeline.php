@@ -17,9 +17,9 @@ if ($permission) {
 		$projcost = $row_rsMyP['projcost'];
 		$projfscyear = $row_rsMyP['projfscyear'];
 		$projduration = $row_rsMyP['projduration'];
-        $projcat = $row_rsMyP['projcategory'];
+		$projcat = $row_rsMyP['projcategory'];
 		$projstage = $row_rsMyP["projstage"];
-		$percent2 = number_format($row_rsMyP['progress'], 2);
+		$percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
 
 		$query_rsOutputs = $db->prepare("SELECT p.output as  output, o.id as opid, p.indicator, o.budget as budget, o.total_target FROM tbl_project_details o INNER JOIN tbl_progdetails p ON p.id = o.outputid WHERE projid = :projid");
 		$query_rsOutputs->execute(array(":projid" => $projid));
@@ -70,7 +70,7 @@ if ($permission) {
 				$task_compliance = "Compliant";
 			} else if (in_array(2, $compliance)) {
 				$task_compliance = "Non-Compliant";
-			}else if (in_array(2, $compliance)) {
+			} else if (in_array(2, $compliance)) {
 				$task_compliance = "On-Track";
 			}
 			return $task_compliance;
@@ -80,30 +80,31 @@ if ($permission) {
 		echo $result;
 	}
 ?>
-<style>
-@import url("https://code.highcharts.com/css/highcharts.css");
-#container-gantt {
-    max-width: 1000px;
-    margin: 1em auto;
-}
+	<style>
+		@import url("https://code.highcharts.com/css/highcharts.css");
 
-.highcharts-label-icon {
-    opacity: 0.5;
-}
-</style>
+		#container-gantt {
+			max-width: 1000px;
+			margin: 1em auto;
+		}
+
+		.highcharts-label-icon {
+			opacity: 0.5;
+		}
+	</style>
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
 	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
 	<script src="https://code.highcharts.com/gantt/highcharts-gantt.js"></script>
-<script src="https://code.highcharts.com/gantt/modules/exporting.js"></script>
-<script src="https://code.highcharts.com/gantt/modules/pattern-fill.js"></script>
-<script src="https://code.highcharts.com/gantt/modules/accessibility.js"></script>
+	<script src="https://code.highcharts.com/gantt/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/gantt/modules/pattern-fill.js"></script>
+	<script src="https://code.highcharts.com/gantt/modules/accessibility.js"></script>
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?= $pageTitle ?>
-					
+
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -119,7 +120,7 @@ if ($permission) {
 								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
+								<?php if ($projcat == 2 && $projstage > 4) { ?>
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
@@ -178,7 +179,7 @@ if ($permission) {
 											$site_id = $row_Sites['site_id'];
 											$site = $row_Sites['site'];
 											$counter++;
-											?>
+									?>
 											<fieldset class="scheduler-border">
 												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 													SITE <?= $counter ?> : <?= $site ?>
@@ -199,7 +200,7 @@ if ($permission) {
 														if ($total_Output) {
 															//$output_id = $row_Output['id'];
 															$output = $row_Output['indicator_name'];
-															?>
+												?>
 															<fieldset class="scheduler-border">
 																<legend class="scheduler-border" style="background-color:#f0f0f0; border-radius:3px">
 																	OUTPUT <?= $output_counter ?> : <?= $output ?>
@@ -220,7 +221,7 @@ if ($permission) {
 																		$edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
 																		$details = array("output_id" => $output_id, "site_id" => $site_id, 'task_id' => $msid, 'edit' => $edit);
 																		$task_counter++;
-																		?>
+																?>
 																		<div class="row clearfix">
 																			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																				<div class="card-header">
@@ -228,7 +229,7 @@ if ($permission) {
 																						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																							<h5>
 																								<u>
-																									TASK <?=$task_counter?>: <?= $milestone ?>
+																									TASK <?= $task_counter ?>: <?= $milestone ?>
 																								</u>
 																							</h5>
 																						</div>
@@ -273,15 +274,15 @@ if ($permission) {
 																										$end_date = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
 																										$duration = number_format($row_rsTask_Start_Dates['duration']);
 																									}
-																									?>
+																							?>
 																									<tr id="row">
-																										<td style="width:5%"><?=$task_counter?>.<?= $tcounter ?></td>
+																										<td style="width:5%"><?= $task_counter ?>.<?= $tcounter ?></td>
 																										<td style="width:55%"><?= $task_name ?></td>
 																										<td style="width:10%"><?= $duration ?> Days</td>
 																										<td style="width:15%"><?= $start_date ?></td>
 																										<td style="width:15%"><?= $end_date ?></td>
 																									</tr>
-																								<?php
+																							<?php
 																								}
 																							}
 																							?>
@@ -290,12 +291,12 @@ if ($permission) {
 																				</div>
 																			</div>
 																		</div>
-																		<?php
+																<?php
 																	}
 																}
 																?>
 															</fieldset>
-															<?php
+												<?php
 														}
 													}
 												}
@@ -319,7 +320,7 @@ if ($permission) {
 												$output = $row_rsOutput['indicator_name'];
 												$counter++;
 												$site_id = 0;
-												?>
+											?>
 												<fieldset class="scheduler-border">
 													<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 														AWAY POINT OUTPUT <?= $counter ?>: <?= $output ?>
@@ -339,7 +340,7 @@ if ($permission) {
 															$edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
 															$details = array("output_id" => $output_id, "site_id" => $site_id, 'task_id' => $msid, 'edit' => $edit);
 															$task_counter++;
-															?>
+													?>
 															<div class="row clearfix">
 																<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																	<div class="card-header">
@@ -347,7 +348,7 @@ if ($permission) {
 																			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																				<h5>
 																					<u>
-																						TASK <?=$task_counter?>: <?= $milestone ?>
+																						TASK <?= $task_counter ?>: <?= $milestone ?>
 																					</u>
 																				</h5>
 																			</div>
@@ -392,15 +393,15 @@ if ($permission) {
 																							$end_date = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
 																							$duration = number_format($row_rsTask_Start_Dates['duration']);
 																						}
-																						?>
+																				?>
 																						<tr id="row<?= $tcounter ?>">
-																							<td style="width:5%"><?=$task_counter?>.<?= $tcounter ?></td>
+																							<td style="width:5%"><?= $task_counter ?>.<?= $tcounter ?></td>
 																							<td style="width:55%"><?= $task_name ?></td>
 																							<td style="width:10%"><?= $duration ?> Days</td>
 																							<td style="width:15%"><?= $start_date ?> </td>
 																							<td style="width:15%"><?= $end_date ?></td>
 																						</tr>
-																					<?php
+																				<?php
 																					}
 																				}
 																				?>
@@ -409,296 +410,241 @@ if ($permission) {
 																	</div>
 																</div>
 															</div>
-														<?php
+													<?php
 														}
 													}
 													?>
 												</fieldset>
-											<?php
+									<?php
 											}
 										}
 									}
 									?>
-						
 								</div>
 								<div id="menu2" class="tab-pane fade">
-								
-<div id="container-gantt"></div>
-								<script>	
-								const day = 24 * 36e5,
-    today = Math.floor(Date.now() / day) * day;
+									<div class="row clearfix">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<?php
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE s.projid = :projid ");
+											$query_Output->execute(array(":projid" => $projid));
+											$total_Output = $query_Output->rowCount();
+											if ($total_Output > 0) {
+											?>
+												<label class="control-label">Project Sites*:</label>
+												<div class="form-line">
+													<select name="site_id" id="site_id" onchange="get_data()" data-actions-box="true" class="form-control show-tick selectpicker" title="Choose Multipe" style="border:#CCC thin solid; border-radius:5px; width:98%; padding-left:50px" required>
+														<?php
+														while ($row_rsOutput = $query_Output->fetch()) {
+															$site_name = $row_rsOutput['site'];
+															$site_id = $row_rsOutput['site_id'];
+														?>
+															<option value="<?= $site_id ?>"><?= $site_name ?></option>
+														<?php
+														}
+														?>
+													</select>
+												</div>
+												<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+											<?php
+											}
+											?>
+										</div>
+									</div>
 
-const options = {
-    chart: {
-        plotBackgroundColor: 'rgba(128,128,128,0.02)',
-        plotBorderColor: 'rgba(128,128,128,0.1)',
-        plotBorderWidth: 1
-    },
+									<?php
+									$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid ");
+									$query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+									$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+									$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+									$roject_start_date = '';
+									$project_end_date = '';
+									if ($totalRows_rsTask_Start_Dates > 0) {
+										$project_start_date = $row_rsTask_Start_Dates['start_date'];
+										$project_end_date = $row_rsTask_Start_Dates['end_date'];
 
-    plotOptions: {
-        series: {
-            borderRadius: '50%',
-            connectors: {
-                dashStyle: 'ShortDot',
-                lineWidth: 2,
-                radius: 5,
-                startMarker: {
-                    enabled: false
-                }
-            },
-            groupPadding: 0,
-            dataLabels: [{
-                enabled: true,
-                align: 'left',
-                format: '{point.name}',
-                padding: 10,
-                style: {
-                    fontWeight: 'normal',
-                    textOutline: 'none'
-                }
-            }, {
-                enabled: true,
-                align: 'right',
-                format: '{#if point.completed}{(multiply point.completed.amount 100):.0f}%{/if}',
-                padding: 10,
-                style: {
-                    fontWeight: 'normal',
-                    textOutline: 'none',
-                    opacity: 0.6
-                }
-            }]
-        }
-    },
+										$project_data = "
+										[{
+											name: '$projname',";
+										$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+										$query_Output->execute(array(":projid" => $projid));
+										$total_Output = $query_Output->rowCount();
+										$output_array = [];
+										if ($total_Output > 0) {
+											$outputs = [];
+											while ($row_rsOutput = $query_Output->fetch()) {
+												$output_id = $row_rsOutput['id'];
+												$output = $row_rsOutput['indicator_name'];
+												$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+												$query_rsMilestone->execute(array(":output_id" => $output_id));
+												$totalRows_rsMilestone = $query_rsMilestone->rowCount();
 
-    series: [{
-        name: 'Offices',
-        data: [{
-            name: 'New offices',
-            id: 'new_offices',
-            owner: 'Peter'
-        }, {
-            name: 'Prepare office building',
-            id: 'prepare_building',
-            parent: 'new_offices',
-            start: today - (2 * day),
-            end: today + (6 * day),
-            completed: {
-                amount: 0.2
-            },
-            owner: 'Linda'
-        }, {
-            name: 'Inspect building',
-            id: 'inspect_building',
-            dependency: 'prepare_building',
-            parent: 'new_offices',
-            start: today + 6 * day,
-            end: today + 8 * day,
-            owner: 'Ivy'
-        }, {
-            name: 'Passed inspection',
-            id: 'passed_inspection',
-            dependency: 'inspect_building',
-            parent: 'new_offices',
-            start: today + 9.5 * day,
-            milestone: true,
-            owner: 'Peter'
-        }, {
-            name: 'Relocate',
-            id: 'relocate',
-            dependency: 'passed_inspection',
-            parent: 'new_offices',
-            owner: 'Josh'
-        }, {
-            name: 'Relocate staff',
-            id: 'relocate_staff',
-            parent: 'relocate',
-            start: today + 10 * day,
-            end: today + 11 * day,
-            owner: 'Mark'
-        }, {
-            name: 'Relocate test facility',
-            dependency: 'relocate_staff',
-            parent: 'relocate',
-            start: today + 11 * day,
-            end: today + 13 * day,
-            owner: 'Anne'
-        }, {
-            name: 'Relocate cantina',
-            dependency: 'relocate_staff',
-            parent: 'relocate',
-            start: today + 11 * day,
-            end: today + 14 * day
-        }]
-    }, {
-        name: 'Product',
-        data: [{
-            name: 'New product launch',
-            id: 'new_product',
-            owner: 'Peter'
-        }, {
-            name: 'Development',
-            id: 'development',
-            parent: 'new_product',
-            start: today - day,
-            end: today + (11 * day),
-            completed: {
-                amount: 0.6,
-                fill: '#e80'
-            },
-            owner: 'Susan'
-        }, {
-            name: 'Beta',
-            id: 'beta',
-            dependency: 'development',
-            parent: 'new_product',
-            start: today + 12.5 * day,
-            milestone: true,
-            owner: 'Peter'
-        }, {
-            name: 'Final development',
-            id: 'finalize',
-            dependency: 'beta',
-            parent: 'new_product',
-            start: today + 13 * day,
-            end: today + 17 * day
-        }, {
-            name: 'Launch',
-            dependency: 'finalize',
-            parent: 'new_product',
-            start: today + 17.5 * day,
-            milestone: true,
-            owner: 'Peter'
-        }]
-    }],
-    tooltip: {
-        pointFormat: '<span style="font-weight: bold">{point.name}</span><br>' +
-            '{point.start:%e %b}' +
-            '{#unless point.milestone} → {point.end:%e %b}{/unless}' +
-            '<br>' +
-            '{#if point.completed}' +
-            'Completed: {multiply point.completed.amount 100}%<br>' +
-            '{/if}' +
-            'Owner: {#if point.owner}{point.owner}{else}unassigned{/if}'
-    },
-    title: {
-        text: 'Gantt Project Management'
-    },
-    xAxis: [{
-        currentDateIndicator: {
-            color: '#2caffe',
-            dashStyle: 'ShortDot',
-            width: 2,
-            label: {
-                format: ''
-            }
-        },
-        dateTimeLabelFormats: {
-            day: '%e<br><span style="opacity: 0.5; font-size: 0.7em">%a</span>'
-        },
-        grid: {
-            borderWidth: 0
-        },
-        gridLineWidth: 1,
-        min: today - 3 * day,
-        max: today + 18 * day,
-        custom: {
-            today,
-            weekendPlotBands: true
-        }
-    }],
-    yAxis: {
-        grid: {
-            borderWidth: 0
-        },
-        gridLineWidth: 0,
-        labels: {
-            symbol: {
-                width: 8,
-                height: 6,
-                x: -4,
-                y: -2
-            }
-        },
-        staticScale: 30
-    },
-    accessibility: {
-        keyboardNavigation: {
-            seriesNavigation: {
-                mode: 'serialize'
-            }
-        },
-        point: {
-            descriptionFormatter: function (point) {
-                var completedValue = point.completed ?
-                        point.completed.amount || point.completed : null,
-                    completed = completedValue ?
-                        ' Task ' + Math.round(completedValue * 1000) / 10 + '% completed.' :
-                        '',
-                    dependency = point.dependency &&
-                        point.series.chart.get(point.dependency).name,
-                    dependsOn = dependency ? ' Depends on ' + dependency + '.' : '';
+												$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id ");
+												$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id));
+												$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+												$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+												if ($totalRows_rsTask_Start_Dates > 0) {
+													$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+													$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
-                return Highcharts.format(
-                    point.milestone ?
-                        '{point.yCategory}. Milestone at {point.x:%Y-%m-%d}. Owner: {point.owner}.{dependsOn}' :
-                        '{point.yCategory}.{completed} Start {point.x:%Y-%m-%d}, end {point.x2:%Y-%m-%d}. Owner: {point.owner}.{dependsOn}',
-                    { point, completed, dependsOn }
-                );
-            }
-        }
-    },
-    lang: {
-        accessibility: {
-            axis: {
-                xAxisDescriptionPlural: 'The chart has a two-part X axis showing time in both week numbers and days.'
-            }
-        }
-    }
-};
+													$project_data .= "
+														data: [{
+															id: 'output_$output_id',
+															name: '$output',
+															start: $start_date,
+															end:$end_date,
+														},";
+													if ($totalRows_rsMilestone > 0) {
+														while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+															$milestone_name = $row_rsMilestone['milestone'];
+															$milestone_id = $row_rsMilestone['msid'];
 
-// Plug-in to render plot bands for the weekends
-Highcharts.addEvent(Highcharts.Axis, 'foundExtremes', e => {
-    if (e.target.options.custom && e.target.options.custom.weekendPlotBands) {
-        const axis = e.target,
-            chart = axis.chart,
-            day = 24 * 36e5,
-            isWeekend = t => /[06]/.test(chart.time.dateFormat('%w', t)),
-            plotBands = [];
+															$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id ");
+															$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id));
+															$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+															$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+															if ($totalRows_rsTask_Start_Dates > 0) {
+																$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+																$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
-        let inWeekend = false;
+																$project_data .= "{
+																	id: 'task_$milestone_id',
+																	name: '$milestone_name',
+																	start: $start_date,
+																	end:$end_date,
+																	parent: 'output_$output_id'
+																},";
 
-        for (
-            let x = Math.floor(axis.min / day) * day;
-            x <= Math.ceil(axis.max / day) * day;
-            x += day
-        ) {
-            const last = plotBands.at(-1);
-            if (isWeekend(x) && !inWeekend) {
-                plotBands.push({
-                    from: x,
-                    color: {
-                        pattern: {
-                            path: 'M 0 10 L 10 0 M -1 1 L 1 -1 M 9 11 L 11 9',
-                            width: 10,
-                            height: 10,
-                            color: 'rgba(128,128,128,0.15)'
-                        }
-                    }
-                });
-                inWeekend = true;
-            }
 
-            if (!isWeekend(x) && inWeekend && last) {
-                last.to = x;
-                inWeekend = false;
-            }
-        }
-        axis.options.plotBands = plotBands;
-    }
-});
+																$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
+																$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
+																$totalRows_rsTasks = $query_rsTasks->rowCount();
+																$subtasks_array = [];
+																if ($totalRows_rsTasks > 0) {
+																	while ($row_rsTasks = $query_rsTasks->fetch()) {
+																		$task_name = $row_rsTasks['task'];
+																		$task_id = $row_rsTasks['tkid'];
+																		$unit =  $row_rsTasks['unit_of_measure'];
+																		$parent =  $row_rsTasks['parenttask'];
+																		$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+																		$query_rsIndUnit->execute(array(":unit_id" => $unit));
+																		$row_rsIndUnit = $query_rsIndUnit->fetch();
+																		$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+																		$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 
-Highcharts.ganttChart('container-gantt', options);
-</script>
+																		$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id ");
+																		$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id));
+																		$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+																		$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+																		if ($totalRows_rsTask_Start_Dates > 0) {
+																			$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+																			$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
+																			$project_data .= "{
+																				id: 'subtask_$task_id',
+																				name: '$task_name',
+																				start: $start_date,
+																				end:$end_date,
+																				dependency: 'subtask_$parent',
+																				parent: 'task_$milestone_id'
+																			},";
+																		}
+																	}
+																}
+															}
+														}
+													}
+													$project_data .= "]";
+												}
+											}
+										}
+									}
+
+									$project_data .= "
+								}]";
+									?>
+
+									<div id="container-gantt"></div>
+
+									<script>
+										$(document).ready(function() {
+											set_gantchart(<?= $project_data ?>)
+										});
+
+										function get_data() {
+											var projid = $("#projid").val();
+											var site_id = $("#site_id").val();
+											$.ajax({
+												type: "get",
+												url: "ajax/programsOfWorks/ganttchart.php",
+												data: {
+													timeline_series: "timeline_series",
+													projid: projid,
+													site_id: site_id
+												},
+												dataType: "dataType",
+												success: function(response) {
+													if (response.success) {
+														set_gantchart(<?= $project_data ?>);
+													}
+												}
+											});
+										}
+
+
+										function set_gantchart(series) {
+											Highcharts.ganttChart('container-gantt', {
+												title: {
+													text: 'Project Gantt Chart'
+												},
+												yAxis: {
+													uniqueNames: true
+												},
+												navigator: {
+													enabled: true,
+													liveRedraw: true,
+													series: {
+														type: 'gantt',
+														pointPlacement: 0.5,
+														pointPadding: 0.25,
+														accessibility: {
+															enabled: false
+														}
+													},
+													yAxis: {
+														min: 0,
+														max: 3,
+														reversed: true,
+														categories: []
+													}
+												},
+												scrollbar: {
+													enabled: true
+												},
+												rangeSelector: {
+													enabled: true,
+													selected: 0
+												},
+												accessibility: {
+													point: {
+														descriptionFormat: '{yCategory}. ' +
+															'{#if completed}Task {(multiply completed.amount 100):.1f}% completed. {/if}' +
+															'Start {x:%Y-%m-%d}, end {x2:%Y-%m-%d}.'
+													},
+													series: {
+														descriptionFormat: '{name}'
+													}
+												},
+												lang: {
+													accessibility: {
+														axis: {
+															xAxisDescriptionPlural: 'The chart has a two-part X axis showing time in both week numbers and days.',
+															yAxisDescriptionPlural: 'The chart has one Y axis showing task categories.'
+														}
+													}
+												},
+												series: series
+											});
+										}
+									</script>
 								</div>
 							</div>
 						</div>

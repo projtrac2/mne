@@ -13,10 +13,10 @@ if ($permission) {
 		$query_project->execute(array(":projid" => $projid));
 		$row_project = $query_project->fetch();
 		$project_locations = explode(",", $row_project["projlga"]);
-		$percent2 = number_format($row_project['progress'], 2);
 		$projname = $row_project['projname'];
 		$projstage = $row_project["projstage"];
 		$projcat = $row_project["projcategory"];
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
 
 		$query_proj_inds =  $db->prepare("SELECT indid, indicator_name AS indicator, unit, output FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE projid = :projid GROUP BY i.indid ORDER BY p.indicator ASC");
 		$query_proj_inds->execute(array(":projid" => $projid));
@@ -99,7 +99,7 @@ if ($permission) {
 				<div class="block-header">
 					<?= $results; ?>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="header" style="padding-bottom:0px">							
+						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Outputs</a>
@@ -109,7 +109,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>

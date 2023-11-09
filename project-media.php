@@ -13,8 +13,9 @@ if ($permission) {
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
 		$projstage = $row_rsProjects["projstage"];
-		$projcat = $row_rsProjects["projcategory"];
-		$percent2 = $totalRows_rsProjects > 0 ? number_format($row_rsProjects['progress'], 2) : "";
+		$projcat = $row_rsProjects["projcategory"]; 
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
+
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
@@ -44,7 +45,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>
@@ -107,7 +108,7 @@ if ($permission) {
 																$filename = $rows_project_docs['filename'];
 																$filepath = $rows_project_docs['floc'];
 																$purpose = $rows_project_docs['reason'];
-																
+
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();
@@ -161,11 +162,11 @@ if ($permission) {
 																$filepath = $rows_project_photos['floc'];
 																$purpose = $rows_project_photos['reason'];
 																$fileid = base64_encode("projid54321{$fileid}");
-																
+
 																$photo = '<a href="project-gallery.php?photo='.$fileid.'" class="gallery-item">
 																	 <img class="img-fluid" src="'.$filepath.'" alt="Click to view the photo" style="width:30px; height:30px; margin-bottom:0px"/>
 																</a>';
-																
+
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();
@@ -215,7 +216,7 @@ if ($permission) {
 																$filename = $rows_project_videos['filename'];
 																$filepath = $rows_project_videos['floc'];
 																$purpose = $rows_project_videos['reason'];
-																
+
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();

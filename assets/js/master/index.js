@@ -1,5 +1,7 @@
 const master_ajax_url = "ajax/master/index";
 $(document).ready(function () {
+
+    console.log(redirect_url);
     $("#assign_responsible").submit(function (e) {
         e.preventDefault();
         $("#tag-form-submit").prop("disabled", true);

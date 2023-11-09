@@ -72,12 +72,10 @@ if ($permission) {
     $row_rsPBudget = $query_rsBudget->fetch();
     $programs_budget = $row_rsPBudget['budget'] != null ? $row_rsPBudget['budget'] : 0;
 
-    $query_rsProjectBudget = $db->prepare("SELECT  projcost FROM tbl_projects WHERE progid=:progid");
+    $query_rsProjectBudget = $db->prepare("SELECT  SUM(projcost) AS projcost FROM tbl_projects WHERE progid=:progid");
     $query_rsProjectBudget->execute(array(":progid" => $progid));
     $row_rsProjectBudget = $query_rsProjectBudget->fetch();
-    $project_program_budget = $row_rsProjectBudget['projcost']  ? $row_rsProjectBudget['projcost'] : 0;
-
-
+    $project_program_budget = $row_rsProjectBudget['projcost'] != null  ? $row_rsProjectBudget['projcost'] : 0;
     $program_budget = ($programs_budget - $project_program_budget) + $project_budget;
 
 
@@ -441,7 +439,6 @@ if ($permission) {
                                             if (program_budget != '' && project_budget != '') {
                                                 program_budget = parseFloat(program_budget);
                                                 project_budget = parseFloat(project_budget);
-                                                console.log(program_budget, project_budget);
                                                 if (project_budget > 0 && program_budget > 0) {
                                                     if (project_budget > program_budget) {
                                                         $('#project_budget').val("");

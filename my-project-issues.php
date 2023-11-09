@@ -16,9 +16,19 @@ if ($permission) {
 		$percent2 = calculate_project_progress($projid, $projcategory);
 
 
-		$query_issues = $db->prepare("SELECT i.id, i.origin, p.projid, p.projname AS projname,p.projcategory, category, observation, recommendation, status, priority, i.created_by AS monitor, i.date_created AS issuedate, issue_area FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid INNER JOIN tbl_projrisk_categories c ON c.rskid=i.risk_category WHERE p.projid=:projid");
+		$query_issues = $db->prepare("SELECT c.catid, c.category, i.issue_description, i.issue_area, i.issue_impact, i.issue_priority, i.date_created, i.status FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category WHERE projid = :projid");
 		$query_issues->execute(array(":projid" => $projid));
 		$count_issues = $query_issues->rowCount();
+
+		function get_inspection_status($status_id)
+		{
+			global $db;
+			$sql = $db->prepare("SELECT * FROM tbl_issue_status WHERE id = :status_id");
+			$sql->execute(array(":status_id" => $status_id));
+			$row = $sql->fetch();
+			$rows_count = $sql->rowCount();
+			return ($rows_count > 0) ? $row['status'] : "";
+		}
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		print($result);
@@ -79,15 +89,14 @@ if ($permission) {
 								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 									<thead>
 										<tr class="bg-orange">
-											<th style="width:4%">#</th>
-											<th style="width:32%">Issue</th>
+											<th style="width:3%">#</th>
+											<th style="width:37%">Issue</th>
+											<th style="width:10%">Category</th>
 											<th style="width:10%">Issue Area</th>
-											<th style="width:10%">Risk Category</th>
-											<th style="width:12%">Priority and Severity</th>
+											<th style="width:10%">Priority</th>
+											<th style="width:10%">Impact</th>
 											<th style="width:8%">Status</th>
-											<th style="width:8%">Date Recorded</th>
-											<th style="width:10%">Owner</th>
-											<th style="width:8%">Phone</th>
+											<th style="width:12%">Date Recorded</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -97,52 +106,38 @@ if ($permission) {
 
 											while ($row_issues = $query_issues->fetch()) {
 												$nm = $nm + 1;
-												$id = $row_issues['id'];
-												$category = $row_issues['category'];
-												$observation = $row_issues['observation'];
-												$issueareaid = $row_issues['issue_area'];
-												$observation = $row_issues['observation'];
-												$monitorid = $row_issues['monitor'];
-												$recommendation = $row_issues['recommendation'];
-												$issuedate = $row_issues['issuedate'];
-												$issuestatusid = $row_issues['status'];
-												$priorityid = $row_issues['priority'];
+												$issueareaid = $row_issues["issue_area"];
+												$category = $row_issues["category"];
+												$issue = $row_issues["issue_description"];
+												$impactid = $row_issues["issue_impact"];
+												$priorityid = $row_issues["issue_priority"];
+												$status_id = $row_issues["status"];
+												$issuedate = $row_issues["date_created"];
+												$status = get_inspection_status($status_id);
 
-												if ($issuestatusid == 1) {
-													$issuestatus = "Open";
-												} elseif ($issuestatusid == 2) {
-													$issuestatus = "Analysis";
-												} elseif ($issuestatusid == 3) {
-													$issuestatus = "Analyzed";
-												} elseif ($issuestatusid == 4) {
-													$issuestatus = "Escalated";
-												} elseif ($issuestatusid == 5) {
-													$issuestatus = "Continue";
-												} elseif ($issuestatusid == 6) {
-													$issuestatus = "On Hold";
-												} elseif ($issuestatusid == 7) {
-													$issuestatus = "Closed";
-												}
-
-												if ($priorityid == 1) {
-													$priority = "High Priority";
+												$query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE id=:impactid");
+												$query_risk_impact->execute(array(":impactid" => $impactid));
+												$row_risk_impact = $query_risk_impact->fetch();
+												$impact = $row_risk_impact["description"];
+												
+												if($priorityid == 1){
+													$priority = "High";
 													$priorityclass = 'bg-red';
-												} elseif ($priorityid == 2) {
-													$priority = "Medium Priority";
+												}elseif($priorityid == 2){
+													$priority = "Medium";
 													$priorityclass = 'bg-blue';
-												} else {
-													$priority = "Low Priority";
+												}else{
+													$priority = "Low";
 													$priorityclass = 'bg-green';
 												}
-
-												$issue_area = "Not Defined";
-												if ($issueareaid == 1) {
+												
+												if($issueareaid == 1){
 													$issue_area = "Quality";
-												} elseif ($issueareaid == 2) {
+												}elseif($issueareaid == 2){
 													$issue_area = "Scope";
-												} elseif ($issueareaid == 3) {
+												}elseif($issueareaid == 3){
 													$issue_area = "Schedule";
-												} else {
+												}else{
 													$issue_area = "Cost";
 												}
 
@@ -161,28 +156,20 @@ if ($permission) {
 												$actduedate = date("Y-m-d", $duedate);
 
 												$styled = 'style="color:blue"';
-												if ($issuestatusid == 1 && $actduedate < $current_date) {
+												if ($status_id == 1 && $actduedate < $current_date) {
 													$actionstatus = "Behind Schedule";
 													$styled = 'style="color:red"';
 												}
-
-												$actiondate = $actionnduedate;
-												$query_owner = $db->prepare("SELECT tt.title, fullname, phone FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid='$monitorid'");
-												$query_owner->execute();
-												$row_owner = $query_owner->fetch();
-												$monitor = $row_owner["title"] . '.' . $row_owner["fullname"];
-												$phone = $row_owner["phone"];
-										?>
+											?>
 												<tr style="background-color:#fff">
 													<td align="center"><?php echo $nm; ?></td>
-													<td><?php echo $observation; ?></td>
-													<td><?php echo $issue_area; ?></td>
+													<td><?php echo $issue; ?></td>
 													<td><?php echo $category; ?></td>
+													<td><?php echo $issue_area; ?></td>
+													<td><?php echo $impact; ?></td>
 													<td><span class="badge <?= $priorityclass; ?>"><?php echo $priority; ?></span></td>
-													<td <?= $styled ?>><?php echo $issuestatus; ?></td>
+													<td <?= $styled ?>><?php echo $status; ?></td>
 													<td><?php echo date("d M Y", strtotime($issuedate)); ?></td>
-													<td><?php echo $monitor; ?></td>
-													<td><a href="tel:<?php echo $phone; ?>"><?php echo $phone; ?></a></td>
 												</tr>
 										<?php
 											}

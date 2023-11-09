@@ -19,7 +19,6 @@ $(document).ready(function () {
         } else {
           error_alert(response.messages);
         }
-
         $(".base_value_type").val('1');
         get_filter();
         check_val();
@@ -39,7 +38,8 @@ function check_val() {
   }
 }
 // Non disaggragated
-function get_add_inddiss_inputs(lve3id, level3, value) {
+function get_add_inddiss_inputs(lve3id, value) {
+  var level3 = $(`#level2${lve3id}`).val();
   $("#level3").val(lve3id);
   $("#locationName").html(level3);
   $("#base_val_id").val(value);
@@ -90,6 +90,7 @@ function get_filter() {
   get_baseline(indid);
   if (level1.length > 0) {
     if (level2.length > 0) {
+      filter_by_ward(level1, level2, indid);
     } else {
       filter_by_subcounty(level1, indid);
     }
@@ -174,8 +175,9 @@ function get_baseline(indid) {
 
 
 
-function delete_baseline(ward_id, ward) {
+function delete_baseline(ward_id) {
   var indicator_id = $("#indicator_id").val();
+  var ward = $(`#level2${ward_id}`).val();
   swal({
     title: "Are you sure?",
     text: `You want to delete baseline for  ${ward} ward !`,
@@ -201,6 +203,7 @@ function delete_baseline(ward_id, ward) {
                 text: "Successfully deleted",
                 icon: "success",
               });
+              $('.base_value_type').val(response.messages)
             } else {
               swal({
                 title: "Indicator baseline !",

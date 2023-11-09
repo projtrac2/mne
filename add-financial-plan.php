@@ -214,7 +214,7 @@ if ($permission) {
                                                                                  <thead>
                                                                                     <tr>
                                                                                        <th style="width:5%">#</th>
-                                                                                       <th style="width:40%">Item</th>
+                                                                                       <th style="width:40%">Item </th>
                                                                                        <th style="width:25%">Unit of Measure</th>
                                                                                        <th style="width:10%">No. of Units</th>
                                                                                        <th style="width:10%">Unit Cost (Ksh)</th>
@@ -424,7 +424,7 @@ if ($permission) {
                                                                                     <tr id="row">
                                                                                        <td style="width:5%"><?= $table_counter ?></td>
                                                                                        <td style="width:40%"><?= $description ?></td>
-                                                                                       <td style="width:25%"><?= $unit ?></td>
+                                                                                       <td style="width:25%"><?= $unit_of_measure ?></td>
                                                                                        <td style="width:10%"><?= number_format($units_no) ?></td>
                                                                                        <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
                                                                                        <td style="width:10%"><?= number_format($total_cost, 2) ?></td>
@@ -637,6 +637,7 @@ if ($permission) {
                                              <td class="text-right"><?= number_format($administrative_budget, 2) ?></td>
                                              <td id="perc" class="text-right"><?= number_format($total_administrative_cost_percentage, 2) ?> %</td>
                                           </tr>
+
                                        </tbody>
                                     </table>
                                  </div>
@@ -650,8 +651,8 @@ if ($permission) {
                                              $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
                                              $query_Sites->execute(array(":projid" => $projid));
                                              $rows_sites = $query_Sites->rowCount();
-                                             $outputs = [];
-                                             $test = [];
+
+                                             $outputs = $tasks = [];
                                              if ($rows_sites > 0) {
                                                 while ($row_Sites = $query_Sites->fetch()) {
                                                    $site_id = $row_Sites['site_id'];
@@ -661,24 +662,18 @@ if ($permission) {
                                                    if ($rows_Site_Output > 0) {
                                                       while ($row_Site_Output = $query_Site_Output->fetch()) {
                                                          $output_id = $row_Site_Output['outputid'];
-                                                         $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE id = :outputid");
-                                                         $query_Output->execute(array(":outputid" => $output_id));
-                                                         $row_Output = $query_Output->fetch();
-                                                         $total_Output = $query_Output->rowCount();
-                                                         if ($total_Output) {
-                                                            $output_id = $row_Output['id'];
-                                                            $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
-                                                            $query_rsTasks->execute(array(":output_id" => $output_id));
-                                                            $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                            if ($totalRows_rsTasks > 0) {
-                                                               while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                  $task_id = $row_rsTasks['tkid'];
-                                                                  $query_rsTask_parameters = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id AND site_id=:site_id");
-                                                                  $query_rsTask_parameters->execute(array(":subtask_id" => $task_id, ':site_id' => $site_id));
-                                                                  $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
-                                                                  $outputs[] = $totalRows_rsTask_parameters > 0 ? true : false;
-                                                                  $test[] = $task_id . ' ' . $site_id . ' '. $output_id ;
-                                                               }
+                                                         $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                         $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                         $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                         if ($totalRows_rsTasks > 0) {
+                                                            while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                               $task_id = $row_rsTasks['tkid'];
+                                                               $task = $row_rsTasks['task'];
+                                                               $query_rsTask_parameters = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id AND site_id=:site_id");
+                                                               $query_rsTask_parameters->execute(array(":subtask_id" => $task_id, ':site_id' => $site_id));
+                                                               $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
+                                                               $outputs[] = $totalRows_rsTask_parameters > 0 ? true : false;
+                                                               $tasks[] = $task . " status => "  .  $totalRows_rsTask_parameters;
                                                             }
                                                          }
                                                       }
@@ -844,7 +839,7 @@ if ($permission) {
                                                                   <input type="number" name="no_units[]" min="0" class="form-control" onchange="calculate_total_cost(1)" onkeyup="calculate_total_cost(1)" id="no_units1">
                                                                </td>
                                                                <td>
-                                                                  <input type="hidden" name="subtask_id[]"  class="form-control" id="subtask_id1" value="0"/>
+                                                                  <input type="hidden" name="subtask_id[]" class="form-control" id="subtask_id1" value="0" />
                                                                   <input type="hidden" name="task_type[]" class="form-control" id="task_type1" value="1" />
                                                                   <input type="hidden" name="subtotal_amount[]" id="subtotal_amount1" class="subtotal_amount subamount" value="">
                                                                   <span id="subtotal_cost1" style="color:red"></span>

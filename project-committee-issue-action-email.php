@@ -337,7 +337,7 @@ table[class=body] .img-responsive {
 <tr>
  <td>
 <p>Dear '.$receipientName. ',</p>
-<p>'.$issuemessage.'</p><P>Issue: '.$issue.'. <br> Project Name: '.$projectname.' <br> Issue Severity: '.$severity.' <br> Date resolved: '.date("d M Y",strtotime($actiondate)).'<br>'.$projeval.'</p>
+<p>'.$issuemessage.'</p><P>Issue: '.$issue.'. <br> Project Name: '.$projectname.' <br> Date resolved: '.date("d M Y",strtotime($actiondate)).'<br></p>
 <p>Click the link below for more details</p>
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
  <tbody>

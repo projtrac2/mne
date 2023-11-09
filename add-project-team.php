@@ -119,7 +119,7 @@ if ($permission) {
 																	?>
 																		<li>
 																			<a type="button" href="add-team.php?projid=<?= $hashproc ?>" id="addFormModalBtn">
-																				<i class="fa fa-plus-square-o"></i> <?= $edit == 0  ? "Add" : "Edit" ?> Team
+																				<i class="fa fa-plus-square-o"></i> <?=  $activity ?> Team
 																			</a>
 																		</li>
 																	<?php

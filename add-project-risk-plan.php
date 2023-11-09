@@ -5,7 +5,10 @@ if ($permission) {
     try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-        $row_rsProjects = $query_rsProjects->fetch();
+		
+        /* $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND (p.projstage > 0 AND p.projstage < 10) ORDER BY p.projid DESC");
+        $query_rsProjects->execute(); */
+        //$row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -45,7 +48,7 @@ if ($permission) {
                                         <?php
                                         if ($totalRows_rsProjects > 0) {
                                             $counter = 0;
-                                            do {
+                                            while ($row_rsProjects = $query_rsProjects->fetch()) {
                                                 $projid = $row_rsProjects['projid'];
                                                 $projid_hashed = base64_encode("projrisk047{$projid}");
                                                 $implementation = $row_rsProjects['projcategory'];
@@ -56,10 +59,10 @@ if ($permission) {
                                                 $projname = $row_rsProjects['projname'];
                                                 $projcode = $row_rsProjects['projcode'];
                                                 $start_date = date('Y-m-d');
-
-                                                $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE projid=:projid");
-                                                $query_rsMilestone->execute(array(":projid" => $projid));
-                                                $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+				
+												$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+												$query_proj_risks->execute(array(":projid" => $projid));
+												$totalRows_proj_risks = $query_proj_risks->rowCount();
 
                                                 $timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
                                                 $filter_department = view_record($project_department, $project_section, $project_directorate);
@@ -77,7 +80,7 @@ if ($permission) {
                                                 if ($filter_department) {
                                                     $counter++;
                                                     $activity_status = $activity = '';
-                                                    $activity = $totalRows_rsMilestone == 0 ? "Add" : "Edit";
+                                                    $activity = $totalRows_proj_risks == 0 ? "Add" : "Edit";
                                                     if ($sub_stage == 0) {
                                                         $activity_status = "Pending";
                                                     } else if ($sub_stage == 1) {
@@ -87,7 +90,7 @@ if ($permission) {
                                                         $activity = "Approve";
                                                     }
 
-                                        ?>
+													?>
                                                     <tr>
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?= $projcode ?></td>
@@ -118,8 +121,8 @@ if ($permission) {
                                                                     if ($assigned_responsible) {
                                                                     ?>
                                                                         <li>
-                                                                            <a type="button" id="#finishAddItemModalBtn" href="add-project-risks.php?proj=<?= $projid_hashed ?>" title="Click here to <?= $totalRows_rsMilestone == 0 ? "add" : "edit" ?> Project Risk Plan">
-                                                                                <i class="fa fa-list"></i> <?= $activity ?> Risk Plan
+                                                                            <a type="button" id="#finishAddItemModalBtn" href="add-project-risks.php?proj=<?= $projid_hashed ?>" title="Click here to <?= $totalRows_proj_risks == 0 ? "add" : "edit" ?> Project Risk Plan">
+                                                                                <i class="fa fa-plus"></i> <?= $activity ?> Risk Plan
                                                                             </a>
                                                                         </li>
                                                                     <?php
@@ -131,7 +134,7 @@ if ($permission) {
                                                     </tr>
                                         <?php
                                                 }
-                                            } while ($row_rsProjects = $query_rsProjects->fetch());
+                                            } 
                                         }
                                         ?>
                                     </tbody>

@@ -17,10 +17,43 @@ if ($permission) {
 		$totalRows_adps = $query_adps->rowCount();
 
 		$currentdatetime = date("Y-m-d H:i:s");
+
+		function get_source_categories()
+		{
+			global $db;
+			$query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_funding_type");
+			$query_rsFunding_type->execute();
+			$totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
+			$input = '';
+			if ($totalRows_rsFunding_type > 0) {
+				while ($row_rsFunding_type = $query_rsFunding_type->fetch()) {
+					$input .= '<option value="' . $row_rsFunding_type['id'] . '"> ' . $row_rsFunding_type['type'] . '</option>';
+				}
+			}
+			return $input;
+		}
+
+		function get_partner_roles()
+		{
+			global $db;
+			$query_rsParners =  $db->prepare("SELECT * FROM tbl_partner_roles");
+			$query_rsParners->execute();
+			$totalRows_rsParners = $query_rsParners->rowCount();
+			$input = '';
+			if ($totalRows_rsParners > 0) {
+				while ($row_rsParners = $query_rsParners->fetch()) {
+					$input .= '<option value="' . $row_rsParners['id'] . '"> ' . $row_rsParners['role'] . '</option>';
+				}
+			}
+			return $input;
+		}
+
+		$source_categories = get_source_categories();
+		$partner_roles  = get_partner_roles();
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
-	?>
+?>
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
@@ -69,7 +102,7 @@ if ($permission) {
 										$totalcount = 0;
 
 										// count number of on-going projects in the adp
-										if($currentYear == $adpyr){
+										if ($currentYear == $adpyr) {
 											$query_on_going_projs =  $db->prepare("SELECT p.projid AS projid, p.projname AS projname, p.progid AS progid, p.projcategory AS projcategory FROM tbl_projects p left join tbl_annual_dev_plan a on a.projid=p.projid WHERE a.status = 1 AND financial_year < '$adpfyid' AND (p.projstatus=4 OR p.projstatus=11) GROUP BY a.projid");
 											$query_on_going_projs->execute();
 											$totalRows_on_going_projs = $query_on_going_projs->rowCount();
@@ -95,11 +128,11 @@ if ($permission) {
 														$taskcount = 0;
 														while ($Rows_proj_stasks = $query_proj_stasks->fetch()) {
 															$stask_edate = $Rows_proj_stasks['end_date'];
-															if($stask_edate >= $startdate && $stask_edate <= $enddate){
+															if ($stask_edate >= $startdate && $stask_edate <= $enddate) {
 																$taskcount++;
 															}
 														}
-														if($filter_department && $taskcount > 0){
+														if ($filter_department && $taskcount > 0) {
 															$totalcount++;
 														}
 													}
@@ -118,14 +151,14 @@ if ($permission) {
 												$prog = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid=:progid");
 												$prog->execute(array(":progid" => $progid));
 												$rowprog = $prog->fetch();
-												
-												$project_department = $rowprog['projsector'];
-												$project_section = $rowprog['projdept'];
-												$project_directorate = $rowprog['directorate'];
-												$filter_department = view_record($project_department, $project_section, $project_directorate);
-
-												if ($filter_department) {
-													$totalcount++;
+												if ($rowprog) {
+													$project_department = $rowprog['projsector'];
+													$project_section = $rowprog['projdept'];
+													$project_directorate = $rowprog['directorate'];
+													$filter_department = view_record($project_department, $project_section, $project_directorate);
+													if ($filter_department) {
+														$totalcount++;
+													}
 												}
 											}
 										}
@@ -134,9 +167,8 @@ if ($permission) {
 										$query_activeadp =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a left join tbl_fiscal_year y on y.id=a.financial_year left join tbl_projects p on p.projid=a.projid WHERE y.sdate <= '$currentdatetime' and y.edate >= '$currentdatetime' AND financial_year = '$adpfyid' GROUP BY a.financial_year");
 										$query_activeadp->execute();
 										$totalRows_activeadp = $query_activeadp->rowCount();
-
 										if ($totalRows_activeadp > 0) {
-											?>
+								?>
 											<li class="active">
 												<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-up bg-green" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-green"><?php echo $totalcount; ?></span></a>
 											</li>
@@ -146,7 +178,7 @@ if ($permission) {
 											<li>
 												<a data-toggle="tab" href="#menu<?= $adpfyid ?>"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-deep-orange"><?php echo $totalcount; ?></span></a>
 											</li>
-										<?php
+								<?php
 										}
 									}
 								}
@@ -171,13 +203,15 @@ if ($permission) {
 											$prog = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid=:progid");
 											$prog->execute(array(":progid" => $progid));
 											$rowprog = $prog->fetch();
-											$project_department = $rowprog['projsector'];
-											$project_section = $rowprog['projdept'];
-											$project_directorate = $rowprog['directorate'];
-											$filter_department = view_record($project_department, $project_section, $project_directorate);
+											if($rowprog){
+												$project_department = $rowprog['projsector'];
+												$project_section = $rowprog['projdept'];
+												$project_directorate = $rowprog['directorate'];
+												$filter_department = view_record($project_department, $project_section, $project_directorate);
 
-											if ($filter_department) {
-												$new_projects++;
+												if ($filter_department) {
+													$new_projects++;
+												}
 											}
 										}
 									}
@@ -213,7 +247,7 @@ if ($permission) {
 										$totalRows_activeadpbody = $query_activeadpbody->rowCount();
 
 										if ($totalRows_activeadpbody > 0) {
-											?>
+								?>
 											<div id="home" class="tab-pane fade in active">
 												<div style="color:#fff; background-color:green; width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px"></i> <?= $adp ?> Projects</h4>
@@ -250,11 +284,11 @@ if ($permission) {
 																$taskcount = 0;
 																while ($Rows_proj_stasks = $query_proj_stasks->fetch()) {
 																	$stask_edate = $Rows_proj_stasks['end_date'];
-																	if($stask_edate >= $startdate && $stask_edate <= $enddate){
+																	if ($stask_edate >= $startdate && $stask_edate <= $enddate) {
 																		$taskcount++;
 																	}
 																}
-																if($filter_department && $taskcount > 0){
+																if ($filter_department && $taskcount > 0) {
 																	$ongoing_projects++;
 																}
 															}
@@ -327,7 +361,7 @@ if ($permission) {
 																		$row_adp_budget = $query_adp_budget->rowCount();
 
 																		$querybudgetstatus = $db->prepare("SELECT * FROM tbl_project_approved_yearly_budget WHERE projid = :projid AND year = :year");
-																		$querybudgetstatus->execute(array(":projid" => $projid,":year" => $yr));
+																		$querybudgetstatus->execute(array(":projid" => $projid, ":year" => $yr));
 																		$count_budgetstatus = $querybudgetstatus->rowCount();
 
 																		// status
@@ -340,7 +374,7 @@ if ($permission) {
 																			';
 																		} else {
 																			if ($norows_pbb > 0 && $norows_prog_targets > 0 && $count_budgetstatus == 0) {
-																			$active = "<label class='label label-danger'>Pending</label>";
+																				$active = "<label class='label label-danger'>Pending</label>";
 																				if ($approve) {
 																					$button .= '<li><a type="button" data-toggle="modal" data-target="#approvedBudgetItemModal" id="approvedBudgetItemModalBtn" onclick="approvedBudget(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> Approve Budget</a></li>';
 																				}
@@ -354,23 +388,23 @@ if ($permission) {
 																			</button>
 																			<ul class="dropdown-menu">
 																				<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> Project Info</a></li>
-																				'.$button.'
+																				' . $button . '
 																			</ul>
 																		</div>';
 
 																		$filter_department = view_record($project_department, $project_section, $project_directorate);
-																		if ($filter_department){
-																			?>
+																		if ($filter_department) {
+																?>
 																			<tr>
 																				<td align="center"><?php echo $nm; ?></td>
-																				<td><?php echo $projname; ?></td>
+																				<td><?php echo $projname . " " . $norows_pbb . " " . $norows_prog_targets . " " . $count_budgetstatus . " "; ?></td>
 																				<td><?php echo $progname; ?></td>
 																				<td><?php echo $budget; ?></td>
 																				<td><?php echo $projyear; ?></td>
 																				<td><?php echo $active; ?></td>
 																				<td><?php echo $action; ?></td>
 																			</tr>
-																			<?php
+																<?php
 																		}
 																	}
 																}
@@ -380,7 +414,7 @@ if ($permission) {
 													</div>
 
 													<div id="new<?= $adpfyid ?>" class="tab-pane fade">
-														<table class="table table-bordered table-striped table-hover" id="manageItemTableHome" style="width:100%">
+														<table class="table table-bordered table-striped table-hover js-basic-example dataTable" style="width:100%">
 															<thead>
 																<tr style="color:#333; background-color:#EEE; ">
 																	<th width="5%">#</th>
@@ -397,14 +431,13 @@ if ($permission) {
 																$sql = $db->prepare("SELECT * FROM `tbl_projects` p left join tbl_annual_dev_plan d ON d.projid=p.projid WHERE d.financial_year=:adpfyid ORDER BY financial_year ASC");
 																$sql->execute(array(":adpfyid" => $adpfyid));
 																$rows_count = $sql->rowCount();
-
-																if($rows_count > 0) {
+																if ($rows_count > 0) {
 																	// $row = $result->fetch_array();
 																	$active = "";
 																	$sn = 0;
 
-																	while($row = $sql->fetch()) {
-																		$itemId = $row['projid'];
+																	while ($row = $sql->fetch()) {
+																		$project_id = $row['projid'];
 																		$projname = $row['projname'];
 																		$budget = $row['projcost'];
 																		$budget = number_format($budget, 2);
@@ -442,29 +475,29 @@ if ($permission) {
 
 																		//check if project has adp budget tbl_adp_projects_budget
 																		$query_adp_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid = :projid AND year = :adpfyid");
-																		$query_adp_budget->execute(array(":projid" => $itemId, ":adpfyid" => $adpfyid));
+																		$query_adp_budget->execute(array(":projid" => $project_id, ":adpfyid" => $adpfyid));
 																		$row_adp_budget = $query_adp_budget->rowCount();
 
-																		$buttonunapprov = '';
-																		if ($projstage == 1 && $adpstatus == 1 && in_array("un_approve", $page_actions)) {
-																		//if ($projstage == 1 && $adpstatus == 1) {
-																			$buttonunapprov = '<li><a type="button" data-toggle="modal" id="approveItemModalBtns" data-target="#approveItemModals" onclick="Undo(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Unapprove</a></li>';
+																		$buttonunapprov = $button = '';
+
+																		$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE projid=:projid");
+																		$query_rsMilestone->execute(array(":projid" => $project_id));
+																		$row_rsMilestone = $query_rsMilestone->rowCount();
+
+																		if ($projstage == 1 && $row_rsMilestone == 0) {
+																			$buttonunapprov .= '
+																			<li>
+																				<a type="button" onclick="unapprove_project(' . $project_id . ')">
+																					<i class="glyphicon glyphicon-edit"></i> Unapprove
+																				</a>
+																			</li>';
 																		}
+
+																		// && $adpstatus == 0 && in_array("un_approve", $page_actions)
 
 																		// status
 																		if ($projstage > 0 && $adpstatus == 1) {
 																			$active = "<label class='label label-success'>Approved</label>";
-
-																			$button = '<!-- Single button -->
-																			<div class="btn-group">
-																				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																					Options <span class="caret"></span>
-																				</button>
-																				<ul class="dropdown-menu">
-																					' . $buttonunapprov . '
-																					<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More Info</a></li>
-																				</ul>
-																			</div>';
 																		} elseif ($projstage == 0 && $adpstatus == 0) {
 																			//get program targets
 																			$query_prog_targets = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid = :progid and year = :adpyr");
@@ -476,50 +509,55 @@ if ($permission) {
 																			$query_pbb->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																			$norows_pbb = $query_pbb->rowCount();
 																			$active = "<label class='label label-danger'>Pending</label>";
-
-																			if($currentYear >= $yr){
-																				$button = '<!-- Single button -->
-																				<div class="btn-group">
-																					<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																						Options <span class="caret"></span>
-																					</button>
-																					<ul class="dropdown-menu">
-																						';
-																						if($row_adp_budget == 0){
-																							$button .= '
-																							<li><a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')"> <i class="glyphicon glyphicon-plus"></i> Add ADP Budget</a></li>
-																							';
-																						}else{
-																							if ($norows_pbb > 0 && $norows_prog_targets > 0 && in_array("approve", $page_actions)) {
-																							//if ($norows_pbb > 0 && $norows_prog_targets > 0) {
-																								$button .= '
-																								<li>
-																									<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(' . $itemId . ')">
-																										<i class="fa fa-check-square-o"></i> Approve Project
-																									</a>
-																								</li>';
-																							}
-																						}
-																						$button .= '
-																						<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More Info</a></li>
-																					</ul>
-																				</div>';
+																			if ($currentYear >= $yr) {
+																				if ($row_adp_budget == 0) {
+																					$buttonunapprov .= '
+																							<li>
+																								<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $project_id . ',' . $adpfyid . ')">
+																									<i class="glyphicon glyphicon-plus"></i> Add ADP Budget
+																								</a>
+																							</li>';
+																				} else {
+																					if ($norows_pbb > 0 && $norows_prog_targets > 0 && in_array("approve_project", $page_actions)) {
+																						$buttonunapprov .= '
+																						<li>
+																							<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(' . $project_id . ')">
+																								<i class="fa fa-check-square-o"></i> Approve Project
+																							</a>
+																						</li>';
+																					}
+																				}
 																			}
 																		}
+
+																		$button = '<!-- Single button -->
+																			<div class="btn-group">
+																				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																					Options <span class="caret"></span>
+																				</button>
+																				<ul class="dropdown-menu">
+																					' . $buttonunapprov . '
+																					<li>
+																						<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $project_id . ')">
+																							<i class="glyphicon glyphicon-file"></i> More Info
+																						</a>
+																					</li>
+																				</ul>
+																			</div>';
 																		$filter_department = view_record($project_department, $project_section, $project_directorate);
 																		if ($filter_department) {
 																			$sn++;
-																			?>
+																?>
 																			<tr>
 																				<td align="center" width="5%"><?php echo $sn; ?></td>
-																				<td width="30%"><?php echo $projname; ?></td>
+																				<td width="30%"><?php echo $projname ?></td>
 																				<td width="29%"><?php echo $progname; ?></td>
 																				<td width="10%"><?php echo $budget; ?></td>
 																				<td width="10%"><?php echo $projYear; ?></td>
 																				<td width="8%"><?php echo $active; ?></td>
 																				<td width="8%"><?php echo $button; ?></td>
 																			</tr>
-																		<?php
+																<?php
 																		} // /while
 																	}
 																}
@@ -621,7 +659,7 @@ if ($permission) {
 
 																	$filter_department = view_record($project_department, $project_section, $project_directorate);
 																	if ($filter_department) {
-																		?>
+															?>
 																		<tr>
 																			<td align="center" width="5%"><?php echo $sn; ?></td>
 																			<td width="30%"><?php echo $projname; ?></td>
@@ -631,7 +669,7 @@ if ($permission) {
 																			<td width="8%"><?php echo $active; ?></td>
 																			<td width="8%"><?php echo $button; ?></td>
 																		</tr>
-																		<?php
+															<?php
 																	} // /while
 																}
 															}
@@ -640,7 +678,7 @@ if ($permission) {
 													</table>
 												</div>
 											</div>
-										<?php
+								<?php
 										}
 									}
 								}
@@ -790,6 +828,12 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 
+<script>
+	const details = {
+		partner_roles: '<?= $partner_roles ?>',
+		source_categories: '<?= $source_categories ?>',
+	}
+</script>
 <!-- <script src="general-settings/js/fetch-adp.js"></script>
 <script src="assets/custom js/approve-adp.js"></script>
   -->

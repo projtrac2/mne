@@ -44,7 +44,7 @@ if ($permission) {
 		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
 		$projcode = $totalRows_rsProjects > 0 ? $row_rsProjects['projcode'] : "";
 
-		$state = [];
+		$states = [];
 		$site = "N/A";
 		if ($mapping_type == 1 || $mapping_type == 3) {
 			$querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_state s ON s.id = d.state_id WHERE site_id = :id ");
@@ -53,7 +53,7 @@ if ($permission) {
 			$row_rsSite = $querysSite->fetch();
 			if ($total_Output > 0) {
 				$site = $row_rsSite['site'];
-				$state = $row_rsSite['state'];
+				$states[] = $row_rsSite['state'];
 
 				$query_rsState = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id ");
 				$query_rsState->execute(array(":site_id" => $d_site_id));
@@ -68,7 +68,7 @@ if ($permission) {
 
 			if ($total_rsState > 0) {
 				while ($row_rsState = $query_rsState->fetch()) {
-					$state[] = $row_rsState['state'];
+					$states[] = $row_rsState['state'];
 				}
 			}
 		}
@@ -155,6 +155,9 @@ if ($permission) {
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
+
+	$projid_hashed = base64_encode("projid54321{$projid}");
+
 ?>
 	<style>
 		.mt-map-wrapper {
@@ -172,6 +175,79 @@ if ($permission) {
 			top: 0;
 			position: absolute;
 		}
+		#description {
+			font-family: Roboto;
+			font-size: 15px;
+			font-weight: 300;
+		}
+
+		#infowindow-content .title {
+			font-weight: bold;
+		}
+
+		#infowindow-content {
+			display: none;
+		}
+
+		#map #infowindow-content {
+			display: inline;
+		}
+
+		.pac-card {
+			background-color: #fff;
+			border: 0;
+			border-radius: 2px;
+			box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3);
+			margin: 10px;
+			padding: 0 0.5em;
+			font: 400 18px Roboto, Arial, sans-serif;
+			overflow: hidden;
+			font-family: Roboto;
+			padding: 0;
+		}
+
+		#pac-container {
+			padding-bottom: 12px;
+			margin-right: 12px;
+		}
+
+		.pac-controls {
+			display: inline-block;
+			padding: 5px 11px;
+		}
+
+		.pac-controls label {
+			font-family: Roboto;
+			font-size: 13px;
+			font-weight: 300;
+		}
+
+		#pac-input {
+			background-color: #fff;
+			font-family: Roboto;
+			font-size: 15px;
+			font-weight: 300;
+			margin-left: 12px;
+			padding: 0 11px 0 13px;
+			text-overflow: ellipsis;
+			width: 400px;
+		}
+
+		#pac-input:focus {
+			border-color: #4d90fe;
+		}
+
+		#title {
+			color: #fff;
+			background-color: #4d90fe;
+			font-size: 25px;
+			font-weight: 500;
+			padding: 6px 12px;
+		}
+
+		#target {
+			width: 345px;
+		}
 	</style>
 	<link rel="stylesheet" href="assets/css/map/manual.css">
 	<!-- start body  -->
@@ -183,7 +259,7 @@ if ($permission) {
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-							<a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+							<a type="button" id="outputItemModalBtnrow" href="add-project-mapping?projid=<?=$projid_hashed?>" class="btn btn-warning pull-right">
 								Go Back
 							</a>
 						</div>
@@ -202,10 +278,9 @@ if ($permission) {
 									<ul class="list-group">
 										<li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
 										<li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
-										<li class="list-group-item"><strong><?= $level2label ?>: </strong> <?= implode(",", $state) ?> </li>
+										<li class="list-group-item"><strong><?= $level2label ?>: </strong> <?= implode(",", $states) ?> </li>
 										<li class="list-group-item"><strong>Site: </strong> <?= $site ?> </li>
-										<li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li>
-										<li class="list-group-item"><strong>Target: </strong> <?= $total_target > 0 ?   $total_target : 1; ?> <?= $unit ?></li>
+										<li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li> 
 									</ul>
 								</div>
 							</div>

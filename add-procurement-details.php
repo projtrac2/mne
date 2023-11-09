@@ -129,7 +129,7 @@ if ($permission) {
                 $start_date = $_POST["guarantee_start_date"][$cnt];
                 $duration = $_POST["guarantee_duration"][$cnt];
                 $notification = $_POST["guarantee_notification"][$cnt];
-				
+
 				$insert_guarantee = $db->prepare("INSERT INTO tbl_contract_guarantees(projid, guarantee, start_date, duration, notification, date_created, created_by) VALUES (:projid, :guarantee, :start_date, :duration, :notification, :date_created, :created_by)");
 				$insert_guarantee->execute(array(':projid' => $projid, ':guarantee' => $guarantee, ':start_date' => $start_date, ':duration' => $duration, ':notification' =>$notification,':date_created' => $date_created, ':created_by' => $myUser));
             }
@@ -594,13 +594,13 @@ if ($permission) {
 								</div>
 								<?php
                             }
-                            ?>							
+                            ?>
                           </div>
                         </fieldset>
                         <fieldset class="scheduler-border" style="border-radius:3px">
                           <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                             <i class="fa fa-file-text-o" style="color:#F44336" aria-hidden="true"></i> Contract/Tender Comments
-                          </legend>						  
+                          </legend>
                           <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <label class="control-label"></label>
                             <p align="left">
@@ -677,7 +677,7 @@ if ($permission) {
 								</div>
 								<?php
                             }
-                            ?>	
+                            ?>
                           </div>
                         </fieldset>
                         <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
@@ -718,8 +718,8 @@ if ($permission) {
                           ?>
                           <ul class="list-group">
                             <li class="list-group-item list-group-item list-group-item-action active">Project: <?= $projname ?></li>
-                            <li class="list-group-item"><strong>Planned Cost: </strong> <?= number_format($sum_cost, 2) ?> </li>
-                            <li class="list-group-item"><strong>Procurement Cost: </strong> <?= number_format($amount, 2) ?> </li>
+                            <li class="list-group-item"><strong>Contract Estimate: </strong> <?= number_format($sum_cost, 2) ?> </li>
+                            <li class="list-group-item"><strong>Contract Cost: </strong> <?= number_format($amount, 2) ?> </li>
                           </ul>
                           <?php
                           $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
@@ -747,8 +747,8 @@ if ($permission) {
                                         <tr>
                                           <th style="width:5%"># </th>
                                           <th style="width:60%">Output</th>
-                                          <th style="width:15%">Planned Amount</th>
-                                          <th style="width:15%">Procurement Amount</th>
+                                          <th style="width:15%">Contract Estimate</th>
+                                          <th style="width:15%">Contract Estimate</th>
                                           <th style="width:5%">Action</th>
                                         </tr>
                                       </thead>
@@ -822,18 +822,18 @@ if ($permission) {
                                     <tr>
                                       <th style="width:5%"># </th>
                                       <th style="width:60%">Output</th>
-                                      <th style="width:15%">Planned Amount</th>
-                                      <th style="width:15%">Procurement Amount</th>
+                                      <th style="width:15%">Contract Estimate</th>
+                                      <th style="width:15%">Contract Cost</th>
                                       <th style="width:5%">Action</th>
                                     </tr>
                                   </thead>
                                   <tbody>
                                     <?php
-                                    $counter = 0;
+                                    $output_counter = 0;
                                     while ($row_rsOutput = $query_Output->fetch()) {
                                       $output_id = $row_rsOutput['id'];
                                       $output = $row_rsOutput['indicator_name'];
-                                      $counter++;
+                                      $output_counter++;
                                       $site_id = 0;
 
                                       $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id ");
@@ -971,7 +971,7 @@ if ($permission) {
                                         <tr id="row<?= $rowno ?>">
                                           <td><?= $rowno ?></td>
                                           <td>
-                                            <input type="text" name="payment_phase[]" id="payment_phaserow<?= $rowno ?>" class="form-control percent" value="<?= $payment_plan ?>" placeholder="Enter the payment phase" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
+                                            <input type="text" name="payment_phase[]" id="payment_phaserow<?= $rowno ?>" class="form-control" value="<?= $payment_plan ?>" placeholder="Enter the payment phase" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
                                           </td>
                                           <td>
                                             <select name="milestone_name<?= $rowno ?>[]" multiple id="milestone_namerow<?= $rowno ?>" data-id="<?= $rowno ?>" class="form-control require output_location_select show-tick selectpicker" data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
@@ -982,6 +982,7 @@ if ($permission) {
                                             <input type="number" name="percentage[]" id="percentagerow<?= $rowno ?>" onchange="calculate_percentage(<?= $rowno ?>)" onkeyup="calculate_percentage(<?= $rowno ?>)" class="form-control percent" placeholder="Enter the percentage" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" value="<?= $percentage ?>" required>
                                             <input type="hidden" name="row[]" value="<?= $rowno ?>" />
                                           </td>
+
                                           <td>
                                             <button type="button" class="btn btn-danger btn-sm" onclick='delete_milestones("row<?= $rowno ?>")'>
                                               <span class="glyphicon glyphicon-minus"></span>

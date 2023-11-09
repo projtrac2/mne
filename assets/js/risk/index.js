@@ -4,7 +4,7 @@ $(document).ready(function () {
     $(".risk_checklist_div").hide();
     $("#frequency").hide();
     $("#responsible").hide();
-    $("#add_items").submit(function (e) {
+    $("#add_risk").submit(function (e) {
         e.preventDefault();
         $("#tag-form-submit").prop("disabled", true);
         $.ajax({
@@ -14,9 +14,30 @@ $(document).ready(function () {
             dataType: "json",
             success: function (response) {
                 if (response.success) {
-                    success_alert("Record saved successfully");
+                    success_alert(response.message);
                 } else {
-                    error_alert("Record could not be saved successfully");
+                    error_alert(response.message);
+                }
+                $("#tag-form-submit").prop("disabled", false);
+                setTimeout(() => {
+                    location.reload(true);
+                }, 1000);
+            }
+        });
+    });
+    $("#add_responsible").submit(function (e) {
+        e.preventDefault();
+        $("#tag-form-submit").prop("disabled", true);
+        $.ajax({
+            type: "post",
+            url: ajax_url,
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    success_alert(response.message);
+                } else {
+                    error_alert(response.message);
                 }
                 $("#tag-form-submit").prop("disabled", false);
                 setTimeout(() => {
@@ -46,7 +67,7 @@ function riskstrategy() {
 		$("#tasks_table_body").html(`            
 			<tr></tr>
 			<tr id="hideinfo2" align="center">
-				<td colspan="5">Add Checklist Parameters!!</td>
+				<td colspan="5">Add Strategic Measures!!</td>
 			</tr>`);
 		const inputs = document.querySelectorAll('.parameter');
 		for (const input of inputs) {
@@ -76,79 +97,27 @@ function riskseverity() {
 				$('#severityname').html(response.severitydesc);
             }
         });
-	} else {
-		console.log(ajax_url);
 	}
 }
 
-function add_details(options, table, edit = "") {
-    var milestone_details = options.milestone_details;
-    var task_details = options.task_details;
-    var output_details = options.output_details;
-    var output_name = output_details.output_name;
-    var output_id = output_details.output_id;
-    var mapping_type = output_details.mapping_type;
-
-    $("#output_id").val(output_id);
-    $("#mapping_type").val(mapping_type);
-    $("#milestone_id").val(milestone_details.milestone_id);
-    $("#task_id").val(task_details.task_id);
-
-    set_common_parameters();
-    set_milestone_parameters(mapping_type);
-
-    if (table == 1 || table == 4) {
-        $("#milestone_div").show();
-        if (table == 1) {
-            $("#store_data").val("add_milestones");
-            if (edit == 1) {
-                $("#store_data").val("edit_milestone");
-                if (mapping_type == "1") {
-                    $("#milestone_table_body").html(`
-                    <tr id="m_row1">
-                        <td>1</td>
-                        <td>
-                            <input type="text" name="milestone" value="${milestone_details.milestone_name}" id="milestonerow1" placeholder="Enter" class="form-control" required/>
-                        </td>
-                        <td></td>
-                    </tr>`);
-                } else {
-                    $("#milestone_table_body").html(`
-                    <tr id="m_row1">
-                        <td>1</td>
-                        <td>
-                            <input type="text" name="milestone" value="${milestone_details.milestone_name}" id="milestonerow1" placeholder="Enter" class="form-control" required/>
-                        </td>
-                        <td></td>
-                    </tr>`);
-                }
-                $(".addplus_output").attr("disabled", true);
+function risk_info(riskid) {
+	if (riskid != '' || riskid != null) {
+		$.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+					risk_more_info: "risk_more_info",
+					riskid: riskid
+				},
+            dataType: "json",
+            success: function (response) {
+				$('#risk_more_info').html(response.risk_more_info_body);
+				$('#risk_measures').html(response.risk_measures);
             }
-        }
-    } else if (table == 2) {
-        $("#sequence_id").hide();
-        $("#tasks_div").show();
-        $("#store_data").val("tasks");
-        if (edit == 1) {
-        $("#sequence_id").show();
-            $(".addplus_output").attr("disabled", true);
-            $("#store_data").val("edit_tasks");
-            $("#tasks_table_body").html(`
-            <tr id="m_row1">
-                <td>1</td>
-                <td>
-                    <input type="text" name="task" value="${task_details.task_name}" id="taskrow1" placeholder="Enter" class="form-control" required/>
-                </td>
-                <td>
-                    <select name="unit_of_measure" id="unit_of_measurerow1" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" >
-                        <option value="">..Select Unit of Measure..</option>
-                    </select>
-                </td>
-                <td></td>
-            </tr>`);
-            get_unit_of_measurements(1, task_details.unit_of_measure); 
-        }
-    }
+        });
+	} else {
+		console.log(ajax_url);
+	}
 }
 
 function add_row_items() {
@@ -159,31 +128,53 @@ function add_task() {
     $("#hideinfo2").remove();
     var rand = Math.floor(Math.random() * 6) + 1;
     var rowno = $("#tasks_table_body tr").length + "" + rand + "" + Math.floor(Math.random() * 7) + 1;
+    /* var rand = Math.floor(Math.random() * 6) + 1;
+    var rowno = $("#tasks_table_body tr").length + 1; */
 
     $("#tasks_table_body tr:last").after(`
     <tr id="m_row${rowno}">
         <td></td>
         <td>
-            <input type="text" name="checklist_parameter[]" id="taskrow${rowno}" placeholder="Describe checklist parameter" class="form-control parameter" required/>
+            <input type="text" name="strategic_measure[]" id="taskrow${rowno}" placeholder="Describe the Strategic Measure" class="form-control parameter" required/>
         </td>
         <td>
-            <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_row_Items('m_row${rowno}', 2)">
+            <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_row_Items('m_row${rowno}')">
                 <span class="glyphicon glyphicon-minus"></span>
             </button>
         </td>
     </tr>`);
-    number_table_items(2);
+    number_table_items();
 }
 
-function delete_row_Items(rowno, table) {
+//filter the expected output  cannot be selected twice
+function editrisk(riskid) {
+	if (riskid != '' || riskid != null) {
+		$.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+					edit_risk: "edit_risk",
+					riskid: riskid
+				},
+            dataType: "json",
+            success: function (response) {
+				$('#risk_details').html(response.risk_more_info_body);
+				$('#tasks_table_body').html(response.risk_measures);
+				$('#store_risk').val("editrisk");
+            }
+        });
+	}
+};
+
+function delete_row_Items(rowno) {
     $("#" + rowno).remove();
-    number_table_items(table);
+    number_table_items();
     if ($("#tasks_table_body tr").length == 1) {
-		$("#tasks_table_body tr:last").after('<tr id="hideinfo2"><td colspan="5" align="center"> Add Checklist Parameters!!</td></tr>');
+		$("#tasks_table_body tr:last").after('<tr id="hideinfo2"><td colspan="5" align="center"> Add Strategic Measures!!</td></tr>');
 	}
 }
 
-function number_table_items(table) {
+function number_table_items() {
     $("#tasks_table_body tr").each(function (idx) {
 		$(this)
 			.children()
@@ -192,8 +183,8 @@ function number_table_items(table) {
 	});
 }
 
-function destroy_task(id, table) {
-    if (id != "" && table != "") {
+function destroy_task(id) {
+    if (id != "") {
         swal({
             title: "Are you sure?",
             text: "Once deleted, you will not be able to recover the record!",

@@ -213,7 +213,7 @@ if ($permission) {
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label for="program_target" class="control-label">Program Target *:</label>
                                                 <div class="form-input">
-                                                    <input type="number" name="program_target" id="program_target" placeholder="Enter" class="form-control" readonly>
+                                                    <input type="text" name="program_target" id="program_target" placeholder="Enter" class="form-control" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">

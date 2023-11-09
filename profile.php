@@ -188,7 +188,7 @@ include_once("Models/User.php");
 		}elseif($designation == 7){
 			$query_project_status =  $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 AND g.projsector=$sector_id AND g.projdept=$department_id AND g.directorate=$directorate_id");
 		}elseif($designation > 7){
-			$query_project_status =  $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.projstage > 0 AND g.projsector=$sector_id AND g.projdept=$department_id AND g.directorate=$directorate_id AND m.ptid=$user_name");
+			$query_project_status =  $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.projstage > 0 AND g.projsector=$sector_id AND g.projdept=$department_id AND g.directorate=$directorate_id AND m.responsible=$user_name");
 		}
 
 		$query_project_status->execute();
@@ -253,7 +253,7 @@ include_once("Models/User.php");
                                             </div>
                                             <div class="content-area">
                                                 <h3><?= $user_details->fullname ?></h3>
-                                                <p><?= $row_rsDesignation['designation'] ?></p> 
+                                                <p><?= $row_rsDesignation['designation'] ?></p>
                                             </div>
                                         </div>
 										<?php
@@ -477,7 +477,7 @@ include_once("Models/User.php");
 																		</thead>
 																		<tbody>
 																			<?php
-																			$query_mbrprojs =  $db->prepare("SELECT projid FROM tbl_projmembers WHERE ptid='$user_name' GROUP BY projid");
+																			$query_mbrprojs =  $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible='$user_name' GROUP BY projid");
 																			$query_mbrprojs->execute();
 																			$count_mbrprojs = $query_mbrprojs->rowCount();
 
@@ -498,7 +498,7 @@ include_once("Models/User.php");
 																				$role = $row_projroles["role"];
 																				$rank = $row_projroles["rank"];
 
-																				$query_team_members =  $db->prepare("SELECT * FROM tbl_projmembers m inner join users u on u.userid=m.ptid inner join tbl_projteam2 t on t.ptid=u.pt_id WHERE m.ptid != '$user_name' and projid='$projid'");
+																				$query_team_members =  $db->prepare("SELECT * FROM tbl_projmembers m inner join users u on u.userid=m.responsible inner join tbl_projteam2 t on t.ptid=u.pt_id WHERE m.responsible != '$user_name' and projid='$projid'");
 																				$query_team_members->execute();
 
 																				if ($projstage < 6) {

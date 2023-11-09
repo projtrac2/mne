@@ -19,10 +19,10 @@ if ($permission) {
 		$query_rsProjects->execute(array(":projid" => $projid));
 		$row_rsProjects = $query_rsProjects->fetch();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
-		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
-		$percent2 = $totalRows_rsProjects > 0 ? number_format($row_rsProjects['progress'], 2) : "";
+		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : ""; 
 		$projstage = $row_rsProjects["projstage"];
 		$projcat = $row_rsProjects["projcategory"];
+		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
 
 		function get_roles($role)
 		{
@@ -113,7 +113,7 @@ if ($permission) {
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>

@@ -49,12 +49,12 @@ $(document).ready(function () {
                     success_alert(response.messages);
                     $(".modal").each(function () {
                         $(this).modal("hide");
-                    }); 
+                    });
                 }
                 setTimeout(() => {
                     window.location.reload();
                     // manageItemTable.ajax.reload(null, true);
-                }, 3000); 
+                }, 3000);
             },
         });
     });
@@ -164,7 +164,7 @@ function remove_from_adp(projid) {
         });
 }
 
-function removeItem(projid) { 
+function removeItem(projid) {
     swal({
         title: "Are you sure?",
         text: "Once deleted, you will not be able to recover this project data!",
@@ -207,10 +207,11 @@ function removeItem(projid) {
         });
 }
 
-
 function adjustFy(details) {
     if (details.projid != "") {
-        $("#projname").html(details.projname);
+        var projname = $(`#projname${details.projid}`).val();
+        console.log(projname);
+        $("#projname").html(projname);
         $("#projid").val(details.projid);
     } else {
         error_alert("error please refresh the page");

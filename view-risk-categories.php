@@ -1,7 +1,7 @@
 <?php
 require('includes/head.php');
 
-if ($permission) {
+if ($permission) { 
    try {
       $query_rsriskcategory = $db->prepare("SELECT * FROM tbl_projrisk_categories");
       $query_rsriskcategory->execute();
@@ -23,7 +23,7 @@ if ($permission) {
                      <?php
                      if (in_array("create", $page_actions)) {
                      ?>
-                        <a href="add-risk-category.php" class="btn btn-primary pull-right">Add Risk Category</a>
+                        <a href="add-risk-category.php" class="btn btn-primary pull-right">Add New Category</a>
                      <?php
                      }
                      ?>
@@ -42,14 +42,13 @@ if ($permission) {
                      <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                            <thead>
-                              <tr class="bg-orange">
+                              <tr id="colrow">
                                  <th style="width:5%">#</th>
-                                 <th style="width:80%">Risks/Assumptions Name</th>
-                                 <th style="width:10%">Result Level</th>
+                                 <th style="width:80%">Risk/Issue Category</th>
                                  <?php
                                  if (in_array("update", $page_actions) || in_array("delete", $page_actions)) {
                                  ?>
-                                    <th style="width:5%" data-orderable="false">Action</th>
+                                    <th style="width:15%" data-orderable="false">Action</th>
                                  <?php
                                  }
                                  ?>
@@ -61,25 +60,12 @@ if ($permission) {
                                  $nm = 0;
                                  while ($row_rsriskcategory = $query_rsriskcategory->fetch()) {
                                     $nm = $nm + 1;
-                                    $riskid = $row_rsriskcategory['catid'];
-                                    $riskcat = $row_rsriskcategory['category'];
-                                    $type = explode(',', $row_rsriskcategory['type']);
-                                    $risk_type = array();
-                                    if (in_array(1, $type)) {
-                                       $risk_type[]  = "Impact";
-                                    }
-                                    if (in_array(2, $type)) {
-                                       $risk_type[]  = "Outcome";
-                                    }
-                                    if (in_array(3, $type)) {
-                                       $risk_type[]  = "Output";
-                                    }
-                                    $risk_type = !empty($risk_type) ?  implode(',', $risk_type) : '';
-                              ?>
+                                    $catid = $row_rsriskcategory['catid'];   
+                                    $category = $row_rsriskcategory['category'];                                
+									?>
                                     <tr style="background-color:#fff">
                                        <td align="center"><?php echo $nm; ?></td>
-                                       <td><?php echo $riskcat; ?></td>
-                                       <td><?php echo $risk_type; ?></td>
+                                       <td><?php echo $category; ?></td>
                                        <?php
                                        if (in_array("update", $page_actions) || in_array("edit", $page_actions)) {
                                        ?>
@@ -93,7 +79,7 @@ if ($permission) {
                                                    if (in_array("update", $page_actions)) {
                                                    ?>
                                                       <li>
-                                                         <a type="button" href="add-risk-category.php?risk=<?= base64_encode($riskid) ?>" id="addFormModalBtn">
+                                                         <a type="button" href="add-risk-category.php?risk=<?= base64_encode($catid) ?>" id="addFormModalBtn">
                                                             <i class="fa fa-pencil-square"></i> </i> Edit
                                                          </a>
                                                       </li>
@@ -102,7 +88,7 @@ if ($permission) {
                                                    if (in_array("delete", $page_actions)) {
                                                    ?>
                                                       <li>
-                                                         <a type="button" onclick="removeItem('<?php echo $riskid ?>')">
+                                                         <a type="button" onclick="removeItem('<?php echo $catid ?>')">
                                                             <i class="fa fa-trash-o"></i> Delete
                                                          </a>
                                                       </li>
@@ -140,7 +126,7 @@ require('includes/footer.php');
 
 <script>
    function removeItem(riskid) {
-      var url = "ajax/issuesandrisks/risk-categories.php";
+      var url = "ajax/issuesandrisks/risk-categories";
       swal({
          title: "Are you sure?",
          text: "Once deleted, you will not be able to recover!",
@@ -159,7 +145,7 @@ require('includes/footer.php');
                dataType: "json",
                success: function(response) {
                   if (response.success) {
-                     swal("Success! category has been deleted!", {
+                     swal("Successful, category has been deleted!", {
                         icon: "success",
                      });
                      setTimeout(() => {

@@ -3,33 +3,23 @@ let markersArray = [];
 let polyline = null;
 let coordinates = [];
 
-function initMap() { 
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: { lat: 0.633948, lng: 35.048561 },
+
+function initMap() {
+   map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: -1.2864, lng: 36.8172 },
     zoom: 13,
-    mapTypeId: 'satellite'
+    mapTypeId: "roadmap",
   });
 
-  // map onclick listener 
-  map.addListener('click', function (e) { 
-    addMarker(e.latLng);
-    drawPolyline();
-  });
-
-  // Create the search box and link it to the UI element.
   const input = document.getElementById("pac-input");
   const searchBox = new google.maps.places.SearchBox(input);
 
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-  // Bias the SearchBox results towards current map's viewport.
   map.addListener("bounds_changed", () => {
     searchBox.setBounds(map.getBounds());
   });
 
   let markers = [];
-
-  // Listen for the event fired when the user selects a prediction and retrieve
-  // more details for that place.
   searchBox.addListener("places_changed", () => {
     const places = searchBox.getPlaces();
 
@@ -37,13 +27,11 @@ function initMap() {
       return;
     }
 
-    // Clear out the old markers.
     markers.forEach((marker) => {
       marker.setMap(null);
     });
     markers = [];
 
-    // For each place, get the icon, name and location.
     const bounds = new google.maps.LatLngBounds();
 
     places.forEach((place) => {
@@ -60,6 +48,15 @@ function initMap() {
         scaledSize: new google.maps.Size(25, 25),
       };
 
+      markers.push(
+        new google.maps.Marker({
+          map,
+          icon,
+          title: place.name,
+          position: place.geometry.location,
+        }),
+      );
+
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
         bounds.union(place.geometry.viewport);
@@ -69,7 +66,14 @@ function initMap() {
     });
     map.fitBounds(bounds);
   });
+
+  // map onclick listener
+  map.addListener('click', function (e) {
+    addMarker(e.latLng); 
+    drawPolyline();
+  });
 }
+
 
 // define function to add marker at given lat & lng
 function addMarker(latLng) {
@@ -88,7 +92,7 @@ function addMarker(latLng) {
   markersArray.push(marker);
 
   let coord = JSON.stringify(latLng);
-  let coordinates = JSON.parse(coord); 
+  let coordinates = JSON.parse(coord);
   let coordinates_inputs = `
   <input type="hidden" name="lat[]" value="${coordinates.lat}">
   <input type="hidden" name="lng[]" value="${coordinates.lng}">`;
@@ -115,9 +119,10 @@ function drawPolyline() {
 }
 
 $(document).keypress(
-    function(event){
-      if (event.which == '13') {
-        event.preventDefault();
-      }
+  function (event) {
+    if (event.which == '13') {
+      event.preventDefault();
+    }
   });
-  
+
+window.initMap = initMap;

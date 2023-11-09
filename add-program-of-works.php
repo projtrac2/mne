@@ -2,6 +2,7 @@
 require('includes/head.php');
 if ($permission) {
 	try {
+
 		$query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage >= :workflow_stage ORDER BY p.projid DESC");
 		$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -56,9 +57,13 @@ if ($permission) {
 												$project_directorate = $row_rsProjects['directorate'];
 												$start_date = date('Y-m-d');
 
-												$query_rsPlan = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid = :projid");
+												$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid");
 												$query_rsPlan->execute(array(":projid" => $projid));
 												$totalRows_plan = $query_rsPlan->rowCount();
+
+												$query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid AND timeline_status=0");
+												$query_rsAdjustments->execute(array(":projid" => $projid));
+												$totalRows_Adjustments = $query_rsAdjustments->rowCount();
 
 												$timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
 												$filter_department = view_record($project_department, $project_section, $project_directorate);
@@ -78,7 +83,11 @@ if ($permission) {
 													$activity_status = '';
 													$activity = $totalRows_plan == 0 ? "Add" : "Edit";
 													if ($sub_stage == 0) {
-														$activity_status = "Pending";
+														if ($totalRows_plan > 0 && $sub_stage == 0 && $implementation == 1) {
+															$activity_status = "Complete";
+														} else {
+															$activity_status = "Pending";
+														}
 													} else if ($sub_stage == 1) {
 														$activity_status = "Assigned";
 													} else if ($sub_stage > 1) {
@@ -86,6 +95,7 @@ if ($permission) {
 														$activity = "Approve";
 													}
 													$project_category = $implementation == 1 ? "In-House" : "Contractor";
+
 										?>
 													<tr>
 														<td align="center"><?= $counter ?></td>
@@ -114,26 +124,29 @@ if ($permission) {
 																					<i class="fa fa-users"></i> Assign
 																				</a>
 																			</li>
-																		<?php
+																			<?php
 																		}
-																		if ($assigned_responsible) {
-																		?>
-																			<li>
-																				<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-																					<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
-																				</a>
-																			</li>
-																		<?php
+
+																		if ($totalRows_plan > 0 && $sub_stage != 0) {
+																			if ($assigned_responsible) {
+																			?>
+																				<li>
+																					<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																						<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
+																					</a>
+																				</li>
+																			<?php
+																			}
 																		}
 																	} else {
-																		if ($sub_stage == 1) {
-																		?>
+																		if ($sub_stage > 1) {
+																			?>
 																			<li>
 																				<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
 																					<i class="fa fa-plus-square-o"></i> Approve Program of Works
 																				</a>
 																			</li>
-																	<?php
+																		<?php
 																		}
 																	}
 																	?>

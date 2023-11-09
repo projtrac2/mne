@@ -204,56 +204,59 @@ if ($permission) {
                                                 </table>
                                             </div>
                                         </div>
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <label class="control-label"><strong>Other Question/s: </strong></label>
-											<?php
-											if($resultstype == 2){
-												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=2 ORDER BY id ASC");
-											}else{
-												$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=2 ORDER BY id ASC");
-											}
-											$query_questions->execute(array(":projid" => $projid));
-											
+										<?php
+										if($resultstype == 2){
+											$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=2 ORDER BY id ASC");
+										}else{
+											$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=2 ORDER BY id ASC");
+										}
+										$query_questions->execute(array(":projid" => $projid));
+										$totalrows_questions = $query_questions->rowCount();
+										
+										if($totalrows_questions  > 0){
 											?>
-                                            <div>
-                                                <table class="table table-bordered table-striped table-hover dataTable">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width:5%">#</th>
-															<th width="55%">Question</th>
-															<th width="15%">Answer Type</th>
-															<th width="25%">Answer Labels</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php
-                                                        $counter = 0;
-                                                        while ($row = $query_questions->fetch()) {
-                                                            $counter++;
-															$count = '<td>' .$counter.'</td>';
-															$answertype = $row["answertype"];
-															
-															if($answertype == 1){$answername = "Number";} elseif($answertype == 2){$answername = "Multiple Choice";} elseif($answertype == 3){$answername = "Checkboxes";} elseif($answertype == 4){$answername = "Dropdown";} elseif($answertype == 5){$answername = "Text";} elseif($answertype == 6){$answername = "File Upload";}
-															
-															$question = '<td>' . $row['question'] . '</td>';
-															$answerdatatype = '<td>' . $answername . '</td>';
-															$answerlabel = '<td>N/A</td>';
-															if($answertype == 2 || $answertype == 3 || $answertype == 4){
-																$answerlabel = '<td>' . $row['answerlabels'] . '</td>';
-															}
-															$data = $count.$question.$answerdatatype.$answerlabel;
-													
-															echo '
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<label class="control-label"><strong>Other Question/s: </strong></label>
+												<div>
+													<table class="table table-bordered table-striped table-hover dataTable">
+														<thead>
 															<tr>
-																' . $data . '
-															</tr>';
-                                                        }
-                                                        ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    <?php
+																<th style="width:5%">#</th>
+																<th width="55%">Question</th>
+																<th width="15%">Answer Type</th>
+																<th width="25%">Answer Labels</th>
+															</tr>
+														</thead>
+														<tbody>
+															<?php
+															$counter = 0;
+															while ($row = $query_questions->fetch()) {
+																$counter++;
+																$count = '<td>' .$counter.'</td>';
+																$answertype = $row["answertype"];
+																
+																if($answertype == 1){$answername = "Number";} elseif($answertype == 2){$answername = "Multiple Choice";} elseif($answertype == 3){$answername = "Checkboxes";} elseif($answertype == 4){$answername = "Dropdown";} elseif($answertype == 5){$answername = "Text";} elseif($answertype == 6){$answername = "File Upload";}
+																
+																$question = '<td>' . $row['question'] . '</td>';
+																$answerdatatype = '<td>' . $answername . '</td>';
+																$answerlabel = '<td>N/A</td>';
+																if($answertype == 2 || $answertype == 3 || $answertype == 4){
+																	$answerlabel = '<td>' . $row['answerlabels'] . '</td>';
+																}
+																$data = $count.$question.$answerdatatype.$answerlabel;
+														
+																echo '
+																<tr>
+																	' . $data . '
+																</tr>';
+															}
+															?>
+														</tbody>
+													</table>
+												</div>
+											</div>
+										<?php
+										}
                                     } else {
                                     ?>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

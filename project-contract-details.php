@@ -19,8 +19,7 @@ if ($permission) {
 		$projfscyear = $row_rsMyP['projfscyear'];
 		$projduration = $row_rsMyP['projduration'];
         $implimentation_type = $row_rsMyP['projcategory'];
-		$percent2 = number_format($row_rsMyP['progress'], 2);
-		
+		$percent2 = number_format(calculate_project_progress($projid, $implimentation_type),2);
 
 		$locations = [];
 		foreach ($projwards as $projward) {
@@ -29,19 +28,19 @@ if ($permission) {
 			$row_projward = $query_projward->fetch();
 			$wards = $row_projward['state'];
 			$parent = $row_projward['parent'];
-			
+
 			$query_projsb = $db->prepare("SELECT state FROM tbl_state WHERE id=:parent");
 			$query_projsb->execute(array(":parent" => $parent));
 			$row_projsb = $query_projsb->fetch();
 			$subcounty = $wards == "Headquarters" ? "" : $row_projsb['state']." Sub-County";
-			
+
 			$location = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $subcounty . '" style="color:#2196F3">' . $wards . '</span>';
 
 			$locations[] = $location;
 		}
 		$projlocations = implode("; ", $locations);
 
-		
+
 		$query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
 		$query_rsTender->execute(array(":projid" => $projid));
 		$row_rsTender = $query_rsTender->fetch();
@@ -80,7 +79,7 @@ if ($permission) {
 			$bizregno = $row_cont['busregno'];
 			$biztype = $row_cont['type'];
 		  }
-		  
+
 
 			$query_rsprocurementmethod = $db->prepare("SELECT * FROM tbl_procurementmethod WHERE id=:method");
 			$query_rsprocurementmethod->execute(array(":method" => $procurementmethodid));
@@ -119,7 +118,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?= $pageTitle ?>
-					
+
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -137,7 +136,7 @@ if ($permission) {
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Issues</a>
+								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
 								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
 								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
 							</div>
@@ -270,7 +269,7 @@ if ($permission) {
 										  </div>
 									</fieldset>
 								</div>
-								<div id="menu2" class="tab-pane fade">									
+								<div id="menu2" class="tab-pane fade">
 									<fieldset class="scheduler-border" style="border-radius:3px">
 										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 											<i class="fa fa-certificate" style="color:#F44336" aria-hidden="true"></i> Statutory Guarantees
@@ -285,11 +284,11 @@ if ($permission) {
 													<th style="width:13%">Start Date</th>
 													<th style="width:13%">End Date</th>
 													<th style="width:10%">Duration</th>
-													<th style="width:10%">Due</th>
+													<th style="width:10%">Due In</th>
 													<th style="width:14%">Notification</th>
 												  </tr>
 												</thead>
-												<tbody>								
+												<tbody>
 													<?php
 													$query_contract_guarantees = $db->prepare("SELECT * FROM tbl_contract_guarantees WHERE projid=:projid");
 													$query_contract_guarantees->execute(array(":projid" => $projid));
@@ -303,13 +302,13 @@ if ($permission) {
 															$duration = $row_contract_guarantees['duration'];
 															$notification = $row_contract_guarantees['notification'];
 															$end_date = date('Y-m-d', strtotime($start_date . ' + ' . $duration . ' days'));
-																														
+
 															$today=date('Y-m-d');
 															$origin = date_create($today);
 															$target = date_create($end_date);
 															$interval = date_diff($origin, $target);
 															$remaining_time = $interval->format('%a');
-															
+
 															if($remaining_time >= 30){
 																$badge = "bg-green";
 															}elseif($remaining_time < 30 && $remaining_time >= 10){
@@ -337,7 +336,7 @@ if ($permission) {
 										</div>
 									</fieldset>
 								</div>
-								<div id="menu3" class="tab-pane fade">									
+								<div id="menu3" class="tab-pane fade">
 									<fieldset class="scheduler-border" style="border-radius:3px">
 										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 											<i class="fa fa-commenting" style="color:#F44336" aria-hidden="true"></i> Comments
@@ -366,7 +365,7 @@ if ($permission) {
 													$query_contract_files->execute(array(":projid" => $projid));
 													$totalRows_contract_files = $query_contract_files->rowCount();
 
-													if ($totalRows_contract_files > 0) {	
+													if ($totalRows_contract_files > 0) {
 														while ($row_contract_files = $query_contract_files->fetch()) {
 															$filepath = $row_contract_files['floc'];
 															?>

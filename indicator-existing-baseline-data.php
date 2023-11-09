@@ -272,11 +272,11 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                                                     <td><?= $level2 . ' ' . $level2label ?></td>
                                                                                     <td>
                                                                                         <input id="level2<?= $lv2id ?>" type="hidden" value="<?= $level2 ?>" />
-                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>', <?= $base_val ?>)">
+                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, <?= $base_val ?>)">
                                                                                             Edit Baseline Value (<?= $base_val ?>)
                                                                                         </button>
                                                                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                                                        <button type="button" class="btn bg-light-green btn-block btn-xs waves-effect" onclick="delete_baseline(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>')">
+                                                                                        <button type="button" class="btn bg-red btn-block btn-xs waves-effect" onclick="delete_baseline(<?= $lv2id ?>)">
                                                                                             Delete Baseline Value
                                                                                         </button>
                                                                                     </td>
@@ -289,7 +289,7 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                                                                     <td><?= $level2 . ' ' . $level2label ?></td>
                                                                                     <td>
                                                                                         <input id="level2<?= $lv2id ?>" type="hidden" value="<?= $level2 ?>" />
-                                                                                        <button type="button" class="btn bg-blue btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, '<?= htmlspecialchars($level2) ?>', <?= '' ?>)">Add Baseline Value
+                                                                                        <button type="button" class="btn bg-blue btn-block btn-xs waves-effect" data-toggle="modal" data-target="#myModal" onclick="get_add_inddiss_inputs(<?= $lv2id ?>, <?= '' ?>)">Add Baseline Value
                                                                                         </button>
 
                                                                                     </td>

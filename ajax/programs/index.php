@@ -28,7 +28,7 @@ try {
     // get department
     if (isset($_GET['get_sections'])) {
         $department_id = $_GET['department_id'];
-        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent");
+        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent AND deleted=1");
         $result = $sql->execute(array(":parent" => $department_id));
         $sections = '<option value="">Select Section</option>';
         while ($row = $sql->fetch()) {
@@ -39,7 +39,7 @@ try {
 
     if (isset($_GET['get_directorate'])) {
         $sector_id = $_GET['sector_id'];
-        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent");
+        $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent  AND deleted=1");
         $result = $sql->execute(array(":parent" => $sector_id));
         $directorates = '<option value="">Select Directorate</option>';
         while ($row = $sql->fetch()) {

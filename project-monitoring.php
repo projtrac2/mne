@@ -12,8 +12,6 @@ if ($permission && isset($_GET['projid'])) {
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 
         if ($totalRows_rsProjects > 0) {
-
-
             $implimentation_type = $row_rsProjects['projcategory'];
             $project_name = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
@@ -106,7 +104,7 @@ if ($permission && isset($_GET['projid'])) {
                                                             $milestone_name = $row_rsMilestone['milestone'];
                                                             $milestone_id = $row_rsMilestone['id'];
                                                     ?>
-                                                            <option value="<?= $milestone_id; ?>"><?= $milestone_name ?></option>
+                                                            <option value="<?= $milestone_id; ?>"><?= $milestone_name ?></option> 
                                                     <?php
                                                         }
                                                     }
@@ -204,7 +202,7 @@ if ($permission && isset($_GET['projid'])) {
                                             </div>
                                             <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                                 <label for="projendyear">Current Measurement *:</label>
-                                                <input type="number" name="current_measure" id="current_measure" class="form-control" required>
+                                                <input type="number" name="current_measure" min="0" id="current_measure" class="form-control" required>
                                             </div>
                                         </fieldset>
                                         <fieldset class="scheduler-border">

@@ -512,9 +512,10 @@ try {
         $query_Indicator->execute(array(":indicator_id" => $indicator_id));
         $row_Indicator = $query_Indicator->fetch();
         $mapping_type = $row_Indicator ? $row_Indicator['indicator_mapping_type'] : 0;
+        $indicator_name = $row_Indicator ? $row_Indicator['indicator_name'] : '';
 
         echo json_encode(array(
-            "program_target" => $program_target,
+            "program_target" => $program_target . " " . $indicator_name,
             "mapping_type" => $mapping_type,
             "output_data" => $row_rsOutput,
             "output_details" => $row_rsOutput_details,

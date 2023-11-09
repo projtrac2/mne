@@ -8,14 +8,14 @@ if ($permission) {
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 	}
-?>  
+?>
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
 					<?= $icon ?>
-					<?= $pageTitle ?> 
+					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
 							<button type="button" id="outputItemModalBtnrow" class="btn btn-warning" style="margin-left: 10px;" onclick="window.history.back()">
@@ -55,27 +55,21 @@ if ($permission) {
 											$active = "";
 											while ($row = $sql->fetch()) {
 												$itemId = $row['projid'];
+												$budget = $row['projcost'];
 												$username = $row['user_name'];
 
-												$query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE projid ='$itemId'");
-												$query_rsBudget->execute();
-												$row_rsBudget = $query_rsBudget->fetch();
-												$totalRows_rsBudget = $query_rsBudget->rowCount();
-												$projbudget = $row_rsBudget['budget'];
-
 												$projname = $row["projname"];
-												$budget = number_format($projbudget, 2);
 												$progid = $row["progid"];
 												$srcfyear = $row["projfscyear"];
 
-												//get program and department 
+												//get program and department
 												$prog = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid=:progid LIMIT 1");
 												$prog->execute(array(":progid" => $progid));
 												$rowprog = $prog->fetch();
 												$projdept = $rowprog["projdept"];
 
 
-												// add_to_adp remove_adp edit delete 
+												// add_to_adp remove_adp edit delete
 												$project_department = $rowprog['projsector'];
 												$project_section = $rowprog['projdept'];
 												$project_directorate = $rowprog['directorate'];
@@ -87,13 +81,13 @@ if ($permission) {
 												$projYear  = $rowprojYear['year'];
 												$yr  = $rowprojYear['yr'];
 
-												// get department 
+												// get department
 												$query_rsDept =  $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent IS NOT NULL  and stid =:sector LIMIT 1");
 												$query_rsDept->execute(array(":sector" => $projdept));
 												$row_rsDept = $query_rsDept->fetch();
 												$department = $row_rsDept['sector'];
 												$totalRows_rsDept = $query_rsDept->rowCount();
-												
+
 												$query_adp =  $db->prepare("SELECT *, p.status as status FROM tbl_annual_dev_plan p inner join tbl_fiscal_year y ON y.id=p.financial_year WHERE projid = :projid");
 												$query_adp->execute(array(":projid" => $itemId));
 												$row_adp = $query_adp->fetch();
@@ -101,7 +95,7 @@ if ($permission) {
 												$adpstatus = $totalRows_adp > 0 ? $row_adp["status"] : "";
 
 												$progname = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="' . $department . '" style="color:#2196F3">' . $rowprog["progname"] . '</span>';
-												
+
 												if ($totalRows_adp == 1) {
 													$status = $row_adp["year"] . " ADP";
 													if ($adpstatus == 1) {
@@ -130,7 +124,7 @@ if ($permission) {
 														<td><?= $sn ?> </td>
 														<td><?= $projname ?> </td>
 														<td><?= $progname ?> </td>
-														<td><?= $budget ?> </td>
+														<td><?= number_format($budget,2) ?> </td>
 														<td><?= $projYear ?> </td>
 														<td><?= $active ?> </td>
 														<td>
@@ -140,7 +134,7 @@ if ($permission) {
 										<?php
 												}
 											}
-										} // if num_rows 
+										} // if num_rows
 										?>
 									</tbody>
 								</table>

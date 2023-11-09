@@ -16,14 +16,14 @@ $(document).ready(function () {
             })
                 .then((willDelete) => {
                     if (willDelete) {
-                        form.append("button", "2");
+                        form.append("button", "1");
                         submitForm(form);
                     } else {
                         swal("You cancelled the action!");
                     }
                 });
-        } else {
-            form.append("button", "1");
+        } else if ($(this).attr("value") == "button1") {
+            form.append("button", "0");
             submitForm(form);
         }
     });
