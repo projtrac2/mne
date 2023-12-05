@@ -1,8 +1,8 @@
-<?php 
+<?php
 require('includes/head.php');
 if ($permission) {
 	try {
-		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, g.program_type, g.progid FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' AND p.projstage = 7 ORDER BY p.projstartdate ASC");
+		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, g.program_type, g.progid FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' AND p.projstage = 10 ORDER BY p.projstartdate ASC");
 		$query_all_projects->execute();
 		$total_all_projects_count = $query_all_projects->rowCount();
 	} catch (PDOException $ex) {
@@ -76,18 +76,12 @@ if ($permission) {
 												$query_proj_files->execute(array(":projid" => $projid));
 												$totalRows_proj_files = $query_proj_files->rowCount();
 
-												$query_proj_photos = $db->prepare("SELECT *  FROM tbl_project_photos f INNER JOIN tbl_project_workflow_stage s ON s.id=f.projstage inner join tbl_projects p on p.projid=f.projid WHERE f.projid = :projid");
-												$query_proj_photos->execute(array(":projid" => $projid));
-												$totalRows_proj_photos = $query_proj_photos->rowCount();
-
-												$totalRows_proj_files = $totalRows_proj_files + $totalRows_proj_photos;
-
 												$project_department = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projsector'] : "";
 												$project_section = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projdept'] : "";
 												$project_directorate = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['directorate'] : "";
 
 												$filter_department = view_record($project_department, $project_section, $project_directorate);
-												if ($filter_department && $totalRows_proj_files > 0 && $projenddate != "") {
+												if ($filter_department && $totalRows_proj_files > 0) {
 													$nm++;
 										?>
 													<tr>

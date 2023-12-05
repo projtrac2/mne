@@ -46,7 +46,7 @@ if ($permission) {
 		function get_issues($projid, $userid)
 		{
 			global $db;
-			$query_assignedissues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid=:projid and owner=:userid and status<>1");
+			$query_assignedissues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid=:projid and created_by=:userid and status<>1");
 			$query_assignedissues->execute(array(":projid" => $projid, ":userid" => $userid));
 			$count_assignedissues = $query_assignedissues->rowCount();
 			return $count_assignedissues;

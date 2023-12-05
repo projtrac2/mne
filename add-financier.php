@@ -6,18 +6,15 @@ if ($permission) {
         $query_title =  $db->prepare("SELECT id,title FROM tbl_mbrtitle");
         $query_title->execute();
 
-        $query_financiertype =  $db->prepare("SELECT * FROM tbl_funding_type where status=1 AND category<>1 ORDER BY id ASC");
-        $query_financiertype->execute();
-
         $query_country =  $db->prepare("SELECT id,country FROM countries");
         $query_country->execute();
 
         if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addfinancierfrm")) {
             $current_date = date("Y-m-d");
             $results = "";
-            if (!empty($_POST['financier']) && !empty($_POST['type']) && !empty($_POST['contactperson']) && !empty($_POST['title']) && !empty($_POST['designation']) && !empty($_POST['address']) && !empty($_POST['city']) && !empty($_POST['state']) && !empty($_POST['country']) && !empty($_POST['phone']) && !empty($_POST['email']) && !empty($_POST['comments'])) {
-                $insertSQL = $db->prepare("INSERT INTO tbl_financiers (financier, type, contact, title, designation, address, city, state, country, phone, email, comments, created_by, date_created) VALUES (:financier, :type, :contact, :title, :designation, :address, :city, :state, :country, :phone, :email, :comments, :user, :date)");
-                $insertSQL->execute(array(':financier' => $_POST['financier'], ':type' => $_POST['type'], ':contact' => $_POST['contactperson'], ':title' => $_POST['title'], ':designation' => $_POST['designation'], ':address' => $_POST['address'], ':city' => $_POST['city'],  ':state' => $_POST['state'], ':country' => $_POST['country'], ':phone' => $_POST['phone'], ':email' => $_POST['email'], ':comments' => $_POST['comments'], ':user' => $user_name, ':date' => $current_date));
+            if (!empty($_POST['financier']) && !empty($_POST['contactperson']) && !empty($_POST['title']) && !empty($_POST['designation']) && !empty($_POST['address']) && !empty($_POST['city']) && !empty($_POST['state']) && !empty($_POST['country']) && !empty($_POST['phone']) && !empty($_POST['email']) && !empty($_POST['comments'])) {
+                $insertSQL = $db->prepare("INSERT INTO tbl_financiers (financier, contact, title, designation, address, city, state, country, phone, email, comments, created_by, date_created) VALUES (:financier, :contact, :title, :designation, :address, :city, :state, :country, :phone, :email, :comments, :user, :date)");
+                $insertSQL->execute(array(':financier' => $_POST['financier'], ':contact' => $_POST['contactperson'], ':title' => $_POST['title'], ':designation' => $_POST['designation'], ':address' => $_POST['address'], ':city' => $_POST['city'],  ':state' => $_POST['state'], ':country' => $_POST['country'], ':phone' => $_POST['phone'], ':email' => $_POST['email'], ':comments' => $_POST['comments'], ':user' => $user_name, ':date' => $current_date));
                 $last_id = $db->lastInsertId();
                 if ($insertSQL->rowCount() == 1) {
                     $filecategory = "Financiers";
@@ -64,7 +61,7 @@ if ($permission) {
                                             type: 'Danger',
                                             timer: 3000,
                                             icon:'error',
-                                            showConfirmButton: false 
+                                            showConfirmButton: false
                                         });
     								</script>";
                             }
@@ -138,21 +135,6 @@ if ($permission) {
                                         <label>Financier Name *:</label>
                                         <div>
                                             <input name="financier" type="text" class="form-control" placeholder="Enter name of financing institution" style="border:#CCC thin solid; border-radius: 5px" required />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label>Financier Type *:</label>
-                                        <div class="form-line">
-                                            <select name="type" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
-                                                <option value="" selected="selected" class="selection">...Select Financier Type...</option>
-                                                <?php
-                                                while ($row_financiertype = $query_financiertype->fetch()) {
-                                                ?>
-                                                    <option value="<?php echo $row_financiertype['id'] ?>"><?php echo $row_financiertype['type'] ?></option>
-                                                <?php
-                                                }
-                                                ?>
-                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-3">

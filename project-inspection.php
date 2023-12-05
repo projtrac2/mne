@@ -26,9 +26,7 @@ if ($permission) {
             $projid = $_POST['projid'];
             $comments =  $_POST['comments'];
             $approval_name = $_POST['approval_name'];
-
             $datecreated = date('Y-m-d');
-
 
             if (isset($_POST['attachmentpurpose'])) {
                 $countP = count($_POST["attachmentpurpose"]);
@@ -175,9 +173,8 @@ if ($permission) {
                                                         </thead>
                                                         <tbody>
                                                             <?php
-
                                                             $questions = '';
-                                                            if ($totalRows_rsQuestions > 0) {
+                                                            if ($totalRows_rsQuestions_pending > 0) {
                                                                 $counter = 0;
                                                                 while ($row = $query_rsQuestions_pending->fetch()) {
                                                                     $counter++;
@@ -228,7 +225,6 @@ if ($permission) {
                                                         </thead>
                                                         <tbody>
                                                             <?php
-
                                                             $question_arr = [];
                                                             if ($totalRows_rsQuestions > 0) {
                                                                 $counter = 0;

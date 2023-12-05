@@ -53,13 +53,12 @@ if ($permission) {
 				}
 			}
 
-			$query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid AND timeline_status=0");
+			$query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid AND cost_status=0");
 			$query_rsAdjustments->execute(array(":projid" => $projid));
 			$Rows_Adjustments = $query_rsAdjustments->fetch();
 			$totalRows_Adjustments = $query_rsAdjustments->rowCount();
-			$duration_adjusted =  $totalRows_Adjustments > 0 ? $Rows_Adjustments['timeline'] : 0;
-			$project_duration = $projduration + $duration_adjusted;
-			$end_date = date('Y-m-d', strtotime($start_date . ' + ' . $project_duration . ' days'));
+			$cost_adjusted =  $totalRows_Adjustments > 0 ? $Rows_Adjustments['timeline'] : 0;
+			$adjustment_id =  $totalRows_Adjustments > 0 ? $Rows_Adjustments['id'] : 0;
 
 			function validate_program_of_works()
 			{
@@ -260,10 +259,10 @@ if ($permission) {
 																									<th style="width:5%">#</th>
 																									<th style="width:40%">Subtask</th>
 																									<th style="width:15%">Unit of Measure</th>
-																									<th style="width:10%">Duration</th>
-																									<th style="width:15%">Start Date</th>
-																									<th style="width:15%">End Date</th>
-																									<th>Action</th>
+																									<th style="width:10%">Units</th>
+																									<th style="width:15%">Unit Cost</th>
+																									<th style="width:15%">SubTotal Cost</th>
+																									<th>Adjust</th>
 																								</tr>
 																							</thead>
 																							<tbody>
@@ -294,21 +293,44 @@ if ($permission) {
 																											$end_date = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
 																											$duration = number_format($row_rsTask_Start_Dates['duration']);
 																											$details = array("output_id" => $output_id, "site_id" => $site_id, 'task_id' => $msid, 'subtask_id' => $task_id);
+
+																											$query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_direct_cost_plan WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND cost_type=1 ");
+																											$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																											$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+																											$paid_units = 0;
+																											if ($implimentation_type == 2) {
+																												$query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_tender_details WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id");
+																												$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																												$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+
+																												$query_rsRequests =  $db->prepare("SELECT SUM(units_no) as units_no FROM tbl_contractor_payment_requests c INNER JOIN tbl_contractor_payment_request_details s ON s.request_id=c.request_id  WHERE c.projid =:projid AND s.site_id=:site_id AND s.subtask_id=:subtask_id AND c.status <> 4");
+																												$query_rsRequests->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																												$row_rsRequests = $query_rsRequests->fetch();
+																												$paid_units = !is_null($row_rsRequests['units_no']) ? $row_rsRequests['units_no'] : 0;
+																											}
+
+																											$units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] - $paid_units : 0;
+																											$unit_cost = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['unit_cost'] : 0;
+																											if ($units > 0) {
+																												$cost = $units * $unit_cost;
 																								?>
-																											<tr id="row">
-																												<td style="width:5%"><?= $tcounter ?></td>
-																												<td style="width:40%"><?= $task_name ?></td>
-																												<td style="width:15%"><?= $unit_of_measure ?></td>
-																												<td style="width:10%"><?= $duration ?> Days</td>
-																												<td style="width:15%"><?= $start_date ?></td>
-																												<td style="width:15%"><?= $end_date ?></td>
-																												<td>
-																													<button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_subtasks_adjust(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-																														<span class="glyphicon glyphicon-pencil"></span>
-																													</button>
-																												</td>
-																											</tr>
+																												<tr id="row<?= $tcounter ?>">
+																													<td style="width:5%"><?= $tcounter ?></td>
+																													<td style="width:40%"><?= $task_name ?></td>
+																													<td style="width:15%"><?= $unit_of_measure ?></td>
+																													<td style="width:10%"><?= number_format($units, 2) ?></td>
+																													<td style="width:15%"><?= number_format($unit_cost, 2) ?> </td>
+																													<td style="width:15%"><?= number_format($cost, 2) ?></td>
+																													<td>
+																														<button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_subtasks_adjust(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+																															<span class="glyphicon glyphicon-pencil"></span>
+																														</button>
+																													</td>
+																												</tr>
 																								<?php
+																											}
 																										}
 																									}
 																								}
@@ -373,41 +395,17 @@ if ($permission) {
 																<div class="row clearfix">
 																	<input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
 																	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-																		<div class="card-header">
-																			<div class="row clearfix">
-																				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-																					<h5>
-																						<u>
-																							TASK <?= $task_counter ?>: <?= $milestone ?>
-																							<?php
-																							if (!$approval_stage) {
-																							?>
-																								<div class="btn-group" style="float:right">
-																									<div class="btn-group" style="float:right">
-																										<button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-																											<?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-																										</button>
-																									</div>
-																								</div>
-																							<?php
-																							}
-																							?>
-																						</u>
-																					</h5>
-																				</div>
-																			</div>
-																		</div>
 																		<div class="table-responsive">
 																			<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
 																				<thead>
 																					<tr>
 																						<th style="width:5%">#</th>
-																						<th style="width:40%">Item</th>
+																						<th style="width:40%">Subtask</th>
 																						<th style="width:15%">Unit of Measure</th>
-																						<th style="width:10%">Duration</th>
-																						<th style="width:15%">Start Date</th>
-																						<th style="width:15%">End Date</th>
-																						<th></th>
+																						<th style="width:10%">Units</th>
+																						<th style="width:15%">Unit Cost</th>
+																						<th style="width:15%">SubTotal Cost</th>
+																						<th>Adjust</th>
 																					</tr>
 																				</thead>
 																				<tbody>
@@ -437,21 +435,45 @@ if ($permission) {
 																								$start_date = date("d M Y", strtotime($row_rsTask_Start_Dates['start_date']));
 																								$end_date = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
 																								$duration = number_format($row_rsTask_Start_Dates['duration']);
+
+																								$query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_direct_cost_plan WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND cost_type=1 ");
+																								$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																								$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+																								$paid_units = 0;
+																								if ($implimentation_type == 2) {
+																									$query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_tender_details WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id");
+																									$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																									$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+
+																									$query_rsRequests =  $db->prepare("SELECT SUM(units_no) as units_no FROM tbl_contractor_payment_requests c INNER JOIN tbl_contractor_payment_request_details s ON s.request_id=c.request_id  WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND c.status <> 4");
+																									$query_rsRequests->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $task_id));
+																									$row_rsRequests = $query_rsRequests->fetch();
+																									$paid_units = !is_null($row_rsRequests['units_no']) ? $row_rsRequests['units_no'] : 0;
+																								}
+
+																								$units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] - $paid_units : 0;
+																								$unit_cost = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['unit_cost'] : 0;
+
+																								if ($units > 0) {
+																									$cost = $units * $unit_cost;
 																					?>
-																								<tr id="row<?= $tcounter ?>">
-																									<td style="width:5%"><?= $tcounter ?></td>
-																									<td style="width:40%"><?= $task_name ?></td>
-																									<td style="width:15%"><?= $unit_of_measure ?></td>
-																									<td style="width:10%"><?= $duration ?> Days</td>
-																									<td style="width:15%"><?= $start_date ?> </td>
-																									<td style="width:15%"><?= $end_date ?></td>
-																									<td>
-																										<button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-																											<span class="glyphicon glyphicon-pencil"></span>
-																										</button>
-																									</td>
-																								</tr>
+																									<tr id="row<?= $tcounter ?>">
+																										<td style="width:5%"><?= $tcounter ?></td>
+																										<td style="width:40%"><?= $task_name ?></td>
+																										<td style="width:15%"><?= $unit_of_measure ?></td>
+																										<td style="width:10%"><?= number_format($units, 2) ?></td>
+																										<td style="width:15%"><?= number_format($unit_cost, 2) ?> </td>
+																										<td style="width:15%"><?= number_format($cost, 2) ?></td>
+																										<td>
+																											<button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_subtasks_adjust(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+																												<span class="glyphicon glyphicon-pencil"></span>
+																											</button>
+																										</td>
+																									</tr>
 																					<?php
+																								}
 																							}
 																						}
 																					}
@@ -467,40 +489,16 @@ if ($permission) {
 													}
 													?>
 												</fieldset>
-												<?php
+										<?php
 											}
 										}
 									}
-									if ($project_sub_stage < 3) {
-										if ($project_sub_stage == 2) {
-											$query_Comments = $db->prepare("SELECT * FROM tbl_program_of_work_comments WHERE projid = :projid ORDER BY id DESC");
-											$query_Comments->execute(array(":projid" => $projid));
-											$total_Comments = $query_Comments->rowCount();
-											if ($total_Comments > 0) {
-												while ($row_comment = $query_Comments->fetch()) {
-													$comment = $row_comment['comments'];
-													$created_by = $row_comment['created_by'];
-													$created_at = $row_comment['created_at'];
 
-													$query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
-													$query_rsPMbrs->execute(array(":user_id" => $created_by));
-													$row_rsPMbrs = $query_rsPMbrs->fetch();
-													$count_row_rsPMbrs = $query_rsPMbrs->rowCount();
-													$created_by = $count_row_rsPMbrs > 0 ?  $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
-												?>
-													<div class="row clearfix">
-														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-															<ul class="list-group">
-																<li class="list-group-item"><strong>Comment: </strong> <?= $comment ?> </li>
-																<li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)); ?> </li>
-																<li class="list-group-item">Comments By: <?= $created_by ?> </li>
-															</ul>
-														</div>
-													</div>
-										<?php
-												}
-											}
-										}
+									function validate_budget()
+									{
+										global $db, $projid, $budget;
+									}
+									if (validate_budget()) {
 										?>
 										<form role="form" id="form_data" action="" method="post" autocomplete="off" enctype="multipart/form-data">
 											<div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
@@ -539,28 +537,39 @@ if ($permission) {
 					<div class="modal-content">
 						<div class="modal-header" style="background-color:#03A9F4">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h4 class="modal-title" style="color:#fff" align="center" id="modal-title">Edit Program of Works</h4>
+							<h4 class="modal-title" style="color:#fff" align="center" id="modal-title">Adjust Costs Program of Works</h4>
 						</div>
 						<div class="modal-body" style="max-height:450px; overflow:auto;">
 							<div class="card">
+								<div class="card-header">
+									<div class="row clearfix">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<ul class="list-group">
+												<li class="list-group-item list-group-item list-group-item-action active">Subtask: <span id="subtask_name"></span> </li>
+												<li class="list-group-item"><strong>Project Ceiling Amount (KSH.): </strong> <span id="adjusted_amount"></span> </li>
+											</ul>
+										</div>
+									</div>
+								</div>
 								<div class="row clearfix">
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<div class="body">
-											<form class="form-horizontal" id="edit_duration" action="" method="POST">
+											<form class="form-horizontal" id="edit_cost" action="" method="POST">
 												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
 													<div class="table-responsive">
 														<table class="table table-bordered" id="files_table">
 															<thead>
 																<tr>
-																	<th style="width: 5%;">#</th>
-																	<th style="width:75%">Subtask *</th>
-																	<th style="width:20%">Duration (Days) *</th>
+																	<th style="width:40%">Subtask *</th>
+																	<th style="width:20%">Units *</th>
+																	<th style="width:20%">Unit Cost (Ksh.) *</th>
+																	<th style="width:20%">Subtotal Cost (Ksh.) *</th>
 																</tr>
 															</thead>
 															<tbody id="tasks_table_body">
 																<tr></tr>
 																<tr id="removeTr" align="center">
-																	<td colspan="4">Add Program of Works</td>
+																	<td colspan="4">Adjust Cost</td>
 																</tr>
 															</tbody>
 														</table>
@@ -570,7 +579,8 @@ if ($permission) {
 													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 														<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
 														<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-														<input type="hidden" name="store_duration" id="store_duration" value="">
+														<input type="hidden" name="adjustment_id" id="adjustment_id" value="<?= $adjustment_id ?>">
+														<input type="hidden" name="store_cost" id="store_cost" value="">
 														<input type="hidden" name="output_id" id="output_id" value="">
 														<input type="hidden" name="task_id" id="task_id" value="">
 														<input type="hidden" name="site_id" id="site_id" value="">
@@ -612,9 +622,4 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
-<script>
-	const redirect_url = "add-program-of-works.php";
-</script>
-<script src="assets/js/programofWorks/index.js"></script>
-<script src="assets/js/master/index.js"></script>
+<script src="assets/js/adjustment/cost.js"></script>

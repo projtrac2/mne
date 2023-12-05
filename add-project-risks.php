@@ -44,20 +44,19 @@ if ($permission) {
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<?php
-						if (!$approve) {
 						?>
-							<a type="button" data-toggle="modal" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary" style="margin-right: 10px;">
-								Add Risk
-							</a>
-							<?php
-							if ($totalRows_proj_risks > 0) {
-							?>
-								<a type="button" data-toggle="modal" data-target="#riskResponsibleModal" id="riskResponsibleModalBtnrow" class="btn btn-success" style="margin-right: 10px;">
-									Add Other Risk Details to Proceed
-								</a>
+						<a type="button" data-toggle="modal" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary" style="margin-right: 10px;">
+							Add Risk
+						</a>
 						<?php
-							}
+						if ($totalRows_proj_risks > 0) {
+						?>
+							<a type="button" data-toggle="modal" data-target="#riskResponsibleModal" id="riskResponsibleModalBtnrow" class="btn btn-success" style="margin-right: 10px;">
+								Add Other Risk Details to Proceed
+							</a>
+						<?php
 						}
+
 						?>
 						<a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px;">
 							Go Back
@@ -156,22 +155,16 @@ if ($permission) {
 																						<i class="fa fa-info"></i> More Info
 																					</a>
 																				</li>
-																				<?php
-																				if (!$approve) {
-																				?>
-																					<li>
-																						<a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="editrisk(<?= $rskid ?>)">
-																							<i class="fa fa-pencil-square"></i> Edit Risk
-																						</a>
-																					</li>
-																					<li>
-																						<a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $rskid ?>)">
-																							<i class="fa fa-trash-o"></i> Delete Risk
-																						</a>
-																					</li>
-																				<?php
-																				}
-																				?>
+																				<li>
+																					<a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="editrisk(<?= $rskid ?>)">
+																						<i class="fa fa-pencil-square"></i> Edit Risk
+																					</a>
+																				</li>
+																				<li>
+																					<a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $rskid ?>)">
+																						<i class="fa fa-trash-o"></i> Delete Risk
+																					</a>
+																				</li>
 																			</ul>
 																		</div>
 																	</td>
@@ -513,7 +506,7 @@ require('includes/footer.php');
 
 <script>
 	const ajax_url = "ajax/risk/index";
-	const redirect_url = "add-project-risk-plan.php";
+	const redirect_url = "add-project-risk-plan";
 </script>
 
 <script src="assets/js/risk/index.js"></script>

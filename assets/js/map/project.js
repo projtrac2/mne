@@ -2,8 +2,10 @@ const url1 = "ajax/maps/project";
 
 let map;
 let directionsService;
+let infoWindow;
+
+
 $(document).ready(function () {
-	get_coordinates();
 	const lats = $("#lat").val();
 	const longs = $("#long").val();
 	var center = new google.maps.LatLng(lats, longs);
@@ -14,6 +16,7 @@ $(document).ready(function () {
 			mapTypeIds: ["styled_one_point_map"],
 		},
 	});
+	get_coordinates();
 });
 
 
@@ -38,11 +41,12 @@ const get_coordinates = () => {
 						var markers = output_details.markers;
 						var mapping_type = indicator.indicator_mapping_type;
 						if (mapping_type == '1') {
-							static_markers(markers);
+							static_markers(markers, indicator);
 						} else if (mapping_type == '2') {
-							area_markers(arkers);
-						} else if (mapping_type == '3') {
 							waypoint_markers(markers);
+							console.log("Waypoint markers")
+						} else if (mapping_type == '3') {
+							area_markers(markers);
 						}
 					}
 				}
@@ -52,11 +56,12 @@ const get_coordinates = () => {
 }
 
 // function to handle errors
-const handleLocationError = (browserHasGeolocation, infoWindow, pos) => {
+const handleLocationError = (browserHasGeolocation, pos) => {
 	console.log("errors found");
 }
 
-const static_markers = (markers) => {
+const static_markers = (markers, indicator) => {
+	infowindow = new google.maps.InfoWindow();
 	markers.map(marker => {
 		var lng = marker.lng;
 		var lat = marker.lat;
@@ -69,11 +74,28 @@ const static_markers = (markers) => {
 		var mark = new google.maps.Marker({
 			position: point,
 			map: map,
-			title: "projname",
-			// icon: 'assets/js/maps/project-management.png',
+			title: indicator.indicator_name,
 		});
 
 		mark.setMap(map);
+		
+		let contentString =
+			`<div id="content">
+				<div id="siteNotice"></div>
+				<h1 id="firstHeading" class="firstHeading">Details</h1>
+				<div id="bodyContent">
+					<p>Indicator: <b>${indicator.indicator_name}</b>
+					<p>Site: <b>${marker.site}</b>
+				</div>
+			</div>`;
+
+
+		// Add a click listener for each marker, and set up the info window.
+		mark.addListener("click", () => {
+			infowindow.setContent(contentString);
+			infowindow.setOptions({ maxWidth: 400 });
+			infowindow.open(map, mark);
+		});
 
 		var styledMapType = new google.maps.StyledMapType(
 			[

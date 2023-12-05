@@ -48,8 +48,24 @@ if ($permission) {
 			return $input;
 		}
 
+		function get_partners()
+        {
+            global $db;
+            $query_rsParners =  $db->prepare("SELECT * FROM tbl_partners WHERE active=1");
+            $query_rsParners->execute();
+            $totalRows_rsParners = $query_rsParners->rowCount();
+            $input = '';
+            if ($totalRows_rsParners > 0) {
+                while ($row_rsParners = $query_rsParners->fetch()) {
+                    $input .= '<option value="' . $row_rsParners['id'] . '"> ' . $row_rsParners['partner'] . '</option>';
+                }
+            }
+            return $input;
+        }
+
 		$source_categories = get_source_categories();
 		$partner_roles  = get_partner_roles();
+        $partners  = get_partners();
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
@@ -832,6 +848,7 @@ require('includes/footer.php');
 	const details = {
 		partner_roles: '<?= $partner_roles ?>',
 		source_categories: '<?= $source_categories ?>',
+        partners: '<?=$partners?>',
 	}
 </script>
 <!-- <script src="general-settings/js/fetch-adp.js"></script>

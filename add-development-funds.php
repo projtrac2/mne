@@ -1,6 +1,6 @@
-<?php 
+<?php
 require('includes/head.php');
-if ($permission) { 
+if ($permission) {
 	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -269,9 +269,9 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<?=$icon?>
+					<?= $icon ?>
 					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">                 
+					<div class="btn-group" style="float:right">
 						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
 							Go Back
 						</button>
@@ -298,10 +298,34 @@ if ($permission) {
 										</div>
 									</div>
 									<div class="col-md-4">
-										<label>Financier Type *:</label>
-										<div class="form-line">
-											<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $financiertype ?></div>
-										</div>
+										<label>Fund Type *:</label>
+										<?php
+										if ($fundtype == 1 || $fundtype == 2) {
+										?>
+											<div class="form-line">
+												<select name="fund_type" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
+													<option value="" selected="selected" class="selection">...Select Fund Type...</option>
+													<option value="1"> Local Revenue</option>
+													<option value="2"> Equitable Share</option>
+												</select>
+											</div>
+										<?php
+										} else {
+											$fund_name = "";
+											if ($fundtype == 3) {
+												$fund_name = "Grant";
+											} else if ($fundtype == 4) {
+												$fund_name = "Donor";
+											} else if ($fundtype == 4) {
+												$fund_name = "Others";
+											}
+										?>
+											<div class="form-line">
+												<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $fund_name ?></div>
+											</div>
+										<?php
+										}
+										?>
 									</div>
 									<div class="col-md-4">
 										<label>Funds Code *:</label>
@@ -423,12 +447,6 @@ if ($permission) {
 												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
 											</div>
 										</div>
-										<div class="col-md-4" id="grantinstallmentdate">
-											<label>Grant Installments Payment Date *:</label>
-											<div class="form-line">
-												<input name="grantinstallmentdate" type="text" placeholder="Enter installments payment date" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $installmentdate : ""; ?>" required>
-											</div>
-										</div>
 									</div>
 								</fieldset>
 								<fieldset class="scheduler-border">
@@ -447,7 +465,7 @@ if ($permission) {
 													$totalRows_rsFile = $query_rsFile->rowCount();
 
 													if ($totalRows_rsFile > 0) {
-														?>
+												?>
 														<div class="header table-responsive">
 															<i class="ti-link"></i>MULTIPLE FILES UPLOAD - WITH CLICK & CHOOSE
 															<table class="table table-bordered" id="donation-attachment">
@@ -491,7 +509,7 @@ if ($permission) {
 																</tbody>
 															</table>
 														</div>
-														<?PHP
+												<?PHP
 													}
 												}
 

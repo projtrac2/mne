@@ -17,34 +17,17 @@ try {
       return substr($result, -5);
    }
 
-   function get_outputs($projid)
+   function get_measurement_unit($unit_id)
    {
       global $db;
-      $options = '<option value="">.... Select from list ....</option>';
-
-      $query_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE d.projid=:projid ");
-      $query_Output->execute(array(":projid" => $projid));
-      $total_Output = $query_Output->rowCount();
-
-      if ($total_Output > 0) {
-         $options = '<option value="">.... State not Applicable ....</option>';
-      }
-
-      $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE p.projid = :projid ");
-      $query_Output->execute(array(":projid" => $projid));
-      $total_Output = $query_Output->rowCount();
-      if ($total_Output > 0) {
-         while ($row_rsOutput = $query_Output->fetch()) {
-            $site_name = $row_rsOutput['site'];
-            $site_id = $row_rsOutput['site_id'];
-            $options .= '<option value="' . $site_id . '">' . $site_name . '</option>';
-         }
-      }
-
-      return $options;
+      $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+      $query_rsIndUnit->execute(array(":unit_id" => $unit_id));
+      $row_rsIndUnit = $query_rsIndUnit->fetch();
+      $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+      return $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
    }
 
-   function get_sites($projid)
+   function get_outputs($projid)
    {
       global $db;
       $options = '<option value="">.... Select from list ....</option>';
@@ -74,7 +57,7 @@ try {
    function get_costline_details($projid, $description)
    {
       global $db;
-      $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM `tbl_project_direct_cost_plan` WHERE projid=:projid AND id=:id");
+      $query_rs_output_cost_plan =  $db->prepare("SELECT d.*, m.unit as unit_of_measure FROM `tbl_project_direct_cost_plan` d INNER JOIN tbl_measurement_units m ON m.id = d.unit  WHERE projid=:projid AND d.id=:id");
       $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":id" => $description));
       $row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch();
       $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
@@ -124,7 +107,7 @@ try {
    function store_comments($data)
    {
       global $db;
-      $sql = $db->prepare("INSERT INTO tbl_payment_request_comments (request_id,stage,status,comments,created_by,created_at) VALUES (:request_id,:stage,:status,:comments,:created_by,:created_at)");
+      $sql = $db->prepare("INSERT INTO tbl_payment_request_comments (request_id,stage,status,comments,role,created_by,created_at) VALUES (:request_id,:stage,:status,:comments,:role,:created_by,:created_at)");
       $result  = $sql->execute($data);
       return $result;
    }
@@ -132,7 +115,7 @@ try {
    function get_comments($request_id)
    {
       global $db;
-      $query_rsComments = $db->prepare("SELECT * FROM tbl_contractor_payment_request_comments  WHERE request_id=:request_id  ORDER BY id DESC");
+      $query_rsComments = $db->prepare("SELECT * FROM tbl_payment_request_comments  WHERE request_id=:request_id  ORDER BY id DESC");
       $query_rsComments->execute(array(":request_id" => $request_id));
       $totalRows_rsComments = $query_rsComments->rowCount();
       $comments = '';
@@ -141,6 +124,7 @@ try {
          while ($Rows_rsComments = $query_rsComments->fetch()) {
             $counter++;
             $comment =  $Rows_rsComments['comments'];
+            $role =  $Rows_rsComments['role'];
             $created_by =  $Rows_rsComments['created_by'];
             $created_at =  $Rows_rsComments['created_at'];
 
@@ -150,12 +134,12 @@ try {
             $count_row_rsPMbrs = $query_rsPMbrs->rowCount();
             $full_name = $count_row_rsPMbrs > 0 ?  $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
 
-
             $comments .= '
             <div class="row clearfix">
                   <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                      <ul class="list-group">
                         <li class="list-group-item list-group-item list-group-item-action active">Comment By: ' . $full_name . '</li>
+                        <li class="list-group-item"><strong>Role: </strong> ' . $role . '</li>
                         <li class="list-group-item"><strong>Comment: </strong> ' . $comment . '</li>
                         <li class="list-group-item"><strong>Comment Date: </strong> ' . date('d M Y', strtotime($created_at)) . ' </li>
                      </ul>
@@ -180,12 +164,9 @@ try {
             $description = $row_rsTask_parameters['description'];
             $unit_no = $row_rsTask_parameters['no_of_units'];
             $unit_cost = $row_rsTask_parameters['unit_cost'];
-            $unit = $row_rsTask_parameters['unit'];
-            $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-            $query_rsIndUnit->execute(array(":unit_id" => $unit));
-            $row_rsIndUnit = $query_rsIndUnit->fetch();
-            $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-            $unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+            $unit_id = $row_rsTask_parameters['unit'];
+
+            $unit_of_measure = get_measurement_unit($unit_id);
             $total_cost = $unit_cost * $unit_no;
             $tasks .=
                '<tr>
@@ -227,22 +208,107 @@ try {
       echo json_encode(array("success" => true, "budget" => $budget, "edit_details" => $edit_details));
    }
 
+   function get_tasks($output_id)
+   {
+      global $db;
+      $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+      $query_rsMilestone->execute(array(":output_id" => $output_id));
+      $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+      $options = '<option value="">.... Select from list ....</option>';
+      if ($totalRows_rsMilestone > 0) {
+         while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+            $milestone_name = $row_rsMilestone['milestone'];
+            $milestone_id = $row_rsMilestone['msid'];
+            $options .= '<option value="' . $milestone_id . '">' . $milestone_name . '</option>';
+         }
+      }
+      return $options;
+   }
+
+
+   if (isset($_GET['get_sites'])) {
+      $projid = $_GET['projid'];
+      $output_id = $_GET['output_id'];
+
+      $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid AND d.id=:output_id");
+      $query_Output->execute(array(":projid" => $projid, ":output_id" => $output_id));
+      $row_rsOutput = $query_Output->fetch();
+      $total_Output = $query_Output->rowCount();
+      $success = false;
+      $indicator_mapping_type = '';
+      $options = '<option value="">.... Select from list ....</option>';
+      if ($total_Output > 0) {
+         $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
+         $success = true;
+         if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+            $query_Site = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE p.projid = :projid AND outputid=:output_id ");
+            $query_Site->execute(array(":projid" => $projid, ":output_id" => $output_id));
+            $total_Site = $query_Site->rowCount();
+            if ($total_Output > 0) {
+               while ($row_rsSite = $query_Site->fetch()) {
+                  $site_name = $row_rsSite['site'];
+                  $site_id = $row_rsSite['site_id'];
+                  $options .= '<option value="' . $site_id . '">' . $site_name . '</option>';
+               }
+            }
+         }
+      }
+
+      echo json_encode(array("success" => $success, "sites" => $options, "mapping_type" => $indicator_mapping_type, "tasks" => get_tasks($output_id)));
+   }
+
+   if (isset($_GET['get_tasks'])) {
+      $projid = $_GET['projid'];
+      $output_id = $_GET['output_id'];
+      $tasks =  get_tasks($output_id);
+      echo json_encode(array("success" => true, "tasks" => $tasks));
+   }
+
    if (isset($_GET['get_budgetline_info'])) {
       $projid = $_GET['projid'];
       $cost_type = $_GET['cost_type'];
       $msg = false;
-      $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ORDER BY id ASC");
-      $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-      $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
       $options = '<option value="">.... Select from list ....</option>';
-      if ($totalRows_rs_output_cost_plan > 0) {
-         $msg = true;
-         while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-            $description = $row_rsOther_cost_plan['description'];
-            $id = $row_rsOther_cost_plan['id'];
-            $options .= '<option value="' . $id . '">' . $description . '</option>';
+      if ($cost_type == 1) {
+         $task_ids = $_GET['task_id'];
+         $total_tasks = count($task_ids);
+         for ($i = 0; $i < $total_tasks; $i++) {
+            $task_id = $task_ids[$i];
+            $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE msid=:task_id");
+            $query_rsMilestone->execute(array(":task_id" => $task_id));
+            $row_rsMilestone = $query_rsMilestone->fetch();
+            $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+            if ($totalRows_rsMilestone > 0) {
+               $milestone_name = $row_rsMilestone['milestone'];
+               $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type AND tasks=:task_id ORDER BY id ASC");
+               $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type, ":task_id" => $task_id));
+               $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
+               if ($totalRows_rs_output_cost_plan > 0) {
+                  $msg = true;
+                  $options .= '<optgroup label="Task: (' .  $milestone_name . ')">';
+                  while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
+                     $description = $row_rsOther_cost_plan['description'];
+                     $id = $row_rsOther_cost_plan['id'];
+                     $options .= '<option value="' . $id . '">' . $description . '</option>';
+                  }
+                  $options .= '</optgroup>';
+               }
+            }
+         }
+      } else {
+         $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ORDER BY id ASC");
+         $query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+         $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
+         if ($totalRows_rs_output_cost_plan > 0) {
+            $msg = true;
+            while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
+               $description = $row_rsOther_cost_plan['description'];
+               $id = $row_rsOther_cost_plan['id'];
+               $options .= '<option value="' . $id . '">' . $description . '</option>';
+            }
          }
       }
+
       echo json_encode(array("success" => $msg, "description" => $options));
    }
 
@@ -255,70 +321,63 @@ try {
 
    if (isset($_POST['store'])) {
       $projid = $_POST['projid'];
+      $project_stage = $_POST['project_stage'];
+      $cost_type = $_POST['cost_type'];
+
       $tasks = isset($_POST['tasks']) ? $_POST['tasks'] : 0;
       $amount_requested = 0;
       $requested_by = $_POST['user_name'];
       $date_requested = date("Y-m-d");
       $due_date = date("Y-m-d");
-      $status = 1;
-      $output_id = 0;
-      $stage = 1;
+      $status = $cost_type != 1 ? 1 : 0;
+      $stage = $cost_type != 1 ? 1 : 0;
+      $output_id = $_POST['output'];
       $results = $data =  array();
+
       if (isset($_POST['request_id']) && !empty($_POST['request_id'])) {
-         $request_id = 'test1';
-         $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,requested_by=:requested_by,date_requested=:date_requested, status=:status,comments=:comments WHERE request_id =:request_id");
-         $result = $sql->execute(array(":due_date" => $due_date, "requested_by" => $requested_by, ":date_requested" => $date_requested, ":status" => $status, ":comments" => $comments, ":request_id" => $request_id,));
+         $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,date_requested=:date_requested, status=:status,comments=:comments WHERE request_id =:request_id");
+         $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":comments" => $comments, ":request_id" => $request_id,));
          if ($result) {
             $deleteQueryI = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id");
             $resultsI = $deleteQueryI->execute(array(':request_id' => $request_id));
-
-            $tasks = $_POST['task_id'];
-            $tasks_counter = count($tasks);
-            for ($q = 0; $q < $tasks_counter; $q++) {
-               $task_id = $tasks[$q];
-               if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
-                  $dcount = count($_POST['direct_cost_id']);
-                  for ($j = 0; $j < $_count; $j++) {
-                     $direct_cost_id = $_POST['direct_cost_id'][$j];
-                     $no_of_units = $_POST['no_units'][$j];
-                     $unit_cost = $_POST['unit_cost'][$j];
-                     $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id,task_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id,:task_id, :direct_cost_id,:no_of_units, :unit_cost)");
-                     $results[]  = $sql->execute(array(":request_id" => $request_id, ":task_id" => $task_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
-                  }
-               }
+            for ($j = 0; $j < $_count; $j++) {
+               $direct_cost_id = $_POST['direct_cost_id'][$j];
+               $no_of_units = $_POST['no_units'][$j];
+               $unit_cost = $_POST['unit_cost'][$j];
+               $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id,task_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id,:task_id, :direct_cost_id,:no_of_units, :unit_cost)");
+               $results[]  = $sql->execute(array(":request_id" => $request_id, ":task_id" => $task_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
             }
-            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":created_by" => $requested_by, ":created_at" => $date_requested);
-            store_comments($data);
+
+
+            if ($cost_type != 1) {
+               $comments =  $_POST['comments'];
+               $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $requested_by, ":created_at" => $date_requested);
+               store_comments($data);
+            }
          }
       } else {
-         $purpose = isset($_POST['purpose']) && !empty($_POST['purpose']) ? $_POST['purpose'] : 0;
-         $project_stage = $_POST['stage'];
          $requested_for = $user_name;
-         $comments = $_POST['comments'];
-         $request_id = random_int(1, 4000);
-         $sql = $db->prepare("INSERT INTO tbl_payments_request (request_id,projid, requested_for,due_date,amount_requested,requested_by,date_requested, status,stage,project_stage,purpose) VALUES(:request_id,:projid,:requested_for,:due_date,:amount_requested,:requested_by,:date_requested,:status,:stage,:project_stage,:purpose) ");
-         $result = $sql->execute(array(":request_id" => $request_id, ":projid" => $projid, ":requested_for" => $requested_for, ":due_date" => $due_date, ":amount_requested" => $amount_requested, ":requested_by" => $requested_by, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":project_stage" => $project_stage, ":purpose" => $purpose));
+         $sql = $db->prepare("INSERT INTO tbl_payments_request (projid,requested_for,due_date,amount_requested,requested_by,date_requested,status,stage,project_stage,purpose) VALUES(:projid,:requested_for,:due_date,:amount_requested,:requested_by,:date_requested,:status,:stage,:project_stage,:purpose) ");
+         $result = $sql->execute(array(":projid" => $projid, ":requested_for" => $requested_for, ":due_date" => $due_date, ":amount_requested" => $amount_requested, ":requested_by" => $user_name, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":project_stage" => $project_stage, ":purpose" => $cost_type));
          if ($result) {
-            $tasks = $_POST['task_id'];
-            $tasks_counter = count($tasks);
-            for ($q = 0; $q < $tasks_counter; $q++) {
-               $task_id = $tasks[$q];
-               if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
-                  $_count = count($_POST['direct_cost_id']);
-                  for ($j = 0; $j < $_count; $j++) {
-                     $direct_cost_id = $_POST['direct_cost_id'][$j];
-                     $no_of_units = $_POST['no_units'][$j];
-                     $unit_cost = $_POST['unit_cost'][$j];
-                     $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
-                     $results[]  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
-                  }
+            $request_id = $db->lastInsertId();
+            if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
+               $_count = count($_POST['direct_cost_id']);
+               for ($j = 0; $j < $_count; $j++) {
+                  $direct_cost_id = $_POST['direct_cost_id'][$j];
+                  $no_of_units = $_POST['no_units'][$j];
+                  $unit_cost = $_POST['unit_cost'][$j];
+                  $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
+                  $results[]  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
                }
             }
-            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $requested_by, ":created_at" => $date_requested);
-            store_comments($data);
+
+            if ($cost_type != 1) {
+               $comments =  $_POST['comments'];
+               $response = store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $requested_by, ":created_at" => $date_requested));
+            }
          }
       }
-
       $msg = !in_array(false, $results) ? true : false;
       echo json_encode(array("success" => $msg));
    }
@@ -333,19 +392,19 @@ try {
       if ($_POST['stage'] == "2") {
          $status = 1;
          $stage = 3;
-         $sql = $db->prepare("UPDATE tbl_payments_request SET  stage = :stage, cof=:cof, cof_action_date=:cof_action_date WHERE  request_id = :request_id");
+         $sql = $db->prepare("UPDATE tbl_payments_request SET  stage = :stage, cof=:cof, cof_action_date=:cof_action_date WHERE  id = :request_id");
          $results  = $sql->execute(array(":stage" => $stage, ":cof" => $created_by, "cof_action_date" => $created_at, ":request_id" => $request_id));
          if ($results) {
-            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $created_by, ":created_at" => $created_at);
+            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "CO Finance", ":created_by" => $created_by, ":created_at" => $created_at);
             store_comments($data);
          }
       } else {
          $status = $_POST['status'];
          $stage = $status == 1 ? 2 : 1;
-         $sql = $db->prepare("UPDATE tbl_payments_request SET  stage = :stage,status=:status, cod=:cod, cod_action_date=:cod_action_date  WHERE  request_id = :request_id");
+         $sql = $db->prepare("UPDATE tbl_payments_request SET  stage = :stage,status=:status, cod=:cod, cod_action_date=:cod_action_date  WHERE  id = :request_id");
          $results  = $sql->execute(array(":stage" => $stage, ":status" => $status, ":cod" => $created_by, "cod_action_date" => $created_at, ":request_id" => $request_id));
          if ($results) {
-            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $created_by, ":created_at" => $created_at);
+            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "CO " . $departmentlabel, ":created_by" => $created_by, ":created_at" => $created_at);
             store_comments($data);
          }
       }
@@ -356,7 +415,6 @@ try {
       $request_id = $_POST['request_id'];
       $payment_mode = $_POST['payment_mode'];
       $comments = $_POST['comments'];
-      $paid_to = 0;
       $request_type = 1;
       $date_paid = $_POST['date_paid'];
       $created_by = $_POST['user_name'];
@@ -381,15 +439,13 @@ try {
       }
 
       if ($msg) {
-         $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (request_id,payment_mode, comments, receipt,paid_to, date_paid,request_type,created_by,created_at) VALUES(:request_id,:payment_mode,:comments,:receipt,:paid_to,:date_paid,:request_type,:created_by,:created_at) ");
-         $result = $sql->execute(array(":request_id" => $request_id, ":payment_mode" => $payment_mode, ":comments" => $comments, ":receipt" => $receipt, ":paid_to" => $paid_to, ":request_type" => $request_type, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
+         $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (request_id,payment_mode,comments,receipt,date_paid,request_type,created_by,created_at) VALUES(:request_id,:payment_mode,:comments,:receipt,:date_paid,:request_type,:created_by,:created_at)");
+         $result = $sql->execute(array(":request_id" => $request_id, ":payment_mode" => $payment_mode, ":comments" => $comments, ":receipt" => $receipt, ":request_type" => $request_type, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
 
          if ($result) {
-            $sql = $db->prepare("UPDATE tbl_payments_request SET status = :status WHERE  request_id = :request_id");
+            $sql = $db->prepare("UPDATE tbl_payments_request SET status = :status WHERE  id = :request_id");
             $results  = $sql->execute(array(":status" => $status, ":request_id" => $request_id));
-
-            $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $created_by, ":created_at" => $created_at);
-            store_comments($data);
+            store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Director Finance ", ":created_by" => $created_by, ":created_at" => $created_at));
          }
       }
       echo json_encode(array("success" => true));
@@ -404,32 +460,36 @@ try {
       $attachment = $comments = '';
       $data = '';
       $rows_rsDisbursement = '';
-      $rows_rsprojects =[];
+      $rows_rsprojects = [];
       if ($total_rsPayement_requests > 0) {
          $projid = $rows_rsPayement_requests['projid'];
          $purpose = $rows_rsPayement_requests['purpose'];
          $status = $rows_rsPayement_requests['status'];
          $query_rsprojects =  $db->prepare("SELECT projname, projcode FROM  tbl_projects WHERE  projid=:projid ");
-         $query_rsprojects->execute(array(":projid"=>$projid));
+         $query_rsprojects->execute(array(":projid" => $projid));
          $total_rsprojects = $query_rsprojects->rowCount();
          $rows_rsprojects = $query_rsprojects->fetch();
 
-         if($status == 3){
+         if ($status == 3) {
             $query_rsDisbursement =  $db->prepare("SELECT * FROM  tbl_payments_disbursed WHERE  request_id=:request_id ");
-            $query_rsDisbursement->execute(array(":request_id"=>$request_id));
+            $query_rsDisbursement->execute(array(":request_id" => $request_id));
             $total_rsDisbursement = $query_rsDisbursement->rowCount();
             $rows_rsDisbursement = $query_rsDisbursement->fetch();
          }
 
          $attachment = '';
          if ($purpose == 1) {
-
          } else {
             $data = get_requested_items($request_id);
          }
       }
 
-      echo json_encode(array("success" => true, "details" => $rows_rsPayement_requests, 'project_details'=>$rows_rsprojects, 'data' => $data, 'comments' => get_comments($request_id), 'disbursement'=>$rows_rsDisbursement));
+      $query_rsTask_parameters = $db->prepare("SELECT SUM(unit_cost * no_of_units) as request_amount FROM tbl_payments_request_details  WHERE id=:request_id");
+      $query_rsTask_parameters->execute(array(":request_id" => $request_id));
+      $Rows_rsTask_parameters = $query_rsTask_parameters->fetch();
+      $request_amount = !is_null($Rows_rsTask_parameters['request_amount']) ? $Rows_rsTask_parameters['request_amount'] : 0;
+
+      echo json_encode(array("success" => true, "details" => $rows_rsPayement_requests, 'project_details' => $rows_rsprojects, 'data' => $data, 'comments' => get_comments($request_id), 'disbursement' => $rows_rsDisbursement, "request_amount" => number_format($request_amount, 2)));
    }
 } catch (PDOException $ex) {
    $result = flashMessage("An error occurred: " . $ex->getMessage());

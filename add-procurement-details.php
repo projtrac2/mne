@@ -125,13 +125,13 @@ if ($permission) {
           $count = count($_POST["guarantee"]);
           if ($count > 0) {
             for ($cnt = 0; $cnt < $count; $cnt++) {
-                $guarantee = $_POST["guarantee"][$cnt];
-                $start_date = $_POST["guarantee_start_date"][$cnt];
-                $duration = $_POST["guarantee_duration"][$cnt];
-                $notification = $_POST["guarantee_notification"][$cnt];
+              $guarantee = $_POST["guarantee"][$cnt];
+              $start_date = $_POST["guarantee_start_date"][$cnt];
+              $duration = $_POST["guarantee_duration"][$cnt];
+              $notification = $_POST["guarantee_notification"][$cnt];
 
-				$insert_guarantee = $db->prepare("INSERT INTO tbl_contract_guarantees(projid, guarantee, start_date, duration, notification, date_created, created_by) VALUES (:projid, :guarantee, :start_date, :duration, :notification, :date_created, :created_by)");
-				$insert_guarantee->execute(array(':projid' => $projid, ':guarantee' => $guarantee, ':start_date' => $start_date, ':duration' => $duration, ':notification' =>$notification,':date_created' => $date_created, ':created_by' => $myUser));
+              $insert_guarantee = $db->prepare("INSERT INTO tbl_contract_guarantees(projid, guarantee, start_date, duration, notification, date_created, created_by) VALUES (:projid, :guarantee, :start_date, :duration, :notification, :date_created, :created_by)");
+              $insert_guarantee->execute(array(':projid' => $projid, ':guarantee' => $guarantee, ':start_date' => $start_date, ':duration' => $duration, ':notification' => $notification, ':date_created' => $date_created, ':created_by' => $myUser));
             }
           }
         }
@@ -537,14 +537,14 @@ if ($permission) {
                                   <table class="table table-bordered" id="guarantees_table">
                                     <thead>
                                       <tr>
-										<th style="width:40%">Guarantee *</th>
-										<th style="width:18%">Start Date *</th>
-										<th style="width:20%">Duration (Days) *</th>
-										<th style="width:20%">Expiry Notification in Days *</th>
+                                        <th style="width:40%">Guarantee *</th>
+                                        <th style="width:18%">Start Date *</th>
+                                        <th style="width:20%">Duration (Days) *</th>
+                                        <th style="width:20%">Expiry Notification in Days *</th>
                                         <th style="width:2%">
-										  <button type="button" name="addplus" onclick="add_guarantee_row();" title="Add another guarantee" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										  </button>
+                                          <button type="button" name="addplus" onclick="add_guarantee_row();" title="Add another guarantee" class="btn btn-success btn-sm">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                          </button>
                                         </th>
                                       </tr>
                                     </thead>
@@ -574,25 +574,25 @@ if ($permission) {
                               </div>
                             <?php
                             } else {
-								?>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								  <div class="table-responsive">
-									<table class="table table-bordered" id="guarantees_table">
-									  <tr>
-										<th style="width:40%">Guarantee *</th>
-										<th style="width:18%">Start Date *</th>
-										<th style="width:20%">Duration (Days) *</th>
-										<th style="width:20%">Expiry Notification in Days *</th>
-										<th style="width:2%">
-										  <button type="button" name="addplus" onclick="add_guarantee_row();" title="Add another guarantee" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										  </button>
-										</th>
-									  </tr>
-									</table>
-								  </div>
-								</div>
-								<?php
+                            ?>
+                              <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <div class="table-responsive">
+                                  <table class="table table-bordered" id="guarantees_table">
+                                    <tr>
+                                      <th style="width:40%">Guarantee *</th>
+                                      <th style="width:18%">Start Date *</th>
+                                      <th style="width:20%">Duration (Days) *</th>
+                                      <th style="width:20%">Expiry Notification in Days *</th>
+                                      <th style="width:2%">
+                                        <button type="button" name="addplus" onclick="add_guarantee_row();" title="Add another guarantee" class="btn btn-success btn-sm">
+                                          <span class="glyphicon glyphicon-plus"></span>
+                                        </button>
+                                      </th>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </div>
+                            <?php
                             }
                             ?>
                           </div>
@@ -629,9 +629,9 @@ if ($permission) {
                                         <th style="width:40%">Attachments *</th>
                                         <th style="width:58%">Attachment Purpose *</th>
                                         <th style="width:2%">
-										  <button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										  </button>
+                                          <button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm">
+                                            <span class="glyphicon glyphicon-plus"></span>
+                                          </button>
                                         </th>
                                       </tr>
                                     </thead>
@@ -660,22 +660,22 @@ if ($permission) {
                             <?php
                             } else {
                             ?>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								  <div class="table-responsive">
-									<table class="table table-bordered" id="files_table">
-									  <tr>
-										<th style="width:40%">Attachments *</th>
-										<th style="width:58%">Attachment Purpose *</th>
-										<th style="width:2%">
-										  <button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										  </button>
-										</th>
-									  </tr>
-									</table>
-								  </div>
-								</div>
-								<?php
+                              <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <div class="table-responsive">
+                                  <table class="table table-bordered" id="files_table">
+                                    <tr>
+                                      <th style="width:40%">Attachments *</th>
+                                      <th style="width:58%">Attachment Purpose *</th>
+                                      <th style="width:2%">
+                                        <button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm">
+                                          <span class="glyphicon glyphicon-plus"></span>
+                                        </button>
+                                      </th>
+                                    </tr>
+                                  </table>
+                                </div>
+                              </div>
+                            <?php
                             }
                             ?>
                           </div>
@@ -687,9 +687,7 @@ if ($permission) {
                             <input type="hidden" name="MM_insert" id="MM_insert" value="store_tender_details">
                             <input type="hidden" name="projid" id="projid" value="<?= $hash ?>">
                             <input type="hidden" name="user_name" value="<?= $user_name ?>">
-                            <?php if (!$approval_stage) { ?>
-                              <input name="save_contract_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="<?= validate_tender_details($projid) ? 'Edit' : 'Save' ?> Contract Details" />
-                            <?php } ?>
+                            <input name="save_contract_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="<?= validate_tender_details($projid) ? 'Edit' : 'Save' ?> Contract Details" />
                           </div>
                           <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center">
                           </div>
@@ -748,7 +746,7 @@ if ($permission) {
                                           <th style="width:5%"># </th>
                                           <th style="width:60%">Output</th>
                                           <th style="width:15%">Contract Estimate</th>
-                                          <th style="width:15%">Contract Estimate</th>
+                                          <th style="width:15%">Contract Cost</th>
                                           <th style="width:5%">Action</th>
                                         </tr>
                                       </thead>
@@ -787,7 +785,7 @@ if ($permission) {
                                               <td style="width:15%"><?= number_format($amount, 2) ?></td>
                                               <td style="width:5%">
                                                 <a href="add-procurement-plan.php?output_id=<?= base64_encode("encodeprocprj{$output_id}") ?>&site_id=<?= base64_encode("encodeprocprj{$site_id}") ?>" class="btn btn-success btn-sm">
-                                                  <span class="glyphicon glyphicon-pencil"></span>
+                                                  <?php echo $amount > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                                 </a>
                                               </td>
                                             </tr>
@@ -857,7 +855,7 @@ if ($permission) {
                                         <td style="width:15%"><?= number_format($amount, 2) ?></td>
                                         <td style="width:5%">
                                           <a href="add-procurement-plan.php?output_id=<?= base64_encode("encodeprocprj{$output_id}") ?>&site_id=<?= base64_encode("encodeprocprj{$site_id}") ?>" class="btn btn-success btn-sm">
-                                            <span class="glyphicon glyphicon-pencil"></span>
+                                            <?php echo $amount > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                           </a>
                                         </td>
                                       </tr>
@@ -1012,9 +1010,7 @@ if ($permission) {
                                 <input type="hidden" name="projid" id="m_projid" value="<?= $projid ?>">
                                 <input type="hidden" name="total_milestones" id="total_milestones" value="<?= $totalRows_rsMilestones ?>">
                                 <input type="hidden" name="user_name" value="<?= $user_name ?>">
-                                <?php if (!$approval_stage) { ?>
-                                  <input name="save_payment_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save Payment Details" />
-                                <?php } ?>
+                                <input name="save_payment_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="<?= $payment_plan == '' ? "Save" : "Edit"?> Payment Details" />
                               </div>
                               <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center">
                               </div>

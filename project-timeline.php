@@ -75,22 +75,226 @@ if ($permission) {
 			}
 			return $task_compliance;
 		}
+
+		function get_output_chart($projid)
+		{
+			global $db, $projname;
+			$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid ");
+			$query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+			$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+			$project_data = '';
+			if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+				echo "<pre/>";
+				$project_data = "
+				[{
+					name: '$projname',";
+				$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+				$query_Output->execute(array(":projid" => $projid));
+				$total_Output = $query_Output->rowCount();
+				$output_array = [];
+				if ($total_Output > 0) {
+					$outputs = [];
+					while ($row_rsOutput = $query_Output->fetch()) {
+						$output_id = $row_rsOutput['id'];
+						$output = $row_rsOutput['indicator_name'];
+						$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+						$query_rsMilestone->execute(array(":output_id" => $output_id));
+						$totalRows_rsMilestone = $query_rsMilestone->rowCount();
+
+						$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id ");
+						$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id));
+						$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+						if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+							$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+							$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+							$project_data .= "
+								data: [{
+									id: 'output_$output_id',
+									name: '$output',
+									start: $start_date,
+									end:$end_date,
+								},";
+							if ($totalRows_rsMilestone > 0) {
+								while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+									$milestone_name = $row_rsMilestone['milestone'];
+									$milestone_id = $row_rsMilestone['msid'];
+
+									$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id ");
+									$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id));
+									$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+									if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+										$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+										$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+										$project_data .= "{
+											id: 'task_$milestone_id',
+											name: '$milestone_name',
+											start: $start_date,
+											end:$end_date,
+											parent: 'output_$output_id'
+										},";
+
+
+										$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
+										$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
+										$totalRows_rsTasks = $query_rsTasks->rowCount();
+										$subtasks_array = [];
+										if ($totalRows_rsTasks > 0) {
+											while ($row_rsTasks = $query_rsTasks->fetch()) {
+												$task_name = $row_rsTasks['task'];
+												$task_id = $row_rsTasks['tkid'];
+												$unit =  $row_rsTasks['unit_of_measure'];
+												$parent =  $row_rsTasks['parenttask'];
+												$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+												$query_rsIndUnit->execute(array(":unit_id" => $unit));
+												$row_rsIndUnit = $query_rsIndUnit->fetch();
+												$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+												$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+												$query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id ");
+												$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id));
+												$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+												$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+												if ($totalRows_rsTask_Start_Dates > 0) {
+													$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+													$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
+													$project_data .= "{
+														id: 'subtask_$task_id',
+														name: '$task_name',
+														start: $start_date,
+														end:$end_date,
+														dependency: 'subtask_$parent',
+														parent: 'task_$milestone_id'
+													},";
+												}
+											}
+										}
+									}
+								}
+							}
+							$project_data .= "],";
+						}
+					}
+				}
+			}
+
+			$project_data .= "}]";
+			return $project_data;
+		}
+
+		function get_output_gantt_chart($projid)
+		{
+			global $db, $projname;
+			$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid ");
+			$query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+			$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+			$project_data = '';
+			if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+				echo "<pre/>";
+				$project_data = "
+				[{
+					name: '$projname',";
+				$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+				$query_Output->execute(array(":projid" => $projid));
+				$total_Output = $query_Output->rowCount();
+				$output_array = [];
+				if ($total_Output > 0) {
+					$outputs = [];
+					while ($row_rsOutput = $query_Output->fetch()) {
+						$output_id = $row_rsOutput['id'];
+						$output = $row_rsOutput['indicator_name'];
+						$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+						$query_rsMilestone->execute(array(":output_id" => $output_id));
+						$totalRows_rsMilestone = $query_rsMilestone->rowCount();
+
+						$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id ");
+						$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id));
+						$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+						if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+							$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+							$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+							$project_data .= "
+								data: [{
+									id: 'output_$output_id',
+									name: '$output',
+									start: $start_date,
+									end:$end_date,
+								},";
+							if ($totalRows_rsMilestone > 0) {
+								while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+									$milestone_name = $row_rsMilestone['milestone'];
+									$milestone_id = $row_rsMilestone['msid'];
+
+									$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id ");
+									$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id));
+									$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+									if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+										$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+										$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+										$project_data .= "{
+											id: 'task_$milestone_id',
+											name: '$milestone_name',
+											start: $start_date,
+											end:$end_date,
+											parent: 'output_$output_id'
+										},";
+
+
+										$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
+										$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
+										$totalRows_rsTasks = $query_rsTasks->rowCount();
+										$subtasks_array = [];
+										if ($totalRows_rsTasks > 0) {
+											while ($row_rsTasks = $query_rsTasks->fetch()) {
+												$task_name = $row_rsTasks['task'];
+												$task_id = $row_rsTasks['tkid'];
+												$unit =  $row_rsTasks['unit_of_measure'];
+												$parent =  $row_rsTasks['parenttask'];
+												$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+												$query_rsIndUnit->execute(array(":unit_id" => $unit));
+												$row_rsIndUnit = $query_rsIndUnit->fetch();
+												$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+
+												$query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id ");
+												$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id));
+												$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+												$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+												if ($totalRows_rsTask_Start_Dates > 0) {
+													$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+													$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
+													$project_data .= "{
+														id: 'subtask_$task_id',
+														name: '$task_name',
+														start: $start_date,
+														end:$end_date,
+														dependency: 'subtask_$parent',
+														parent: 'task_$milestone_id'
+													},";
+												}
+											}
+										}
+									}
+								}
+							}
+							$project_data .= "],";
+						}
+					}
+				}
+			}
+
+			$project_data .= "}]";
+			return $project_data;
+		}
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		echo $result;
 	}
 ?>
 	<style>
-		@import url("https://code.highcharts.com/css/highcharts.css");
-
-		#container-gantt {
-			max-width: 1000px;
-			margin: 1em auto;
-		}
-
-		.highcharts-label-icon {
-			opacity: 0.5;
-		}
+		@import "https://code.highcharts.com/dashboards/css/dashboards.css";
 	</style>
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
 	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
@@ -104,7 +308,6 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?= $pageTitle ?>
-
 					<div class="btn-group" style="float:right; margin-right:10px">
 						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
 					</div>
@@ -423,14 +626,14 @@ if ($permission) {
 								</div>
 								<div id="menu2" class="tab-pane fade">
 									<div class="row clearfix">
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 pull-right">
 											<?php
 											$query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE s.projid = :projid ");
 											$query_Output->execute(array(":projid" => $projid));
 											$total_Output = $query_Output->rowCount();
 											if ($total_Output > 0) {
 											?>
-												<label class="control-label">Project Sites*:</label>
+												<label class="control-label">Project Sites:</label>
 												<div class="form-line">
 													<select name="site_id" id="site_id" onchange="get_data()" data-actions-box="true" class="form-control show-tick selectpicker" title="Choose Multipe" style="border:#CCC thin solid; border-radius:5px; width:98%; padding-left:50px" required>
 														<?php
@@ -450,201 +653,7 @@ if ($permission) {
 											?>
 										</div>
 									</div>
-
-									<?php
-									$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid ");
-									$query_rsTask_Start_Dates->execute(array(":projid" => $projid));
-									$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-									$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-									$roject_start_date = '';
-									$project_end_date = '';
-									if ($totalRows_rsTask_Start_Dates > 0) {
-										$project_start_date = $row_rsTask_Start_Dates['start_date'];
-										$project_end_date = $row_rsTask_Start_Dates['end_date'];
-
-										$project_data = "
-										[{
-											name: '$projname',";
-										$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
-										$query_Output->execute(array(":projid" => $projid));
-										$total_Output = $query_Output->rowCount();
-										$output_array = [];
-										if ($total_Output > 0) {
-											$outputs = [];
-											while ($row_rsOutput = $query_Output->fetch()) {
-												$output_id = $row_rsOutput['id'];
-												$output = $row_rsOutput['indicator_name'];
-												$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
-												$query_rsMilestone->execute(array(":output_id" => $output_id));
-												$totalRows_rsMilestone = $query_rsMilestone->rowCount();
-
-												$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id ");
-												$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id));
-												$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-												$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-												if ($totalRows_rsTask_Start_Dates > 0) {
-													$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
-													$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
-
-													$project_data .= "
-														data: [{
-															id: 'output_$output_id',
-															name: '$output',
-															start: $start_date,
-															end:$end_date,
-														},";
-													if ($totalRows_rsMilestone > 0) {
-														while ($row_rsMilestone = $query_rsMilestone->fetch()) {
-															$milestone_name = $row_rsMilestone['milestone'];
-															$milestone_id = $row_rsMilestone['msid'];
-
-															$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id ");
-															$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id));
-															$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-															$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-															if ($totalRows_rsTask_Start_Dates > 0) {
-																$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
-																$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
-
-																$project_data .= "{
-																	id: 'task_$milestone_id',
-																	name: '$milestone_name',
-																	start: $start_date,
-																	end:$end_date,
-																	parent: 'output_$output_id'
-																},";
-
-
-																$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
-																$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
-																$totalRows_rsTasks = $query_rsTasks->rowCount();
-																$subtasks_array = [];
-																if ($totalRows_rsTasks > 0) {
-																	while ($row_rsTasks = $query_rsTasks->fetch()) {
-																		$task_name = $row_rsTasks['task'];
-																		$task_id = $row_rsTasks['tkid'];
-																		$unit =  $row_rsTasks['unit_of_measure'];
-																		$parent =  $row_rsTasks['parenttask'];
-																		$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-																		$query_rsIndUnit->execute(array(":unit_id" => $unit));
-																		$row_rsIndUnit = $query_rsIndUnit->fetch();
-																		$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-																		$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
-
-																		$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id ");
-																		$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id));
-																		$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-																		$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-																		if ($totalRows_rsTask_Start_Dates > 0) {
-																			$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
-																			$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
-																			$project_data .= "{
-																				id: 'subtask_$task_id',
-																				name: '$task_name',
-																				start: $start_date,
-																				end:$end_date,
-																				dependency: 'subtask_$parent',
-																				parent: 'task_$milestone_id'
-																			},";
-																		}
-																	}
-																}
-															}
-														}
-													}
-													$project_data .= "]";
-												}
-											}
-										}
-									}
-
-									$project_data .= "
-								}]";
-									?>
-
 									<div id="container-gantt"></div>
-
-									<script>
-										$(document).ready(function() {
-											set_gantchart(<?= $project_data ?>)
-										});
-
-										function get_data() {
-											var projid = $("#projid").val();
-											var site_id = $("#site_id").val();
-											$.ajax({
-												type: "get",
-												url: "ajax/programsOfWorks/ganttchart.php",
-												data: {
-													timeline_series: "timeline_series",
-													projid: projid,
-													site_id: site_id
-												},
-												dataType: "dataType",
-												success: function(response) {
-													if (response.success) {
-														set_gantchart(<?= $project_data ?>);
-													}
-												}
-											});
-										}
-
-
-										function set_gantchart(series) {
-											Highcharts.ganttChart('container-gantt', {
-												title: {
-													text: 'Project Gantt Chart'
-												},
-												yAxis: {
-													uniqueNames: true
-												},
-												navigator: {
-													enabled: true,
-													liveRedraw: true,
-													series: {
-														type: 'gantt',
-														pointPlacement: 0.5,
-														pointPadding: 0.25,
-														accessibility: {
-															enabled: false
-														}
-													},
-													yAxis: {
-														min: 0,
-														max: 3,
-														reversed: true,
-														categories: []
-													}
-												},
-												scrollbar: {
-													enabled: true
-												},
-												rangeSelector: {
-													enabled: true,
-													selected: 0
-												},
-												accessibility: {
-													point: {
-														descriptionFormat: '{yCategory}. ' +
-															'{#if completed}Task {(multiply completed.amount 100):.1f}% completed. {/if}' +
-															'Start {x:%Y-%m-%d}, end {x2:%Y-%m-%d}.'
-													},
-													series: {
-														descriptionFormat: '{name}'
-													}
-												},
-												lang: {
-													accessibility: {
-														axis: {
-															xAxisDescriptionPlural: 'The chart has a two-part X axis showing time in both week numbers and days.',
-															yAxisDescriptionPlural: 'The chart has one Y axis showing task categories.'
-														}
-													}
-												},
-												series: series
-											});
-										}
-									</script>
 								</div>
 							</div>
 						</div>
@@ -661,4 +670,316 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+function create_series($projid)
+{
+	global $db;
+	$series = '[';
+	$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid ");
+	$query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+	$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+	$project_data = '';
+	if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+		$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+		$query_Output->execute(array(":projid" => $projid));
+		$total_Output = $query_Output->rowCount();
+		$output_array = [];
+		if ($total_Output > 0) {
+			$outputs = [];
+			while ($row_rsOutput = $query_Output->fetch()) {
+				$output_id = $row_rsOutput['id'];
+				$output = $row_rsOutput['indicator_name'];
+
+				$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+				$query_rsMilestone->execute(array(":output_id" => $output_id));
+				$totalRows_rsMilestone = $query_rsMilestone->rowCount();
+
+				$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id ");
+				$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id));
+				$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+				if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+					$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+					$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+					if ($totalRows_rsMilestone > 0) {
+						$series .= "
+						{
+							name: '$output',
+							data: [
+							{
+								name: '$output',
+								id: 'output_$output_id',
+							},
+						";
+						while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+							$milestone_name = $row_rsMilestone['milestone'];
+							$milestone_id = $row_rsMilestone['msid'];
+
+							$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id ");
+							$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id));
+							$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+							if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+								$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+								$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+								$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
+								$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
+								$totalRows_rsTasks = $query_rsTasks->rowCount();
+								$subtasks_array = [];
+								if ($totalRows_rsTasks > 0) {
+									$series .= "
+									{
+										name: '$milestone_name',
+										id: 'task_$milestone_id',
+										parent: 'output_$output_id',
+										start: $start_date,
+										end: $end_date ,
+										completed: {
+											amount: 0.2
+										},
+										owner: 'Linda'
+									},";
+
+									while ($row_rsTasks = $query_rsTasks->fetch()) {
+										$task_name = $row_rsTasks['task'];
+										$task_id = $row_rsTasks['tkid'];
+										$unit =  $row_rsTasks['unit_of_measure'];
+										$parent =  $row_rsTasks['parenttask'];
+										$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+										$query_rsIndUnit->execute(array(":unit_id" => $unit));
+										$row_rsIndUnit = $query_rsIndUnit->fetch();
+										$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+										$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+										$query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id ");
+										$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id));
+										$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+										$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+										if ($totalRows_rsTask_Start_Dates > 0) {
+											$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+											$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
+											$series  .= "
+											{
+												name: '$task_name',
+												id: 'subtask_$task_id',
+												parent: 'task_$milestone_id',
+												start: $start_date,
+												end: $end_date,
+												owner: 'Mark'
+											},";
+										}
+									}
+								}
+							}
+						}
+						$series .= '] },';
+					}
+				}
+			}
+		}
+	}
+
+	$series .= ']';
+
+
+	return $series;
+}
+
+function timeline_chart($projid, $site_id)
+{
+	global $db;
+
+	$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = :projid ");
+	$query_rsMyP->execute(array(":projid" => $projid));
+	$row_rsMyP = $query_rsMyP->fetch();
+	$projname = $row_rsMyP['projname'];
+
+
+	$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid AND site_id=:site_id");
+	$query_rsTask_Start_Dates->execute(array(":projid" => $projid, ":site_id" => $site_id));
+	$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+
+	$series = '[';
+
+	if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+
+		$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+		$query_Output->execute(array(":projid" => $projid));
+		$total_Output = $query_Output->rowCount();
+		if ($total_Output > 0) {
+			while ($row_rsOutput = $query_Output->fetch()) {
+				$output_id = $row_rsOutput['id'];
+				$output = $row_rsOutput['indicator_name'];
+				$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+				$query_rsMilestone->execute(array(":output_id" => $output_id));
+				$totalRows_rsMilestone = $query_rsMilestone->rowCount();
+
+				$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE output_id=:output_id AND site_id=:site_id");
+				$query_rsTask_Start_Dates->execute(array(":output_id" => $output_id, ":site_id" => $site_id));
+				$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+				if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+					$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+					$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+
+					if ($totalRows_rsMilestone > 0) {
+						$series .= "
+						{
+							name: '$output',
+							data: [
+							{
+								name: '$output',
+								id: 'output_$output_id',
+							},
+						";
+						while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+							$milestone_name = $row_rsMilestone['milestone'];
+							$milestone_id = $row_rsMilestone['msid'];
+
+							$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id");
+							$query_rsTask_Start_Dates->execute(array(":task_id" => $milestone_id, ":site_id" => $site_id));
+							$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+							if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
+								$start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+								$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
+
+								$query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
+								$query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
+								$totalRows_rsTasks = $query_rsTasks->rowCount();
+								if ($totalRows_rsTasks > 0) {
+									$series .= "
+									{
+										name: '$milestone_name',
+										id: 'task_$milestone_id',
+										parent: 'output_$output_id',
+										start: $start_date,
+										end: $end_date ,
+										completed: {
+											amount: 0.2
+										},
+										owner: 'Linda'
+									},";
+									while ($row_rsTasks = $query_rsTasks->fetch()) {
+										$task_name = $row_rsTasks['task'];
+										$task_id = $row_rsTasks['tkid'];
+										$parent =  $row_rsTasks['parenttask'];
+
+										$query_rsTask_Start_Dates = $db->prepare("SELECT start_date,end_date FROM tbl_program_of_works WHERE subtask_id=:subtask_id AND site_id=:site_id");
+										$query_rsTask_Start_Dates->execute(array(":subtask_id" => $task_id, ":site_id" => $site_id));
+										$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+										$totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
+										if ($totalRows_rsTask_Start_Dates > 0) {
+											$start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
+											$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
+											$series  .= "
+											{
+												name: '$task_name',
+												id: 'subtask_$task_id',
+												parent: 'task_$milestone_id',
+												start: $start_date,
+												end: $end_date,
+												owner: 'Mark'
+											},";
+										}
+									}
+								}
+							}
+						}
+						$series .= '] },';
+					}
+				}
+			}
+		}
+	}
+	$series .= ']';
+	return $series;
+}
+
+
+$data = create_series($projid);
+
+$query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE s.projid = :projid ");
+$query_Output->execute(array(":projid" => $projid));
+$total_Output = $query_Output->rowCount();
+$site_data =[];
+if ($total_Output > 0) {
+	while ($row_rsOutput = $query_Output->fetch()) {
+		$site_id = $row_rsOutput['site_id'];
+		$data = timeline_chart($projid, $site_id);
+		$site_data['site_id_'.$site_id]= $data;
+	}
+}
 ?>
+
+
+
+
+<script>
+	const site_data = <?=json_encode($site_data)?>;
+	function gantt_chart(data) {
+		const options = {
+			title: {
+				text: 'Project Gantt Chart'
+			},
+			yAxis: {
+				uniqueNames: true
+			},
+			navigator: {
+				enabled: true,
+				liveRedraw: true,
+				series: {
+					type: 'gantt',
+					pointPlacement: 0.5,
+					pointPadding: 0.25,
+					accessibility: {
+						enabled: false
+					}
+				},
+				yAxis: {
+					min: 0,
+					max: 3,
+					reversed: true,
+					categories: []
+				}
+			},
+			scrollbar: {
+				enabled: true
+			},
+			rangeSelector: {
+				enabled: true,
+				selected: 0
+			},
+			accessibility: {
+				point: {
+					descriptionFormat: '{yCategory}. ' +
+						'{#if completed}Task {(multiply completed.amount 100):.1f}% completed. {/if}' +
+						'Start {x:%Y-%m-%d}, end {x2:%Y-%m-%d}.'
+				},
+				series: {
+					descriptionFormat: '{name}'
+				}
+			},
+			lang: {
+				accessibility: {
+					axis: {
+						xAxisDescriptionPlural: 'The chart has a two-part X axis showing time in both week numbers and days.',
+						yAxisDescriptionPlural: 'The chart has one Y axis showing task categories.'
+					}
+				}
+			},
+			series: data,
+		};
+		return Highcharts.ganttChart('container-gantt', options);
+	}
+
+	function get_data(){
+		var site_id = $("#site_id").val();
+		var key_val = `site_id_${site_id}`;
+		console.log(key_val);
+		console.log(site_data);
+	}
+
+	$(document).ready(function() {
+		var chart = gantt_chart(<?= $data ?>);
+	});
+</script>

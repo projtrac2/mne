@@ -103,16 +103,10 @@ if ($permission) {
                     <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
-                        <?php
-                        if (!$approve) {
-                        ?>
-                            <a type="button" data-toggle="modal" onclick="add_details({}, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-success " style="margin-right: 10px;">
-                                Add Milestone
-                            </a>
-                        <?php
-                        }
-                        ?>
-                        <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px;">
+                        <a type="button" data-toggle="modal" onclick="add_details({}, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-success " style="margin-right: 10px;">
+                            Add Milestone
+                        </a>
+                        <a type="button" id="outputItemModalBtnrow" href="add-project-milestones.php" class="btn btn-warning pull-right" style="margin-right:10px;">
                             Go Back
                         </a>
                     </div>
@@ -161,22 +155,17 @@ if ($permission) {
                                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Milestone <?= $counter ?>: <?= strtoupper($milestone_name) ?></legend>
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                     <?php
-                                                    if (!$approve) {
-
-                                                        if ($totalRows_rsOutput == 0) {
+                                                    if ($totalRows_rsOutput == 0) {
                                                     ?>
-                                                            <a type="button" onclick="delete_milestone(<?= $options ?>)" id="outputItemModalBtnrow" class="btn btn-danger pull-right" style="margin-right:10px;">
-                                                                Delete Milestone
-                                                            </a>
-                                                        <?php
-                                                        }
-                                                        ?>
-                                                        <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 2)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary pull-right" style="margin-right:10px;">
-                                                            Edit Milestone
+                                                        <a type="button" onclick="delete_milestone(<?= $options ?>)" id="outputItemModalBtnrow" class="btn btn-danger pull-right" style="margin-right:10px;">
+                                                            Delete Milestone
                                                         </a>
                                                     <?php
                                                     }
                                                     ?>
+                                                    <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 2)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary pull-right" style="margin-right:10px;">
+                                                        Edit Milestone
+                                                    </a>
                                                 </div>
 
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -216,7 +205,7 @@ if ($permission) {
                                                                         }";
 
                                                                         $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE output_id=:output_id AND  milestone_id=:milestone_id ");
-                                                                        $query_rsChecked->execute(array(":output_id" => $output_id, ":milestone_id"=>$milestone_id));
+                                                                        $query_rsChecked->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
                                                                         $totalRows_rsChecked = $query_rsChecked->rowCount();
                                                                         $edit = $totalRows_rsChecked > 0 ? true : false;
                                                                 ?>
@@ -249,7 +238,7 @@ if ($permission) {
                                                                                         ?>
                                                                                             <li>
                                                                                                 <a type="button" href="add-milestone-output-activities.php?output_id=<?= $output_hashed ?>&milestone_id=<?= $hashed_milestone_id ?>">
-                                                                                                    <i class=" fa fa-pencil-square"></i> <?=$edit ? "Edit" : "Add"?> Activities
+                                                                                                    <i class=" fa fa-pencil-square"></i> <?= $edit ? "Edit" : "Add" ?> Activities
                                                                                                 </a>
                                                                                             </li>
                                                                                             <?php
@@ -311,7 +300,7 @@ if ($permission) {
                                             if ($approval_stage) {
                                     ?>
                                                 <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
-                                            <?php 
+                                            <?php
                                             } else {
                                                 $data_entry_details = "{
                                                         get_edit_details: 'details',

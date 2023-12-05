@@ -28,6 +28,35 @@ $(document).ready(function () {
         }]
     });
 
+	// /submit survey questions form
+    $("#add_evaluation_questions_form").on("submit", function (event) {
+        event.preventDefault();
+		$("#question-tag-form-submit").prop("disabled", true);
+        var form_data = $(this).serialize();
+        var form = $(this);
+        var formData = new FormData(this);
+        $.ajax({
+            url:  "ajax/mneplan/add-monitoring-evaluation-plan-processor",
+            type: form.attr("method"),
+            data: form_data,
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#add_evaluation_questions_form")[0].reset();
+                    $(".modal").each(function () {
+                        $(this).modal("hide");
+                    });
+                    swal(response.msg);
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 3000);
+                } // /if response.success
+            } // /success function
+        }); // /ajax function
+        // /if validation is ok
+        return false;
+    }); // /submit survey questions form
+
     $("#addimpactform").on("submit", function (event) {
         event.preventDefault();
       $("#impact-tag-form-submit").prop("disabled", true);

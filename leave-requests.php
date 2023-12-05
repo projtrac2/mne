@@ -4,9 +4,9 @@ require('includes/head.php');
 if ($permission) {
 	try {
 		if ($designation == 6) {
-			$where = " WHERE t.ministry = $ministry AND t.department=$sector";
+			$where = " WHERE t.ministry = $department_id AND t.department=$section_id";
 		} elseif ($designation == 7) {
-			$where = " WHERE t.ministry = $ministry AND t.department=$sector AND t.directorate=$directorate";
+			$where = " WHERE t.ministry = $department_id AND t.department=$section_id AND t.directorate=$directorate_id";
 		} elseif ($designation == 1) {
 			$where = "";
 		}

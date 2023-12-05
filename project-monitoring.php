@@ -96,7 +96,7 @@ if ($permission && isset($_GET['projid'])) {
                                                 <select name="milestone" id="milestone" class="form-control show-tick" onchange="get_outputs()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
                                                     <option value="">.... Select Milestone ....</option>
                                                     <?php
-                                                    $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid");
+                                                    $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid AND complete=0");
                                                     $query_rsMilestone->execute(array(":projid" => $projid));
                                                     $totalRows_rsMilestone = $query_rsMilestone->rowCount();
                                                     if ($totalRows_rsMilestone > 0) {
@@ -104,7 +104,7 @@ if ($permission && isset($_GET['projid'])) {
                                                             $milestone_name = $row_rsMilestone['milestone'];
                                                             $milestone_id = $row_rsMilestone['id'];
                                                     ?>
-                                                            <option value="<?= $milestone_id; ?>"><?= $milestone_name ?></option> 
+                                                            <option value="<?= $milestone_id; ?>"><?= $milestone_name ?></option>
                                                     <?php
                                                         }
                                                     }

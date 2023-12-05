@@ -64,12 +64,11 @@ if ($permission) {
 												<tr id="colrow">
 													<th width="3%"><strong>#</strong></th>
 													<th width="27%"><strong>Financier</strong></th>
-													<th width="8%"><strong>Type</strong></th>
 													<th width="15%"><strong>Contact</strong></th>
 													<th width="9%"><strong>Phone</strong></th>
-													<th width="8%"><strong>Projects</strong></th>
+													<th width="10%"><strong>Projects</strong></th>
 													<th width="15%"><strong>Total Amt (Ksh)</strong></th>
-													<th width="5%"><strong>Status</strong></th>
+													<th width="11%"><strong>Status</strong></th>
 													<th width="10%"><strong>Action</strong></th>
 												</tr>
 											</thead>
@@ -85,6 +84,15 @@ if ($permission) {
 														$fnid = $row_owner['fnid'];
 														$sourcecat = $row_owner['fid'];
 														$hashfnid = base64_encode("fn918273AxZID{$fnid}");
+
+														$success = "Successfully enabled financier ";
+														$status_text = " Are you sure you want to enable financier";
+														$update_status =1;
+														if ($finstatus == 1) {
+															$status_text = " Are you sure you want to disable financier";
+															$success = "Successfully disabled financier ";
+															$update_status =0;
+														}
 
 														$query_financierprojs = $db->prepare("SELECT p.projid FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.sourcecategory=:sourcecat and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
 														$query_financierprojs->execute(array(":sourcecat" => $sourcecat, ":fnid" => $fnid));
@@ -107,7 +115,6 @@ if ($permission) {
 														<tr style="border-bottom:thin solid #EEE">
 															<td><?php echo $sn; ?></td>
 															<td><?php echo $row_owner['financier']; ?></td>
-															<td><?php echo $row_owner['ftype']; ?></td>
 															<td><?php echo $row_owner['contact']; ?> (<?php echo $row_owner['designation']; ?>)</td>
 															<td><a href="tel:<?php echo $row_owner['phone']; ?>"><?php echo $row_owner['phone']; ?></a></td>
 															<td align="center">
@@ -126,7 +133,10 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" href="view-financier-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> Manage</a>
+																			<a type="button" href="view-financier-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> More Info</a>
+																		</li>
+																		<li>
+																			<a type="button" onclick="update_financier_status(<?= $fnid ?>, '<?= $status_text ?>', '<?= $success ?>', <?= $update_status ?>)"><i class="fa fa-plus-square"></i> Manage</a>
 																		</li>
 																		<?php
 																		if (in_array("create", $page_actions) && $finstatus) {
@@ -204,6 +214,15 @@ if ($permission) {
 															$sourcecat = $row_rsfinancier['fid'];
 															$hashfnid = base64_encode("fn918273AxZID{$fnid}");
 
+															$success = "Successfully enabled financier ";
+															$status_text = " Are you sure you want to enable financier";
+															$update_status = 1;
+															if ($finstatus == 1) {
+																$status_text = " Are you sure you want to disable financier";
+																$success = "Successfully disabled financier ";
+																$update_status =0;
+															}
+
 															$query_financierprojs = $db->prepare("SELECT p.projid FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.sourcecategory=:sourcecat and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
 															$query_financierprojs->execute(array(":sourcecat" => $sourcecat, ":fnid" => $fnid));
 															$row_financierprojs = $query_financierprojs->rowCount();
@@ -236,7 +255,6 @@ if ($permission) {
 																</td>
 																<td><?php echo number_format($tdn, 2); ?></td>
 																<td align="center"><?= $active ?></td>
-
 																<td>
 																	<div class="btn-group">
 																		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
@@ -244,24 +262,29 @@ if ($permission) {
 																		</button>
 																		<ul class="dropdown-menu">
 																			<li>
-																				<a type="button" href="view-financier-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> Manage</a>
+																				<a type="button" href="view-financier-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> More Info</a>
+																			</li>
+																			<li>
+																				<a type="button" onclick="update_financier_status(<?= $fnid ?>, '<?= $status_text ?>', '<?= $success ?>', <?= $update_status ?>)"><i class="fa fa-plus-square"></i> Manage</a>
 																			</li>
 																			<?php
-																			if (in_array("create", $page_actions) && $finstatus) {
+																			if ($finstatus == 1) {
+																				if (in_array("create", $page_actions) && $finstatus) {
 																			?>
-																				<li>
-																					<a type="button" href="add-development-funds.php?fn=<?php echo $hashfnid; ?>">
-																						<i class="fa fa-money"></i> Add Funds </a>
-																				</li>
+																					<li>
+																						<a type="button" href="add-development-funds.php?fn=<?php echo $hashfnid; ?>">
+																							<i class="fa fa-money"></i> Add Funds </a>
+																					</li>
+																				<?php
+																				}
+																				if (in_array("create", $page_actions)) {
+																				?>
+																					<li>
+																						<a type="button" href="edit-financier.php?fn=<?php echo $hashfnid; ?>">
+																							<i class="glyphicon glyphicon-edit"></i> Edit </a>
+																					</li>
 																			<?php
-																			}
-																			if (in_array("create", $page_actions)) {
-																			?>
-																				<li>
-																					<a type="button" href="edit-financier.php?fn=<?php echo $hashfnid; ?>">
-																						<i class="glyphicon glyphicon-edit"></i> Edit </a>
-																				</li>
-																			<?php
+																				}
 																			}
 																			?>
 																		</ul>
@@ -293,3 +316,49 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
+
+<script>
+	function update_financier_status(financier_id, status_text, success, status) {
+		swal({
+				title: "Are you sure?",
+				text: status_text,
+				icon: "warning",
+				buttons: true,
+				dangerMode: true,
+			})
+			.then((willDelete) => {
+				if (willDelete) {
+					$.ajax({
+						type: "post",
+						url: "ajax/partners/financial",
+						data: {
+							update_status: 'update_status',
+							financier_id: financier_id,
+							status: status,
+						},
+						dataType: "json",
+						success: function(response) {
+							if (response.success == true) {
+								swal({
+									title: "Financier !",
+									text: success,
+									icon: "success",
+								});
+							} else {
+								swal({
+									title: "Financier !",
+									text: "Error changing status",
+									icon: "error",
+								});
+							}
+							setTimeout(function() {
+								window.location.reload(true);
+							}, 3000);
+						},
+					});
+				} else {
+					swal("You cancelled the action!");
+				}
+			});
+	}
+</script>

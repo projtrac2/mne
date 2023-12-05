@@ -2,12 +2,6 @@
 require('includes/head.php');
 if ($permission) {
 ?>
-
-   <style>
-      a:visited {
-         color: black;
-      }
-   </style>
    <!-- start body  -->
    <section class="content">
       <div class="container-fluid">
@@ -79,8 +73,7 @@ if ($permission) {
                                  </thead>
                                  <tbody>
                                     <?php
-                                    // $query_rsprojects =  $db->prepare("SELECT * FROM  tbl_projects WHERE (projstage = 8 OR projstage=9 OR projstage= 10) AND (projstatus <> 2 AND projstatus <> 5 AND projstatus <> 6) ");
-                                    $query_rsprojects =  $db->prepare("SELECT * FROM  tbl_projects WHERE  projstage > 4 ");
+                                    $query_rsprojects =  $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage > 7 AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) ");
                                     $query_rsprojects->execute();
                                     $total_rsprojects = $query_rsprojects->rowCount();
                                     if ($total_rsprojects > 0) {
@@ -90,19 +83,11 @@ if ($permission) {
                                           $progid = $rows_rsprojects['progid'];
                                           $project_name = $rows_rsprojects['projname'];
                                           $projstage = $rows_rsprojects['projstage'];
+                                          $project_department = $rows_rsprojects['projsector'];
+                                          $project_section = $rows_rsprojects['projdept'];
+                                          $project_directorate = $rows_rsprojects['directorate'];
                                           $projcategory = $rows_rsprojects['projcategory'];
                                           $projid_hashed = base64_encode("projid54321{$projid}");
-
-                                          if ($projcategory == 2) {
-                                          } else {
-                                             if ($projstage == 8) {
-                                             } else if ($projstage == 9) {
-                                             } else if ($projstage == 10) {
-                                             }
-                                             $get_user = $db->prepare("SELECT p.fullname, u.userid  FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid  INNER JOIN tbl_projmembers m ON u.userid = m.responsible WHERE m.projid=:projid ");
-                                             $get_user->execute(array(":projid" => $projid));
-                                             $count_user = $get_user->rowCount();
-                                          }
 
                                           $query_rsStage =  $db->prepare("SELECT * FROM  tbl_project_workflow_stage WHERE priority=:priority");
                                           $query_rsStage->execute(array(":priority" => $projstage));
@@ -111,24 +96,7 @@ if ($permission) {
 
                                           $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
 
-
-                                          $query_rsPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE progid = :progid");
-                                          $query_rsPrograms->execute(array(":progid" => $progid));
-                                          $row_rsPrograms = $query_rsPrograms->fetch();
-                                          $totalRows_rsPrograms = $query_rsPrograms->rowCount();
-
-                                          $project_department = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projsector'] : "";
-                                          $project_section = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['projdept'] : "";
-                                          $project_directorate = $totalRows_rsPrograms > 0 ?  $row_rsPrograms['directorate'] : "";
-                                          $filter_department = true;
-
-                                          $project_details = "{
-                                             projid: $projid,
-                                             projstage: $projstage,
-                                             category: $projcategory,
-                                             request_id: '',
-                                             purpose:'',
-                                          }";
+                                          $filter_department = view_record($project_department, $project_section, $project_directorate);
                                           if ($filter_department) {
                                              $counter++;
                                     ?>
@@ -137,8 +105,8 @@ if ($permission) {
                                                 <td><?= $project_name ?></td>
                                                 <td><?= ucfirst($stage) ?></td>
                                                 <td>
-                                                   <a type="button" id="#finishAddItemModalBtn" href="inhouse-payment-request.php?projid=<?= $projid_hashed ?>" title="Click here to request ">
-                                                      <i class="fa fa-list"></i> Request
+                                                   <a type="button" class="btn bg-purple waves-effect" href="inhouse-payment-request.php?projid=<?= $projid_hashed ?>" title="Click here to request payment" style="height:25px; padding-top:0px">
+                                                      <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Request
                                                    </a>
                                                 </td>
                                              </tr>
@@ -173,27 +141,22 @@ if ($permission) {
                                     <?php
                                     $query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_payments_request WHERE status <> 3");
                                     $query_rsPayement_reuests->execute();
-                                    $rows_rsPayement_reuests = $query_rsPayement_reuests->fetch();
                                     $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
-
                                     if ($total_rsPayement_reuests > 0) {
                                        $counter = 0;
-                                       do {
-                                          $costline_id = $rows_rsPayement_reuests['id'];
+                                       while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                           $projid = $rows_rsPayement_reuests['projid'];
-                                          $request_id = $rows_rsPayement_reuests['request_id'];
+                                          $request_id = $rows_rsPayement_reuests['id'];
                                           $payment_requested_date = $rows_rsPayement_reuests['date_requested'];
                                           $payment_due_date = $rows_rsPayement_reuests['due_date'];
                                           $payment_status = $rows_rsPayement_reuests['status'];
                                           $payment_stage = $rows_rsPayement_reuests['stage'];
                                           $purpose = $rows_rsPayement_reuests['purpose'];
 
-
-
                                           $query_rsPayment_request_details =  $db->prepare("SELECT SUM(unit_cost * no_of_units) as amount_paid FROM tbl_payments_request_details WHERE request_id=:request_id");
                                           $query_rsPayment_request_details->execute(array(":request_id" => $request_id));
                                           $rows_rsPayment_request_details = $query_rsPayment_request_details->fetch();
-                                          $amount_paid = $rows_rsPayment_request_details['amount_paid'];
+                                          $amount_paid = !is_null($rows_rsPayment_request_details['amount_paid']) ? $rows_rsPayment_request_details['amount_paid'] : 0;
 
                                           $status = $stage = "";
                                           if ($payment_stage == 1) {
@@ -252,7 +215,7 @@ if ($permission) {
                                                       }
                                                       ?>
                                                       <li>
-                                                         <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $costline_id ?>)">
+                                                         <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $request_id ?>)">
                                                             <i class="fa fa-info"></i>More Info
                                                          </a>
                                                       </li>
@@ -261,8 +224,7 @@ if ($permission) {
                                              </td>
                                           </tr>
                                     <?php
-
-                                       } while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch());
+                                       }
                                     }
                                     ?>
                                  </tbody>
@@ -288,7 +250,7 @@ if ($permission) {
                                  </thead>
                                  <tbody>
                                     <?php
-                                    $query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid  FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.request_id WHERE status = 3 AND request_type=1");
+                                    $query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid  FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3 AND request_type=1");
                                     $query_rsPayement_reuests->execute();
                                     $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
                                     if ($total_rsPayement_reuests > 0) {
@@ -296,7 +258,7 @@ if ($permission) {
                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                           $costline_id = $rows_rsPayement_reuests['id'];
                                           $projid = $rows_rsPayement_reuests['projid'];
-                                          $request_id = $rows_rsPayement_reuests['request_id'];
+                                          $request_id = $rows_rsPayement_reuests['id'];
                                           $date_requested = $rows_rsPayement_reuests['date_requested'];
                                           $date_paid = $rows_rsPayement_reuests['date_paid'];
                                           $created_by = $rows_rsPayement_reuests['created_by'];
@@ -412,7 +374,7 @@ if ($permission) {
                                     <ul class="list-group">
                                        <li class="list-group-item"><strong>Payment Mode: </strong> <span id="payment_mode"></span> </li>
                                        <li class="list-group-item"><strong>Receipt Number: </strong> </strong> <span id="receipt_no"></span> </li>
-                                       <li class="list-group-item"><strong>Receipt: </strong> </strong> <a href="" id="receipt" target="blank"><i class="fa fa-download" ></i> Download</a> </li>
+                                       <li class="list-group-item"><strong>Receipt: </strong> </strong> <a href="" id="receipt" target="blank"><i class="fa fa-download"></i> Download</a> </li>
                                        <li class="list-group-item"><strong>Date Paid: </strong> </strong> <span id="date_paid"></span> </li>
                                     </ul>
                                  </div>
@@ -479,90 +441,4 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<!-- <script src="assets/js/payment/index.js"></script> -->
-
-<script>
-   const ajax_url = 'ajax/payments/index.php';
-   const get_more_info = (request_id, purpose) => {
-      if (request_id != "") {
-         $.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-               get_more_info: "get_more_info",
-               request_id: request_id,
-            },
-            dataType: "json",
-            success: function(response) {
-               if (response.success) {
-                  var stage = response.details.stage;
-                  var status = response.details.status;
-                  var purpose = response.details.purpose;
-                  var payment_stage = '';
-                  if (stage == 1) {
-                     payment_stage = 'CO Department';
-                  } else if (stage == 2) {
-                     payment_stage = 'CO Finance';
-                  } else if (stage == 3) {
-                     payment_stage = 'Director Finance';
-                  }
-
-                  var payment_status = '';
-                  if (status == 1) {
-                     payment_status = 'Pending';
-                  } else if (status == 2) {
-                     payment_status = 'Canceled';
-                  } else if (status == 3) {
-                     payment_status = 'Disbursed';
-                     $("#payment_mode").html(response.disbursement.payment_mode);
-                     $("#receipt_no").html(response.disbursement.receipt_no);
-                     $("#receipt").attr("href", response.disbursement.receipt);
-                     $("#date_paid").html(response.disbursement.date_paid);
-                  }
-
-                  var payment_purpose = '';
-                  if (purpose == 1) {
-                     payment_purpose = 'Direct Cost';
-                  } else if (purpose == 2) {
-                     payment_purpose = 'Administrative Cost';
-                  } else if (purpose == 3) {
-                     payment_purpose = 'Mapping Cost';
-                  } else if (purpose == 4 || purpose == 5) {
-                     payment_purpose = 'Evaluation Cost';
-                  }
-                  var fullname = response.details.ttitle + ' ' + response.details.fullname;
-
-                  //
-
-                  $("#comments_div").html(response.comments);
-                  $("#project_name").html(response.project_details.projname);
-                  $("#project_code").html(response.project_details.projcode);
-                  $("#requested_amount").html(response.details.amount_requested);
-                  $("#requested_by").html(fullname);
-                  $("#date_requested").html(response.details.date_requested);
-                  $("#due_date").html(response.details.due_date);
-                  $("#stage").html(payment_stage);
-                  $("#status").html(payment_status);
-                  $("#purpose").html(payment_purpose);
-
-                  if (purpose == '1') {
-                     $("#milestone_table").html(response.details.milestones);
-                     $("#request_amount").val(response.details.request_amount);
-                     $("#request_percentage").val(response.details.request_percentage);
-                     $("#requested_amount").val(response.details.request_amount);
-                     $("#payment_phase").html(response.details.payment_phases);
-                  } else {
-                     $("#tasks_table").html(response.data);
-                     $("#subtotal").html(response.details.amount_requested);
-                     $("#requested_amount").val(response.details.amount_requested);
-                  }
-               } else {
-                  // sweet_alert("No data found !!!")
-               }
-            }
-         });
-      } else {
-         console.log("Ensure that the request is correct");
-      }
-   }
-</script>
+<script src="assets/js/payment/inhouse.js"></script>

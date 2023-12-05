@@ -378,26 +378,35 @@ if ($permission) {
 																												</div>';
 																												}
 
-																												$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-																												$query_Projstatus->execute(array(":projstatus" => 11));
-																												$row_Projstatus = $query_Projstatus->fetch();
-																												$total_Projstatus = $query_Projstatus->rowCount();
-																												$status = "";
-																												if ($total_Projstatus > 0) {
-																													$status_name = $row_Projstatus['statusname'];
-																													$status_class = $row_Projstatus['class_name'];
-																													$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-																												}
+																												$query_rsProgramOfWorks =  $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");
+																												$query_rsProgramOfWorks->execute(array(":site_id" => $site_id, ":subtask_id" => $task_id));
+																												$row_rsProgramOfWorks = $query_rsProgramOfWorks->fetch();
+
+																												if ($row_rsProgramOfWorks > 0) {
+																													$subtask_status = $row_rsProgramOfWorks['status'];
+																													$complete = $row_rsProgramOfWorks['complete'];
+
+																													$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																													$query_Projstatus->execute(array(":projstatus" => $subtask_status));
+																													$row_Projstatus = $query_Projstatus->fetch();
+																													$total_Projstatus = $query_Projstatus->rowCount();
+																													$status = "";
+																													if ($total_Projstatus > 0) {
+																														$status_name = $row_Projstatus['statusname'];
+																														$status_class = $row_Projstatus['class_name'];
+																														$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																													}
 																									?>
-																												<tr id="row<?= $tcounter ?>">
-																													<td style="width:5%"><?= $tcounter ?></td>
-																													<td style="width:35%"><?= $task_name ?></td>
-																													<td style="width:15%"><?= number_format($target_units, 2) . " " . $unit_of_measure  ?></td>
-																													<td style="width:20%"><?= number_format($units_no, 2) . " " . $unit_of_measure ?></td>
-																													<td style="width:10%"><?= $status ?></td>
-																													<td style="width:10%"><?= $subtask_progress ?></td>
-																												</tr>
+																													<tr id="row<?= $tcounter ?>">
+																														<td style="width:5%"><?= $tcounter ?></td>
+																														<td style="width:35%"><?= $task_name ?></td>
+																														<td style="width:15%"><?= number_format($target_units, 2) . " " . $unit_of_measure  ?></td>
+																														<td style="width:20%"><?= number_format($units_no, 2) . " " . $unit_of_measure ?></td>
+																														<td style="width:10%"><?= $status ?></td>
+																														<td style="width:10%"><?= $subtask_progress ?></td>
+																													</tr>
 																									<?php
+																												}
 																											}
 																										}
 																									}
@@ -529,46 +538,54 @@ if ($permission) {
 																						$target_units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] : 0;
 																						$progress = number_format(($units_no / $target_units) * 100);
 
-																						$query_rsProgramOfWorks =  $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id AND complete=1");
+																						$query_rsProgramOfWorks =  $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");
 																						$query_rsProgramOfWorks->execute(array(":site_id" => $site_id, ":subtask_id" => $task_id));
 																						$row_rsProgramOfWorks = $query_rsProgramOfWorks->fetch();
 
-																						$subtask_progress = '
-																						<div class="progress" style="height:20px; font-size:10px; color:black">
-																							<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
-																								' . $progress . '%
-																							</div>
-																						</div>';
+																						if ($row_rsProgramOfWorks > 0) {
+																							$subtask_status = $row_rsProgramOfWorks['status'];
+																							$complete = $row_rsProgramOfWorks['complete'];
 
-																						if ($progress == 100 || $row_rsProgramOfWorks) {
+
+
+
 																							$subtask_progress = '
+																							<div class="progress" style="height:20px; font-size:10px; color:black">
+																								<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																									' . $progress . '%
+																								</div>
+																							</div>';
+
+																							if ($progress == 100 || $complete == 1) {
+																								$subtask_progress = '
 																							<div class="progress" style="height:20px; font-size:10px; color:black">
 																								<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
 																								' . $progress . '%
 																								</div>
 																							</div>';
-																						}
+																							}
 
-																						$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-																						$query_Projstatus->execute(array(":projstatus" => 11));
-																						$row_Projstatus = $query_Projstatus->fetch();
-																						$total_Projstatus = $query_Projstatus->rowCount();
-																						$status = "";
-																						if ($total_Projstatus > 0) {
-																							$status_name = $row_Projstatus['statusname'];
-																							$status_class = $row_Projstatus['class_name'];
-																							$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-																						}
+																							$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+																							$query_Projstatus->execute(array(":projstatus" => $subtask_status));
+																							$row_Projstatus = $query_Projstatus->fetch();
+																							$total_Projstatus = $query_Projstatus->rowCount();
+																							$status = "";
+																							if ($total_Projstatus > 0) {
+																								$status_name = $row_Projstatus['statusname'];
+																								$status_class = $row_Projstatus['class_name'];
+																								$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+																							}
 																			?>
-																						<tr id="row<?= $tcounter ?>">
-																							<td style="width:5%"><?= $tcounter ?></td>
-																							<td style="width:35%"><?= $task_name ?></td>
-																							<td style="width:15%"><?= number_format($target_units, 2) . " " . $unit_of_measure  ?></td>
-																							<td style="width:20%"><?= number_format($units_no, 2) . " " . $unit_of_measure ?></td>
-																							<td style="width:10%"><?= $status ?></td>
-																							<td style="width:10%"><?= $subtask_progress ?></td>
-																						</tr>
+																							<tr id="row<?= $tcounter ?>">
+																								<td style="width:5%"><?= $tcounter ?></td>
+																								<td style="width:35%"><?= $task_name ?></td>
+																								<td style="width:15%"><?= number_format($target_units, 2) . " " . $unit_of_measure  ?></td>
+																								<td style="width:20%"><?= number_format($units_no, 2) . " " . $unit_of_measure ?></td>
+																								<td style="width:10%"><?= $status ?></td>
+																								<td style="width:10%"><?= $subtask_progress ?></td>
+																							</tr>
 																			<?php
+																						}
 																					}
 																				}
 																			}

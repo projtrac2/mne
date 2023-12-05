@@ -4,6 +4,9 @@ const monitoring_ajax = "ajax/monitoring/index";
 $(document).ready(function () {
     $(".impactquestions").hide();
     $(".outcomequestions").hide();
+	$("#mainquestion").hide();
+    $("#answer_label").hide();
+    $("#calculation_method").hide();
     $("#editoutcomedataSource").on("change", function () {
         var source = $(this).val("");
         if (source == 1) {
@@ -29,6 +32,54 @@ $(document).ready(function () {
     get_limits(type = 2);
     get_limits(type = 1);
 });
+
+function add_question_type() {
+    var questiontype = $("#question_type").val();
+    if (questiontype == 1) {
+        $('#main_question').removeAttr('required');
+        $("#mainquestion").hide();
+    } else {
+        $("#mainquestion").show();
+        const input = document.getElementById('main_question');
+        input.setAttribute('required', '');
+    }
+}
+
+function add_answer_type() {
+    var answertype = $("#answertype").val();
+	//console.log(answertype);
+    if (answertype == 1) {
+        const answer_label_input = document.getElementById('answerlabel');
+        answer_label_input.setAttribute('required', '');
+        const calculation_method_input = document.getElementById('calc_method');
+        calculation_method_input.setAttribute('required', '');
+        $("#answer_label").hide();
+        $('#answerlabel').removeAttr('required');
+        $("#calculation_method").show();
+        $('#calc_method').removeAttr('readonly');
+		$("#calc_method").html('<option value="">... Select ...</option><option value="1">Aggregated</option><option value="2">Percentage</option><option value="3">Average</option>');
+    } else if (answertype == 2 || answertype == 4) {
+        const answer_label_input = document.getElementById('answerlabel');
+        answer_label_input.setAttribute('required', '');
+        const calculation_method_input = document.getElementById('calc_method');
+        calculation_method_input.setAttribute('required', '');
+        calculation_method_input.setAttribute('readonly', '');
+		$("#calc_method").html('<option value="2" selected>Percentage</option>');
+        $("#answer_label").show();
+        $("#calculation_method").show();
+    } else if (answertype == 3) {
+        const answer_label_input = document.getElementById('answerlabel');
+        answer_label_input.setAttribute('required', '');
+        $("#answer_label").show();
+        $("#calculation_method").hide();
+        $('#calc_method').removeAttr('required');
+    } else {
+        $("#answer_label").hide();
+        $("#calculation_method").hide();
+        $('#answerlabel').removeAttr('required');
+        $('#calc_method').removeAttr('required');
+    }
+}
 
 function add_impact_questions() {
     var source = $("#impactdataSource").val();
@@ -275,19 +326,6 @@ $(document).on("change", ".selected_impact", function (e) {
         return false;
     }
 });
-/*
-function get_impact_risks(rowno) {
-    $.ajax({
-        type: "post",
-        url: ajax_processor,
-        data: "get_risks=1",
-        dataType: "html",
-        success: function (response) {
-            $("#impactriskrow" + rowno).html(response);
-            $("#impact_assumptionsrow" + rowno).val("");
-        }
-    });
-} */
 
 function get_impact_ind_details() {
     var indicator = $("#impactIndicator").val();
@@ -877,7 +915,7 @@ function getopdetails(opid) {
     $("#output_indicator").val(indicatorid);
 
     if (output_details_id == "") {
-        console.log("Its empty!!");
+        //console.log("Its empty!!");
         $("#addoutput").val("addoutput");
         $("#addoutput").attr("name", "addoutput");
         $("#modal-title").html('<i class="fa fa-edit"></i> Add Output Details');
@@ -895,7 +933,7 @@ function getopdetails(opid) {
         },
         dataType: "json",
         success: function (response) {
-            console.log(response);
+            //console.log(response);
             $("#outputMonitorigFreq").val(response.monitoringfreq);
             $("#responsible_m").val(response.responsible);
             if (response.detailscount > 0) {

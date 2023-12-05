@@ -192,6 +192,24 @@ try {
         $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":task_id" => $task_id, ":site_id" => $site_id, ":subtask_id" => $subtask_id, ':start_date' => $start_date, ':duration' => $old_duration, ':end_date' => $old_end_date, ":created_by" => $user_name, ':created_at' => $current_date));
         echo json_encode(array("success" => true));
     }
+
+
+    if (isset($_POST['save_data_entry'])) {
+        $projid = $_POST['projid'];
+        $workflow_stage = $_POST['workflow_stage'];
+
+        $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
+        $result  = $sql->execute(array(":proj_substage" => 1, ":projid" => $projid));
+        echo json_encode(array('success' => $result));
+    }
+
+    if (isset($_POST['approve_stage'])) {
+        $projid = $_POST['projid'];
+        $workflow_stage = $_POST['workflow_stage'];
+        $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
+        $result  = $sql->execute(array(":proj_substage" => 3, ":projid" => $projid));
+        echo json_encode(array('success' => $result));
+    }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());
     echo $ex->getMessage();

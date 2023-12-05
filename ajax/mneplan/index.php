@@ -29,7 +29,7 @@ if (isset($_GET["myprojid"]) && $_GET["evaluation"] == 1) {
 
 			$evalfreq = $row_frequency["frequency"];
 
-			$button = '<a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addImpactModal" onclick=\'editItem("impact",' . $itemId . ')\'> <i class="glyphicon glyphicon-edit"></i> Edit</a><a type="button" onclick=\'deleteItem("impact",' . $itemId . ')\' > <i class="glyphicon glyphicon-trash btn-danger" ></i>Delete</a>';
+			$button = '<a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addImpactModal" onclick=\'editItem("impact",' . $itemId . ')\'> <i class="glyphicon glyphicon-edit"></i> Edit</a>&nbsp;&nbsp;&nbsp;<a type="button" onclick=\'deleteItem("impact",' . $itemId . ')\' > <i class="glyphicon glyphicon-trash btn-danger" ></i> Delete</a>';
 
 			$output['data'][] = array(
 				$sn,
@@ -77,7 +77,7 @@ if (isset($_GET["myprojid"]) && $_GET["evaluation"] == 2) {
 
 			$evalfreq = $row_frequency["frequency"];
 
-			$button = '<a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addOutcomeModal" onclick=\'editItem("outcome",' . $itemId . ')\'> <i class="glyphicon glyphicon-edit"></i> Edit</a><a type="button"  onclick=\'deleteItem("outcome",' . $itemId . ')\'> <i class="glyphicon glyphicon-minus btn-danger"></i>Delete</a>';
+			$button = '<a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addOutcomeModal" onclick=\'editItem("outcome",' . $itemId . ')\'> <i class="glyphicon glyphicon-edit"></i> Edit</a>&nbsp;&nbsp;&nbsp;<a type="button"  onclick=\'deleteItem("outcome",' . $itemId . ')\'> <i class="glyphicon glyphicon-trash btn-danger"></i> Delete</a>';
 
 			$output['data'][] = array(
 				$sn,
@@ -231,16 +231,6 @@ if (isset($_POST["evalform"])) {
 						<input type="text" name="impact_calc_method" value="' . $impact_calc_method . '" readonly id="impact_calc_method" class="form-control" placeholder="First select change to be measured" required="required">
 					</div>
 				</div>
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<h4><u>Data collection Plan:</u></h4>
 				<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 					<label for="impactData" class="control-label">Source of data *:</label>
 					<div class="form-input">
@@ -276,143 +266,6 @@ if (isset($_POST["evalform"])) {
 					<div class="form-line">
 						<input type="hidden" name="evaluationNumber" id="evaluationNumber">
 						<input type="number" name="evaluationNumberFreq" id="evaluationNumberFreq" onchange="outcome_Evaluation()" onkeyup="outcome_Evaluation()" class="form-control" placeholder="Enter Number of endline evaluations" value="' . $impact_evaluation_number . '" required="required">
-					</div>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 impactquestions">
-					<label class="control-label">Main Question</label>
-					<div class="table-responsive">
-						<table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
-							<thead>
-								<tr>
-									<th width="55%">Question</th>
-									<th width="15%">Answer Type</th>
-									<th width="30%">Answer Labels</th>
-								</tr>
-							</thead>
-							<tbody>';
-			$impactmainquestion = $impactmainanswertype1 = $impactmainanswertype2 = $impactmainlabel = "";
-			if ($count_impactmainevalqstns > 0) {
-				$impactmainquestion = $row_impactmainevalqstns['question'];
-				$impactmainquestionid = $row_impactmainevalqstns['id'];
-				$impactmainanswertype = $row_impactmainevalqstns['answertype'];
-				$impactmainlabel = $row_impactmainevalqstns['answerlabels'];
-				$impactmainanswertype1 = $impactmainanswertype == 1 ? ' selected="selected"' : '';
-				$impactmainanswertype2 = $impactmainanswertype == 2 ? ' selected="selected"' : '';
-			}
-			$body .= '<tr>
-									<td>
-										<input type="text" name="impactmainquestion" id="impactmainquestion" value="' . $impactmainquestion . '" placeholder="Enter main impact evaluation question" class="form-control querry"/>
-									</td>
-									<td>
-										<select data-id="0" name="impactmainanswertype" id="impactmainanswertype" class="form-control querry">';
-			$impactmaininput = '<option value="">... Select ...</option>';
-			$impactmaininput .= '<option value="1" ' . $impactmainanswertype1 . '>Number</option>';
-			$impactmaininput .= '<option value="2" ' . $impactmainanswertype2 . '>Mutiple Choice</option>';
-
-			$body .= $impactmaininput . '
-										</select>
-									</td>
-									<td>
-										<input type="text" name="impact_main_answer_labels" value="' . $impactmainlabel . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 impactquestions">
-					<label class="control-label">Other Question/s</label>
-					<div class="table-responsive">
-						<table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
-							<thead>
-								<tr>
-									<th width="5%">#</th>
-									<th width="50%">Question</th>
-									<th width="15%">Answer Type</th>
-									<th width="25%">Answer Labels</th>
-									<th width="5%">
-										<button type="button" name="addplus" id="addplus" onclick="add_row_impact_question();" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										</button>
-									</th>
-								</tr>
-							</thead>
-							<tbody id="impact_questions_table_body">';
-			$iprowno = 0;
-			if ($count_impactotherevalqstns > 0) {
-				do {
-					$impactquestion = $row_impactotherevalqstns['question'];
-					$impactanswertype = $row_impactotherevalqstns['answertype'];
-					$impactotherlabel = $row_impactotherevalqstns['answerlabels'];
-					$impactquestionid = $row_impactotherevalqstns['id'];
-					$iprowno++;
-
-					$body .= '<tr id="impactquestionrow' . $iprowno . '">
-											<td>' . $iprowno . '</td>
-											<td>
-												<input type="text" name="impactquestions[]" id="impactquestions' . $iprowno . '" value="' . $impactquestion . '" placeholder="Enter any other impact evaluation question" class="form-control impactquerry"/>
-											</td>
-											<td>
-												<select data-id="0" name="impactanswertype[]" id="impactanswertype' . $iprowno . '" class="form-control impactquerry">';
-
-					$impactselected1 = $impactanswertype ==  1 ? ' selected="selected"' : '';
-					$impactselected2 = $impactanswertype ==  2 ? ' selected="selected"' : '';
-					$impactselected3 = $impactanswertype ==  3 ? ' selected="selected"' : '';
-					$impactselected4 = $impactanswertype ==  4 ? ' selected="selected"' : '';
-					$impactselected5 = $impactanswertype ==  5 ? ' selected="selected"' : '';
-					$impactselected6 = $impactanswertype ==  6 ? ' selected="selected"' : '';
-					$impactinput = '<option value="">... Select ...</option>';
-					$impactinput .= '<option value="1" ' . $impactselected1 . '>Number</option>';
-					$impactinput .= '<option value="2" ' . $impactselected2 . '>Mutiple Choice</option>';
-					$impactinput .= '<option value="3" ' . $impactselected3 . '>Checkboxes';
-					$impactinput .= '<option value="4" ' . $impactselected4 . '>Dropdown</option>';
-					$impactinput .= '<option value="5" ' . $impactselected5 . '>Text</option>';
-					$impactinput .= '<option value="6" ' . $impactselected6 . '>File Upload</option>';
-
-					$body .= $impactinput . '
-												</select>
-											</td>
-											<td>
-												<input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label' . $iprowno . '" value="' . $impactotherlabel . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-											</td>
-											<td>';
-					if ($iprowno != 1) {
-						$body .= '<button type="button" class="btn btn-danger btn-sm" id="impactdelete" onclick=\'delete_row_impact_question("impactquestionrow' . $iprowno . '")\'>
-														<span class="glyphicon glyphicon-minus"></span>
-													</button>';
-					}
-					$body .= '</td>
-										</tr>';
-				} while ($row_impactotherevalqstns = $query_impactotherevalqstns->fetch());
-			} else {
-				$iprowno++;
-				$body .= '<tr id="impactquestionrow90">
-										<td> 1 </td>
-										<td>
-											<input type="text" name="impactquestions[]" id="impactquestions90" value="" placeholder="Enter any other impact evaluation questions" class="form-control impactquerry"/>
-										</td>
-										<td>
-											<select data-id="0" name="impactanswertype[]" id="impactanswertype' . $iprowno . '" class="form-control impactquerry">';
-				$impactinput = '<option value="">... Select ...</option>';
-				$impactinput .= '<option value="1">Number</option>';
-				$impactinput .= '<option value="2">Mutiple Choice</option>';
-				$impactinput .= '<option value="3">Checkboxes';
-				$impactinput .= '<option value="4">Dropdown</option>';
-				$impactinput .= '<option value="5">Text</option>';
-				$impactinput .= '<option value="6">File Upload</option>';
-
-				$body .=  $impactinput . '
-											</select>
-										</td>
-										<td>
-											<input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label' . $iprowno . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-										</td>
-										<td>
-										</td>
-									</tr>';
-			}
-			$body .= '</tbody>
-						</table>
 					</div>
 				</div>
 				<div class="modal-footer">
@@ -508,20 +361,19 @@ if (isset($_POST["evalform"])) {
 					<div class="form-input">
 						<select name="outcomeIndicator" id="outcomeIndicator" onchange="get_outcome_details()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
 							<option value="">.... Select from list ....</option>';
-			$query_outcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1' AND indicator_dept = '$projdept' ORDER BY indid");
-			$query_outcomeIndicators->execute();
-			$totalRows_outcomeIndicators = $query_outcomeIndicators->rowCount();
+							$query_outcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1' AND indicator_dept = '$projdept' ORDER BY indid");
+							$query_outcomeIndicators->execute();
+							$totalRows_outcomeIndicators = $query_outcomeIndicators->rowCount();
 
-			if ($totalRows_outcomeIndicators > 0) {
-				while ($row_outcomeIndicators = $query_outcomeIndicators->fetch()) {
-					$indId = $row_outcomeIndicators['indid'];
-					$selectedind = $outcomeindid == $indId ? ' selected="selected"' : '';
+							if ($totalRows_outcomeIndicators > 0) {
+								while ($row_outcomeIndicators = $query_outcomeIndicators->fetch()) {
+									$indId = $row_outcomeIndicators['indid'];
+									$selectedind = $outcomeindid == $indId ? ' selected="selected"' : '';
 
-					$body .= '<option value="' . $indId . '" ' . $selectedind . '>' . $row_outcomeIndicators['indicator_name'] . '</option>';
-				}
-			}
-
-			$body .= '</select>
+									$body .= '<option value="' . $indId . '" ' . $selectedind . '>' . $row_outcomeIndicators['indicator_name'] . '</option>';
+								}
+							}
+						$body .= '</select>
 					</div>
 				</div>
                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -536,40 +388,7 @@ if (isset($_POST["evalform"])) {
 					<div class="form-input">
 						<input type="text" name="outcome_calc_method" value="' . $outcome_calc_method . '" readonly id="outcome_calc_method" class="form-control" placeholder="First select change to be measured" required="required">
 					</div>
-				</div>';
-			if ($count_rows_project_impact > 0) {
-				$body .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<label class="control-label">Parent Impact</label>
-						<div class="form-line">
-							<select name="parentimpact" id="parentimpact" onclick="get_parent_impacts()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-								<option value="">.... Select from list ....</option>';
-				$query_parent_impact = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE projid='$projid' ORDER BY id");
-				$query_parent_impact->execute();
-				$totalRows_parent_impact = $query_parent_impact->rowCount();
-
-				if ($totalRows_parent_impact > 0) {
-					while ($row_parent_impact = $query_parent_impact->fetch()) {
-						$parentimpactId = $row_parent_impact['id'];
-						$selectedimpact = $outcome_parent_impact == $parentimpactId ? ' selected="selected"' : '';
-
-						$body .= '<option value="' . $parentimpactId . '" ' . $selectedimpact . '>' . $row_parent_impact['impact'] . '</option>';
-					}
-				}
-
-				$body .= '</select>
-						</div>
-					</div>';
-			}
-			$body .= '<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<br />
-				<h4><u>Data collection Plan:</u></h4>
+				</div>
 				<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 					<label for="outcomeData" class="control-label">Source of data *:</label>
 					<div class="form-input">
@@ -605,147 +424,6 @@ if (isset($_POST["evalform"])) {
 					<div class="form-line">
 						<input type="hidden" name="evaluationNumber" id="evaluationNumber">
 						<input type="number" name="evaluationNumberFreq" id="evaluationNumberFreq" onchange="outcome_Evaluation()" onkeyup="outcome_Evaluation()" class="form-control" placeholder="Enter Number of endline evaluations" value="' . $outcome_evaluation_number . '" required="required">
-					</div>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 outcomequestions">
-					<label class="control-label">Main Question</label>
-					<div class="table-responsive">
-						<table class="table table-bordered table-striped table-hover" id="outcome_table" style="width:100%">
-							<thead>
-								<tr>
-									<th width="55%">Question</th>
-									<th width="15%">Answer Type</th>
-									<th width="30%">Answer Labels</th>
-								</tr>
-							</thead>
-							<tbody>';
-			$outcomemainlabel = $outcomemainanswertype2 = $outcomemainanswertype1 = $outcomemainquestion = "";
-			if ($count_outcomemainevalqstns > 0) {
-				$outcomemainquestion = $row_outcomemainevalqstns['question'];
-				$outcomemainquestionid = $row_outcomemainevalqstns['id'];
-				$outcomemainanswertype = $row_outcomemainevalqstns['answertype'];
-				$outcomemainlabel = $row_outcomemainevalqstns['answerlabels'];
-				$outcomemainanswertype1 = $outcomemainanswertype == 1 ? ' selected="selected"' : '';
-				$outcomemainanswertype2 = $outcomemainanswertype == 2 ? ' selected="selected"' : '';
-			}
-			$body .= '<tr>
-									<td>
-										<input type="text" name="outcomemainquestion" id="outcomemainquestion" value="' . $outcomemainquestion . '" placeholder="Enter main outcome evaluation question" class="form-control querry"/>
-									</td>
-									<td>
-										<select data-id="0" name="outcomemainanswertype" id="outcomemainanswertype" class="form-control querry">';
-			$outcomemaininput = '<option value="">... Select ...</option>';
-			$outcomemaininput .= '<option value="1" ' . $outcomemainanswertype1 . '>Number</option>';
-			$outcomemaininput .= '<option value="2" ' . $outcomemainanswertype2 . '>Mutiple Choice</option>';
-
-			$body .= $outcomemaininput . '
-										</select>
-									</td>
-									<td>
-										<input type="text" name="outcome_main_answer_labels" value="' . $outcomemainlabel . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 outcomequestions">
-					<label class="control-label">Other Question/s</label>
-					<div class="table-responsive">
-						<table class="table table-bordered table-striped table-hover" id="outcome_table" style="width:100%">
-							<thead>
-								<tr>
-									<th width="5%">#</th>
-									<th width="50%">Question</th>
-									<th width="15%">Answer Type</th>
-									<th width="25%">Answer Labels</th>
-									<th width="5%">
-										<button type="button" name="addplus" id="addplus" onclick="add_row_question();" class="btn btn-success btn-sm">
-											<span class="glyphicon glyphicon-plus"></span>
-										</button>
-									</th>
-								</tr>
-							</thead>
-							<tbody id="questions_table_body">';
-
-			$ocrowno = 0;
-			if ($count_outcomeotherevalqstns > 0) {
-				do {
-					$outcomequestion = $row_outcomeotherevalqstns['question'];
-					$outcomeanswertype = $row_outcomeotherevalqstns['answertype'];
-					$outcomequestionid = $row_outcomeotherevalqstns['id'];
-					$ocrowno++;
-
-					$body .= '<tr id="outcomequestionrow' . $ocrowno . '">
-											<td>' . $ocrowno . '</td>
-											<td>
-												<input type="text" name="outcomeotherquestions[]" id="outcomequestions' . $ocrowno . '" value="' . $outcomequestion . '" placeholder="Enter any other outcome evaluation question" class="form-control outcomequerry" required />
-											</td>
-											<td>
-												<select data-id="0" name="outcomeotheranswertype[]" id="outcomeanswertype' . $ocrowno . '" class="form-control outcomequerry" required="required">';
-
-					$outcomeselected1 = $outcomeanswertype ==  1 ? ' selected="selected"' : '';
-					$outcomeselected2 = $outcomeanswertype ==  2 ? ' selected="selected"' : '';
-					$outcomeselected3 = $outcomeanswertype ==  3 ? ' selected="selected"' : '';
-					$outcomeselected4 = $outcomeanswertype ==  4 ? ' selected="selected"' : '';
-					$outcomeselected5 = $outcomeanswertype ==  5 ? ' selected="selected"' : '';
-					$outcomeselected6 = $outcomeanswertype ==  6 ? ' selected="selected"' : '';
-
-					$outcomeinput = '<option value="">... Select ...</option>';
-					$outcomeinput .= '<option value="1" ' . $outcomeselected1 . '>Number</option>';
-					$outcomeinput .= '<option value="2" ' . $outcomeselected2 . '>Mutiple Choice</option>';
-					$outcomeinput .= '<option value="3" ' . $outcomeselected3 . '>Checkboxes';
-					$outcomeinput .= '<option value="4" ' . $outcomeselected4 . '>Dropdown</option>';
-					$outcomeinput .= '<option value="5" ' . $outcomeselected5 . '>Text</option>';
-					$outcomeinput .= '<option value="6" ' . $outcomeselected6 . '>File Upload</option>';
-
-					$body .= $outcomeinput . '
-												</select>
-											</td>
-											<td>
-												<input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label' . $ocrowno . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-											</td>
-											<td>';
-					if ($ocrowno != 1) {
-
-						$body .= '<button type="button" class="btn btn-danger btn-sm" id="outcomedelete" onclick=\'delete_row_outcome_question("outcomequestionrow' . $ocrowno . '")\'>
-														<span class="glyphicon glyphicon-minus"></span>
-													</button>';
-					}
-					$body .= '</td>
-										</tr>';
-				} while ($row_outcomeotherevalqstns = $query_outcomeotherevalqstns->fetch());
-			} else {
-				$ocrowno++;
-				$body .= '<tr id="outcomequestionrow90">
-										<td> 1 </td>
-										<td>
-											<input type="text" name="outcomeotherquestions[]" id="outcomequestions90" value="" placeholder="Enter any other outcome evaluation questions" class="form-control outcomequerry" required />
-										</td>
-										<td>
-											<select data-id="0" name="outcomeotheranswertype[]" id="outcomeanswertype' . $ocrowno . '" class="form-control outcomequerry" required >';
-
-				$outcomeinput = '<option value="">... Select ...</option>';
-				$outcomeinput .= '<option value="1">Number</option>';
-				$outcomeinput .= '<option value="2">Mutiple Choice</option>';
-				$outcomeinput .= '<option value="3">Checkboxes';
-				$outcomeinput .= '<option value="4">Dropdown</option>';
-				$outcomeinput .= '<option value="5">Text</option>';
-				$outcomeinput .= '<option value="6">File Upload</option>';
-
-				$body .= $outcomeinput . '
-											</select>
-										</td>
-										<td>
-											<input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label' . $ocrowno . '" placeholder="Enter comma seperated labels" class="form-control querry"/>
-										</td>
-										<td>
-
-										</td>
-									</tr>';
-			}
-			$body .= '</tbody>
-						</table>
 					</div>
 				</div>
 				<div class="modal-footer">

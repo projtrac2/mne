@@ -55,7 +55,7 @@ if ($permission) {
 				} elseif (isset($_GET["paymentstatus"]) && !empty($_GET["paymentstatus"])) {
 					include_once('project-payment-status-inner.php');
 				} elseif (isset($_GET["projectstatus"]) && !empty($_GET["projectstatus"])) {
-					include_once('project-statuses-inner.php');
+					include_once('project-status-inner.php');
 				} elseif (isset($_GET["designations"]) && !empty($_GET["designations"])) {
 					include_once('designation-inner.php');
 				}  elseif (isset($_GET["permission"]) && !empty($_GET["permission"])) {

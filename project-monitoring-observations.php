@@ -156,7 +156,7 @@ if ($permission) {
                                             ?>
                                                         <fieldset class="scheduler-border">
                                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                                <i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $counter ?> :
+                                                                <i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $counter ?> : <?= $site ?>
                                                             </legend>
                                                             <?php
                                                             $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
@@ -181,7 +181,7 @@ if ($permission) {
                                                             ?>
                                                                             <fieldset class="scheduler-border">
                                                                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                                                    <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> :
+                                                                                    <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
                                                                                 </legend>
                                                                                 <div class="row clearfix">
                                                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -191,7 +191,8 @@ if ($permission) {
                                                                                                     <tr>
                                                                                                         <th style="width:5%">#</th>
                                                                                                         <th style="width:65%">Subtasks</th>
-                                                                                                        <th style="width:25%">Acheived</th>
+                                                                                                        <th style="width:12.5%">Target</th>
+                                                                                                        <th style="width:12.5%">Acheived</th>
                                                                                                         <th style="width:5%">Action</th>
                                                                                                     </tr>
                                                                                                 </thead>
@@ -219,14 +220,20 @@ if ($permission) {
                                                                                                                 $row_rsIndUnit = $query_rsIndUnit->fetch();
                                                                                                                 $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
                                                                                                                 $unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+
+                                                                                                                $query_rsOther_cost_plan_budget =  $db->prepare("SELECT units_no FROM tbl_project_direct_cost_plan WHERE site_id=:site_id AND subtask_id=:subtask_id");
+                                                                                                                $query_rsOther_cost_plan_budget->execute(array(":site_id" => $site_id, ":subtask_id" => $task_id));
+                                                                                                                $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                                                                                                                $target_units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] : 0;
                                                                                                     ?>
                                                                                                                 <tr id="row<?= $tcounter ?>">
                                                                                                                     <td style="width:5%"><?= $tcounter ?></td>
                                                                                                                     <td style="width:65%"><?= $task_name ?></td>
-                                                                                                                    <td style="width:25%"><?= number_format($achieved, 2) . "  " . $unit_of_measure ?></td>
+                                                                                                                    <td style="width:2512.5%"><?= number_format($target_units, 2) . "  " . $unit_of_measure ?></td>
+                                                                                                                    <td style="width:12.5%"><?= number_format($achieved, 2) . "  " . $unit_of_measure ?></td>
                                                                                                                     <td style="width:5%">
-                                                                                                                        <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_checklist(<?= $task_id ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                                            <span class="glyphicon glyphicon-eye"></span>
+                                                                                                                        <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_checklist(<?= $task_id ?>, <?= $site_id ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                                                                            <fa class="fa fa-eye"></fa>
                                                                                                                         </button>
                                                                                                                     </td>
                                                                                                                 </tr>
@@ -283,7 +290,8 @@ if ($permission) {
                                                                             <tr>
                                                                                 <th style="width:5%">#</th>
                                                                                 <th style="width:65%">SubTask</th>
-                                                                                <th style="width:25%">No. of Units</th>
+                                                                                <th style="width:12.5%">Target</th>
+                                                                                <th style="width:12.5%">Achieved</th>
                                                                                 <th style="width:10%">Action</th>
                                                                             </tr>
                                                                         </thead>
@@ -323,14 +331,21 @@ if ($permission) {
                                                                                             $status_class = $row_Projstatus['class_name'];
                                                                                             $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
                                                                                         }
+
+
+                                                                                        $query_rsOther_cost_plan_budget =  $db->prepare("SELECT units_no FROM tbl_project_direct_cost_plan WHERE site_id=:site_id AND subtask_id=:subtask_id");
+                                                                                        $query_rsOther_cost_plan_budget->execute(array(":site_id" => $site_id, ":subtask_id" => $task_id));
+                                                                                        $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                                                                                        $target_units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] : 0;
                                                                             ?>
                                                                                         <tr id="row<?= $tcounter ?>">
                                                                                             <td style="width:5%"><?= $tcounter ?></td>
                                                                                             <td style="width:65%"><?= $task_name ?></td>
-                                                                                            <td style="width:25%"><?=   number_format($units_no, 2) . "  " . $unit_of_measure?></td>
+                                                                                            <td style="width:12.5%"><?= number_format($target_units, 2) . "  " . $unit_of_measure ?></td>
+                                                                                            <td style="width:12.5%"><?= number_format($units_no, 2) . "  " . $unit_of_measure ?></td>
                                                                                             <td style="width:5%">
-                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_checklist(<?= $task_id ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                    <span class="fa fa-eye"></span>
+                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_checklist(<?= $task_id ?>, <?= $site_id ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                                                    <fa class="fa fa-eye"></fa>
                                                                                                 </button>
                                                                                             </td>
                                                                                         </tr>
@@ -445,7 +460,7 @@ if ($permission) {
                                                                         <tr>
                                                                             <th style="width:5%" align="center">#</th>
                                                                             <th style="width:85%">Remarks</th>
-                                                                            <th style="width:10%">Created At</th>
+                                                                            <th style="width:10%">Created On</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -498,9 +513,10 @@ if ($permission) {
                                                                                             <thead>
                                                                                                 <tr class="bg-grey">
                                                                                                     <th width="5%"><strong>#</strong></th>
-                                                                                                    <th width="35%"><strong>Name</strong></th>
-                                                                                                    <th width="35%"><strong>Purpose</strong></th>
+                                                                                                    <th width="30%"><strong>Name</strong></th>
+                                                                                                    <th width="30%"><strong>Purpose</strong></th>
                                                                                                     <th width="10%"><strong>Stage</strong></th>
+                                                                                                    <th width="10%"><strong>Created On</strong></th>
                                                                                                     <th width="15%"><strong>Action</strong></th>
                                                                                                 </tr>
                                                                                             </thead>
@@ -517,6 +533,7 @@ if ($permission) {
                                                                                                         $filename = $rows_project_docs['filename'];
                                                                                                         $filepath = $rows_project_docs['floc'];
                                                                                                         $purpose = $rows_project_docs['reason'];
+                                                                                                        $created_at = $rows_project_docs['date_uploaded'];
 
                                                                                                         $query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
                                                                                                         $query_project_stage->execute(array(":projstageid" => $projstageid));
@@ -525,9 +542,10 @@ if ($permission) {
                                                                                                 ?>
                                                                                                         <tr>
                                                                                                             <td width="5%"><?= $rowno; ?></td>
-                                                                                                            <td width="35%"><?= $filename; ?></td>
-                                                                                                            <td width="35%"><?= $purpose; ?></td>
+                                                                                                            <td width="30%"><?= $filename; ?></td>
+                                                                                                            <td width="30%"><?= $purpose; ?></td>
                                                                                                             <td width="10%"><?= $projstage; ?></td>
+                                                                                                            <td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
                                                                                                             <td width="15%">
                                                                                                                 <a href="<?= $filepath; ?>" download>Download</a>
                                                                                                             </td>
@@ -550,10 +568,11 @@ if ($permission) {
                                                                                             <thead>
                                                                                                 <tr class="bg-grey">
                                                                                                     <th width="5%"><strong>#</strong></th>
-                                                                                                    <th width="5%"><strong>Photo</strong></th>
-                                                                                                    <th width="40%"><strong>Name</strong></th>
-                                                                                                    <th width="40%"><strong>Purpose</strong></th>
+                                                                                                    <th width="30%"><strong>Name</strong></th>
+                                                                                                    <th width="30%"><strong>Purpose</strong></th>
                                                                                                     <th width="10%"><strong>Stage</strong></th>
+                                                                                                    <th width="10%"><strong>Created On</strong></th>
+                                                                                                    <th width="15%"><strong>Action</strong></th>
                                                                                                 </tr>
                                                                                             </thead>
                                                                                             <tbody>
@@ -570,6 +589,7 @@ if ($permission) {
                                                                                                         $filename = $rows_project_photos['filename'];
                                                                                                         $filepath = $rows_project_photos['floc'];
                                                                                                         $purpose = $rows_project_photos['reason'];
+                                                                                                        $created_at = $rows_project_photos['date_uploaded'];
                                                                                                         $fileid = base64_encode("projid54321{$fileid}");
 
                                                                                                         $photo = '<a href="project-gallery.php?photo=' . $fileid . '" class="gallery-item">
@@ -584,8 +604,9 @@ if ($permission) {
                                                                                                         <tr>
                                                                                                             <td width="5%"><?= $rowno; ?></td>
                                                                                                             <td width="5%"><?= $photo; ?></td>
-                                                                                                            <td width="40%"><?= $filename; ?></td>
-                                                                                                            <td width="40%"><?= $purpose; ?></td>
+                                                                                                            <td width="30%"><?= $filename; ?></td>
+                                                                                                            <td width="30%"><?= $purpose; ?></td>
+                                                                                                            <td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
                                                                                                             <td width="10%"><?= $projstage; ?></td>
                                                                                                         </tr>
                                                                                                 <?php
@@ -606,9 +627,10 @@ if ($permission) {
                                                                                             <thead>
                                                                                                 <tr class="bg-grey">
                                                                                                     <th width="5%"><strong>#</strong></th>
-                                                                                                    <th width="35%"><strong>Name</strong></th>
-                                                                                                    <th width="35%"><strong>Purpose</strong></th>
+                                                                                                    <th width="30%"><strong>Name</strong></th>
+                                                                                                    <th width="30%"><strong>Purpose</strong></th>
                                                                                                     <th width="10%"><strong>Stage</strong></th>
+                                                                                                    <th width="10%"><strong>Created On</strong></th>
                                                                                                     <th width="15%"><strong>Action</strong></th>
                                                                                                 </tr>
                                                                                             </thead>
@@ -625,6 +647,7 @@ if ($permission) {
                                                                                                         $filename = $rows_project_videos['filename'];
                                                                                                         $filepath = $rows_project_videos['floc'];
                                                                                                         $purpose = $rows_project_videos['reason'];
+                                                                                                        $created_at = $rows_project_videos['date_uploaded'];
 
                                                                                                         $query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
                                                                                                         $query_project_stage->execute(array(":projstageid" => $projstageid));
@@ -636,6 +659,7 @@ if ($permission) {
                                                                                                             <td width="35%"><?= $filename; ?></td>
                                                                                                             <td width="35%"><?= $purpose; ?></td>
                                                                                                             <td width="10%"><?= $projstage; ?></td>
+                                                                                                            <td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
                                                                                                             <td width="15%">
                                                                                                                 <a href="<?= $filepath; ?>" watch>Watch</a>
                                                                                                             </td>
@@ -681,10 +705,10 @@ if ($permission) {
                     <div class="card-header">
                         <ul class="nav nav-tabs" style="font-size:14px">
                             <li class="active">
-                                <a data-toggle="tab" href="#home1"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Monitor &nbsp;<span class="badge bg-orange">|</span></a>
+                                <a data-toggle="tab" href="#home1"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Remarks &nbsp;<span class="badge bg-orange">|</span></a>
                             </li>
                             <li>
-                                <a data-toggle="tab" href="#menu10"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Remarks &nbsp;<span class="badge bg-blue">|</span></a>
+                                <a data-toggle="tab" href="#menu10"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Attachments &nbsp;<span class="badge bg-blue">|</span></a>
                             </li>
                         </ul>
                     </div>
@@ -697,6 +721,7 @@ if ($permission) {
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <label class="control-label">Remarks *:</label>
                                     <div class="form-line">
+                                        <p id="remarks"></p>
                                     </div>
                                 </div>
                             </fieldset>
@@ -714,7 +739,8 @@ if ($permission) {
                                                     <tr>
                                                         <th style="width:2%">#</th>
                                                         <th style="width:40%">Attachments</th>
-                                                        <th style="width:60%">Attachment Purpose</th>
+                                                        <th style="width:50%">Attachment Purpose</th>
+                                                        <th style="width:10%">Attachment Purpose</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="attachments_table">
@@ -750,20 +776,22 @@ require('includes/footer.php');
 ?>
 
 <script>
+    const ajax_url = "ajax/monitoring/checklist-history.php";
 
-    const ajax_url = "ajax/monitoring/checklist";
-    function add_checklist(checklist_id) {
+    function add_checklist(subtask_id, site_id) {
         $.ajax({
             type: "get",
             url: ajax_url,
             data: {
                 get_info: 'get_info',
-                checklist_id: checklist_id,
+                subtask_id: subtask_id,
+                site_id: site_id,
             },
             dataType: "json",
             success: function(response) {
                 if (response.success) {
-
+                    $("#attachments_table").html(response.attachments);
+                    $("#remarks").html(response.remarks);
                 } else {
                     $("#attachments_table").html(`<tr><td colspan="3" class="text-center">No Files Found</td></tr>`);
                 }

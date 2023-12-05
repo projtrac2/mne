@@ -128,6 +128,7 @@ if ($permission) {
                 }, 2000);
             </script>";
         }
+
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -139,7 +140,7 @@ if ($permission) {
                     <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
-                        <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px;">
+                        <a type="button" id="outputItemModalBtnrow" href="add-milestone.php?projid=<?=base64_encode("projid54321{$projid}")?>" class="btn btn-warning pull-right" style="margin-right:10px;">
                             Go Back
                         </a>
                     </div>

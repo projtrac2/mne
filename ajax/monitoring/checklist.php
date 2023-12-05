@@ -43,7 +43,6 @@ try {
         return $stand_in_responsible == true || $responsible == true  ? true : false;
     }
 
-
     function validate_subtasks($subtask_id)
     {
         global $db, $projid, $user_designation, $team_type, $workflow_stage, $user_name;
@@ -329,11 +328,18 @@ try {
         }
 
         $bq =   previous_remarks($milestone_id, $site_id, $subtask_id, $task_id);
+
+        $query_rsIssues =  $db->prepare("SELECT * FROM tbl_project_adjustments a INNER JOIN tbl_projissues i  ON i.id = a.issueid WHERE i.status <> 7  AND a.sub_task_id=:subtask_id");
+        $query_rsIssues->execute(array(":subtask_id" => $subtask_id));
+        $totalRows_rsIssues = $query_rsIssues->rowCount();
+        $row_rsIssues = $query_rsIssues->rowCount();
+
         echo json_encode(
             array(
                 "success" => $success,
                 "subtask" => $subtask,
                 'target' => $target  . " " . $unit_of_measure,
+                'issues' => $row_rsIssues > 0 ? '1' : '0',
                 "project_cummulative" => get_project_subtask_progress($subtask_id) . " " . $unit_of_measure,
                 "milestone_cummulative" => get_milestone_subtask_progress($milestone_id, $subtask_id, $site_id) . " " . $unit_of_measure,
                 "previous_record" => get_milestone_subtask_previous_record($milestone_id, $subtask_id, $site_id) . " " . $unit_of_measure,
@@ -356,7 +362,7 @@ try {
         $complete = $_POST['button'];
 
         if ($complete == 1) {
-            $sql = $db->prepare("UPDATE tbl_program_of_works SET complete=:complete WHERE  site_id=:site_id AND projid=:projid AND subtask_id=:subtask_id");
+            $sql = $db->prepare("UPDATE tbl_program_of_works SET complete=:complete WHERE  site_id=:site_id AND projid=:projid AND subtask_id=:subtask_id AND status=5");
             $result  = $sql->execute(array(":complete" => $complete, ":site_id" => $site_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
 
             $sql = $db->prepare("UPDATE tbl_milestone_output_subtasks SET complete=:complete WHERE  milestone_id=:milestone_id AND projid=:projid AND subtask_id=:subtask_id");

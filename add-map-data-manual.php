@@ -129,12 +129,14 @@ if ($permission) {
 			$lngs = $_POST['lng'];
 			$total = count($lats);
 
+            $deleteQueryI = $db->prepare("DELETE FROM `tbl_markers` WHERE site_id=:site_id AND opid=:output_id");
+            $resultsI = $deleteQueryI->execute(array(':site_id' => $site_id, ":output_id"=>$output_id));
 
 			for ($i = 0; $i < $total; $i++) {
 				$lat = $lats[$i];
 				$lng = $lngs[$i];
-				$sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,state,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:state,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
-				$result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ":state" => $state_id, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+				$sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
+				$result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
 			}
 
 			$hashproc = base64_encode("projid54321{$projid}");
@@ -280,7 +282,7 @@ if ($permission) {
 										<li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
 										<li class="list-group-item"><strong><?= $level2label ?>: </strong> <?= implode(",", $states) ?> </li>
 										<li class="list-group-item"><strong>Site: </strong> <?= $site ?> </li>
-										<li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li> 
+										<li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li>
 									</ul>
 								</div>
 							</div>

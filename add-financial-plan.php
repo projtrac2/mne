@@ -317,7 +317,7 @@ if ($permission) {
                                              }
                                           }
 
-                                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+                                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
                                           $query_Output->execute(array(":projid" => $projid));
                                           $total_Output = $query_Output->rowCount();
                                           $outputs = '';

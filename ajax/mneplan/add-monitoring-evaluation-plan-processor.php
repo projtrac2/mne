@@ -99,9 +99,9 @@ if (isset($_POST['addimpact'])) {
 
         $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_impact_details`(projid, impact, indid, data_source, evaluation_frequency, number_of_evaluations, added_by, date_added) VALUES(:projid, :impact, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :added_by, :date_added)");
         $result1  = $insertSQL1->execute(array(":projid" => $projid, ":impact" => $impact, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":added_by" => $createdby, ":date_added" => $datecreated));
-        $resultstypeid = $db->lastInsertId();
+        //$resultstypeid = $db->lastInsertId();
 
-        $mainquestion = $_POST['impactmainquestion'];
+        /* $mainquestion = $_POST['impactmainquestion'];
         $questiontype = 1;
         $answertype = $_POST['impactmainanswertype'];
         $mainanswerlabels = $_POST['impact_main_answer_labels'];
@@ -123,7 +123,7 @@ if (isset($_POST['addimpact'])) {
                     $result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
                 }
             }
-        }
+        } */
 
         if ($result1) {
             $msg = 'Project Impact evaluation data successfully added';
@@ -144,13 +144,13 @@ if (isset($_POST['editimpact'])) {
         $data_source  = $_POST['impactdataSource'];
         $evaluation_frequency  = $_POST['impact_frequency'];
         $number_of_evaluations  = $_POST['evaluationNumberFreq'];
-        $mainanswerlabels = $_POST['impact_main_answer_labels'];
+        //$mainanswerlabels = $_POST['impact_main_answer_labels'];
         $createdby  = $_POST['user_name'];
 
         $insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_impact_details`  SET projid = :projid, impact = :impact, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, changed_by = :added_by, date_changed = :date_added WHERE id = :impactid");
         $result1  = $insertSQL1->execute(array(":projid" => $projid, ":impact" => $impact, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":added_by" => $createdby, ":date_added" => $datecreated, ":impactid" => $impactid));
 
-        $mainquestion = $_POST['impactmainquestion'];
+        /* $mainquestion = $_POST['impactmainquestion'];
         $questiontype = 1;
         $answertype = $_POST['impactmainanswertype'];
         $resultstype = 1;
@@ -173,7 +173,7 @@ if (isset($_POST['editimpact'])) {
                     $result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $impactid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
                 }
             }
-        }
+        } */
 
         if ($result1) {
             $msg = 'Project Impact evaluation data successfully editted';
@@ -196,16 +196,13 @@ if (isset($_POST['addoutcome'])) {
         $data_source  = $_POST['outcomedataSource'];
         $evaluation_frequency  = $_POST['outcome_frequency'];
         $number_of_evaluations  = $_POST['evaluationNumberFreq'];
-        $mainanswerlabels = $_POST['outcome_main_answer_labels'];
+        //$mainanswerlabels = $_POST['outcome_main_answer_labels'];
         $createdby  = $_POST['user_name'];
-        $parentimpact  = 0;
-        if (isset($_POST['parentimpact']) && !empty($_POST['parentimpact'])) {
-            $parentimpact  = $_POST['parentimpact'];
-        }
 
-        $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_outcome_details`(projid, impactid, outcome, indid, data_source, evaluation_frequency, number_of_evaluations, added_by, date_added) VALUES(:projid, :parentimpact, :outcome, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :added_by, :date_added)");
-        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":parentimpact" => $parentimpact, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":added_by" => $createdby, ":date_added" => $datecreated));
-        $resultstypeid = $db->lastInsertId();
+        $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_outcome_details`(projid, outcome, indid, data_source, evaluation_frequency, number_of_evaluations, added_by, date_added) VALUES(:projid, :outcome, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :added_by, :date_added)");
+        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":added_by" => $createdby, ":date_added" => $datecreated));
+		
+        /* $resultstypeid = $db->lastInsertId();
 
         $answertype = $_POST['outcomemainanswertype'];
         $mainquestion = $_POST['outcomemainquestion'];
@@ -228,7 +225,7 @@ if (isset($_POST['addoutcome'])) {
                     }
                 }
             }
-        }
+        } */
 
         if ($result1) {
             $msg = 'Project Outcome evaluation data successfully added';
@@ -252,17 +249,14 @@ if (isset($_POST['editoutcome'])) {
         $data_source  = $_POST['outcomedataSource'];
         $evaluation_frequency  = $_POST['outcome_frequency'];
         $number_of_evaluations  = $_POST['evaluationNumberFreq'];
-        $mainanswerlabels = $_POST['outcome_main_answer_labels'];
+        //$mainanswerlabels = $_POST['outcome_main_answer_labels'];
         $createdby  = $_POST['user_name'];
-        $parentimpact  = 0;
-        if (isset($_POST['parentimpact']) && !empty($_POST['parentimpact'])) {
-            $parentimpact  = $_POST['parentimpact'];
-        }
+      
 
-        $insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_outcome_details`  SET projid = :projid, impactid = :parentimpact, outcome = :outcome, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, changed_by = :changed_by, date_changed = :date_added WHERE id = :outcomeid");
-        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":parentimpact" => $parentimpact, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":changed_by" => $createdby, ":date_added" => $datecreated, ":outcomeid" => $outcomeid));
+        $insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_outcome_details`  SET projid = :projid, outcome = :outcome, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, changed_by = :changed_by, date_changed = :date_added WHERE id = :outcomeid");
+        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":changed_by" => $createdby, ":date_added" => $datecreated, ":outcomeid" => $outcomeid));
 
-        $mainquestion = $_POST['outcomemainquestion'];
+        /* $mainquestion = $_POST['outcomemainquestion'];
         $questiontype = 1;
         $answertype = $_POST['outcomemainanswertype'];
         $resultstype = 2;
@@ -285,7 +279,7 @@ if (isset($_POST['editoutcome'])) {
                     $insertSQL1->execute(array(":projid" => $projid, ":question" => $question, ":resultstype" => $resultstype, ":resultstypeid" => $outcomeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answerlabels));
                 }
             }
-        }
+        } */
 
         if ($result1) {
             $msg = 'Project Outcome evaluation data successfully editted';
@@ -297,22 +291,68 @@ if (isset($_POST['editoutcome'])) {
 //================================== END EDIT OUTCOME DETAILS ================================================
 
 
+
+
+//======================================== START Evaluation Questions ============================================
+
+if (isset($_POST['add_evaluation_questions'])) {
+    if (isset($_POST['question']) && !empty($_POST['question'])) {
+        $projid = $_POST['projid'];
+        $question = $_POST['question'];		
+        $resultstype  = $_POST['resultstype'];
+        $resultstypeid  = $_POST['resultstypeid'];
+        $createdby  = $_POST['user_name'];
+		$questiontype = 1;
+		$main_question = $calculation_method = $answer_label = null;
+		
+		if(isset($_POST['question_type']) && !empty($_POST['question_type'])) {
+			$questiontype = $_POST['question_type'];
+		}
+		
+		if(isset($_POST['main_question']) && !empty($_POST['main_question'])) {
+			$main_question = $_POST['main_question'];
+		}
+		
+        $answertype = $_POST['answertype'];
+		
+		if($answertype == 1){
+			$calculation_method  = $_POST['calculation_method'];
+		} elseif($answertype == 2){
+			$answer_label = $_POST['answer_label'];
+			$calculation_method = $_POST['calculation_method'];
+		} elseif($answertype == 3){
+			$answer_label  = $_POST['answer_label'];
+		} elseif($answertype == 4){
+			$answer_label  = $_POST['answer_label'];
+			$calculation_method  = $_POST['calculation_method'];
+		}
+
+		$insert_question = $db->prepare("INSERT INTO `tbl_project_evaluation_questions`(projid, question, parent_question, resultstype, resultstypeid, questiontype, answertype, answerlabels, question_calculation_method) VALUES(:projid, :question, :parent_question, :resultstype, :resultstypeid, :questiontype, :answertype, :answerlabels, :calculation_method)");
+		$result1  = $insert_question->execute(array(":projid" => $projid, ":question" => $question, ":parent_question" => $main_question, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answer_label, ":calculation_method" => $calculation_method));
+
+        if ($result1) {
+            $msg = 'Project Outcome evaluation data successfully added';
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+//================================== END ADD OUTCOME DETAILS ================================================
+
+
 //================================== START ADD OUTPUT DETAILS ================================================
 if (isset($_POST['addoutput'])) {
     if (isset($_POST['opid'])) {
         $output = $_POST['opid'];
         $projid = $_POST['projid'];
         $outputIndicator  = $_POST['output_indicator'];
-        $outcomeid  = 0;
-        if (isset($_POST['parentoutcome']) && !empty($_POST['parentoutcome'])) {
-            $outcomeid = $_POST['parentoutcome'];
-        }
+        
 
         $datecreated = date("Y-m-d");
         $createdby = $_POST['user_name'];
         $mnecode = "AB123" . $projid . $output;
-        $sql = $db->prepare("INSERT INTO `tbl_project_outputs_mne_details`(projid,outcomeid,outputid,indicator,mne_code,date_created,created_by) VALUES(:projid,:outcomeid,:output,:indicator,:mnecode,:date_added,:added_by)");
-        $result1  = $sql->execute(array(":projid" => $projid, ":outcomeid" => $outcomeid, ":output" => $output, ":indicator" => $outputIndicator,":mnecode" => $mnecode, ":date_added" => $datecreated, ":added_by" => $createdby));
+        $sql = $db->prepare("INSERT INTO `tbl_project_outputs_mne_details`(projid,outputid,indicator,mne_code,date_created,created_by) VALUES(:projid,:output,:indicator,:mnecode,:date_added,:added_by)");
+        $result1  = $sql->execute(array(":projid" => $projid, ":output" => $output, ":indicator" => $outputIndicator,":mnecode" => $mnecode, ":date_added" => $datecreated, ":added_by" => $createdby));
 
         if (isset($_POST['outputrisk'])) {
             for ($i = 0; $i < count($_POST['outputrisk']); $i++) {
@@ -356,7 +396,7 @@ if (isset($_POST['addprojectfrequency'])) {
     $result1  = $insertSQL1->execute(array(":frequency" => $frequency,":projid" => $projid));
     echo json_encode(array('success'=>$result1));
 }
-//================================== END EDIT OUTCOME DETAILS ================================================
+//================================== END EDIT OUTPUT DETAILS ================================================
 
 function next_monitoring_date($projid, $outputid, $frequency_id)
 {

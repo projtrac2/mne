@@ -3,20 +3,20 @@ require('includes/head.php');
 if ($permission) {
     try {
 
-		$mbrid ="";
-		if (isset($_GET["mbrid"]) && !empty($_GET["mbrid"])) {
-			$encoded_mbrid = $_GET["mbrid"];
-			$decode_mbrid = base64_decode($encoded_mbrid);
-			$mbrid_array = explode("projmbr", $decode_mbrid);
-			$mbrid = $mbrid_array[1];
-		}
-		$query_rs_sp_projects = $db->prepare( "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=1 AND m.responsible=:ptid GROUP BY p.projid");
-		$query_rs_sp_projects->execute(array(":ptid" => $mbrid));
-		$total_sp_projects = $query_rs_sp_projects->rowCount();
+        $mbrid = "";
+        if (isset($_GET["mbrid"]) && !empty($_GET["mbrid"])) {
+            $encoded_mbrid = $_GET["mbrid"];
+            $decode_mbrid = base64_decode($encoded_mbrid);
+            $mbrid_array = explode("projmbr", $decode_mbrid);
+            $mbrid = $mbrid_array[1];
+        }
+        $query_rs_sp_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=1 AND m.responsible=:ptid GROUP BY p.projid");
+        $query_rs_sp_projects->execute(array(":ptid" => $mbrid));
+        $total_sp_projects = $query_rs_sp_projects->rowCount();
 
-		$query_rs_ind_projects = $db->prepare( "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=0 AND m.responsible=:ptid GROUP BY p.projid");
-		$query_rs_ind_projects->execute(array(":ptid" => $mbrid));
-		$total_ind_projects = $query_rs_ind_projects->rowCount();
+        $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=0 AND m.responsible=:ptid GROUP BY p.projid");
+        $query_rs_ind_projects->execute(array(":ptid" => $mbrid));
+        $total_ind_projects = $query_rs_ind_projects->rowCount();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -36,7 +36,9 @@ if ($permission) {
                     <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                        <?=$mbrid?>
+                            <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+                                Go Back
+                            </button>
                         </div>
                     </div>
                 </h4>
@@ -95,7 +97,7 @@ if ($permission) {
                                                             $projcost =  $row__sp_projects['projcost'];
                                                             $projstage =  $row__sp_projects['projstage'];
                                                             $projstatus =  $row__sp_projects['projstatus'];
-                                                            $location = explode(",", $row__sp_projects['projstate']);
+                                                            $location = explode(",", $row__sp_projects['projlga']);
                                                             $fscyear = $row__sp_projects['projfscyear'];
                                                             $row_progid = $row__sp_projects['progid'];
                                                             $project_start_date =  $row__sp_projects['projstartdate'];
@@ -274,7 +276,7 @@ if ($permission) {
                                                             $projcost =  $row__ind_projects['projcost'];
                                                             $projstage =  $row__ind_projects['projstage'];
                                                             $projstatus =  $row__ind_projects['projstatus'];
-                                                            $location = explode(",", $row__ind_projects['projstate']);
+                                                            $location = explode(",", $row__ind_projects['projlga']);
                                                             $fscyear = $row__ind_projects['projfscyear'];
                                                             $row_progid = $row__ind_projects['progid'];
                                                             $project_start_date =  $row__ind_projects['projstartdate'];

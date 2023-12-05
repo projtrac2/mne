@@ -45,7 +45,7 @@ if ($permission) {
 		function get_issues($projid, $userid)
 		{
 			global $db;
-			$query_assignedissues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid=:projid and owner=:userid and status<>1");
+			$query_assignedissues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid=:projid and created_by=:userid and status<>1");
 			$query_assignedissues->execute(array(":projid" => $projid, ":userid" => $userid));
 			$count_assignedissues = $query_assignedissues->rowCount();
 			return $count_assignedissues;
@@ -65,7 +65,7 @@ if ($permission) {
 		{
 			global $db;
 			$standin_responsible = "";
-			$query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND assignee=:user_name AND status = 1 AND activity =:activity");
+			$query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave WHERE projid =:projid AND assignee=:user_name AND status = 1 AND activity =:activity");
 			$query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name, ":activity" => $activity));
 			$row_rsOutput_standin = $query_rsOutput_standin->fetch();
 			$total_rsOutput_standin = $query_rsOutput_standin->rowCount();

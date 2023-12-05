@@ -27,11 +27,11 @@ if ($permission) {
                 <h4 class="contentheader">
                     <?= $icon ?>
                     <?= $pageTitle ?>
-					<div class="btn-group" style="float:right">                 
-						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
-							Go Back
-						</button>
-				   </div>
+                    <div class="btn-group" style="float:right">
+                        <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+                            Go Back
+                        </button>
+                    </div>
                 </h4>
             </div>
             <div class="row clearfix">
@@ -44,7 +44,7 @@ if ($permission) {
                                 <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; padding-left:-5px">Financier Details</a>
                                 <a href="view-financier-funds.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-5px">Funds Contributed</a>
                                 <?php
-                                if ($typeid != 1 && $typeid !=2) {
+                                if ($typeid != 1 && $typeid != 2) {
                                 ?>
                                     <a href="view-financier-status.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px;  margin-left:-9px">Financier Status</a>
                                 <?php
@@ -74,7 +74,7 @@ if ($permission) {
                                             $query_type = $db->prepare("SELECT * FROM tbl_financier_type WHERE id=:typeid");
                                             $query_type->execute(array(":typeid" => $typeid));
                                             $row_type = $query_type->fetch();
-                                            $type = $row_type["description"];
+                                            $type = $row_type["type"];
                                             ?>
                                             <input type="text" class="form-control" value="<?php echo $type; ?>" readonly style="border:#CCC thin solid; border-radius: 5px" />
                                         </div>
@@ -140,36 +140,38 @@ if ($permission) {
                                             <span cols="45" rows="5" class="form-control" style="height:50px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"><?php echo strip_tags($row_financier['comments']); ?></span>
                                         </div>
                                     </div>
-                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
-                                        <div class="row clearfix ">
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <div class="card">
-                                                    <div class="header bg-grey">
-                                                        <strong> Financier Files </strong>
-                                                    </div>
-                                                    <div class="body">
-                                                        <div class="body table-responsive">
-                                                            <table class="table table-bordered" style="width:100%">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th style="width:2%">#</th>
-                                                                        <th style="width:40%">File Name</th>
-                                                                        <th style="width:10%">File Type</th>
-                                                                        <th style="width:38%">Purpose</th>
-                                                                        <th style="width:10%">Action</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <?php
-                                                                    $counter = 0;
-                                                                    $projstage = $fn;
-                                                                    $cat = "Financiers";
-                                                                    $query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE projstage=:projstage and projid IS NULL and fcategory=:cat");
-                                                                    $query_rsFile->execute(array(":projstage" => $projstage, ":cat" => $cat));
-                                                                    $row_rsFile = $query_rsFile->fetch();
-                                                                    $totalRows_rsFile = $query_rsFile->rowCount();
+                                    <?php
+                                    $counter = 0;
+                                    $projstage = $fn;
+                                    $cat = "Financiers";
+                                    $query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE projstage=:projstage and projid IS NULL and fcategory=:cat");
+                                    $query_rsFile->execute(array(":projstage" => $projstage, ":cat" => $cat));
+                                    $row_rsFile = $query_rsFile->fetch();
+                                    $totalRows_rsFile = $query_rsFile->rowCount();
+                                    if ($totalRows_rsFile > 0) {
+                                    ?>
 
-                                                                    if ($totalRows_rsFile > 0) {
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
+                                            <div class="row clearfix ">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <div class="card">
+                                                        <div class="header bg-grey">
+                                                            <strong> Financier Files </strong>
+                                                        </div>
+                                                        <div class="body">
+                                                            <div class="body table-responsive">
+                                                                <table class="table table-bordered" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="width:2%">#</th>
+                                                                            <th style="width:40%">File Name</th>
+                                                                            <th style="width:10%">File Type</th>
+                                                                            <th style="width:38%">Purpose</th>
+                                                                            <th style="width:10%">Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php
                                                                         do {
                                                                             $pdfname = $row_rsFile['filename'];
                                                                             $type = $row_rsFile['ftype'];
@@ -179,41 +181,44 @@ if ($permission) {
 
                                                                             $counter++;
                                                                             echo '<tr>
-                                                                <td>
-                                                                    ' . $counter . '
-                                                                </td>
-                                                                <td>
-                                                                ' . $pdfname . '
-                                                                </td>
-                                                                <td>
-                                                                ' . $type . '
-                                                                </td>
-                                                                <td>
-                                                                ' . $attachmentPurpose . '
-                                                                </td>
-                                                                <td align="center">
-                                                                ' . $action . '
-                                                                </td>
-                                                            </tr>';
+                                                                                <td>
+                                                                                    ' . $counter . '
+                                                                                </td>
+                                                                                <td>
+                                                                                ' . $pdfname . '
+                                                                                </td>
+                                                                                <td>
+                                                                                ' . $type . '
+                                                                                </td>
+                                                                                <td>
+                                                                                ' . $attachmentPurpose . '
+                                                                                </td>
+                                                                                <td align="center">
+                                                                                ' . $action . '
+                                                                                </td>
+                                                                            </tr>';
                                                                         } while ($row_rsFile = $query_rsFile->fetch());
-                                                                    }
-                                                                    ?>
-                                                                    <script type="text/javascript">
-                                                                        $(document).ready(function() {
-                                                                            $(".fancybox").fancybox({
-                                                                                openEffect: "none",
-                                                                                closeEffect: "none"
+                                                                        ?>
+                                                                        <script type="text/javascript">
+                                                                            $(document).ready(function() {
+                                                                                $(".fancybox").fancybox({
+                                                                                    openEffect: "none",
+                                                                                    closeEffect: "none"
+                                                                                });
                                                                             });
-                                                                        });
-                                                                    </script>
-                                                                </tbody>
-                                                            </table>
+                                                                        </script>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+
+                                    <?php
+                                    }
+                                    ?>
                                 </fieldset>
                             </form>
                             <!-- end body -->

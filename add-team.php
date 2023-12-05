@@ -70,21 +70,15 @@ if ($permission) {
                                             <tr>
                                                 <th style="width: 5%;">#</th>
                                                 <th style="width:25%">Member *</th>
-                                                <th style="width:25%">Department *</th>
-                                                <th style="width:25%">Sector</th>
+                                                <th style="width:25%"><?=$ministrylabel?> *</th>
+                                                <th style="width:25%"><?=$departmentlabel?></th>
                                                 <th style="width:15%">Role</th>
 
                                                 <th style="width:5%" data-orderable="false">
-                                                    <?php
-                                                    if (!$approval_stage) {
-                                                    ?>
-                                                        <button type="button" name="addplus" id="add_row_gen" data-toggle="modal" data-target="#outputItemModal" onclick="add_team_members(0)" class="btn btn-success btn-sm">
-                                                            <span class="glyphicon glyphicon-plus">
-                                                            </span>
-                                                        </button>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <button type="button" name="addplus" id="add_row_gen" data-toggle="modal" data-target="#outputItemModal" onclick="add_team_members(0)" class="btn btn-success btn-sm">
+                                                        <span class="glyphicon glyphicon-plus">
+                                                        </span>
+                                                    </button>
                                                 </th>
 
                                             </tr>
@@ -156,17 +150,11 @@ if ($permission) {
                                                                             <i class="fa fa-pencil"></i> Edit
                                                                         </a>
                                                                     </li>
-                                                                    <?php
-                                                                    if (!$approval_stage) {
-                                                                    ?>
-                                                                        <li>
-                                                                            <a type="button" onclick="delete_team_member(<?= $details ?>)" id="addFormModalBtn">
-                                                                                <i class="fa fa-trash"></i> Delete
-                                                                            </a>
-                                                                        </li>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
+                                                                    <li>
+                                                                        <a type="button" onclick="delete_team_member(<?= $details ?>)" id="addFormModalBtn">
+                                                                            <i class="fa fa-trash"></i> Delete
+                                                                        </a>
+                                                                    </li>
                                                                 </ul>
                                                             </div>
                                                         </td>
@@ -359,13 +347,7 @@ if ($permission) {
                                         <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                         <input type="hidden" name="store_technical_team" id="store_technical_team" value="store_technical_team">
                                         <input type="hidden" name="userid" id="userid" value="">
-                                        <?php
-                                        if (!$approval_stage) {
-                                        ?>
-                                            <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
-                                        <?php
-                                        }
-                                        ?>
+                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
                                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                     </div>
                                 </div>

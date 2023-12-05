@@ -13,9 +13,8 @@ if ($permission) {
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
 		$projstage = $row_rsProjects["projstage"];
-		$projcat = $row_rsProjects["projcategory"]; 
-		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
-
+		$projcat = $row_rsProjects["projcategory"];
+		$percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
@@ -41,7 +40,7 @@ if ($permission) {
 								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
+								<?php if ($projcat == 2 && $projstage > 4) { ?>
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
@@ -89,10 +88,11 @@ if ($permission) {
 													<thead>
 														<tr class="bg-grey">
 															<th width="5%"><strong>#</strong></th>
-															<th width="35%"><strong>Name</strong></th>
-															<th width="35%"><strong>Purpose</strong></th>
+															<th width="30%"><strong>Name</strong></th>
+															<th width="30%"><strong>Purpose</strong></th>
 															<th width="10%"><strong>Stage</strong></th>
-															<th width="15%"><strong>Action</strong></th>
+															<th width="10%"><strong>Created On</strong></th>
+															<th width="10%"><strong>Action</strong></th>
 														</tr>
 													</thead>
 													<tbody>
@@ -102,28 +102,30 @@ if ($permission) {
 														$count_project_docs = $query_project_docs->rowCount();
 														if ($count_project_docs > 0) {
 															$rowno = 0;
-															while ($rows_project_docs = $query_project_docs->fetch()){
+															while ($rows_project_docs = $query_project_docs->fetch()) {
 																$rowno++;
 																$projstageid = $rows_project_docs['projstage'];
 																$filename = $rows_project_docs['filename'];
 																$filepath = $rows_project_docs['floc'];
 																$purpose = $rows_project_docs['reason'];
+																$created_at = $rows_project_docs['date_uploaded'];
 
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();
 																$projstage = $rows_project_stage['stage'];
-																?>
+														?>
 																<tr>
 																	<td width="5%"><?= $rowno; ?></td>
-																	<td width="35%"><?= $filename; ?></td>
-																	<td width="35%"><?= $purpose; ?></td>
+																	<td width="30%"><?= $filename; ?></td>
+																	<td width="30%"><?= $purpose; ?></td>
 																	<td width="10%"><?= $projstage; ?></td>
+																	<td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
 																	<td width="15%">
 																		<a href="<?= $filepath; ?>" download>Download</a>
 																	</td>
 																</tr>
-																<?php
+														<?php
 															}
 														}
 														?>
@@ -143,7 +145,8 @@ if ($permission) {
 															<th width="5%"><strong>#</strong></th>
 															<th width="5%"><strong>Photo</strong></th>
 															<th width="40%"><strong>Name</strong></th>
-															<th width="40%"><strong>Purpose</strong></th>
+															<th width="30%"><strong>Purpose</strong></th>
+															<th width="10%"><strong>Created On</strong></th>
 															<th width="10%"><strong>Stage</strong></th>
 														</tr>
 													</thead>
@@ -154,32 +157,34 @@ if ($permission) {
 														$count_project_photos = $query_project_photos->rowCount();
 														if ($count_project_photos > 0) {
 															$rowno = 0;
-															while ($rows_project_photos = $query_project_photos->fetch()){
+															while ($rows_project_photos = $query_project_photos->fetch()) {
 																$rowno++;
 																$fileid = $rows_project_photos['fid'];
 																$projstageid = $rows_project_photos['projstage'];
 																$filename = $rows_project_photos['filename'];
 																$filepath = $rows_project_photos['floc'];
 																$purpose = $rows_project_photos['reason'];
+																$created_at = $rows_project_photos['date_uploaded'];
 																$fileid = base64_encode("projid54321{$fileid}");
 
-																$photo = '<a href="project-gallery.php?photo='.$fileid.'" class="gallery-item">
-																	 <img class="img-fluid" src="'.$filepath.'" alt="Click to view the photo" style="width:30px; height:30px; margin-bottom:0px"/>
+																$photo = '<a href="project-gallery.php?photo=' . $fileid . '" class="gallery-item">
+																	 <img class="img-fluid" src="' . $filepath . '" alt="Click to view the photo" style="width:30px; height:30px; margin-bottom:0px"/>
 																</a>';
 
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();
 																$projstage = $rows_project_stage['stage'];
-																?>
+														?>
 																<tr>
 																	<td width="5%"><?= $rowno; ?></td>
 																	<td width="5%"><?= $photo; ?></td>
 																	<td width="40%"><?= $filename; ?></td>
-																	<td width="40%"><?= $purpose; ?></td>
+																	<td width="30%"><?= $purpose; ?></td>
+																	<td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
 																	<td width="10%"><?= $projstage; ?></td>
 																</tr>
-																<?php
+														<?php
 															}
 														}
 														?>
@@ -198,9 +203,10 @@ if ($permission) {
 														<tr class="bg-grey">
 															<th width="5%"><strong>#</strong></th>
 															<th width="35%"><strong>Name</strong></th>
-															<th width="35%"><strong>Purpose</strong></th>
+															<th width="30%"><strong>Purpose</strong></th>
 															<th width="10%"><strong>Stage</strong></th>
-															<th width="15%"><strong>Action</strong></th>
+															<th width="10%"><strong>Created On</strong></th>
+															<th width="10%"><strong>Action</strong></th>
 														</tr>
 													</thead>
 													<tbody>
@@ -210,28 +216,30 @@ if ($permission) {
 														$count_project_videos = $query_project_videos->rowCount();
 														if ($count_project_videos > 0) {
 															$rowno = 0;
-															while ($rows_project_videos = $query_project_videos->fetch()){
+															while ($rows_project_videos = $query_project_videos->fetch()) {
 																$rowno++;
 																$projstageid = $rows_project_videos['projstage'];
 																$filename = $rows_project_videos['filename'];
 																$filepath = $rows_project_videos['floc'];
 																$purpose = $rows_project_videos['reason'];
+																$created_at = $rows_project_videos['date_uploaded'];
 
 																$query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
 																$query_project_stage->execute(array(":projstageid" => $projstageid));
 																$rows_project_stage = $query_project_stage->fetch();
 																$projstage = $rows_project_stage['stage'];
-																?>
+														?>
 																<tr>
 																	<td width="5%"><?= $rowno; ?></td>
 																	<td width="35%"><?= $filename; ?></td>
 																	<td width="35%"><?= $purpose; ?></td>
 																	<td width="10%"><?= $projstage; ?></td>
+																	<td width="10%"><?= date('d M Y', strtotime($created_at)) ?></td>
 																	<td width="15%">
 																		<a href="<?= $filepath; ?>" watch>Watch</a>
 																	</td>
 																</tr>
-																<?php
+														<?php
 															}
 														}
 														?>

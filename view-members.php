@@ -91,9 +91,9 @@ if ($permission) {
         }
 
 		if($designation == 6){
-			$where =" WHERE ministry = $ministry AND department=$sector";
+			$where =" WHERE ministry = $department_id AND department=$section_id";
 		} elseif ($designation == 7){
-			$where =" WHERE ministry = $ministry AND department=$sector AND directorate=$directorate";
+			$where =" WHERE ministry = $department_id AND department=$section_id AND directorate=$directorate_id";
 		} elseif ($designation == 1){
 			$where ="";
 		}

@@ -116,6 +116,7 @@ if ($permission) {
       $projid = $rows_survey_submissions['projid'];
       $form_id = $rows_survey_submissions['id'];
       $samplesize = $rows_survey_submissions['sample_size'];
+	  $impactid = $rows_survey_submissions['resultstypeid'];
 
       $query_projects = $db->prepare("SELECT * FROM tbl_projects WHERE  projid=:projid ");
       $query_projects->execute(array(":projid" => $projid));
@@ -654,7 +655,7 @@ if ($permission) {
                                 $form_name = $rows_survey_conclusion['form_name'];
                                 $form_id = $rows_survey_conclusion['id'];
                                 $indid = $rows_survey_conclusion['indid'];
-                                $iid = $rows_survey_conclusion['resultstypeid'];
+                                $impactid = $rows_survey_conclusion['resultstypeid'];
                                 $samplesize = $rows_survey_conclusion['sample_size'];
                                 $resultstype = $rows_survey_conclusion['resultstype'];
                                 $projstatus = $rows_projects['projstatus'];

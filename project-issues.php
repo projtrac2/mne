@@ -49,7 +49,10 @@ if ($permission) {
 		$query_last_monitoring = $db->prepare("SELECT date_created FROM tbl_project_risk_monitoring WHERE projid=:projid ORDER BY id DESC Limit 1");
 		$query_last_monitoring->execute(array(":projid" =>$projid));
 		$row_last_monitoring = $query_last_monitoring->fetch();
-		$last_monitoring = date("d M Y", strtotime($row_last_monitoring["date_created"]));
+		$last_monitoring = "Not Monitored";
+		if($row_last_monitoring){
+			$last_monitoring = date("d M Y", strtotime($row_last_monitoring["date_created"]));
+		}
 
 		$query_issues = $db->prepare("SELECT c.catid, c.category, i.id, i.issue_description, i.issue_area, i.issue_impact, i.issue_priority, i.date_created, i.status FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category WHERE projid = :projid");
 		$query_issues->execute(array(":projid" => $projid));
@@ -289,7 +292,6 @@ if ($permission) {
 																$priorityid = $row_issues["issue_priority"];
 																$status_id = $row_issues["status"];
 																$issuedate = $row_issues["date_created"];
-																$status = get_inspection_status($status_id);
 
 																$query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE id=:impactid");
 																$query_risk_impact->execute(array(":impactid" => $impactid));
@@ -332,9 +334,22 @@ if ($permission) {
 																$actduedate = date("Y-m-d", $duedate);
 
 																$styled = 'style="color:blue"';
-																if ($status_id == 1 && $actduedate < $current_date) {
-																	$actionstatus = "Behind Schedule";
-																	$styled = 'style="color:red"';
+																
+																if($status_id == 0){
+																	if ($actduedate >= $current_date) {
+																		$actionstatus = $stgstatus;
+																		$styled = 'style="color:blue"';
+																	} elseif ($actduedate < $current_date) {
+																		$actionstatus = "Behind Schedule";
+																		$styled = 'style="color:red"';
+																	}
+																}else{
+																	$query_issue_status = $db->prepare("SELECT status FROM tbl_issue_status WHERE statuskey=:statuskey");
+																	$query_issue_status->execute(array(":statuskey" => $status_id));
+																	$row_issue_status = $query_issue_status->fetch();
+																	
+																	$actionstatus = $row_issue_status["status"];
+																	$styled = 'style="color:green"';														
 																}
 															?>
 																<tr style="background-color:#fff">
@@ -343,7 +358,7 @@ if ($permission) {
 																	<td width="10%"><?php echo $category; ?></td>
 																	<td width="10%"><?php echo $impact; ?></td>
 																	<td width="10%"><span class="badge <?= $priorityclass; ?>"><?php echo $priority; ?></span></td>
-																	<td width="10%" <?= $styled ?>><?php echo $status; ?></td>
+																	<td width="10%" <?= $styled ?>><?php echo $actionstatus; ?></td>
 																	<td width="10%"><?php echo date("d M Y", strtotime($issuedate)); ?></td>
 																	<td width="10%">
 																		<div align="center" class="btn-group">

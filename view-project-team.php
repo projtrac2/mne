@@ -7,25 +7,21 @@ if ($permission) {
             $projcode = trim($_POST["srccode"]);
             $projsector = $_POST["srcsector"];
             if (!empty(($projcode)) && empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
+                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projcode" => $projcode));
-                $row_rsProjects = $query_rsProjects->fetch();
                 $totalRows_rsProjects = $query_rsProjects->rowCount();
             } elseif (empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE g.projdept = :projsector and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
+                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE g.projdept = :projsector and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
                 $totalRows_rsProjects = $query_rsProjects->rowCount();
             } elseif (!empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and g.projdept = :projsector and p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
+                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and g.projdept = :projsector and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
                 $query_rsProjects->execute(array(":projcode" => $projcode, ":projsector" => $projsector));
-                $row_rsProjects = $query_rsProjects->fetch();
                 $totalRows_rsProjects = $query_rsProjects->rowCount();
             }
         } else {
-            $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage > 3 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
+            $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
             $query_rsProjects->execute();
-            $row_rsProjects = $query_rsProjects->fetch();
             $totalRows_rsProjects = $query_rsProjects->rowCount();
         }
 
@@ -95,10 +91,10 @@ if ($permission) {
                                                 $row_projteam = $query_projteam->fetch();
                                                 $totalRows_projteam = $query_projteam->rowCount();
 
-                                                $query_projstage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id = :projstageid");
+                                                $query_projstage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE priority = :projstageid");
                                                 $query_projstage->execute(array(":projstageid" => $projstageid));
                                                 $row_projstage = $query_projstage->fetch();
-                                                $projstage = $row_projstage['stage'];
+                                                $projstage = $row_projstage ? $row_projstage['stage'] : '';
 
                                                 // if($totalRows_projteam < 6){
                                                 $query_rsPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE progid = :progid");
@@ -127,7 +123,7 @@ if ($permission) {
                                                                 </button>
                                                                 <ul class="dropdown-menu">
                                                                     <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="more(<?php echo $row_rsProjects['projid'] ?>, 1)">
+                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="get_team(<?php echo $row_rsProjects['projid'] ?>, 1)">
                                                                             <i class="fa fa-file-text"></i> View Team
                                                                         </a>
                                                                     </li>
@@ -175,6 +171,24 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Team Members</h4>
                 </div>
                 <div class="modal-body" id="moreinfo">
+                <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                <thead>
+                                    <tr class="bg-grey">
+                                        <th width="8%"><strong>Photo</strong></th>
+                                        <th width="32%"><strong>Fullname</strong></th>
+                                        <th width="15%"><strong>Designation</strong></th>
+                                        <th width="10%"><strong>Role</strong></th>
+                                        <th width="10%"><strong>Availability</strong></th>
+                                        <th width="15%"><strong>Email</strong></th>
+                                        <th width="10%"><strong>Phone</strong></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="team_members">
+
+                                </tbody>
+                            </table>
+                        </div>
                 </div>
                 <div class="modal-footer">
                     <div class="col-md-12 text-center">
@@ -230,49 +244,25 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script src="general-settings/js/fetch-selected-project-team.js"></script>
-
 <script type="text/javascript">
-    function CallRiskAction(id) {
-        $.ajax({
-            type: 'post',
-            url: 'callriskaction',
-            data: {
-                rskid: id
-            },
-            success: function(data) {
-                $('#riskaction').html(data);
-                $("#riskModal").modal({
-                    backdrop: "static"
-                });
+const get_team = projid=>{
+if(projid !=''){
+    $.ajax({
+        type: "get",
+        url: "ajax/team/info",
+        data: {
+            get_team_members:"get_team_members",
+            projid:projid
+        },
+        dataType: "json",
+        success: function (response) {
+            if(response.success){
+                $("#team_members").html(response.team);
+            }else{
+                console.log("Sorry no users found");
             }
-        });
-    }
-
-    $(document).ready(function() {
-        $(".account").click(function() {
-            var X = $(this).attr('id');
-            if (X == 1) {
-                $(".submenus").hide();
-                $(this).attr('id', '0');
-            } else {
-                $(".submenus").show();
-                $(this).attr('id', '1');
-            }
-        });
-        //Mouseup textarea false
-        $(".submenus").mouseup(function() {
-            return false
-        });
-        $(".account").mouseup(function() {
-            return false
-        });
-
-        //Textarea without editing.
-        $(document).mouseup(function() {
-            $(".submenus").hide();
-            $(".account").attr('id', '');
-        });
-
+        }
     });
+}
+}
 </script>

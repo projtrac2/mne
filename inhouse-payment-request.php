@@ -410,11 +410,11 @@ if ($permission) {
                                                                 <input type="text" name="amount_ceiling" value="<?= number_format($projcost, 2) ?>" id="amount_ceiling" class="form-control" readonly>
                                                             </div>
                                                         </div>
-                                                        <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                        <div class="row clearfix">
                                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="output_div">
                                                                 <label for="output" class="control-label">Output *:</label>
                                                                 <div class="form-line">
-                                                                    <select name="output" id="output" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                    <select name="output" id="output" class="form-control show-tick" onchange="get_sites()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
                                                                         <option value="">.... Select from list ....</option>
                                                                         <?php
                                                                         $outputs = '<option value="">Select Output from list</option>';
@@ -433,7 +433,6 @@ if ($permission) {
                                                                         <?php
                                                                             }
                                                                         }
-
                                                                         ?>
                                                                     </select>
                                                                 </div>
@@ -441,7 +440,7 @@ if ($permission) {
                                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="site_div">
                                                                 <label for="site_id" class="control-label">Site *:</label>
                                                                 <div class="form-line">
-                                                                    <select name="site_id" id="site_id" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                    <select name="site_id" id="site_id" class="form-control show-tick" onchange="get_tasks()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
                                                                         <option value="">.... Select from list ....</option>
                                                                     </select>
                                                                 </div>
@@ -454,7 +453,7 @@ if ($permission) {
                                                                     </select>
                                                                 </div>
                                                             </div>
-                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
                                                                 <div class="table-responsive">
                                                                     <table class="table table-bordered">
                                                                         <input type="hidden" name="task_id[]" id="task_id" value="0">
@@ -484,11 +483,11 @@ if ($permission) {
                                                                             <tr>
                                                                                 <td colspan="1"><strong>Sub Total</strong></td>
                                                                                 <td colspan="1">
-                                                                                    <input type="text" name="subtotal_amount1" value="" id="0_sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                                                    <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
                                                                                 </td>
                                                                                 <td colspan="1"> <strong>% Sub Total</strong></td>
                                                                                 <td colspan="2">
-                                                                                    <input type="text" name="subtotal_percentage" value="%" id="0_subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                                                    <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
                                                                                 </td>
                                                                             </tr>
                                                                         </tfoot>
@@ -518,7 +517,7 @@ if ($permission) {
                                     <div class="modal-footer">
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                             <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                            <input type="hidden" name="stage" id="stage" value="<?= $project_stage ?>">
+                                            <input type="hidden" name="project_stage" id="project_stage" value="<?= $project_stage ?>">
                                             <input type="hidden" name="amount_requested" id="amount_requested" value="">
                                             <input type="hidden" name="request_id" id="request_id" value="">
                                             <input type="hidden" name="cost_type" id="cost_type" value="">
@@ -561,6 +560,7 @@ require('includes/footer.php');
     $(document).ready(function() {
         $("#modal_form_submit").submit(function(e) {
             e.preventDefault();
+            var cost_type = $("#purpose").val();
             $.ajax({
                 type: "post",
                 url: ajax_url,
@@ -578,14 +578,44 @@ require('includes/footer.php');
                             .find("form")
                             .trigger("reset");
                     });
+
                     setTimeout(() => {
-                        window.location.reload();
+                        if (cost_type == 1) {
+                            window.location.reload();
+                        } else {
+                            window.location.href = "inhouse-payment-requests.php";
+                        }
                     }, 3000);
                 }
             });
         });
-
         $("#direct_cost").hide();
+
+        // check if the input has already been selected
+        $(document).on("change", ".description", function(e) {
+            var tralse = true;
+            var select_funding_arr = [];
+            var attrb = $(this).attr("id");
+            var selectedid = "#" + attrb;
+            var selectedText = $(selectedid + " option:selected").html();
+
+            $(".description").each(function(k, v) {
+                var getVal = $(v).val();
+                if (getVal && $.trim(select_funding_arr.indexOf(getVal)) != -1) {
+                    tralse = false;
+                    swal("Warning", "You canot select budgetline " + selectedText + " more than once ", "warning");
+                    var rw = $(v).attr("data-id");
+                    var target = rw;
+                    $(v).val("");
+                    return false;
+                } else {
+                    select_funding_arr.push($(v).val());
+                }
+            });
+            if (!tralse) {
+                return false;
+            }
+        });
     });
 
 
@@ -597,25 +627,121 @@ require('includes/footer.php');
         return val;
     }
 
+    function get_tasks_budgetlines() {
+        var tasks = $("#tasks").val();
+        $("#budgetline_div").hide();
+
+        if (tasks.length > 0) {
+            $("#budgetline_div").show();
+        }
+    }
 
     const add_request_details = () => {
         var purpose = $("#purpose").val();
         if (purpose != '') {
             get_details();
-
             $("#output_div").hide();
             $("#site_div").hide();
             $("#tasks_div").hide();
             $("#output").removeAttr("required");
             $("#site_id").removeAttr("required");
             $("#tasks").removeAttr("required");
+            $("#tasks").html("");
+            $(".selectpicker").selectpicker("refresh");
             $("#store").val("new");
+            $("#budgetline_div").show();
+            $("#project_commets_div").show();
+            $("#comment").attr("required", "required");
+            $("#cost_type").val(purpose);
             if (purpose == '1') {
+                $("#project_commets_div").hide();
+                $("#budgetline_div").hide();
                 $("#output_div").show();
                 $("#output").attr('required', 'required');
+                $("#comment").removeAttr('required');
             }
+
         } else {
             error_alert("Please select a purpose");
+            setTimeout(() => {
+                $(".modal").each(function() {
+                    $(this).modal("hide");
+                    $(this)
+                        .find("form")
+                        .trigger("reset");
+                });
+            }, 3000);
+            $("#cost_type").val('');
+        }
+    }
+
+    //
+    function get_sites() {
+        var projid = $("#projid").val();
+        var output_id = $("#output").val();
+        $("#site_div").hide();
+        $("#tasks_div").hide();
+        $("#tasks").html("");
+        $(".selectpicker").selectpicker("refresh");
+        if (output_id != '') {
+            $.ajax({
+                type: "get",
+                url: "ajax/payments/index",
+                data: {
+                    get_sites: "get_sites",
+                    projid: projid,
+                    output_id: output_id
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        var mapping_type = response.mapping_type;
+                        if (mapping_type == 1 || mapping_type == 3) {
+                            $("#site_div").show();
+                            $("#site_id").html(response.sites);
+                        } else {
+                            $("#tasks_div").show();
+                            $("#tasks").html(response.tasks);
+                            $(".selectpicker").selectpicker("refresh");
+                        }
+                    } else {
+                        console.log("Error");
+                    }
+                }
+            });
+        } else {
+            console.log("Error, please select an output");
+        }
+    }
+
+    function get_tasks() {
+        var projid = $("#projid").val();
+        var output_id = $("#output").val();
+        var site_id = $("#site_id").val();
+        $("#tasks_div").hide();
+        if (site_id != '') {
+            $.ajax({
+                type: "get",
+                url: "ajax/payments/index",
+                data: {
+                    get_tasks: "get_tasks",
+                    projid: projid,
+                    output_id: output_id,
+                    site_id: site_id,
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        $("#tasks_div").show();
+                        $("#tasks").html(response.tasks);
+                        $(".selectpicker").selectpicker("refresh");
+                    } else {
+                        console.log("Error");
+                    }
+                }
+            });
+        } else {
+            console.log("Error, please select an output");
         }
     }
 
@@ -653,25 +779,24 @@ require('includes/footer.php');
     // function to add new rowfor financiers
     function add_budget_costline() {
         var stage = $("#stage").val();
-        var purpose = '';
+        var purpose = $("#purpose").val();
         var result = false;
         var task = '';
-
-        if (stage == '10') {
-            purpose = $("#purpose").val();
-            result = purpose != '' ? true : false;
-            if (purpose == 1) {
-                task = $("#tasks").val();
-                result = task != '' ? true : false;
+        result = false;
+        var msg = "Please select a purpose first";
+        if (purpose != '') {
+            result = true;
+            if (stage == '10') {
+                if (purpose == 1) {
+                    task = $("#tasks").val();
+                    result = task != '' ? true : false;
+                    msg = task == '' ? "Please select a task first" : '';
+                }
             }
-        } else {
-            purpose = $("project_purpose").val();
-            result = purpose != '' ? true : false;
         }
 
-
         if (result) {
-            $("#cost_type").val(purpose);
+            // $("#cost_type").val(purpose);
             $(`#_removeTr`).remove(); //new change
             $rowno = $(`#_budget_lines_values_table tr`).length;
             $rowno += 1;
@@ -685,10 +810,10 @@ require('includes/footer.php');
                     </td>
                     <td id="unit${$rowno}"> </td>
                     <td>
-                        <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno}, )" onkeyup="calculate_total_cost(${$rowno}, )">
+                        <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})">
                     </td>
                     <td>
-                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno}, )" onkeyup="calculate_total_cost(${$rowno}, )" id="no_units${$rowno}">
+                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" id="no_units${$rowno}">
                     </td>
                         <td>
                         <input type="hidden" name="h_no_units[]" id="h_no_units${$rowno}">
@@ -706,7 +831,7 @@ require('includes/footer.php');
                 </tr>`);
             get_budgetline_details($rowno, purpose);
         } else {
-            error_alert('Please select a purpose first');
+            error_alert(msg);
         }
     }
 
@@ -726,8 +851,12 @@ require('includes/footer.php');
 
     function get_budgetline_details(rowno, task_id, cost_type) {
         var projid = $("#projid").val();
+        var output_id = $("#output").val();
+        var site_id = $("#site_id").val();
+        var task_id = $("#tasks").val();
         var stage = $("#stage").val();
         var cost_type = $("#purpose").val();
+
         if (projid != "") {
             $.ajax({
                 type: "get",
@@ -735,10 +864,12 @@ require('includes/footer.php');
                 data: {
                     get_budgetline_info: "get_budgetline_info",
                     projid: projid,
+                    output_id: output_id,
+                    site_id: site_id,
+                    task_id: task_id,
                     stage: stage,
                     purpose: cost_type,
                     cost_type: cost_type,
-                    task_id: task_id,
                 },
                 dataType: "json",
                 success: function(response) {
@@ -770,11 +901,11 @@ require('includes/footer.php');
                 dataType: "json",
                 success: function(response) {
                     if (response.success) {
-                        var description = $(`#direct_cost_id${rowno}`).val();
+                        var description = $(`#description${rowno}`).val();
                         if (description != "") {
                             var budgetline_details = response.budgetline_details;
                             var unit_cost = budgetline_details.unit_cost;
-                            var unit = budgetline_details.unit;
+                            var unit = budgetline_details.unit_of_measure;
                             $(`#p_no_units${rowno}`).val(response.remaining_units);
                             $(`#h_no_units${rowno}`).val(response.remaining_units);
                             $(`#unit_cost${rowno}`).val(unit_cost);
@@ -784,10 +915,19 @@ require('includes/footer.php');
                             $(`#subtotal_cost${rowno}`).html("");
                         } else {
                             console.log("data could not be found")
+                            $(`#unit_cost${rowno}`).val("");
+                            $(`#no_units${rowno}`).val("");
+                            $(`#subtotal_amount${rowno}`).val("");
+                            $(`#subtotal_cost${rowno}`).val("");
                         }
                     } else {
-                        console.log("data could not be found")
+                        console.log("data could not be found");
+                        $(`#unit_cost${rowno}`).val("");
+                        $(`#no_units${rowno}`).val("");
+                        $(`#subtotal_amount${rowno}`).val("");
+                        $(`#subtotal_cost${rowno}`).val("");
                     }
+                    calculate_subtotal();
                 }
             });
         } else {
@@ -795,7 +935,7 @@ require('includes/footer.php');
         }
     }
 
-    function calculate_total_cost(rowno, task_id) {
+    function calculate_total_cost(rowno) {
         var unit_cost = $(`#unit_cost${rowno}`).val();
         var no_units = $(`#no_units${rowno}`).val();
         var h_no_units = $(`#h_no_units${rowno}`).val();
@@ -832,20 +972,19 @@ require('includes/footer.php');
         }
         $(`#subtotal_amount${rowno}`).val(total);
         $(`#subtotal_cost${rowno}`).html(commaSeparateNumber(total));
-        calculate_subtotal(task_id);
+        calculate_subtotal(rowno);
     }
 
-    function calculate_subtotal(task_id) {
+    function calculate_subtotal() {
         var ceiling_amount = $("#ceiling_amount").val();
         var total_amount = 0;
-        $(`.sub${task_id}`).each(function() {
+        $(`.sub`).each(function() {
             if ($(this).val() != "") {
                 total_amount = total_amount + parseFloat($(this).val());
             }
         });
-
         var percentage = ((total_amount / ceiling_amount) * 100);
-        $(`#${task_id}_sub_total_amount`).val(commaSeparateNumber(total_amount));
-        $(`#${task_id}_subtotal_percentage`).val(percentage);
+        $(`#sub_total_amount`).val(commaSeparateNumber(total_amount));
+        $(`#subtotal_percentage`).val(percentage);
     }
 </script>

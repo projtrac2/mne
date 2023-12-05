@@ -77,6 +77,23 @@ if ($permission) {
         $result = flashMessage("An error occurred: " . $ex->getMessage());
     }
 ?>
+    <style>
+        .mt-map-wrapper {
+            width: 100%;
+            padding-bottom: 41.6%;
+            height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .mt-map {
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            position: absolute;
+        }
+    </style>
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
@@ -194,16 +211,12 @@ if ($permission) {
                                                                                             <i class="fa fa-file-text"></i> Automated Mapping
                                                                                         </a>
                                                                                     </li>
-                                                                                    <?php
-                                                                                    if ($total_rsMapping == 0) {
-                                                                                    ?>
-                                                                                        <li>
-                                                                                            <a type="button" href="add-map-data-manual.php?state_id=<?= base64_encode($state_id) ?>&site_id=<?= base64_encode($site_id) ?>&opid=<?= base64_encode($output_id) ?>">
-                                                                                                <i class="fa fa-file-text"></i> Manual Mapping
-                                                                                            </a>
-                                                                                        </li>
+                                                                                    <li>
+                                                                                        <a type="button" href="add-map-data-manual.php?state_id=<?= base64_encode($state_id) ?>&site_id=<?= base64_encode($site_id) ?>&opid=<?= base64_encode($output_id) ?>">
+                                                                                            <i class="fa fa-file-text"></i> Manual Mapping
+                                                                                        </a>
+                                                                                    </li>
                                                                                 <?php
-                                                                                    }
                                                                                 }
                                                                                 ?>
                                                                             </ul>
@@ -266,15 +279,13 @@ if ($permission) {
                                                                                 </a>
                                                                             </li>
                                                                             <?php
-                                                                            if ($total_rsMapping == 0) {
                                                                             ?>
-                                                                                <li>
-                                                                                    <a type="button" href="add-map-data-manual.php?state_id=<?= base64_encode($state_id) ?>&site_id=<?= base64_encode($site_id) ?>&opid=<?= base64_encode($output_id) ?>">
-                                                                                        <i class="fa fa-file-text"></i> Manual Mapping
-                                                                                    </a>
-                                                                                </li>
+                                                                            <li>
+                                                                                <a type="button" href="add-map-data-manual.php?state_id=<?= base64_encode($state_id) ?>&site_id=<?= base64_encode($site_id) ?>&opid=<?= base64_encode($output_id) ?>">
+                                                                                    <i class="fa fa-file-text"></i> Manual Mapping
+                                                                                </a>
+                                                                            </li>
                                                                         <?php
-                                                                            }
                                                                         }
                                                                         ?>
                                                                     </ul>
@@ -282,7 +293,6 @@ if ($permission) {
                                                             </td>
                                                         </tr>
                                         <?php
-
                                                     }
                                                 }
                                             }
@@ -338,6 +348,23 @@ if ($permission) {
                     </div>
                 </div>
             </div>
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="body">
+                            <input type="hidden" name="lat" id="lat" value="-1.2864">
+                            <input type="hidden" name="long" id="long" value="36.8172">
+                            <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                            <div class="mt-map-wrapper">
+                                <div class="mt-map propmap" id="map">
+                                    <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </section>
     <!-- end body  -->
 
@@ -349,8 +376,11 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
+
 <script>
     const redirect_url = "project-mapping.php";
 </script>
 <script src="assets/js/map/index.js"></script>
 <script src="assets/js/master/index.js"></script>
+<script src="assets/js/map/project.js"></script>

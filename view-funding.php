@@ -75,7 +75,6 @@ if ($permission) {
                                             $query_funds =  $db->prepare("SELECT * FROM tbl_funds f inner join tbl_financiers fc on fc.id=f.funder WHERE fc.type=:fcid");
                                             $query_funds->execute(array(":fcid" => $fundingcatid));
                                             $totalrows_funds = $query_funds->rowCount();
-
                                             if ($fundingcatid == 1) {
                                     ?>
                                                 <li class="active">

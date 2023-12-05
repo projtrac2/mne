@@ -105,13 +105,11 @@ if ($permission) {
             $lat = $_POST['latitude'];
             $lng = $_POST['longitude'];
 
-            if ($mapping_type == 1) {
-                $sql = $db->prepare("DELETE FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id");
-                $sql->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
-            }
+            $sql = $db->prepare("DELETE FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id");
+            $sql->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
 
-            $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,state,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:state,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
-            $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ":state" => $state_id, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+            $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
+            $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
             $msg = 'The Mapping was successfully.';
 
             $hashproc = base64_encode("projid54321{$projid}");

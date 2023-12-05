@@ -119,20 +119,18 @@ if ($permission) {
                 }
                 return !in_array(false, $outputs) ? true : false;
             }
-            $approval_stage = ($project_sub_stage  >= 2) ? true : false;
+            $approval_stage = ($project_sub_stage  == 1) ? true : false;
 
             $proceed = validate_program_of_works();
 
             if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "approve")) {
-                $sub_stage = 1;
-				$current_date = date("Y-m-d");
+                $current_date = date("Y-m-d");
                 $projid = $_POST['projid'];
                 $comments = $_POST['comments'];
 
+                $sub_stage = 2;
                 if ($_POST['submit'] == "Approve") {
                     $sub_stage = 3;
-                } else if ($_POST['submit'] == "Amend") {
-                    $sub_stage = 2;
                 }
 
                 $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
@@ -257,11 +255,11 @@ if ($permission) {
                                                                                             <h5><u>
                                                                                                     TASK <?= $task_counter ?>: <?= $milestone ?>
                                                                                                     <?php
-                                                                                                    if (!$approval_stage && $implimentation_type == 1 ) {
+                                                                                                    if (!$approval_stage && $implimentation_type == 1) {
                                                                                                     ?>
                                                                                                         <div class="btn-group" style="float:right">
                                                                                                             <div class="btn-group" style="float:right">
-                                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px"> 
+                                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
                                                                                                                     <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                                                                                                 </button>
                                                                                                             </div>
@@ -545,7 +543,7 @@ if ($permission) {
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="MM_insert" value="approve">
-                                                    <input type="hidden" name="projid" value="<?=$projid?>">
+                                                    <input type="hidden" name="projid" value="<?= $projid ?>">
                                                     <input name="submit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit1" value="Approve" />
                                                     <input name="submit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit2" value="Amend" />
                                                 </div>
@@ -646,4 +644,3 @@ require('includes/footer.php');
     const redirect_url = "add-program-of-works.php";
 </script>
 <script src="assets/js/programofWorks/index.js"></script>
-<script src="assets/js/master/index.js"></script>

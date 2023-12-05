@@ -173,7 +173,10 @@ function add_row_partners() {
     <tr id="ptns${$rowno}">
         <td></td>
         <td>
-            <input type="text" name="partner_name[]" id="partner_name" multiple class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required>
+            <select name="partner_id[]" id="partner_id${$rowno}" class="form-control partner_role" required="required">
+                <option value="">Select Parner Role from list</option>
+                ${details.partners}
+            </select>
         </td>
         <td>
             <select name="partner_role[]" id="partner_role${$rowno}" class="form-control partner_role" required="required">

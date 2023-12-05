@@ -27,6 +27,7 @@ $(document).ready(function () {
             }
         });
     });
+    $("#adjust_scope").hide();
 });
 
 function add_project_issues(projid, project_name) {
@@ -43,9 +44,9 @@ function add_project_issues(projid, project_name) {
             dataType: "json",
             success: function (response) {
                 if (response.success) {
-                    $("#previous_remarks").html(response.issues);
+                    $("#previous_issues").html(response.issues);
                 } else {
-                    $("#previous_remarks").html("<h1>No records Found</h1>");
+                    $("#previous_issues").html('<h4 class="text-danger">No records found!</h4>');
                 }
             }
         });
@@ -176,3 +177,26 @@ function number_table() {
             .html(idx + 1);
     });
 }
+
+//filter the expected output  cannot be selected twice
+function adjustscope() {
+	var issue_area = $("#issue_area").val();
+	if ( issue_area == 2 ){
+		$("#adjust_scope").show();
+	} else {
+		$("#adjust_scope").hide();
+	}
+};
+
+function adjustedscopes(issueid) {
+	var clicked = $("#clicked").val();
+	if ( clicked == 0 ){
+		$("." + issueid).show();
+		clicks = clicked + 1;
+	}else{
+		$("." + issueid).hide();
+		clicks = clicked - 1;
+	}
+	
+	$('#clicked').val(clicks);
+};

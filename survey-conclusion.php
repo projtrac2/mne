@@ -364,7 +364,7 @@ if ($permission) {
 											  </thead>
 											  <tbody>';
 											  
-											  $totalanswer = $sr=0;
+											  $totalamount = $totalanswer = $sr=0;
 												foreach($rows_form_locations as $locationid){
 													$sr++;
 													$locationid = $locationid["level3"];
@@ -379,21 +379,20 @@ if ($permission) {
 														$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
 														$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
 														$count_answers = $query_answers->rowCount();
-														
+														$question_answer = $summation = 0;
 														if($calculation_method == 1){
-															$question_answer = 0;
 															while($rows_answers = $query_answers->fetch()){
 																$question_answer +=$rows_answers["answer"];
 															}
 															$totalanswer += $question_answer;
 															$totalamount = $totalanswer;
 														}elseif($calculation_method == 2){
-															$summation = 0;
 															while($rows_answers = $query_answers->fetch()){
 																$summation +=$rows_answers["answer"];
-															}																
+															}	
+															$question_answer = $summation;	
+															$totalamount = $summation;															
 														}elseif($calculation_method == 3){
-															$question_answer = $summation = 0;
 															while($rows_answers = $query_answers->fetch()){
 																$summation +=$rows_answers["answer"];
 															}

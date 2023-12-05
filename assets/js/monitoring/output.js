@@ -1,34 +1,62 @@
 var ajax_url = "ajax/monitoring/output";
 
-$(document).ready(function () {
-    $("#add_items").submit(function (e) {
-        e.preventDefault();
-        $("#tag-form-submit").prop("disabled", true);
-        var data = $(this)[0];
-        var form = new FormData(data);
-        $.ajax({
-            type: "post",
-            url: ajax_url,
-            data: form,
-            processData: false,
-            contentType: false,
-            cache: false,
-            timeout: 600000,
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    success_alert("Success!");
-                } else {
-                    sweet_alert("Error!");
-                }
-                $("#tag-form-submit").prop("disabled", false);
-                setTimeout(() => {
-                    window.location.reload(true);
-                }, 3000);
+function submitForm(form){
+    $.ajax({
+        type: "post",
+        url: ajax_url,
+        data: form,
+        processData: false,
+        contentType: false,
+        cache: false,
+        timeout: 600000,
+        dataType: "json",
+        success: function (response) {
+            if (response.success) {
+                success_alert("Success!");
+            } else {
+                sweet_alert("Error!");
             }
-        });
+            $("#tag-form-submit").prop("disabled", false);
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 3000);
+        }
+    });
+}
+
+
+$(document).ready(function () {
+    $("#add_items button").click(function (ev) {
+        ev.preventDefault();
+        var data = $("#add_items")[0];
+        var form = new FormData(data);
+        $("#tag-form-submit").prop("disabled", true);
+        $("#tag-form-submit1").prop("disabled", true);
+        if ($(this).attr("value") == "button2") {
+            swal({
+                title: "Are you sure?",
+                text: `You want to complete output monitoring!`,
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+                .then((willDelete) => {
+                    if (willDelete) {
+                        form.append("button", "1");
+                        submitForm(form);
+                    } else {
+                        swal("You cancelled the action!");
+                    }
+                });
+        } else if ($(this).attr("value") == "button1") {
+            form.append("button", "0");
+            submitForm(form);
+        }
+        $("#tag-form-submit").prop("disabled", false);
+        $("#tag-form-submit1").prop("disabled", false);
     });
     hide_milestone_divs(false);
+    $("#tag-form-submit1").hide();
 });
 
 
@@ -39,6 +67,7 @@ function get_project_outputs(projid, record_type) {
             .find("form")
             .trigger("reset");
     });
+    $("#tag-form-submit1").hide();
     hide_milestone_divs(false);
     $("#current_measure").val("");
     $("#record_type").val(record_type);
@@ -91,10 +120,15 @@ function get_sites() {
                     $("#output_project_type").val(output_project_type);
                     $("#site").html(response.sites);
                     var output_details = response.output_details;
+                    console.log(output_details);
                     $("#target").val(output_details.output_target);
                     $("#cummulative").val(output_details.output_cummulative_record);
                     $("#previous").val(output_details.previous);
-                    $("#completed").val(output_details.output_complete);
+                    $("#completed").val(output_details.output_completed);
+
+                    if (output_details.output_complete == 2) {
+                        $("#tag-form-submit1").show();
+                    }
                 } else {
                     error_alert("Sorrry could not find output sites");
                     $("#site").html('<option value="">.... Select Site ....</option>');
@@ -140,7 +174,7 @@ function get_milestones() {
                         $("#site_achieved").val(site_details.site_cummulative_record);
                         $("#cummulative").val(site_details.site_cummulative_record);
                         $("#previous").val(site_details.site_previous_record);
-                        $("#completed").val(site_details.output_completed);
+                        $("#completed").val(site_details.site_completed);
                     } else {
                         error_alert("Sorrry could not find milestone outputs");
                         $("#milestone").html('<option value="">.... Select Milestone ....</option>');

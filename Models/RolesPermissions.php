@@ -1,4 +1,4 @@
-<?php 
+<?php
 class RolesPermissions
 {
     protected $db;
@@ -41,7 +41,7 @@ class RolesPermissions
         }
     }
 
-    // 
+    
     public function get_department($department)
     {
         $query_rsDepartment =  $this->db->prepare("SELECT * FROM `tbl_sectors` WHERE stid=:department");
@@ -58,7 +58,7 @@ class RolesPermissions
     // users
     public function get_sidebar($role_id)
     {
-        // $where = $role_id == 3 ? "AND Name != 'Projects Data'" : " "; 
+        // $where = $role_id == 3 ? "AND Name != 'Projects Data'" : " ";
         $query_Sidebar =  $this->db->prepare("SELECT * FROM tbl_sidebar_menu WHERE parent = 0 AND status =1 ");
         $query_Sidebar->execute(array(":role_id" => $role_id));
         $row_rsSidebar = $query_Sidebar->fetchAll();
@@ -83,7 +83,7 @@ class RolesPermissions
         }
     }
 
-    // 
+    //
     public function get_designation_permissions($designation)
     {
         $query_DesignationPermission =  $this->db->prepare("SELECT * FROM tbl_designation_permissions WHERE designation_id =:designation");

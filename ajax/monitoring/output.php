@@ -92,7 +92,7 @@ try {
         $milestone_target = $totalRows_rsTarget > 0 ? $Rows_rsTarget['target'] : 0;
 
         $query_rsCummulative = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE  milestone_id=:milestone_id AND output_id=:output_id AND record_type=:record_type");
-        $query_rsCummulative->execute(array(":milestone_id" => $milestone_id,":output_id" => $output_id, ":record_type" => $record_type));
+        $query_rsCummulative->execute(array(":milestone_id" => $milestone_id, ":output_id" => $output_id, ":record_type" => $record_type));
         $Rows_rsCummulative = $query_rsCummulative->fetch();
         $milestone_cummulative_record = $Rows_rsCummulative['achieved'] != null ? $Rows_rsCummulative['achieved'] : 0;
 
@@ -101,11 +101,11 @@ try {
         $Rows_rsPrevious = $query_rsPrevious->fetch();
         $milestone_previous_record = $Rows_rsPrevious ? $Rows_rsPrevious['achieved'] : 0;
 
-        $query_rsCompleted = $db->prepare("SELECT * FROM tbl_project_milestone WHERE id=:milestone_id AND complete=0");
+        $query_rsCompleted = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE  milestone_id=:milestone_id AND complete=0");
         $query_rsCompleted->execute(array(":milestone_id" => $milestone_id));
         $totalRows_rsCompleted = $query_rsCompleted->rowCount();
         $completed = $totalRows_rsCompleted > 0 ? 1 : 2;
-        return array("milestone_target" => $milestone_target, "milestone_cummulative_record" => $milestone_cummulative_record, "milestone_previous_record" => $milestone_previous_record, "milestone_completed" =>$completed);
+        return array("milestone_target" => $milestone_target, "milestone_cummulative_record" => $milestone_cummulative_record, "milestone_previous_record" => $milestone_previous_record, "milestone_completed" => $completed);
     }
 
     function previous_remarks($milestone_id, $site_id, $subtask_id, $task_id, $record_type)

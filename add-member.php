@@ -317,6 +317,7 @@ if ($permission) {
                 $results = alert_message('Error', $msg, 'Error', 'error');
             }
         }
+        $where = '';
 
 		if($designation == 6){
 			$where = " WHERE position > 6";

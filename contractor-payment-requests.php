@@ -1,6 +1,17 @@
 <?php
 require('includes/head.php');
 if ($permission) {
+
+    function get_section($projid)
+    {
+        global $db;
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.projid=:projid");
+        $query_rsProjects->execute(array(":projid" => $projid));
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
+        $Rows_rsProjects = $query_rsProjects->fetch();
+
+        return $totalRows_rsProjects > 0 ? $Rows_rsProjects['sector'] : '';
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -85,6 +96,7 @@ if ($permission) {
                                                         $payment_stage = $rows_rsPayement_reuests['stage'];
                                                         $amount_paid = $rows_rsPayement_reuests['requested_amount'];
                                                         $contractor_id = $rows_rsPayement_reuests['contractor_id'];
+                                                        $complete = $rows_rsPayement_reuests['acceptance'];
 
                                                         $query_rsprojects =  $db->prepare("SELECT * FROM  tbl_projects WHERE projid = :projid");
                                                         $query_rsprojects->execute(array(":projid" => $projid));
@@ -102,9 +114,9 @@ if ($permission) {
                                                             if ($payment_stage == 1) {
                                                                 $stage = "Team Leader";
                                                             } else if ($payment_stage == 2) {
-                                                                $stage = "Inspection and Acceptance";
+                                                                $stage = "Acceptance";
                                                             } else if ($payment_stage == 3) {
-                                                                $stage = "CO Department";
+                                                                $stage = "CO " . get_section($projid);
                                                             } else if ($payment_stage == 4) {
                                                                 $status  = "Pending";
                                                                 $stage = "CO Finance";
@@ -143,6 +155,7 @@ if ($permission) {
                                                                 contractor_name:'$contractor_name',
                                                                 contract_no:'$contract_no',
                                                                 stage:'$payment_stage',
+                                                                complete:'$complete',
                                                             }";
                                                             $counter++;
                                                 ?>
@@ -360,9 +373,7 @@ if ($permission) {
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                                             <label for="payment_phase" class="control-label">Payment Phase:</label>
                                             <div class="form-line">
-                                                <select name="payment_phase" id="payment_phase" onchange="get_payment_plan_milestones()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false">
-                                                    <option value="">.... Select from list ....</option>
-                                                </select>
+                                                <input type="text" name="payment_phase" value="" id="payment_phase" class="form-control" readonly>
                                             </div>
                                         </div>
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -425,6 +436,12 @@ if ($permission) {
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="">
+                                    <label for="invoice" class="control-label">Invoice Attachment:</label>
+                                    <div class="form-line">
+                                        <div id="attachment_div"></div>
+                                    </div>
+                                </div>
                                 <div id="comments_div"></div>
                             </fieldset>
                             <fieldset class="scheduler-border" id="project_approve_div">
@@ -432,7 +449,7 @@ if ($permission) {
                                     <i class="fa fa-comment" aria-hidden="true"></i> Remarks
                                 </legend>
                                 <div id="comment_section">
-                                    <div class="col-md-12">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <label class="control-label">Remarks *:</label>
                                         <br />
                                         <div class="form-line">
@@ -450,6 +467,7 @@ if ($permission) {
                             <input type="hidden" name="payment_plan" id="payment_plan" value="">
                             <input type="hidden" name="stage" id="stage" value="1">
                             <input type="hidden" name="request_id" id="request_id" value="">
+                            <input type="hidden" name="complete" id="complete" value="">
                             <input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
                             <input type="hidden" name="approve_contractor_payment" id="approve_contractor_payment" value="new">
                             <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">Approve</button>
@@ -508,6 +526,7 @@ require('includes/footer.php');
         $("#payment_plan").val(details.payment_plan);
         $("#project_plan").val(details.project_plan);
         $("#stage").val(details.stage);
+        $("#complete").val(details.complete);
 
         $("#milestones").hide();
         $("#tasks").hide();
@@ -543,19 +562,20 @@ require('includes/footer.php');
                 success: function(response) {
                     if (response.details.success) {
                         $("#comments_div").html(response.comments);
+                        $("#attachment_div").html(response.attachment);
                         if (details.payment_plan == '1') {
+                            $("#milestones").show();
                             $("#milestone_table").html(response.details.milestones);
                             $("#request_amount").val(response.details.request_amount);
                             $("#request_percentage").val(response.details.request_percentage);
                             $("#requested_amount").val(response.details.request_amount);
-                            $("#payment_phase").html(response.details.payment_phases);
-                        } else if (details.payment_plan == '2') {
+                            $("#payment_phase").val(response.details.payment_phase);
+                        } else {
+                            $("#tasks").show();
                             $("#tasks_table").html(response.details.tasks);
                             $("#subtotal").html(response.details.task_amount);
                             $("#requested_amount").val(response.details.task_amount);
                         }
-                    } else {
-                        // sweet_alert("No data found !!!")
                     }
                 }
             });

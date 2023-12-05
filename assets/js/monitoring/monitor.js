@@ -189,6 +189,12 @@ function add_checklist(task_id, subtask_id) {
                 $("#previous").val(response.previous_record);
                 $("#previous_remarks").html(response.previous_remarks);
                 $("#task_name").html(response.subtask);
+
+                var issue = response.issues;
+                $("#tag-form-submit1").show();
+                if (issue == "1") {
+                    $("#tag-form-submit1").hide();
+                }
             } else {
                 console.log("Sorrry could not find milestone outputs");
             }

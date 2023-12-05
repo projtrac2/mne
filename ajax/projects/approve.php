@@ -326,13 +326,13 @@ if (isset($_POST["approveitem"])) {
       }
 
       // other partners
-      if (isset($_POST['partner_name'])) {
-         for ($i = 0; $i < count($_POST['partner_name']); $i++) {
+      if (isset($_POST['partner_id'])) {
+         for ($i = 0; $i < count($_POST['partner_id']); $i++) {
             $partner_role = $_POST['partner_role'][$i];
-            $partner_name = $_POST['partner_name'][$i];
+            $partner_id = $_POST['partner_id'][$i];
             $description = $_POST['description'][$i];
-            $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojpartner`(projid,name,role,description,created_by,created_at) VALUES(:projid, :partner_name,:partner_role,:description,:created_by,:created_at)");
-            $result1  = $insertSQL1->execute(array(":projid" => $projid, ":partner_name" => $partner_name, ":partner_role" => $partner_role, ":description" => $description, ":created_by" => $user_name, ":created_at" => $date));
+            $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojpartner`(projid,partner_id,role,description,created_by,created_at) VALUES(:projid, :partner_id,:partner_role,:description,:created_by,:created_at)");
+            $result1  = $insertSQL1->execute(array(":projid" => $projid, ":partner_id" => $partner_id, ":partner_role" => $partner_role, ":description" => $description, ":created_by" => $user_name, ":created_at" => $date));
          }
       }
 
@@ -403,6 +403,7 @@ if (isset($_POST["approveitem"])) {
 
 if (isset($_POST['unapproveitem'])) {
    $projid = $_POST['projid'];
+
    // delete tbl_project_output_details table
    $deleteQuery = $db->prepare("DELETE FROM `tbl_myprojfunding` WHERE projid=:projid");
    $results = $deleteQuery->execute(array(':projid' => $projid));
@@ -420,7 +421,7 @@ if (isset($_POST['unapproveitem'])) {
    $approved = $approveQuery->execute(array(':projid' => $projid));
 
    $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET  projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-   $approved = $approveItemQuery->execute(array( ":approved" => 0, ":stage" => 0, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
+   $approved = $approveItemQuery->execute(array(":approved" => 0, ":stage" => 0, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
 
    if ($approved) {
       $valid['success'] = true;

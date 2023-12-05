@@ -63,6 +63,9 @@ if ($permission) {
                             <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
                                 <span class="glyphicon glyphicon-plus"></span> Add Subject
                             </button>
+                            <a type="button" id="outputItemModalBtnrow" href="project-output-monitoring-checklist.php" class="btn btn-warning pull-right" style="margin-right:10px;">
+                                Go Back
+                            </a>
                         </div>
                     </div>
                 </h4>
@@ -95,6 +98,11 @@ if ($permission) {
                                                     $created_at = $row_issuediscussion['created_at'];
                                                     $topic_id_hashed = base64_encode("projid54321{$topic_id}");
 
+
+                                                    $query_rsUsers = $db->prepare("SELECT * FROM `tbl_project_discussions` WHERE topic_id = :topic_id GROUP BY created_by ");
+                                                    $query_rsUsers->execute(array(':topic_id' => $topic_id));
+                                                    $totalRows_rsUsers = $query_rsUsers->rowCount();
+
                                                     $query_discussions = $db->prepare("SELECT * FROM `tbl_project_discussions` d INNER JOIN users u  ON u.userid=d.created_by INNER JOIN tbl_projteam2 p  ON u.pt_id = p.ptid WHERE topic_id = :topic_id ORDER BY id ASC");
                                                     $query_discussions->execute(array(':topic_id' => $topic_id));
                                                     $totalRows_issuediscussions = $query_discussions->rowCount();
@@ -117,7 +125,7 @@ if ($permission) {
                                                             </a>
                                                         </td>
                                                         <td data-label="Enrolled">
-                                                            <i class="fa fa-users" aria-hidden="true"></i> <?= 15 ?>
+                                                            <i class="fa fa-users" aria-hidden="true"></i> <?= $totalRows_rsUsers ?>
                                                         </td>
                                                         <td data-label="Enrolled">
                                                             <i class="fa fa-comments-o" aria-hidden="true"></i> <?= $totalRows_issuediscussions ?>

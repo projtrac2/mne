@@ -3,6 +3,12 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+session_start();
+(!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
+$_SESSION['last_accessed_url'] = $_SERVER['REQUEST_URI'];
+
+
+
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 include_once("includes/system-labels.php");
@@ -12,8 +18,7 @@ include "Models/Auth.php";
 include "Models/Company.php";
 include "Models/Permission.php";
 require 'Models/Connection.php';
-session_start();
-(!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
+
 
 
 $user_name = $_SESSION['MM_Username'];
@@ -663,7 +668,6 @@ function calculate_project_progress($projid, $implimentation_type)
             $site_id = $Rows_rsTask_Start_Dates['site_id'];
             $complete = $Rows_rsTask_Start_Dates['complete'];
 
-
             $query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_direct_cost_plan WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND cost_type=1 ");
             $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
             $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
@@ -688,12 +692,13 @@ function calculate_project_progress($projid, $implimentation_type)
                 $sub_percentage = $row_rsPercentage['achieved'] != null ?  ($row_rsPercentage['achieved'] / $units) * 100 : 0;
                 $percentage = $sub_percentage >= 100 ? 99 : $sub_percentage;
             }
+
             $progress += $cost > 0 && $direct_cost > 0 ? $cost / $direct_cost * $percentage : 0;
         }
+        $progress =  !in_array(false, $project_complete) ? 100 : $progress;
     }
 
-
-    return  !in_array(false, $project_complete) ? 100 : $progress;
+    return $progress;
 }
 
 
@@ -903,7 +908,6 @@ function calculate_site_progress($implimentation_type, $site_id)
 }
 
 
-
 function update_projects_status()
 {
     global $db;
@@ -914,7 +918,8 @@ function update_projects_status()
     if ($totalRows_rsProjects > 0) {
         while ($row_rsProjects = $query_rsProjects->fetch()) {
             $projid = $row_rsProjects['projid'];
-            $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date FROM tbl_program_of_works WHERE projid=:projid and complete=0");
+            $projstatus = $row_rsProjects['projstatus'];
+            $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
             $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
             $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
 
@@ -923,16 +928,35 @@ function update_projects_status()
                 while ($row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch()) {
                     $start_date = $row_rsTask_Start_Dates['start_date'];
                     $end_date = $row_rsTask_Start_Dates['end_date'];
+                    $id = $row_rsTask_Start_Dates['id'];
+                    $subtask_id = $row_rsTask_Start_Dates['subtask_id'];
+                    $site_id = $row_rsTask_Start_Dates['site_id'];
                     $today = date('Y-m-d');
-                    if ($start_date  <= $today) {
-                        if ($end_date < $today) {
-                            $status[] = 11;
-                        } else {
-                            $status[] = 4;
+                    $query_rsMilestone_cummulative =  $db->prepare("SELECT SUM(achieved) AS cummulative FROM tbl_project_monitoring_checklist_score WHERE subtask_id=:subtask_id AND site_id=:site_id ");
+                    $query_rsMilestone_cummulative->execute(array(":subtask_id" => $subtask_id, ':site_id' => $site_id));
+                    $row_rsMilestone_cummulative = $query_rsMilestone_cummulative->fetch();
+                    $achieved =  $row_rsMilestone_cummulative['cummulative'] != null ? $row_rsMilestone_cummulative['cummulative'] : 0;
+
+                    $subtask_status = 3;
+                    if ($start_date > $today && $achieved > 0) {
+                        $subtask_status = 4;
+                    }else if ($today > $start_date) {
+                        $subtask_status = 4;
+                        if ($today < $end_date) {
+                            $subtask_status = 4;
+                            if ($achieved == 0) {
+                                $subtask_status = 11;
+                            }
+                        } else if ($today > $end_date) {
+                            $subtask_status = 11;
                         }
-                    } else {
-                        $status[] = 3;
+                    } else if ($today == $start_date) {
+                        $subtask_status = 4;
                     }
+
+                    $status[] = $subtask_status;
+                    $sql = $db->prepare("UPDATE tbl_program_of_works SET status=:status WHERE  id=:id");
+                    $sql->execute(array(":status" => $subtask_status, ":id" => $id));
                 }
 
                 $projstatus = 3;
@@ -941,12 +965,31 @@ function update_projects_status()
                 } else if (in_array(4, $status)) {
                     $projstatus = 4;
                 }
-                $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
-                $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
+            } else {
+                $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=1");
+                $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
+                $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
+                if ($totalRows_rsTask_Start_Dates > 0) {
+                    $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid AND complete =0");
+                    $query_Output->execute(array(":projid" => $projid));
+                    $total_Output = $query_Output->rowCount();
+
+                    $query_rsIssues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status <> 7");
+                    $query_rsIssues->execute(array(":projid" => $projid));
+                    $total_rsIssues = $query_rsIssues->rowCount();
+                    if ($total_rsIssues > 0 && $total_Output  == 0) {
+                        $projstatus = 5;
+                    }
+                }
             }
+
+            $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
+            $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
         }
     }
 }
+
 
 
 update_projects_status();

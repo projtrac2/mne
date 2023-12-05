@@ -172,5 +172,4 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script src="assets/js/projects/view-project.js"></script>
-<script src="assets/js/master/index.js"></script>
+<script src="assets/js/projects/view-project.js"></script> 

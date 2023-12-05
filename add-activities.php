@@ -103,15 +103,9 @@
                         <?= $icon ?>
                         <?php echo $pageTitle ?>
                         <div class="btn-group" style="float:right">
-                            <?php
-                            if (!$approve) {
-                            ?>
-                                <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-warning " style="margin-right: 10px;">
-                                    Add Task
-                                </a>
-                            <?php
-                            }
-                            ?>
+                            <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-warning " style="margin-right: 10px;">
+                                Add Task
+                            </a>
                             <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px;">
                                 Go Back
                             </a>
@@ -175,27 +169,21 @@
                                                 <fieldset class="scheduler-border row setup-content" style="padding:10px">
                                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Task <?= $counter ?>: <?= strtoupper($milestone_name) ?></legend>
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 2)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary pull-right" style="margin-right:10px;">
+                                                            Add Sub-Task
+                                                        </a>
                                                         <?php
-                                                        if (!$approve) {
+                                                        if ($totalRows_rsTasks == 0) {
                                                         ?>
-                                                            <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 2)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary pull-right" style="margin-right:10px;">
-                                                                Add Sub-Task
-                                                            </a>
-                                                            <?php
-                                                            if ($totalRows_rsTasks == 0) {
-                                                            ?>
-                                                                <a type="button" onclick="destroy_task(<?= $milestone_id ?>, 1)" id="outputItemModalBtnrow" class="btn btn-danger pull-right" style="margin-right:10px;">
-                                                                    Delete Task
-                                                                </a>
-                                                            <?php
-                                                            }
-                                                            ?>
-                                                            <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 1, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-warning pull-right" style="margin-right:10px;">
-                                                                Edit Task
+                                                            <a type="button" onclick="destroy_task(<?= $milestone_id ?>, 1)" id="outputItemModalBtnrow" class="btn btn-danger pull-right" style="margin-right:10px;">
+                                                                Delete Task
                                                             </a>
                                                         <?php
                                                         }
                                                         ?>
+                                                        <a type="button" data-toggle="modal" onclick="add_details(<?= $options ?>, 1, 1)" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-warning pull-right" style="margin-right:10px;">
+                                                            Edit Task
+                                                        </a>
                                                     </div>
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                         <div class="table-responsive">
@@ -230,7 +218,7 @@
                                                                         }";
 
                                                                             $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-                                                                            $query_rsIndUnit->execute(array(":unit_id"=>$unit_of_measure));
+                                                                            $query_rsIndUnit->execute(array(":unit_id" => $unit_of_measure));
                                                                             $row_rsIndUnit = $query_rsIndUnit->fetch();
                                                                             $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
                                                                             $measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
@@ -241,29 +229,23 @@
                                                                                 <td><?= $task_name ?></td>
                                                                                 <td><?= $measure ?></td>
                                                                                 <td>
-                                                                                    <?php
-                                                                                    if (!$approve) {
-                                                                                    ?>
-                                                                                        <div class="btn-group">
-                                                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                                                Options <span class="caret"></span>
-                                                                                            </button>
-                                                                                            <ul class="dropdown-menu">
-                                                                                                <li>
-                                                                                                    <a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="add_details(<?= $options ?>, 2,1)">
-                                                                                                        <i class="fa fa-pencil-square"></i> Edit Sub-Task
-                                                                                                    </a>
-                                                                                                </li>
-                                                                                                <li>
-                                                                                                    <a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $task_id ?>, 2)">
-                                                                                                        <i class="fa fa-trash-o"></i> Remove Sub-Task
-                                                                                                    </a>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                        </div>
-                                                                                    <?php
-                                                                                    }
-                                                                                    ?>
+                                                                                    <div class="btn-group">
+                                                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                                            Options <span class="caret"></span>
+                                                                                        </button>
+                                                                                        <ul class="dropdown-menu">
+                                                                                            <li>
+                                                                                                <a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="add_details(<?= $options ?>, 2,1)">
+                                                                                                    <i class="fa fa-pencil-square"></i> Edit Sub-Task
+                                                                                                </a>
+                                                                                            </li>
+                                                                                            <li>
+                                                                                                <a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $task_id ?>, 2)">
+                                                                                                    <i class="fa fa-trash-o"></i> Remove Sub-Task
+                                                                                                </a>
+                                                                                            </li>
+                                                                                        </ul>
+                                                                                    </div>
                                                                                 </td>
                                                                             </tr>
                                                                     <?php

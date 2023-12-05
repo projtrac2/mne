@@ -142,24 +142,94 @@ function calculate_end_date(task_id) {
     }
 }
 
-function change_calculate_adjust_end_date(task_id) {
-    var project_end_date = $("#project_end_date").val();
-    var start_date = $(`#start_date${task_id}`).val();
-    var duration = $(`#duration${task_id}`).val();
-    var old_duration = $(`#old_duration${task_id}`).val();
-    if (start_date != "") {
-        duration = parseInt(duration);
-        old_duration = parseInt(old_duration);
-        duration = old_duration + duration;
 
-        var today = new Date(start_date);
-        var end_date = new Date(today);
-        end_date.setDate(today.getDate() + duration);
-        var today = new Date(end_date).toISOString().split('T')[0];
-        if (today > project_end_date) {
-            $(`#duration${task_id}`).val("");
-        }
-    } else {
-        $(`#duration${task_id}`).val("");
-    }
+function save_data_entry_project(details) {
+    swal({
+        title: "Are you sure?",
+        text: `You want to submit the entered data (${details.project_name}) for approval stage!`,
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+        .then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    type: "post",
+                    url: ajax_url,
+                    data: {
+                        save_data_entry: "save_data_entry",
+                        projid: details.projid,
+                        workflow_stage: details.workflow_stage,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success == true) {
+                            swal({
+                                title: "Project !",
+                                text: "Project proceeded to approval stage",
+                                icon: "success",
+                            });
+                        } else {
+                            swal({
+                                title: "Project !",
+                                text: "Error",
+                                icon: "error",
+                            });
+                        }
+                        setTimeout(function () {
+                            window.location.href = redirect_url;
+                        }, 3000);
+                    },
+                });
+            } else {
+                swal("You cancelled the action!");
+            }
+        });
+}
+
+
+function approve_project(details) {
+    swal({
+        title: "Are you sure?",
+        text: `You want to approve ${details.project_name} and move it to the next stage!`,
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+        .then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    type: "post",
+                    url: ajax_url,
+                    data: {
+                        approve_stage: "approve_stage",
+                        projid: details.projid,
+                        workflow_stage: details.workflow_stage,
+                        sub_stage: details.sub_stage,
+                        // checklist:details.checklist,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success == true) {
+                            swal({
+                                title: "Project !",
+                                text: "Successfully approved project",
+                                icon: "success",
+                            });
+                        } else {
+                            swal({
+                                title: "Project !",
+                                text: "Error approving project",
+                                icon: "error",
+                            });
+                        }
+                        setTimeout(function () {
+                            window.location.href = redirect_url;
+                        }, 3000);
+                    },
+                });
+            } else {
+                swal("You cancelled the action!");
+            }
+        });
 }

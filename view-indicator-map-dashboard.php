@@ -29,8 +29,9 @@ if ($permission) {
         function projfy()
         {
             global $db;
-            $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year");
-            $projfy->execute();
+            $year = date('Y');
+            $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr <=:year ");
+            $projfy->execute(array(":year" => $year));
             while ($row = $projfy->fetch()) {
                 echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
             }
@@ -93,9 +94,15 @@ if ($permission) {
                                                 <option value="" selected="selected">Select Department</option>
                                                 <?php
                                                 while ($row_rsSectors = $query_rsSectors->fetch()) {
+                                                    $query_rsMarkers =  $db->prepare(" SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id =m.opid INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE i.indicator_sector=:department_id");
+                                                    $query_rsMarkers->execute(array(":department_id" => $row_rsSectors['stid']));
+                                                    $row_rsMarkers = $query_rsMarkers->fetch();
+                                                    $totalRows_rsMarkers = $query_rsMarkers->rowCount();
+                                                    if ($totalRows_rsMarkers > 0) {
                                                 ?>
-                                                    <option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
+                                                        <option value="<?php echo $row_rsSectors['stid'] ?>"><?php echo $row_rsSectors['sector'] ?></option>
                                                 <?php
+                                                    }
                                                 }
                                                 ?>
                                             </select>
@@ -118,7 +125,7 @@ if ($permission) {
                                             </select>
                                         </div>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <select name="projfyto" id="fyto" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
+                                            <select name="projfyto" id="fyto" class="form-control show-tick" onchange="get_coordinates()" data-live-search="false" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
                                                 <option value="" selected="selected">Select To Financial Year</option>
                                             </select>
                                         </div>
@@ -151,11 +158,12 @@ if ($permission) {
                                                 ?>
                                             </select>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12"> 
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <select name="projward" id="projlga" onchange="get_coordinates()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="false">
                                                 <option value="">Select <?= $level2label ?></option>
                                             </select>
                                         </div>
+
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">
                                             <input type="hidden" name="get_indicator_markers" value="get_indicator_markers">
                                             <a href="view-indicator-map-dashboard" type="button" class="btn btn-warning" onclick="" id="btnback">RESET</a>

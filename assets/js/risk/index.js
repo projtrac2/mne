@@ -46,6 +46,29 @@ $(document).ready(function () {
             }
         });
     });
+	
+	//saving risk monitoring
+    $("#add_risk_monitoring").submit(function (e) {
+        e.preventDefault();
+        $("#tag-monitoring-submit").prop("disabled", true);
+        $.ajax({
+            type: "post",
+            url: ajax_url,
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    success_alert(response.message);
+                } else {
+                    error_alert(response.message);
+                }
+                $("#tag-monitoring-submit").prop("disabled", false);
+                setTimeout(() => {
+                    location.reload(true);
+                }, 1000);
+            }
+        });
+    });
 });
 
 
@@ -100,6 +123,32 @@ function riskseverity() {
 	}
 }
 
+function risk_monitor_severity() {
+	var probability = $("#risk_likelihood").val();	
+	var impact = $("#risk_impact").val();
+	var ccvalue = document.getElementById("risk_severityname").className;
+	if (probability != '' && impact != '') {
+		$.ajax({
+            type: "post",
+            url: ajax_url,
+            data: {
+					get_severity: "get_severity",
+					probability: probability,
+					impact: impact
+				},
+            dataType: "json",
+            success: function (response) {
+				$('#risk_severity').val(response.severityvalue);
+				$('#risk_severityname').removeClass(ccvalue);
+				$('#risk_severityname').addClass(response.severityclass);
+				$('#risk_severityname').html(response.severitydesc);
+            }
+        });
+	} else {
+		console.log("Likelihood: " + probability + "; Impact: " + impact);
+	}
+}
+
 function risk_info(riskid) {
 	if (riskid != '' || riskid != null) {
 		$.ajax({
@@ -112,7 +161,26 @@ function risk_info(riskid) {
             dataType: "json",
             success: function (response) {
 				$('#risk_more_info').html(response.risk_more_info_body);
-				$('#risk_measures').html(response.risk_measures);
+				$('#measures_table').html(response.risk_measures);
+            }
+        });
+	}
+}
+
+function risk_performance(riskid) {
+	if (riskid != '' || riskid != null) {
+		$.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+					risk_performance: "risk_performance",
+					riskid: riskid
+				},
+            dataType: "json",
+            success: function (response) {
+				$('#risk_more_info').html(response.risk_more_info_body);
+				$('#risk_level_performance_table').html(response.risk_level_performance_table);
+				$('#measures_performance_table').html(response.risk_measures);
             }
         });
 	} else {
@@ -220,3 +288,24 @@ function destroy_task(id) {
             });
     }
 }
+
+//filter the expected output  cannot be selected twice
+function riskmonitor(riskid) {
+	if (riskid != '' || riskid != null) {
+		$.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+					risk_monitoring: "risk_monitoring",
+					riskid: riskid
+				},
+            dataType: "json",
+            success: function (response) {
+				$('#risk_monitoring').html(response.risk_more_info_body);
+				$('#risk_monitoring_measures').html(response.risk_measures);
+				$('#risk_level').html(response.risk_level);
+				$('#risk_id').val(riskid);
+            }
+        });
+	}
+};

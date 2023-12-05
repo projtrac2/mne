@@ -87,7 +87,7 @@ if ($permission) {
                                                     projcode:'$projcode',
                                                     project_name:'$projname',
                                                     assign:$totalRows_rsTeamMembers,
-                                                    edit:$totalRows_rsQuestions,
+                                                    edit:$totalRows_rsQuestions ,
                                                 }";
 
                                                 $counter++;
@@ -123,7 +123,7 @@ if ($permission) {
                                                                 </button>
                                                                 <ul class="dropdown-menu">
                                                                     <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
+                                                                        <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
                                                                             <i class="fa fa-file-text"></i> View More
                                                                         </a>
                                                                     </li>
@@ -297,6 +297,26 @@ if ($permission) {
         </div>
     </div>
     <!-- end assignment modal -->
+
+    <!-- Start projects Item more Info -->
+    <div class="modal fade" tabindex="-1" role="dialog" id="moreItemModal">
+        <div class="modal-dialog  modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info"></i> Project More Information</h4>
+                </div>
+                <div class="modal-body" id="moreinfo">
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-12 text-center">
+                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+    <!-- End  Item more Info -->
 <?php
 } else {
     $results =  restriction();
@@ -362,7 +382,7 @@ require('includes/footer.php');
         $("#checklist_projid").val(details.projid);
         $("#projcode").html(details.projcode);
         $("#projname").html(details.project_name);
-        if (details.assign > 0) {
+        if (details.edit > 0) {
             $.ajax({
                 type: "GET",
                 url: ajax_url1,
@@ -448,6 +468,7 @@ require('includes/footer.php');
         $row = $row + 1;
         var randno = Math.floor((Math.random() * 1000) + 1);
         var $rowno = $row + "" + randno;
+
         $("#checklist_table_body tr:last").after(`
             <tr id="cht${$rowno}">
                 <td></td>

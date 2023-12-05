@@ -89,6 +89,7 @@ if ($permission) {
 														$monitorid = $row_issues['monitor'];
 														$recommendation = $row_issues['recommendation'];
 														$issuedate = $row_issues['issuedate'];
+														$issuestatus = $row_issues['status'];
 
 														if($superuser || $monitorid == $user_name){
 															$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=1 and active=1");
@@ -124,7 +125,8 @@ if ($permission) {
 
 															$current_date = date("Y-m-d");
 															$actduedate = date("Y-m-d", $duedate);
-
+	
+														if($issuestatus == 0){
 															if ($actduedate >= $current_date) {
 																$actionstatus = $stgstatus;
 																$styled = 'style="color:blue"';
@@ -132,6 +134,14 @@ if ($permission) {
 																$actionstatus = "Behind Schedule";
 																$styled = 'style="color:red"';
 															}
+														}else{
+															$query_issue_status = $db->prepare("SELECT status FROM tbl_issue_status WHERE statuskey=:statuskey");
+															$query_issue_status->execute(array(":statuskey" => $issuestatus));
+															$row_issue_status = $query_issue_status->fetch();
+															
+															$actionstatus = $row_issue_status["status"];
+															$styled = 'style="color:green"';														
+														}
 
 															$actiondate = $actionnduedate;
 															$query_owner = $db->prepare("SELECT tt.title, fullname FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid='$monitorid'");
@@ -139,12 +149,12 @@ if ($permission) {
 															$row_owner = $query_owner->fetch();
 															$monitor = $row_owner["title"] . '.' . $row_owner["fullname"];
 
-															$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and rskid='$issueid'");
+															$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and issueid='$issueid'");
 															$query_escalationstage->execute();
 															$escalationstage_count = $query_escalationstage->rowCount();
 															$assessmentcomments = array();
 															while ($row_escalationstage = $query_escalationstage->fetch()) {
-																$assessmentcomments[] = $row_escalationstage["stage"];
+																$assessmentcomments[] = $row_escalationstage["issue_status"];
 															}
 																												
 															$issuedescription = string_length($issue_description, 100);
@@ -161,21 +171,9 @@ if ($permission) {
 																<td align="center">
 																	<?php
 																	if ($escalationstage_count > 0) {
-																		if (in_array(4, $assessmentcomments) && !in_array(5, $assessmentcomments)) { ?>
-																			<?php
-																			if ($issueassessment == 1) { ?>
-																				<a href="project-escalated-issue-assessment.php?issue=<?=$issueid?>" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Add issue assessment feedback"><i class="fa fa-file-code-o fa-2x text-primary" aria-hidden="true"></i></a>
-																			<?php
-																			} else {
-																			?>
-																				<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Action required"></i></a>
-																			<?php
-																			}
-																		} elseif (in_array(4, $assessmentcomments) && in_array(5, $assessmentcomments)) {
-																			?>
-																			<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
+																		?>
+																		<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
 																		<?php
-																		}
 																	} else {
 																	?>
 																		<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue requiring your ACTION!!"></i></a>

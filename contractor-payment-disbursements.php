@@ -326,9 +326,7 @@ if ($permission) {
 										<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
 											<label for="payment_phase" class="control-label">Payment Phase:</label>
 											<div class="form-line">
-												<select name="payment_phase" id="payment_phase" onchange="get_payment_plan_milestones()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false">
-													<option value="">.... Select from list ....</option>
-												</select>
+												<input type="text" name="payment_phase" value="" id="payment_phase" class="form-control" readonly>
 											</div>
 										</div>
 										<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -452,6 +450,12 @@ if ($permission) {
 									<input type="date" name="date_paid" value="" id="date_paid" class="form-control" required="required">
 								</div>
 							</div>
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="">
+								<label for="invoice" class="control-label">Invoice Attachment:</label>
+								<div class="form-line">
+									<div id="attachment_div"></div>
+								</div>
+							</div>
 							<div id="comments_div"></div>
 						</fieldset>
 						<fieldset class="scheduler-border">
@@ -528,19 +532,19 @@ require('includes/footer.php');
 				success: function(response) {
 					if (response.details.success) {
 						$("#comments_div").html(response.comments);
+						$("#attachment_div").html(response.attachment);
 						if (details.payment_plan == '1') {
 							$("#milestone_table").html(response.details.milestones);
 							$("#request_amount").val(response.details.request_amount);
 							$("#request_percentage").val(response.details.request_percentage);
 							$("#requested_amount").val(response.details.request_amount);
-							$("#payment_phase").html(response.details.payment_phases);
-						} else if (details.payment_plan == '2') {
+							$("#payment_phase").val(response.details.payment_phase);
+						} else {
+							$("#tasks").show();
 							$("#tasks_table").html(response.details.tasks);
 							$("#subtotal").html(response.details.task_amount);
 							$("#requested_amount").val(response.details.task_amount);
 						}
-					} else {
-						// sweet_alert("No data found !!!")
 					}
 				}
 			});

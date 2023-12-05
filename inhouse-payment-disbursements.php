@@ -76,8 +76,7 @@ if ($permission) {
 												if ($total_rsPayement_reuests > 0) {
 													$counter = 0;
 													while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
-														$request_id = $rows_rsPayement_reuests['request_id'];
-														$costline_id = $rows_rsPayement_reuests['id'];
+														$request_id = $rows_rsPayement_reuests['id'];
 														$projid = $rows_rsPayement_reuests['projid'];
 														$payment_requested_date = $rows_rsPayement_reuests['date_requested'];
 														$payment_due_date = $rows_rsPayement_reuests['due_date'];
@@ -117,7 +116,7 @@ if ($permission) {
 																			</a>
 																		</li>
 																		<li>
-																			<a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $costline_id ?>)">
+																			<a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $request_id ?>)">
 																				<i class="fa fa-info"></i>More Info
 																			</a>
 																		</li>
@@ -126,7 +125,6 @@ if ($permission) {
 															</td>
 														</tr>
 												<?php
-
 													}
 												}
 												?>
@@ -153,16 +151,15 @@ if ($permission) {
 											</thead>
 											<tbody>
 												<?php
-												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.request_id WHERE status = 3");
+												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3");
 												$query_rsPayement_reuests->execute();
 												$total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 												if ($total_rsPayement_reuests > 0) {
 													$counter = 0;
 													while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
-														$costline_id = $rows_rsPayement_reuests['id'];
 														$projid = $rows_rsPayement_reuests['projid'];
 														$date_requested = $rows_rsPayement_reuests['date_requested'];
-														$request_id = $rows_rsPayement_reuests['request_id'];
+														$request_id = $rows_rsPayement_reuests['id'];
 														$date_paid = $rows_rsPayement_reuests['date_paid'];
 														$created_by = $rows_rsPayement_reuests['created_by'];
 														$created_at = $rows_rsPayement_reuests['created_at'];
@@ -207,7 +204,7 @@ if ($permission) {
 																			</a>
 																		</li>
 																		<li>
-																			<a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $costline_id ?>)">
+																			<a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#moreItemModal" onclick="get_more_info(<?= $request_id ?>)">
 																				<i class="fa fa-info"></i> More Info
 																			</a>
 																		</li>
@@ -234,8 +231,6 @@ if ($permission) {
 			</div>
 	</section>
 	<!-- end body  -->
-
-
 	<!-- add item -->
 	<div class="modal fade" id="moreItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true" data-keyboard="false" data-backdrop="static">
 		<div class="modal-dialog modal-lg">
@@ -243,14 +238,97 @@ if ($permission) {
 				<div class="modal-header" style="background-color:#03A9F4">
 					<h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Payment Request Details</span></h4>
 				</div>
-				<div class="modal-body" id="budget_line_more_info">
-					<!-- /modal-body -->
+				<div class="modal-body">
+					<div class="card">
+						<div class="row clearfix">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+								<div class="body">
+									<fieldset class="scheduler-border">
+										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+											<i class="fa fa-calendar" aria-hidden="true"></i> Request Details
+										</legend>
+										<div class="row clearfix">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<ul class="list-group">
+													<li class="list-group-item list-group-item list-group-item-action active">Project Name: <span id="project_name"></span> </li>
+												</ul>
+											</div>
+											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+												<ul class="list-group">
+													<li class="list-group-item"><strong>Project Code: </strong> <span id="project_code"></span> </li>
+													<li class="list-group-item"><strong>Requested Amount: </strong> Ksh. <span id="requested_amount"></span> </li>
+													<li class="list-group-item"><strong>Requested By: </strong> <span id="requested_by"></span> </li>
+													<li class="list-group-item"><strong>Date Requested: </strong> <span id="date_requested"></span> </li>
+												</ul>
+											</div>
+											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+												<ul class="list-group">
+													<li class="list-group-item"><strong>Due Date: </strong> <span id="due_date"></span> </li>
+													<li class="list-group-item"><strong>Stage: </strong> </strong> <span id="stage"></span> </li>
+													<li class="list-group-item"><strong>Status: </strong> </strong> <span id="status"></span> </li>
+													<li class="list-group-item"><strong>Purpose: </strong> </strong> <span id="purpose"></span> </li>
+												</ul>
+											</div>
+											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+												<ul class="list-group">
+													<li class="list-group-item"><strong>Payment Mode: </strong> <span id="payment_mode"></span> </li>
+													<li class="list-group-item"><strong>Receipt Number: </strong> </strong> <span id="receipt_no"></span> </li>
+													<li class="list-group-item"><strong>Receipt: </strong> </strong> <a href="" id="receipt" target="blank"><i class="fa fa-download"></i> Download</a> </li>
+													<li class="list-group-item"><strong>Date Paid: </strong> </strong> <span id="date_paid"></span> </li>
+												</ul>
+											</div>
+										</div>
+										<div id="direct_cost_div">
+
+										</div>
+										<div class="row clearfix" style="margin-top:5px; margin-bottom:5px" id="costlines_div">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<div class="table-responsive">
+													<table class="table table-bordered">
+														<input type="hidden" name="task_id[]" id="task_id" value="0">
+														<thead>
+															<tr>
+																<th style="width:35%">Description </th>
+																<th style="width:40%">No. of Units</th>
+																<th style="width:15%">Unit Cost</th>
+																<th style="width:10%" align="right">Total Cost</th>
+															</tr>
+														</thead>
+														<tbody id="tasks_table">
+															<tr></tr>
+															<tr id="_removeTr" class="text-center">
+																<td colspan="5">Add Budgetline Costlines</td>
+															</tr>
+														</tbody>
+														<tfoot>
+															<tr>
+																<td colspan="3" align="right"><strong>Sub Total</strong></td>
+																<td colspan="1" id="subtotal" align="right"> </td>
+															</tr>
+														</tfoot>
+													</table>
+												</div>
+											</div>
+										</div>
+									</fieldset>
+									<fieldset class="scheduler-border">
+										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+											<i class="fa fa-comment" aria-hidden="true"></i> Remarks
+										</legend>
+										<div id="comments_div">
+
+										</div>
+									</fieldset>
+								</div>
+							</div>
+						</div>
+					</div> <!-- /modal-body -->
+					<div class="modal-footer">
+						<div class="col-md-12 text-center">
+							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+						</div>
+					</div> <!-- /modal-footer -->
 				</div> <!-- /modal-content -->
-				<div class="modal-footer">
-					<div class="col-md-12 text-center">
-						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
-					</div>
-				</div> <!-- /modal-footer -->
 			</div> <!-- /modal-dailog -->
 		</div>
 	</div>
@@ -264,7 +342,7 @@ if ($permission) {
 				<div class="modal-header" style="background-color:#03A9F4">
 					<h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Disburse Funds</span></h4>
 				</div>
-				<form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
+				<form class="form-horizontal" id="modal_form_submit_disburse" action="" method="POST" enctype="multipart/form-data">
 					<div class="modal-body" id="">
 						<!-- /modal-body -->
 						<div id="approve_budgetline_data">
@@ -342,102 +420,4 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<script src="assets/custom js/fetch-monitoring-evaluation.js"></script>
-
-<script>
-	//function to put commas to the data
-	function commaSeparateNumber(val) {
-		while (/(\d+)(\d{3})/.test(val.toString())) {
-			val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
-		}
-		return val;
-	}
-
-	function get_more_info(costline_id) {
-		if (costline_id != "") {
-			$.ajax({
-				type: "get",
-				url: "ajax/payments/index",
-				data: {
-					get_more_info: "get_more_info",
-					payment_request_id: costline_id,
-				},
-				dataType: "json",
-				success: function(response) {
-					if (response.success) {
-						$("#budget_line_more_info").html(response.details);
-					} else {
-						console.log("data could not be found")
-					}
-				}
-			});
-		}
-	}
-
-	// sweet alert notifications
-	function sweet_alert(msg) {
-		return swal({
-			title: "Error",
-			text: msg,
-			type: "Error",
-			icon: 'warning',
-			dangerMode: true,
-			timer: 15000,
-			showConfirmButton: false
-		});
-		setTimeout(function() {}, 15000);
-	}
-
-	function get_details(request_id, amount_requested) {
-		$("#request_id").val(request_id);
-		$("#amount_requested").val(commaSeparateNumber(amount_requested));
-
-		if (request_id) {
-			$.ajax({
-				type: "get",
-				url: "ajax/payments/index",
-				data: {
-					approval_details: "approval_details",
-					request_id: request_id,
-				},
-				dataType: "json",
-				success: function(response) {
-					if (response.success) {
-						$("#approve_budgetline_data").html(response.data);
-					} else {
-						sweet_alert("No data found!");
-					}
-				}
-			});
-		} else {
-			sweet_alert("Error !!! Data could not be found");
-		}
-	}
-
-	$(document).ready(function() {
-		$("#modal_form_submit").submit(function(e) {
-			e.preventDefault();
-			var form = $(this)[0];
-			var form_details = new FormData(form);
-			$.ajax({
-				type: "post",
-				url: "ajax/payments/index",
-				data: form_details,
-				cache: false,
-				contentType: false,
-				processData: false,
-				dataType: "json",
-				success: function(response) {
-					if (response.success) {
-						alert("Congratulations you have disbursed the budgetline");
-						setTimeout(() => {
-							window.location.reload(true);
-						}, 100);
-					} else {
-						alert("Sorry record could not be created");
-					}
-				}
-			});
-		});
-	});
-</script>
+<script src="assets/js/payment/inhouse.js"></script>

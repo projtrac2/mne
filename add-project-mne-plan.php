@@ -132,7 +132,7 @@ if ($permission) {
         $row_outcomeevalqstns = $query_outcomeevalqstns->fetch();
         $count_outcomeevalqstns = $query_outcomeevalqstns->rowCount();
 
-        $query_rsOutcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1' ORDER BY indid");
+        $query_rsOutcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND indicator_dept = '$deptid' AND active = '1' ORDER BY indid");
         $query_rsOutcomeIndicators->execute();
         $totalRows_rsOutcomeIndicators = $query_rsOutcomeIndicators->rowCount();
 
@@ -297,7 +297,7 @@ if ($permission) {
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                            <a type="button" id="outputItemModalBtnrow" href="view-mne-plan.php" class="btn btn-warning pull-right">
                                 Go Back
                             </a>
                         </div>
@@ -538,8 +538,8 @@ if ($permission) {
                                                                         </thead>
                                                                         <tbody id="members_table_body">
                                                                             <?php
-                                                                            $query_rsProject_Members =  $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND team_type <= 3 AND stage=:stage");
-                                                                            $query_rsProject_Members->execute(array(":projid" => $projid, ":stage" => $implimentation_stage));
+                                                                            $query_rsProject_Members =  $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND team_type <= 3");
+                                                                            $query_rsProject_Members->execute(array(":projid" => $projid));
                                                                             $totalRows_rsProject_Members = $query_rsProject_Members->rowCount();
                                                                             if ($totalRows_rsProject_Members > 0) {
                                                                                 $counter = 0;
@@ -547,7 +547,7 @@ if ($permission) {
                                                                                     $counter++;
                                                                                     $responsible = $row_rsProject_Members['responsible'];
                                                                                     $role = $row_rsProject_Members['role'];
-                                                                            ?>
+																					?>
                                                                                     <tr id="memrow<?= $counter ?>">
                                                                                         <td><?= $counter ?></td>
                                                                                         <td>
@@ -1033,38 +1033,7 @@ if ($permission) {
                                                     <input type="text" name="outcom_calc_method" readonly id="outcom_calc_method" class="form-control" required="required">
                                                 </div>
                                             </div>
-                                            <?php //if ($impactactive) {
-                                            ?>
-                                            <!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                    <label class="control-label">Parent Impact</label>
-                                                    <div class="form-line">
-                                                        <select name="parentimpact" id="parentimpact" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                            <option value="">.... Select from list ....</option>
-                                                            <?php
-                                                            /*  while ($row_parent_impact = $query_parent_impact->fetch()) {
-                                                                $parentimpactId = $row_parent_impact['id']; */
-                                                            ?>
-                                                                <option value="<?php //echo $parentimpactId
-                                                                                ?>"><?php //echo $row_parent_impact['impact']
-                                                                                    ?></option>
-                                                            <?php
-                                                            // }
-                                                            ?>
-                                                        </select>
-                                                    </div>
-                                                </div>-->
-                                            <?php //}
-                                            ?>
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <h4><u>Data collection Plan:</u></h4>
+
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label for="outcomeData" class="control-label">Source of data *:</label>
                                                 <div class="form-input">
@@ -1104,7 +1073,7 @@ if ($permission) {
                                                     <input type="number" name="evaluationNumberFreq" id="evaluationNumberFreq" onchange="outcome_Evaluation()" onkeyup="outcome_Evaluation()" class="form-control" placeholder="Enter Number of endline evaluations" required="required">
                                                 </div>
                                             </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 outcomequestions">
+                                            <!--<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 outcomequestions">
                                                 <label class="control-label">Main Question</label>
                                                 <div class="table-responsive">
                                                     <table class="table table-bordered table-striped table-hover" style="width:100%">
@@ -1123,10 +1092,10 @@ if ($permission) {
                                                                 <td>
                                                                     <select data-id="0" name="outcomemainanswertype" id="outcomemainanswertype" class="form-control querry">
                                                                         <?php
-                                                                        $input = '<option value="">... Select ...</option>';
+                                                                        /* $input = '<option value="">... Select ...</option>';
                                                                         $input .= '<option value="1">Number</option>';
                                                                         $input .= '<option value="2">Mutiple Choice</option>';
-                                                                        echo $input;
+                                                                        echo $input; */
                                                                         ?>
                                                                     </select>
                                                                 </td>
@@ -1157,21 +1126,21 @@ if ($permission) {
                                                         </thead>
                                                         <tbody id="questions_table_body">
                                                             <?php
-                                                            $orowno = 0;
+                                                            /* $orowno = 0;
                                                             if ($count_outcomeevalqstns > 0) {
                                                                 do {
                                                                     $question = $row_outcomeevalqstns['question'];
-                                                                    $orowno++;
+                                                                    $orowno++; */
                                                             ?>
-                                                                    <tr id="questionrow<?= $orowno ?>">
-                                                                        <td> <?= $orowno ?> </td>
+                                                                    <tr id="questionrow<?//= $orowno ?>">
+                                                                        <td> <?//= $orowno ?> </td>
                                                                         <td>
-                                                                            <input type="text" name="outcomeotherquestions[]" id="questions<?= $orowno ?>" value="<?= $question ?>" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
+                                                                            <input type="text" name="outcomeotherquestions[]" id="questions<?//= $orowno ?>" value="<?//= $question ?>" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
                                                                         </td>
                                                                         <td>
-                                                                            <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?= $orowno ?>" class="form-control querry">
+                                                                            <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?//= $orowno ?>" class="form-control querry">
                                                                                 <?php
-                                                                                $input = '<option value="">... Select ...</option>';
+                                                                                /* $input = '<option value="">... Select ...</option>';
                                                                                 $input .= '<option value="1">Number</option>';
                                                                                 $input .= '<option value="2">Multiple Choice</option>';
                                                                                 $input .= '<option value="3">Checkboxes</option>';
@@ -1179,30 +1148,30 @@ if ($permission) {
                                                                                 $input .= '<option value="5">Text</option>';
                                                                                 $input .= '<option value="6">File Upload</option>';
 
-                                                                                echo $input;
+                                                                                echo $input; */
                                                                                 ?>
                                                                             </select>
                                                                         </td>
                                                                         <td>
-                                                                            <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                            <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?//= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                         </td>
 
                                                                         <td>
                                                                             <?php
-                                                                            if ($orowno != 1) {
+                                                                           // if ($orowno != 1) {
                                                                             ?>
-                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_question("questionrow<?= $orowno ?>")'>
+                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_question("questionrow<?//= $orowno ?>")'>
                                                                                     <span class="glyphicon glyphicon-minus"></span>
                                                                                 </button>
                                                                             <?php
-                                                                            }
+                                                                            //}
                                                                             ?>
                                                                         </td>
                                                                     </tr>
                                                                 <?php
-                                                                } while ($row_outcomeevalqstns = $query_outcomeevalqstns->fetch());
+                                                                /* } while ($row_outcomeevalqstns = $query_outcomeevalqstns->fetch());
                                                             } else {
-                                                                $orowno++;
+                                                                $orowno++; */
                                                                 ?>
                                                                 <tr id="questionrow90">
                                                                     <td> 1 </td>
@@ -1210,9 +1179,9 @@ if ($permission) {
                                                                         <input type="text" name="outcomeotherquestions[]" id="questions90" value="" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
                                                                     </td>
                                                                     <td>
-                                                                        <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?= $orowno ?>" class="form-control querry">
+                                                                        <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?//= $orowno ?>" class="form-control querry">
                                                                             <?php
-                                                                            $input = '<option value="">... Select ...</option>';
+                                                                           /*  $input = '<option value="">... Select ...</option>';
                                                                             $input .= '<option value="1">Number</option>';
                                                                             $input .= '<option value="2">Multiple Choice</option>';
                                                                             $input .= '<option value="3">Checkboxes</option>';
@@ -1220,24 +1189,24 @@ if ($permission) {
                                                                             $input .= '<option value="5">Text</option>';
                                                                             $input .= '<option value="6">File Upload</option>';
 
-                                                                            echo $input;
+                                                                            echo $input; */
                                                                             ?>
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                        <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?//= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                     </td>
                                                                     <td>
 
                                                                     </td>
                                                                 </tr>
                                                             <?php
-                                                            }
+                                                           // }
                                                             ?>
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                            </div>
+                                            </div>-->
                                             <div class="modal-footer">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                     <input type="hidden" name="addoutcome" id="addoutcome" value="addoutcome">
@@ -1321,16 +1290,6 @@ if ($permission) {
                                                     <input type="text" name="impact_calc_method" readonly id="impact_calc_method" class="form-control" placeholder="First select change to be measured" required="required">
                                                 </div>
                                             </div>
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <br />
-                                            <h4><u>Data collection Plan:</u></h4>
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label for="impactData" class="control-label">Source of data *:</label>
                                                 <div class="form-input">
@@ -1370,7 +1329,7 @@ if ($permission) {
                                                     <input type="number" name="evaluationNumberFreq" id="evaluationNumberFreq" onchange="outcome_Evaluation()" onkeyup="outcome_Evaluation()" class="form-control" placeholder="Enter Number of endline evaluations" required="required">
                                                 </div>
                                             </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 impactquestions">
+                                            <!--<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 impactquestions">
                                                 <label class="control-label">Main Question</label>
                                                 <div class="table-responsive">
                                                     <table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
@@ -1389,10 +1348,10 @@ if ($permission) {
                                                                 <td>
                                                                     <select data-id="0" name="impactmainanswertype" id="impactmainanswertype" class="form-control querry">
                                                                         <?php
-                                                                        $impactinput = '<option value="">... Select ...</option>';
+                                                                        /* $impactinput = '<option value="">... Select ...</option>';
                                                                         $impactinput .= '<option value="1">Number</option>';
                                                                         $impactinput .= '<option value="2">Mutiple Choice</option>';
-                                                                        echo $impactinput;
+                                                                        echo $impactinput; */
                                                                         ?>
                                                                     </select>
                                                                 </td>
@@ -1423,8 +1382,8 @@ if ($permission) {
                                                         </thead>
                                                         <tbody id="impact_questions_table_body">
                                                             <?php
-                                                            $iprowno = 0;
-                                                            $iprowno++;
+                                                           /*  $iprowno = 0;
+                                                            $iprowno++; */
                                                             ?>
                                                             <tr id="impactquestionrow90">
                                                                 <td> 1 </td>
@@ -1432,21 +1391,21 @@ if ($permission) {
                                                                     <input type="text" name="impactquestions[]" id="impactquestions90" value="" placeholder="Enter any other impact evaluation questions" class="form-control impactquerry" />
                                                                 </td>
                                                                 <td>
-                                                                    <select data-id="0" name="impactanswertype[]" id="impactanswertype<?= $iprowno ?>" class="form-control impactquerry">
+                                                                    <select data-id="0" name="impactanswertype[]" id="impactanswertype<?//= $iprowno ?>" class="form-control impactquerry">
                                                                         <?php
-                                                                        $impactotherinput = '<option value="">... Select ...</option>';
+                                                                       /*  $impactotherinput = '<option value="">... Select ...</option>';
                                                                         $impactotherinput .= '<option value="1">Number</option>';
                                                                         $impactotherinput .= '<option value="2">Mutiple Choice</option>';
                                                                         $impactotherinput .= '<option value="3">Checkboxes</option>';
                                                                         $impactotherinput .= '<option value="4">Dropdown</option>';
                                                                         $impactotherinput .= '<option value="5">Text</option>';
                                                                         $impactotherinput .= '<option value="6">File Upload</option>';
-                                                                        echo $impactotherinput;
+                                                                        echo $impactotherinput; */
                                                                         ?>
                                                                     </select>
                                                                 </td>
                                                                 <td>
-                                                                    <input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label<?= $iprowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                    <input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label<?//= $iprowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                 </td>
                                                                 <td>
 
@@ -1454,111 +1413,6 @@ if ($permission) {
                                                             </tr>
                                                         </tbody>
                                                     </table>
-                                                </div>
-                                            </div>
-                                            <!--<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <label class="control-label">Impact Risks and Assumptions </label>
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped table-hover" id="impact_table" style="width:100%">
-                                                        <thead>
-                                                            <tr>
-                                                                <th width="5%">#</th>
-                                                                <th width="30%">Impact Risks Category</th>
-                                                                <th width="60%">Assumption/s</th>
-                                                                <th width="5%">
-                                                                    <button type="button" name="addplus" id="addplus" onclick="add_row_impact();" class="btn btn-success btn-sm">
-                                                                        <span class="glyphicon glyphicon-plus"></span>
-                                                                    </button>
-                                                                </th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="impact_table_body">
-                                                            <tr id="impactrow0">
-                                                                <td> 1 </td>
-                                                                <td>
-                                                                    <select data-id="0" name="impactrisk[]" id="impactriskrow0" class="form-control  selected_impact" required="required">
-                                                                        <?php
-                                                                        /* $query_rsRisk =  $db->prepare("SELECT * FROM tbl_projrisk_categories ");
-                                                                        $query_rsRisk->execute();
-                                                                        $totalRows_rsRisk = $query_rsRisk->rowCount();
-                                                                        $input = '<option value="">... Select from list ...</option>';
-                                                                        if ($totalRows_rsRisk > 0) {
-                                                                            while ($row_rsRisk = $query_rsRisk->fetch()) {
-                                                                                $type = explode(',', $row_rsRisk['type']);
-                                                                                if (in_array(1, $type)) {
-                                                                                    $input .= '<option value="' . $row_rsRisk['rskid'] . '">' . $row_rsRisk['category'] . ' </option>';
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            $input .= '<option value="">No Risks Found</option>';
-                                                                        }
-                                                                        echo $input; */
-                                                                        ?>
-                                                                    </select>
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" name="impact_assumptions[]" id="impact_assumptions0" placeholder="Enter impact risk assumption" class="form-control" required />
-                                                                </td>
-                                                                <td>
-
-                                                                <td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Responsible *:</label>
-                                                <div class="form-line">
-                                                    <select name="impactresponsible" id="impactresponsible" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <option value="">.... Select from list ....</option>
-                                                        <?php
-                                                        /* $query_reportUser =  $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE directorate=42");
-                                                        $query_reportUser->execute();
-                                                        while ($row_reportUser = $query_reportUser->fetch()) {
-                                                        ?>
-                                                            <option value="<?php echo $row_reportUser['userid'] ?>"><?php echo $row_reportUser['fullname'] ?></option>
-                                                        <?php
-                                                        } */
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Report User *:</label>
-                                                <div class="form-line">
-                                                    <select name="impactreportUser[]" multiple id="impactreportUser" data-actions-box="true" class="form-control show-tick selectpicker" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <?php
-                                                        /* $query_reportUser =  $db->prepare("SELECT * FROM tbl_pmdesignation where active=1");
-                                                        $query_reportUser->execute();
-
-                                                        while ($row_reportUser = $query_reportUser->fetch()) {
-                                                        ?>
-                                                            <option value="<?php echo $row_reportUser['moid'] ?>"><?php echo $row_reportUser['designation'] ?></option>
-                                                        <?php
-                                                        } */
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                                <label class="control-label">Reporting Frequency *: </label>
-                                                <div class="form-line">
-                                                    <select name="impactReportingFreq[]" multiple id="" data-actions-box="true" class="form-control show-tick selectpicker" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                        <option value="">.... Select from list ....</option>
-                                                        <?php
-                                                        /* $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 AND level >=4");
-                                                        $query_frequency->execute();
-                                                        $totalRows_frequency = $query_frequency->rowCount();
-                                                        $input = '';
-                                                        if ($totalRows_frequency > 0) {
-                                                            while ($row_frequency = $query_frequency->fetch()) {
-                                                                $input .= '<option value="' . $row_frequency['fqid'] . '">' . $row_frequency['frequency'] . ' </option>';
-                                                            }
-                                                        }
-                                                        echo $input; */
-                                                        ?>
-                                                    </select>
                                                 </div>
                                             </div>-->
                                             <div class="modal-footer">
@@ -1741,6 +1595,7 @@ $details = "{
 ?>
 <script>
     const redirect_url = "view-mne-plan.php";
+
     const details = <?= $details ?>
 </script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>

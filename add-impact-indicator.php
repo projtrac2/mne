@@ -27,7 +27,6 @@ if ($permission) {
 			$unit = $_POST['indunit'];
 			$indsector = $_POST['indsector'];
 			$inddept = $_POST['inddept'];
-			$beneficiary = $_POST['beneficiary'];
 			$user = $_POST['user_name'];
 			$current_date = date("Y-m-d");
 			$source_data = 0;
@@ -41,8 +40,8 @@ if ($permission) {
 			$indcount = $query_rsIndicator->rowCount();
 
 			if ($indcount == 0) {
-				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_sector, indicator_dept, indicator_data_source, indicator_beneficiary, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :indsector, :inddept, :source_data, :beneficiary, :user, :date)");
-				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ':source_data' => $source_data, ':beneficiary' => $beneficiary, ':user' => $user, ':date' => $current_date));
+				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_sector, indicator_dept, indicator_data_source, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :indsector, :inddept, :source_data, :user, :date)");
+				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ':source_data' => $source_data, ':user' => $user, ':date' => $current_date));
 				
 				if ($result) {
 					$last_id = $db->lastInsertId();
@@ -271,13 +270,6 @@ if ($permission) {
 												}
 												?>
 											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="indcalculationdiv">
-										<label class="control-label">Beneficiaries*:</label>
-										<div class="form-line">
-											<input name="beneficiary" type="text" class="form-control" placeholder="Define the beneficiary/ies" style="border:#CCC thin solid; border-radius: 5px" required />
 										</div>
 									</div>
 

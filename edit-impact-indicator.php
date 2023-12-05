@@ -40,7 +40,6 @@ if ($permission) {
 		$indicator_dept = $indicator['indicator_dept'];
 		$disaggragated = $indicator['indicator_disaggregation'];
 		$data_source_id = $indicator['indicator_data_source'];
-		$beneficiary = $indicator['indicator_beneficiary'];
 
 
 		if ((isset($_POST["MM_update"])) && ($_POST["MM_update"] == "editindfrm")) {
@@ -52,17 +51,14 @@ if ($permission) {
 			$unit = $_POST['indunit'];
 			$indsector = $_POST['indsector'];
 			$inddept = $_POST['inddept'];
-			$beneficiary = $_POST['beneficiary'];
 			$current_date = date("Y-m-d");
 
 			$inddirection = null;
 			$calculationmethod = null;
-			$beneficiary = null;
 			$source_data = null;
 
 			$inddirection = (isset($_POST['inddirection']) && !empty($_POST['inddirection'])) ? $_POST['inddirection'] : 0;
 			$calculationmethod = (isset($_POST['indcalculation']) && !empty($_POST['indcalculation'])) ? $_POST['indcalculation'] : 0;
-			$beneficiary = (isset($_POST['beneficiary']) && !empty($_POST['beneficiary'])) ? $_POST['beneficiary'] : null;
 			$disaggregated = (isset($_POST['inddirectBenfType']) && !empty($_POST['inddirectBenfType'])) ? $_POST['inddirectBenfType'] : 0;
 
 			$query_rsIndicator = $db->prepare("SELECT indid, indicator_code FROM tbl_indicator WHERE indicator_code = '$indcd'");
@@ -73,8 +69,8 @@ if ($permission) {
 
 			if ($ind == $indid || $indcount == 0) {
 
-				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_calculation_method=:indcalcmethod, indicator_unit=:indunit, indicator_direction=:inddirection, indicator_sector=:indsector, indicator_dept=:inddept, indicator_data_source=:source_data, indicator_beneficiary=:beneficiary, indicator_aggregation=:disaggregated, updated_by=:user, date_updated=:date WHERE indid=:indid");
-				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat,  ':indcalcmethod' => $calculationmethod, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ":source_data" => $source_data, ":beneficiary" => $beneficiary, ":disaggregated" => $disaggregated, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
+				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_calculation_method=:indcalcmethod, indicator_unit=:indunit, indicator_direction=:inddirection, indicator_sector=:indsector, indicator_dept=:inddept, indicator_data_source=:source_data, indicator_aggregation=:disaggregated, updated_by=:user, date_updated=:date WHERE indid=:indid");
+				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat,  ':indcalcmethod' => $calculationmethod, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ":source_data" => $source_data, ":disaggregated" => $disaggregated, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
 
 				if ($result) {
 					// delete from tbl_indicator_measurement_variables_disaggregation_type
@@ -328,13 +324,6 @@ if ($permission) {
 												}
 												?>
 											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="indcalculationdiv">
-										<label class="control-label">Beneficiaries*:</label>
-										<div class="form-line">
-											<input name="beneficiary" type="text" class="form-control" placeholder="Define the beneficiary" value="<?= $beneficiary ?>" style="border:#CCC thin solid; border-radius: 5px" required />
 										</div>
 									</div>
 

@@ -5,7 +5,6 @@ try {
         $projid =$_GET['projid'];
         $output_id =$_GET['output_id'];
         $site_id = $_GET['site_id'];
-        
         $mapping_type = $_GET['mapping_type'];
         $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid");
         $query->execute(array(":output_id" => $output_id, ":projid" => $projid));
