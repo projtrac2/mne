@@ -15,12 +15,12 @@ try {
 	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
 	$query_company->execute(array(":stid" => $stid));
 	$row_company = $query_company->fetch();
-	
+
 	$query_logged_in_user =  $db->prepare("SELECT title, fullname FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid=$user_name");
 	$query_logged_in_user->execute(array(":stid" => $stid));
 	$row_user = $query_logged_in_user->fetch();
 	$printedby = $row_user["title"].".".$row_user["fullname"];
-	
+
     $query_rsConclusion = $db->prepare("SELECT * FROM `tbl_capr_report_conclusion` WHERE id='$id'");
     $query_rsConclusion->execute();
     $Rows_rsConclusion = $query_rsConclusion->fetch();
@@ -51,13 +51,13 @@ try {
         $fscyear = ($totalRows_years > 0) ? $Rows_years['yr'] : "";
         $fscend = $fscyear + 1;
         $financial_year = $fscyear . "/" . $fscend;
-		
+
 		$query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1 LIMIT 1");
 		$query_rsStrategicPlan->execute();
 		$row_rsStrategicPlan = $query_rsStrategicPlan->fetch();
 		$stp_start_year = $row_rsStrategicPlan['starting_year'];
 		$stp_duration = $row_rsStrategicPlan['years'];
-		$stp_end_year = $stp_start_year + $stp_duration - 1; 
+		$stp_end_year = $stp_start_year + $stp_duration - 1;
 
         $query_ind = $db->prepare("SELECT indid, indicator_name, indicator_unit FROM tbl_indicator WHERE indicator_sector='$stid' AND indicator_category = 'Output' AND baseline=1");
         $query_ind->execute();
@@ -77,7 +77,7 @@ try {
                 <h2 style="" >'.$row_company["company_name"].'</h2>
                 <br/>
                 <hr/>
-                <h3 style="margin-top:10px;" >' . $financial_year . ' ANNUAL PROGRESS REPORT</h3> 
+                <h3 style="margin-top:10px;" >' . $financial_year . ' ANNUAL PROGRESS REPORT</h3>
                 <hr/>
                 <div style="margin-top:80px;" >
                     <address>
@@ -134,7 +134,7 @@ try {
                                         $query_indunit->execute();
                                         $row_indunit = $query_indunit->fetch();
                                         $unit = ($row_indunit) ? $row_indunit["unit"] : "";
-	 
+
 										$query_rscidpTargets =  $db->prepare("SELECT SUM(target) AS target FROM `tbl_progdetails` WHERE year >= $stp_start_year and year <= $stp_end_year AND indicator = $indid");
 										$query_rscidpTargets->execute();
 										$row_rscidpTargets = $query_rscidpTargets->fetch();
@@ -167,7 +167,7 @@ try {
 
 										$achievedstartdate = $fscyear."-07-01";
 										$achievedenddate = $fscend."-06-30";
-										
+
                                         $query_indachieved =  $db->prepare("SELECT SUM(actualoutput) as achieved FROM tbl_monitoringoutput m INNER JOIN tbl_project_details d ON d.id =  m.opid INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE g.indicator='$indid' AND (date_created >= '".$achievedstartdate."' AND  date_created <= '".$achievedenddate."')");
                                         $query_indachieved->execute();
                                         $row_indachieved = $query_indachieved->fetch();
@@ -185,8 +185,8 @@ try {
 												<td>' . number_format($targets) . '</td>
 												<td>' . number_format($achived_output) . '</td>
 												<td>' . number_format($rate, 2) . ' </td>
-												<td> 
-													' . $comments . ' 
+												<td>
+													' . $comments . '
 												</td>
 											</tr>';
                                     } while ($row_ind = $query_ind->fetch());
@@ -199,7 +199,7 @@ try {
                     </div>
                 </div>';
 
-                $challenge = 
+                $challenge =
                 '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <h5>Challenges and Recommendations: </h5>
                     '.$challenges.'

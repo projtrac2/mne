@@ -121,13 +121,13 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
          <label for="projduration">M&E Budget *:</label>
          <div class="form-line">
-            <input type="number"  name="mne_budget" id="mne_budget" min="1" onchange="distribute_project_cost(2)" onkeyup="distribute_project_cost(2)" max="' . $project_cost . '" placeholder="Enter M&E budget" class="form-control" value="" class="form-control" required/>
+            <input type="number"  name="mne_budget" id="mne_budget" min="0" onchange="distribute_project_cost(2)" onkeyup="distribute_project_cost(2)" max="' . $project_cost . '" placeholder="Enter M&E budget" class="form-control" value="" class="form-control" required/>
          </div>
       </div>
       <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
          <label for="projduration">Administrative Budget *:</label>
          <div class="form-line">
-            <input type="number"  name="administrative_budget" id="administrative_budget" min="1" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
+            <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
          </div>
       </div>';
 

@@ -56,6 +56,7 @@ const submitForm = (form) => {
 
 function hide_divs(output_type) {
     $("#site_div").hide();
+    $("#milestone_div").hide();
     $("#site").removeAttr("required");
     if (output_type) {
         $("#site_div").show();
@@ -63,59 +64,45 @@ function hide_divs(output_type) {
     }
 }
 
-function get_outputs() {
+function get_milestones() {
+    $("#site_div").hide();
+    $("#milestone_div").hide();
     $("#subtask_table_body").html("");
-    var milestone_id = $("#milestone").val();
-    if (milestone_id != "" || milestone_id != undefined) {
-        $.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-                get_milestone_outputs: "milestone",
-                milestone_id: milestone_id,
-            },
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    $("#output").html(response.outputs);
-                } else {
-                    console.log("Sorrry could not find milestone outputs");
-                }
-            },
-        });
-    } else {
-        console.log("Please select a milestone");
-    }
-}
-
-function get_sites() {
-    var milestone_id = $("#milestone").val();
     var output_id = $("#output").val();
-    hide_divs(false);
-    $("#subtask_table_body").html("");
-    if (milestone_id != "" && output_id != "") {
+    var projid = $("#projid").val();
+    if (output_id != "" && output_id != undefined) {
         $.ajax({
             type: "get",
             url: ajax_url,
             data: {
-                get_output_sites: "milestone",
-                milestone_id: milestone_id,
+                get_milestones: "get_milestones",
+                projid: projid,
                 output_id: output_id,
             },
             dataType: "json",
             success: function (response) {
                 if (response.success) {
-                    var output_type = response.output_type;
-                    $("#output_type").val(output_type);
+                    var milestone_data = response.milestone_data;
+                    var output_details = response.output_details;
+                    var project_type = milestone_data.project_type;
 
-                    if (output_type == 1) {
-                        hide_divs(true);
-                        $("#site").html(response.sites);
-                    } else if (output_type == 2) {
-                        $("#subtask_table_body").html(response.subtasks);
+                    $("#project_type").val(project_type);
+
+                    if (milestone_data == 2) {
+                        var milestones = response.milestones;
+                        $("#milestone_div").show();
+                        $("#milestone").html(milestones);
                     }
-                } else {
-                    console.log("Sorrry could not find milestone outputs");
+
+                    var mapping_type = output_details.indicator_mapping_type;
+                    var output_type = 1;
+                    if (mapping_type == 1 || mapping_type == 3) {
+                        var sites = response.sites;
+                        $("#site_div").show();
+                        $("#site").html(sites);
+                        var output_type = 2;
+                    }
+                    $("#output_type").val(output_type);
                 }
             },
         });
@@ -125,39 +112,50 @@ function get_sites() {
 }
 
 function get_subtasks() {
-    var milestone_id = $("#milestone").val();
     var output_id = $("#output").val();
-    var site_id = $("#site").val();
-    if (site != '') {
-        $.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-                get_subtasks: "get_subtasks",
-                milestone_id: milestone_id,
-                output_id: output_id,
-                site_id: site_id,
-            },
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    $("#subtask_table_body").html(response.subtasks);
-                } else {
-                    console.log("Sorrry could not find milestone outputs");
-                }
-            },
-        });
-    } else {
-        error_alert("Please select site");
+    var project_type = $("#project_type").val();
+    var output_type = $("#output_type").val();
+
+    var milestone_id = 0;
+    if (project_type == 2) {
+        milestone_id = $("#milestone").val();
+        if (milestone_id == '') {
+            error_alert("Please select milestone first");
+            return;
+        }
     }
+
+    var site_id = 0;
+    if (output_type == 2) {
+        site_id = $("#site").val();
+        if (site_id == '') {
+            error_alert("Please select milestone first");
+            return;
+        }
+    }
+
+    $.ajax({
+        type: "get",
+        url: ajax_url,
+        data: {
+            get_subtasks: "get_subtasks",
+            milestone_id: milestone_id,
+            output_id: output_id,
+            site_id: site_id,
+        },
+        dataType: "json",
+        success: function (response) {
+            if (response.success) {
+                $("#subtask_table_body").html(response.subtasks);
+            } else {
+                error_alert("Sorrry could not find milestone outputs");
+            }
+        },
+    });
 }
 
-function add_checklist(task_id, subtask_id) {
-    var milestone_id = $("#milestone").val();
+function add_checklist(site_id, milestone_id, task_id, subtask_id) {
     var output_id = $("#output").val();
-    var output_type = $("#output_type").val();
-    var site = $("#site").val();
-    var site_id = output_type == 2 ? 0 : site;
     $("#milestone_id").val(milestone_id);
     $("#output_id").val(output_id);
     $("#site_id").val(site_id);
@@ -196,7 +194,7 @@ function add_checklist(task_id, subtask_id) {
                     $("#tag-form-submit1").hide();
                 }
             } else {
-                console.log("Sorrry could not find milestone outputs");
+                error_alert("Sorrry could not find milestone outputs");
             }
         },
     });

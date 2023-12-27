@@ -127,8 +127,8 @@ if ($permission) {
 																					$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
 																					$planned_amount = !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
 
-																					$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid AND output_id=:output_id and site_id=:site_id");
-																					$query_consumed->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
+																					$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid");
+																					$query_consumed->execute(array(":projid" => $projid));
 																					$row_consumed = $query_consumed->fetch();
 																					$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
 																					$rate  = $consumed > 0 && $planned_amount > 0 ? ($consumed / $planned_amount) * 100 : 0;

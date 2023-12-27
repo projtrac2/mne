@@ -158,10 +158,17 @@ if ($permission) {
                                                                     $row_plannedfunds = $query_plannedfunds->fetch();
                                                                     $plannedfunds = $row_plannedfunds["planned"];
 
-                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.request_id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid");
+                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid AND request_type=1");
                                                                     $query_utilisedfunds->execute(array(":fyear" => $fyear, ":fid" => $fid));
                                                                     $row_utilisedfunds = $query_utilisedfunds->fetch();
-                                                                    $utilisedfunds = $row_utilisedfunds["planned"];
+                                                                    $utilisedInhouse = !is_null($row_utilisedfunds["planned"]) ?  $row_utilisedfunds["planned"] : 0;
+
+                                                                    $query_utilisedContractor =  $db->prepare("SELECT SUM(requested_amount) AS planned FROM tbl_contractor_payment_requests r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid AND request_type=2");
+                                                                    $query_utilisedContractor->execute(array(":fyear" => $fyear, ":fid" => $fid));
+                                                                    $row_utilisedContractor = $query_utilisedContractor->fetch();
+                                                                    $utilisedContractor = !is_null($row_utilisedContractor["planned"]) ? $row_utilisedContractor["planned"] : 0;
+
+                                                                    $utilisedfunds = $utilisedContractor + $utilisedInhouse;
 
                                                                     $query_distr =  $db->prepare("SELECT id FROM tbl_departments_allocation WHERE fundid = :fid");
                                                                     $query_distr->execute(array(":fid" => $fnid));
@@ -175,6 +182,7 @@ if ($permission) {
 
                                                                     $hashfnid = base64_encode("fd918273AxZID{$fnid}");
                                                                     $hashfnid2 = base64_encode("fd918273ZaYID{$fnid}");
+                                                                    $hashfyear = base64_encode("fd918273ZaYID{$fyear}");
 
                                                                     $totalutilized = 0;
                                                                     $action =
@@ -184,9 +192,8 @@ if ($permission) {
                                                                     </button>
                                                                     <ul class="dropdown-menu">
                                                                         <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="moreInfo(' . $fnid . ')"><i class="fa fa-info"></i> More Info</a>
+                                                                            <a type="button" href="./reports/financier-funding-pdf.php?fnid=' . $hashfnid . '"  target="_blank"><i class="fa fa-info"></i>Report</a>
                                                                         </li>';
-
                                                                     if ($plannedfunds == 0 && $fyr == $currentyear) {
                                                                         if (in_array("updated", $page_actions)) {
                                                                             $action .=
@@ -260,10 +267,16 @@ if ($permission) {
                                                                     $row_plannedfunds = $query_plannedfunds->fetch();
                                                                     $plannedfunds = $row_plannedfunds["planned"];
 
-                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.request_id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid");
+                                                                    $query_utilisedfunds =  $db->prepare("SELECT SUM(amount_requested) AS planned FROM tbl_payments_request r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid AND request_type=1");
                                                                     $query_utilisedfunds->execute(array(":fyear" => $fyear, ":fid" => $fid));
                                                                     $row_utilisedfunds = $query_utilisedfunds->fetch();
-                                                                    $utilisedfunds = $row_utilisedfunds["planned"];
+                                                                    $utilisedInhouse = !is_null($row_utilisedfunds["planned"]) ?  $row_utilisedfunds["planned"] : 0;
+
+                                                                    $query_utilisedContractor =  $db->prepare("SELECT SUM(requested_amount) AS planned FROM tbl_contractor_payment_requests r inner join tbl_annual_dev_plan p on p.projid=r.projid left join tbl_payment_request_financiers f on f.request_id=r.id WHERE p.status = 1 AND p.financial_year = :fyear AND f.financier_id = :fid AND request_type=2");
+                                                                    $query_utilisedContractor->execute(array(":fyear" => $fyear, ":fid" => $fid));
+                                                                    $row_utilisedContractor = $query_utilisedContractor->fetch();
+                                                                    $utilisedContractor = !is_null($row_utilisedContractor["planned"]) ? $row_utilisedContractor["planned"] : 0;
+                                                                    $utilisedfunds = $utilisedContractor + $utilisedInhouse;
 
                                                                     if ($ftype == 2) {
                                                                         $query_distr =  $db->prepare("SELECT a.id FROM tbl_departments_allocation a inner join tbl_funds f on f.id=a.fundid inner join tbl_financiers d ON d.id=f.funder WHERE a.fundid = :fid AND d.type=:ftype");
@@ -281,6 +294,7 @@ if ($permission) {
 
                                                                     $hashfnid = base64_encode("fd918273AxZID{$fnid}");
                                                                     $hashfnid2 = base64_encode("fd918273ZaYID{$fnid}");
+                                                                    $hashfyear = base64_encode("fd918273ZaYID{$fyear}");
 
                                                                     $totalutilized = 0;
                                                                     $action = '<div class="btn-group">
@@ -289,7 +303,7 @@ if ($permission) {
                                                                     </button>
                                                                     <ul class="dropdown-menu">
                                                                         <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="moreInfo(' . $fnid . ')"><i class="fa fa-info"></i> More Info</a>
+                                                                            <a type="button" href="./reports/financier-funding-pdf.php?fnid=' . $hashfnid . '"><i class="fa fa-info"></i>Report</a>
                                                                         </li>';
                                                                     if ($plannedfunds == 0 && $fyr == $currentyear) {
                                                                         if (in_array("update", $page_actions)) {
@@ -308,7 +322,7 @@ if ($permission) {
                                                                         }
                                                                     }
                                                                     $action .= '</ul>
-											                        </div>';
+                                                                    </div>';
                                                                 ?>
                                                                     <tr style="background-color:#eff9ca">
                                                                         <td width="4%" align="center"><?php echo $nm; ?></td>

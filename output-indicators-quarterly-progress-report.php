@@ -29,7 +29,7 @@ if ($permission) {
 	//$quarter_dates_arr = ["-07-01", "-09-30", "-10-01", "-12-31", "-01-01", "-03-30", "-04-01","-06-30"];
 
 	$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where yr =:year ");
-	$query_rsFscYear->execute(array(":year" => $startyear));   
+	$query_rsFscYear->execute(array(":year" => $startyear));
 	$row_rsFscYear = $query_rsFscYear->fetch();
 
 	$fyid = $row_rsFscYear['id'];

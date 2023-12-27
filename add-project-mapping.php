@@ -301,7 +301,24 @@ if ($permission) {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="body">
+                            <input type="hidden" name="lat" id="lat" value="-1.2864">
+                            <input type="hidden" name="long" id="long" value="36.8172">
+                            <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                            <div class="mt-map-wrapper">
+                                <div class="mt-map propmap" id="map">
+                                    <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
+                                    </div>
+                                </div>
+                            </div>
                             <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
                                 <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                     <div class="col-md-12 text-center">
@@ -348,23 +365,6 @@ if ($permission) {
                     </div>
                 </div>
             </div>
-            <div class="row clearfix">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <input type="hidden" name="lat" id="lat" value="-1.2864">
-                            <input type="hidden" name="long" id="long" value="36.8172">
-                            <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                            <div class="mt-map-wrapper">
-                                <div class="mt-map propmap" id="map">
-                                    <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
     </section>
     <!-- end body  -->
 
@@ -376,7 +376,7 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script>
 
 <script>
     const redirect_url = "project-mapping.php";

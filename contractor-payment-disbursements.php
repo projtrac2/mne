@@ -69,7 +69,7 @@ if ($permission) {
 											</thead>
 											<tbody>
 												<?php
-												$query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_contractor_payment_requests WHERE stage = 5 AND status != 3 GROUP BY request_id");
+												$query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_contractor_payment_requests WHERE stage = 5 AND status<>3");
 												$query_rsPayement_reuests->execute();
 												$total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 												if ($total_rsPayement_reuests > 0) {
@@ -146,7 +146,7 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="get_detail(<?= $request_details ?>)">
+																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>', '<?= $request_id ?>', '<?= $amount_paid ?>', '<?= number_format($amount_paid) ?>')">
 																				<i class="fa fa-plus-square"></i> Disburse
 																			</a>
 																		</li>
@@ -186,7 +186,7 @@ if ($permission) {
 											</thead>
 											<tbody>
 												<?php
-												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid FROM tbl_contractor_payment_requests r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3 AND request_type=2");
+												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid, d.receipt FROM tbl_contractor_payment_requests r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3 AND request_type=2");
 												$query_rsPayement_reuests->execute();
 												$total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 												if ($total_rsPayement_reuests > 0) {
@@ -201,6 +201,7 @@ if ($permission) {
 														$created_by = $rows_rsPayement_reuests['created_by'];
 														$created_at = $rows_rsPayement_reuests['created_at'];
 														$payment_stage = $rows_rsPayement_reuests['stage'];
+														$receipt = $rows_rsPayement_reuests['receipt'];
 
 														$get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
 														$get_user->execute(array(":user_id" => $created_by));
@@ -261,7 +262,7 @@ if ($permission) {
 																			</a>
 																		</li>
 																		<li>
-																			<a type="button" href="#">
+																			<a type="button" href="<?= $receipt ?>">
 																				<i class="fa fa-info"></i>Receipt
 																			</a>
 																		</li>
@@ -297,7 +298,7 @@ if ($permission) {
 				</div>
 				<form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
 					<div class="modal-body">
-						<div class="col-md-12">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<fieldset class="scheduler-border">
 								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 									<i class="fa fa-comment" aria-hidden="true"></i> Request Details
@@ -391,6 +392,32 @@ if ($permission) {
 								</div>
 								<div id="comments_div"></div>
 							</fieldset>
+							<fieldset class="scheduler-border disbursed_div">
+								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+									<i class="fa fa-comment" aria-hidden="true"></i> Financiers
+								</legend>
+								<div id="comment_section">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="table-responsive">
+											<table class="table table-bordered table-striped table-hover" id="financier_table" style="width:100%">
+												<thead>
+													<tr>
+														<th width="10%">#</th>
+														<th width="60%">Financier</th>
+														<th width="35%">Amount</th>
+													</tr>
+												</thead>
+												<tbody id="financier_table_body">
+													<tr></tr>
+													<tr id="removeTr">
+														<td colspan="7">Add Financiers</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</fieldset>
 						</div>
 						<!-- /modal-body -->
 					</div> <!-- /modal-content -->
@@ -458,12 +485,45 @@ if ($permission) {
 							</div>
 							<div id="comments_div"></div>
 						</fieldset>
+						<fieldset class="scheduler-border disbursed_div">
+							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+								<i class="fa fa-comment" aria-hidden="true"></i> Financiers
+							</legend>
+							<div id="comment_section">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="table-responsive">
+										<table class="table table-bordered table-striped table-hover" id="financier_table" style="width:100%">
+											<thead>
+												<tr>
+													<th width="10%">#</th>
+													<th width="30%" colspan="3">Financier</th>
+													<th width="30%">Ceiling</th>
+													<th width="30%">Amount</th>
+													<th width="5%">
+														<button type="button" name="addplus" id="addplus_financier" onclick="add_row_financier();" class="btn btn-success btn-sm">
+															<span class="glyphicon glyphicon-plus">
+															</span>
+														</button>
+													</th>
+												</tr>
+											</thead>
+											<tbody id="financier_table_body_d">
+												<tr></tr>
+												<tr id="removeTr1">
+													<td colspan="7">Add Financiers</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</fieldset>
 						<fieldset class="scheduler-border">
 							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 								<i class="fa fa-comment" aria-hidden="true"></i> Add Remarks
 							</legend>
 							<div id="comment_section">
-								<div class="col-md-12">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 									<label class="control-label">Remarks *:</label>
 									<br>
 									<div class="form-line">
@@ -477,6 +537,8 @@ if ($permission) {
 						<div class="col-md-12 text-center">
 							<input type="hidden" name="request_id" id="request_id" value="">
 							<input type="hidden" name="paid_to" id="paid_to" value="">
+							<input type="hidden" name="disburse_amount" id="disburse_amount" value="">
+							<input type="hidden" name="projid" id="projid" value="">
 							<input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
 							<input type="hidden" name="disburse_contractor_payment" id="disburse_contractor_payment" value="new">
 							<button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">Disburse</button>
@@ -495,123 +557,4 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<script src="assets/custom js/fetch-monitoring-evaluation.js"></script>
-
-<script>
-	var ajax_url = "ajax/payments/contractor";
-
-	function set_details(details) {
-		$("#project_name").val(details.project_name);
-		$("#contractor_name").val(details.contractor_name);
-		$("#contractor_number").val(details.contract_no);
-		$("#request_id").val(details.request_id);
-		$("#milestones").hide();
-		$("#tasks").hide();
-		var payment_plan = details.payment_plan;
-
-		if (payment_plan == "1") {
-			$("#milestones").show();
-		} else if (payment_plan == "2") {
-			$("#tasks").show();
-		} else {
-			console.log("payment plan for work measured");
-		}
-	}
-
-	function get_details(details, plan) {
-		set_details(details);
-		if (details.request_id != "") {
-			$.ajax({
-				type: "get",
-				url: ajax_url,
-				data: {
-					get_more_info: "get_more_info",
-					request_id: details.request_id,
-				},
-				dataType: "json",
-				success: function(response) {
-					if (response.details.success) {
-						$("#comments_div").html(response.comments);
-						$("#attachment_div").html(response.attachment);
-						if (details.payment_plan == '1') {
-							$("#milestone_table").html(response.details.milestones);
-							$("#request_amount").val(response.details.request_amount);
-							$("#request_percentage").val(response.details.request_percentage);
-							$("#requested_amount").val(response.details.request_amount);
-							$("#payment_phase").val(response.details.payment_phase);
-						} else {
-							$("#tasks").show();
-							$("#tasks_table").html(response.details.tasks);
-							$("#subtotal").html(response.details.task_amount);
-							$("#requested_amount").val(response.details.task_amount);
-						}
-					}
-				}
-			});
-		} else {
-			console.log("Ensure that the request is correct");
-		}
-	}
-
-	//function to put commas to the data
-	function commaSeparateNumber(val) {
-		while (/(\d+)(\d{3})/.test(val.toString())) {
-			val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
-		}
-		return val;
-	}
-
-	function get_more_info(costline_id) {
-		if (costline_id != "") {
-			$.ajax({
-				type: "get",
-				url: "ajax/payments/index",
-				data: {
-					get_contractor_more_info: "get_contractor_more_info",
-					payment_request_id: costline_id,
-				},
-				dataType: "json",
-				success: function(response) {
-					if (response.success) {
-						$("#budget_line_more_info").html(response.details);
-					} else {
-						console.log("data could not be found")
-					}
-				}
-			});
-		}
-	}
-
-	function get_detail(request_details) {
-		$("#request_id").val(request_details.request_id);
-		$("#amount_requested").val(commaSeparateNumber(request_details.total_amount));
-	}
-
-	$(document).ready(function() {
-		$("#modal_submit_form").submit(function(e) {
-			e.preventDefault();
-			// $("#modal-form-submit").prop("disabled", true);
-			var form = $(this)[0];
-			var form_details = new FormData(form);
-			$.ajax({
-				type: "post",
-				url: ajax_url,
-				data: form_details,
-				cache: false,
-				contentType: false,
-				processData: false,
-				dataType: "json",
-				success: function(response) {
-					if (response.success) {
-						success_alert("Congratulations you have disbursed the budgetline");
-						setTimeout(() => {
-							window.location.reload(true);
-						}, 100);
-					} else {
-						error_alert("Sorry record could not be created");
-					}
-				}
-			});
-		});
-	});
-</script>
+<script src="assets/js/payment/contractor.js"></script>

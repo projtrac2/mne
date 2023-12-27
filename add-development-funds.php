@@ -68,8 +68,6 @@ if ($permission) {
 			$grantinstallmentdate = $_POST['grantinstallmentdate'];
 			$grantlifespan = $grantinstallments =  $grantinstallmentdate = 0;
 
-
-
 			if (!empty($_POST['code']) && !empty($_POST['year']) && !empty($_POST['amount']) && !empty($funddate) && !empty($_POST['user_name'])) {
 				$insertSQL = $db->prepare("INSERT INTO tbl_funds (funder, fund_code, financial_year, amount, currency, exchange_rate, date_funds_released, funds_purpose, grant_life_span, grant_installments, grant_installment_date, recorded_by, date_recorded)  VALUES (:funder, :code, :year, :amount, :currency, :rate, :funddate, :purpose, :lifespan, :installments, :installmentsdate, :recordedby, :recorddate)");
 				$result = $insertSQL->execute(array(':funder' => $_POST['financier'], ':code' => $_POST['code'], ':year' => $_POST['year'], ':amount' => $_POST['amount'], ':currency' => $_POST['currency'], ':rate' => $_POST['rate'], ':funddate' => $funddate, ':purpose' => $_POST['purpose'], ':lifespan' => $grantlifespan, ':installments' => $grantinstallments, ':installmentsdate' => $grantinstallmentdate, ':recordedby' => $_POST['user_name'], ':recorddate' => $current_date));
@@ -371,7 +369,7 @@ if ($permission) {
 									<div class="col-md-4">
 										<label>Funding Amount *:</label>
 										<div class="form-line">
-											<input name="amount" type="number" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
+											<input name="amount" type="number" onchange="calculate_funds()" onkeyup="calculate_funds()" id="amount_funds" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
 										</div>
 									</div>
 									<div class="col-md-4">
@@ -447,6 +445,48 @@ if ($permission) {
 												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
 											</div>
 										</div>
+									</div>
+								</fieldset>
+								<fieldset class="scheduler-border">
+									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FUND ATTACHMENTS</legend>
+									<div class="table-responsive">
+										<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+											<thead>
+												<tr>
+													<th style="width:5%">#</th>
+													<th style="width:35%">Project</th>
+													<th style="width:20%">Budget</th>
+													<th style="width:20%">Cost</th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php
+												$query_plannedfunds =  $db->prepare("SELECT * FROM tbl_myprojfunding f inner join tbl_projects p on p.projid=f.projid WHERE f.financier=:fnd");
+												$query_plannedfunds->execute(array(":fnd" => $fnd));
+												$rows_plannedfunds = $query_plannedfunds->rowCount();
+												if ($rows_plannedfunds > 0) {
+													$counter = 0;
+													while ($row_plannedfunds = $query_plannedfunds->fetch()) {
+														$counter++;
+														$project_name = $row_plannedfunds['projname'];
+														$projid = $row_plannedfunds['projid'];
+														$budget = $row_plannedfunds['amountfunding'];
+												?>
+														<tr>
+															<td style="width:5%"><?= $counter ?></td>
+															<td style="width:35%"><?= $project_name ?></td>
+															<td style="width:20%"><?= number_format($budget, 2) ?></td>
+															<td style="width:20%">
+																<input type="number" name="cost" id="cost" class="form-control">
+																<input type="hidden" name="projid" value="<?= $projid ?>">
+															</td>
+														</tr>
+												<?php
+													}
+												}
+												?>
+											</tbody>
+										</table>
 									</div>
 								</fieldset>
 								<fieldset class="scheduler-border">
@@ -574,7 +614,7 @@ if ($permission) {
 	</section>
 	<!-- end body  -->
 	<!-- Bootstrap Datepicker Plugin Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+	<!-- <script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script> -->
 <?php
 } else {
 	$results =  restriction();
@@ -585,3 +625,8 @@ require('includes/footer.php');
 ?>
 
 <script src="assets/custom js/funding.js"></script>
+<script>
+	const amount_funds = () => {
+		console.log($('#amount_funds').val());
+	}
+</script>

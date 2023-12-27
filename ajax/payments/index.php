@@ -153,7 +153,7 @@ try {
    function get_requested_items($costlineid)
    {
       global $db;
-      $query_rsTask_parameters = $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE r.id=:costlineid");
+      $query_rsTask_parameters = $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE r.request_id=:costlineid");
       $query_rsTask_parameters->execute(array(":costlineid" => $costlineid));
       $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
       $tasks = '';
@@ -224,7 +224,6 @@ try {
       }
       return $options;
    }
-
 
    if (isset($_GET['get_sites'])) {
       $projid = $_GET['projid'];
@@ -418,6 +417,7 @@ try {
       $request_type = 1;
       $date_paid = $_POST['date_paid'];
       $created_by = $_POST['user_name'];
+      $projid = $_POST['projid'];
       $created_at = date("Y-m-d");
       $status = 3;
       $stage = 4;
@@ -429,10 +429,11 @@ try {
          if (($ext != "exe") && ($_FILES["receipt"]["type"] != "application/x-msdownload")) {
             $newname = time() . "_" . $stage . "_" . $filename;
             $filepath = "../../uploads/payments/" . $newname;
+            $imagepath = "uploads/payments/" . $newname;
             if (!file_exists($filepath)) {
                if (move_uploaded_file($_FILES['receipt']['tmp_name'], $filepath)) {
                   $msg = true;
-                  $receipt = $filepath;
+                  $receipt = $imagepath;
                }
             }
          }
@@ -443,12 +444,49 @@ try {
          $result = $sql->execute(array(":request_id" => $request_id, ":payment_mode" => $payment_mode, ":comments" => $comments, ":receipt" => $receipt, ":request_type" => $request_type, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
 
          if ($result) {
+            if (isset($_POST['financiers'])) {
+               $financiers = $_POST['financiers'];
+               $count_financiers = count($financiers);
+               for ($i = 0; $i < $count_financiers; $i++) {
+                  $amount = $_POST['amountfunding'][$i];
+                  $financier = $_POST['financiers'][$i];
+                  $sql = $db->prepare("INSERT INTO tbl_payment_request_financiers (projid,request_id,financier_id,amount,request_type,created_by,created_at) VALUES (:projid,:request_id,:financier_id,:amount,:request_type,:created_by,:created_at)");
+                  $result  = $sql->execute(array(":projid" => $projid, ":request_id" => $request_id, ":financier_id" => $financier, ":amount" => $amount, ":request_type" => 1, ":created_by" => $created_by, ":created_at" => $created_at));
+               }
+            }
+
+
             $sql = $db->prepare("UPDATE tbl_payments_request SET status = :status WHERE  id = :request_id");
             $results  = $sql->execute(array(":status" => $status, ":request_id" => $request_id));
             store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Director Finance ", ":created_by" => $created_by, ":created_at" => $created_at));
          }
       }
       echo json_encode(array("success" => true));
+   }
+
+   function get_financiers($request_id)
+   {
+      global $db;
+      $query_rsFunder =  $db->prepare("SELECT f.id, f.financier, m.amount FROM tbl_payment_request_financiers m INNER JOIN tbl_financiers f ON f.id=m.financier_id  WHERE m.request_id=:request_id");
+      $query_rsFunder->execute(array(":request_id" => $request_id));
+      $total_rsFunder = $query_rsFunder->rowCount();
+      $financiers = '';
+      if ($total_rsFunder > 0) {
+         $counter = 0;
+         while ($row_rsFunder = $query_rsFunder->fetch()) {
+            $counter++;
+            $amountfunding = $row_rsFunder['amount'];
+            $financier = $row_rsFunder['financier'];
+            $financiers .=
+               '<tr>
+               <td>' . $counter . '</td>
+               <td>' . $financier . '</td>
+               <td>' . number_format($amountfunding, 2) . '</td>
+            </tr>';
+         }
+      }
+
+      return $financiers;
    }
 
    if (isset($_GET['get_more_info'])) {
@@ -482,14 +520,81 @@ try {
          } else {
             $data = get_requested_items($request_id);
          }
+
+         $financiers = get_financiers($request_id);
       }
 
-      $query_rsTask_parameters = $db->prepare("SELECT SUM(unit_cost * no_of_units) as request_amount FROM tbl_payments_request_details  WHERE id=:request_id");
+
+
+      $query_rsTask_parameters = $db->prepare("SELECT SUM(unit_cost * no_of_units) as request_amount FROM tbl_payments_request_details  WHERE request_id=:request_id");
       $query_rsTask_parameters->execute(array(":request_id" => $request_id));
       $Rows_rsTask_parameters = $query_rsTask_parameters->fetch();
       $request_amount = !is_null($Rows_rsTask_parameters['request_amount']) ? $Rows_rsTask_parameters['request_amount'] : 0;
 
-      echo json_encode(array("success" => true, "details" => $rows_rsPayement_requests, 'project_details' => $rows_rsprojects, 'data' => $data, 'comments' => get_comments($request_id), 'disbursement' => $rows_rsDisbursement, "request_amount" => number_format($request_amount, 2)));
+      echo json_encode(array("success" => true, "details" => $rows_rsPayement_requests, 'project_details' => $rows_rsprojects, 'data' => $data, 'comments' => get_comments($request_id), 'disbursement' => $rows_rsDisbursement, "request_amount" => number_format($request_amount, 2), "financiers" => $financiers));
+   }
+
+   if (isset($_GET['get_financier'])) {
+      $financiers = '<option value="">... Select list ...</option>';
+      $projid = $_GET['projid'];
+      $request_id = $_GET['request_id'];
+      $query_rsFunder =  $db->prepare("SELECT f.id, f.financier, m.amountfunding FROM tbl_myprojfunding m INNER JOIN tbl_financiers f ON f.id=m.financier  WHERE m.projid=:projid");
+      $query_rsFunder->execute(array(":projid" => $projid));
+      $total_rsFunder = $query_rsFunder->rowCount();
+      if ($total_rsFunder > 0) {
+         while ($row_rsFunder = $query_rsFunder->fetch()) {
+            $amountfunding = $row_rsFunder['amountfunding'];
+            $financier = $row_rsFunder['financier'];
+            $funder = $row_rsFunder['id'];
+
+            $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE r.projid=:projid AND status=3");
+            $query_rsPayement_requests_financiers->execute(array(":projid" => $projid));
+            $rows_rsPayement_requests_financiers = $query_rsPayement_requests_financiers->fetch();
+            $amount_paid = !is_null($rows_rsPayement_requests_financiers['amount']) ? $rows_rsPayement_requests_financiers['amount'] : 0;
+
+            $query_rsPayment =  $db->prepare("SELECT amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE r.projid=:projid AND f.request_id=:request_id");
+            $query_rsPayment->execute(array(":projid" => $projid, ":request_id" => $request_id));
+            $rows_rsPayment = $query_rsPayment->fetch();
+            $totalrows_rsPayment = $query_rsPayment->rowCount();
+            $request_amount = $totalrows_rsPayment > 0 ? $rows_rsPayment['amount'] : 0;
+
+            $total_spent = ($amountfunding - $amount_paid) + $request_amount;
+            if ($total_spent > 0) {
+               $financiers .= '<option value="' . $funder . '">' . $financier . '</option>';
+            }
+         }
+      }
+
+      echo json_encode(array("success" => true, "financiers" => $financiers));
+   }
+
+   if (isset($_GET['financier_balance'])) {
+      $financier_id = $_GET['financier'];
+      $request_id = $_GET['request_id'];
+      $projid = $_GET['projid'];
+      $query_rsFunder =  $db->prepare("SELECT f.id, f.financier, m.amountfunding FROM tbl_myprojfunding m INNER JOIN tbl_financiers f ON f.id=m.financier  WHERE f.id=:financier_id AND m.projid=:projid");
+      $query_rsFunder->execute(array(":financier_id" => $financier_id, ':projid' => $projid));
+      $row_rsFunder = $query_rsFunder->fetch();
+      $total_rsFunder = $query_rsFunder->rowCount();
+      $balance = 0;
+      if ($total_rsFunder > 0) {
+         $amountfunding = $row_rsFunder['amountfunding'];
+         $financier = $row_rsFunder['financier'];
+         $funder = $row_rsFunder['id'];
+
+         $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE financier_id=:financier_id ");
+         $query_rsPayement_requests_financiers->execute(array(":financier_id" => $financier_id));
+         $rows_rsPayement_requests_financiers = $query_rsPayement_requests_financiers->fetch();
+         $amount_paid = !is_null($rows_rsPayement_requests_financiers['amount']) ? $rows_rsPayement_requests_financiers['amount'] : 0;
+
+         $query_rsPayment =  $db->prepare("SELECT amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE f.projid=:projid AND f.request_id=:request_id");
+         $query_rsPayment->execute(array(":projid" => $projid, ":request_id" => $request_id));
+         $rows_rsPayment = $query_rsPayment->fetch();
+         $totalrows_rsPayment = $query_rsPayment->rowCount();
+         $request_amount = $totalrows_rsPayment > 0 ? $rows_rsPayment['amount'] : 0;
+         $balance = ($amountfunding - $amount_paid) + $request_amount;
+      }
+      echo json_encode(array("success" => true, "balance" => $balance));
    }
 } catch (PDOException $ex) {
    $result = flashMessage("An error occurred: " . $ex->getMessage());

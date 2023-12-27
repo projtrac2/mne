@@ -11,6 +11,21 @@
                      </div>
                      <!-- #Footer -->
                  </aside>
+                 <?php
+                    $query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+                    $query_company->execute();
+                    $row_company = $query_company->fetch();
+                    $total_company = $query_company->rowCount();
+
+                    if ($total_company > 0) {
+                        $company_latitude = $row_company['latitude'];
+                        $company_longitude = $row_company['longitude'];
+                    ?>
+                     <input type="hidden" name="company_latitide" id="company_latitude" value="<?= $company_latitude ?>">
+                     <input type="hidden" name="company_longitude" id="company_longitude" value="<?= $company_longitude ?>">
+                 <?php
+                    }
+                    ?>
 
                  <!-- bootstrap js  -->
                  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>

@@ -171,24 +171,57 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Team Members</h4>
                 </div>
                 <div class="modal-body" id="moreinfo">
-                <div class="table-responsive">
-                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                <thead>
-                                    <tr class="bg-grey">
-                                        <th width="8%"><strong>Photo</strong></th>
-                                        <th width="32%"><strong>Fullname</strong></th>
-                                        <th width="15%"><strong>Designation</strong></th>
-                                        <th width="10%"><strong>Role</strong></th>
-                                        <th width="10%"><strong>Availability</strong></th>
-                                        <th width="15%"><strong>Email</strong></th>
-                                        <th width="10%"><strong>Phone</strong></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="team_members">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs" style="font-size:14px">
+                            <li class="active">
+                                <a data-toggle="tab" href="#menu1">TECHNICAL TEAM &nbsp;<span class="badge bg-blue">|</span></a>
+                            </li>
+                            <li>
+                                <a data-toggle="tab" href="#menu2">M&E TEAM &nbsp;<span class="badge bg-green">|</span></a>
+                            </li>
+                        </ul>
+                    </div>
 
-                                </tbody>
-                            </table>
+                    <div class="tab-content">
+                        <div id="menu1" class="tab-pane fade in active">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                    <thead>
+                                        <tr class="bg-grey">
+                                            <th width="8%"><strong>Photo</strong></th>
+                                            <th width="32%"><strong>Fullname</strong></th>
+                                            <th width="15%"><strong>Designation</strong></th>
+                                            <th width="10%"><strong>Role</strong></th>
+                                            <th width="10%"><strong>Availability</strong></th>
+                                            <th width="15%"><strong>Email</strong></th>
+                                            <th width="10%"><strong>Phone</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="technical_team">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+                        <div id="menu2" class="tab-pane fade">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                    <thead>
+                                        <tr class="bg-grey">
+                                            <th width="8%"><strong>Photo</strong></th>
+                                            <th width="32%"><strong>Fullname</strong></th>
+                                            <th width="15%"><strong>Designation</strong></th>
+                                            <th width="10%"><strong>Role</strong></th>
+                                            <th width="10%"><strong>Availability</strong></th>
+                                            <th width="15%"><strong>Email</strong></th>
+                                            <th width="10%"><strong>Phone</strong></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mne_team">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <div class="col-md-12 text-center">
@@ -245,24 +278,25 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script type="text/javascript">
-const get_team = projid=>{
-if(projid !=''){
-    $.ajax({
-        type: "get",
-        url: "ajax/team/info",
-        data: {
-            get_team_members:"get_team_members",
-            projid:projid
-        },
-        dataType: "json",
-        success: function (response) {
-            if(response.success){
-                $("#team_members").html(response.team);
-            }else{
-                console.log("Sorry no users found");
-            }
+    const get_team = projid => {
+        if (projid != '') {
+            $.ajax({
+                type: "get",
+                url: "ajax/team/project",
+                data: {
+                    get_team_members: "get_team_members",
+                    projid: projid
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        $("#technical_team").html(response.technical_team);
+                        $("#mne_team").html(response.mne_team);
+                    } else {
+                        error_alert("Sorry no users found");
+                    }
+                }
+            });
         }
-    });
-}
-}
+    }
 </script>

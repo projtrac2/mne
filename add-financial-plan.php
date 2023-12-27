@@ -115,9 +115,15 @@ if ($permission) {
                                        <li class="active">
                                           <a data-toggle="tab" href="#home"><i class="fa fa-hourglass-half bg-orange" aria-hidden="true"></i> Direct Project Cost &nbsp;<span class="badge bg-orange"></span></a>
                                        </li>
-                                       <li>
-                                          <a data-toggle="tab" href="#menu1"><i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Administrative/Operational Cost&nbsp;<span class="badge bg-light-blue"></span></a>
-                                       </li>
+                                       <?php
+                                       if ($administrative_cost > 0) {
+                                       ?>
+                                          <li>
+                                             <a data-toggle="tab" href="#menu1"><i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Administrative/Operational Cost&nbsp;<span class="badge bg-light-blue"></span></a>
+                                          </li>
+                                       <?php
+                                       }
+                                       ?>
                                     </ul>
                                  </div>
                                  <div class="tab-content">
@@ -491,34 +497,37 @@ if ($permission) {
                                           ?>
                                        </div>
                                     </div>
-                                    <div id="menu1" class="tab-pane fade">
-                                       <?php
-                                       $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-                                       $query_rsOther_cost_plan->execute(array(":projid" => $projid, ":cost_type" => 2));
-                                       $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
-                                       $edit = $totalRows_rsOther_cost_plan > 0 ? 1 : 0;
+                                    <?php
+                                    if ($administrative_cost > 0) {
+                                    ?>
+                                       <div id="menu1" class="tab-pane fade">
+                                          <?php
+                                          $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
+                                          $query_rsOther_cost_plan->execute(array(":projid" => $projid, ":cost_type" => 2));
+                                          $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
+                                          $edit = $totalRows_rsOther_cost_plan > 0 ? 1 : 0;
 
 
-                                       $cost_type = $budget_line_id = 2;
-                                       $query_rsOther_cost_plan1 =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
-                                       $query_rsOther_cost_plan1->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-                                       $totalRows_rsOther_cost_plan1 = $query_rsOther_cost_plan1->rowCount();
-                                       $row_rsOther_cost_plan1 = $query_rsOther_cost_plan1->fetch();
-                                       $plan_id = $totalRows_rsOther_cost_plan1 > 0 ? $row_rsOther_cost_plan1['plan_id'] : 0;
+                                          $cost_type = $budget_line_id = 2;
+                                          $query_rsOther_cost_plan1 =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
+                                          $query_rsOther_cost_plan1->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                          $totalRows_rsOther_cost_plan1 = $query_rsOther_cost_plan1->rowCount();
+                                          $row_rsOther_cost_plan1 = $query_rsOther_cost_plan1->fetch();
+                                          $plan_id = $totalRows_rsOther_cost_plan1 > 0 ? $row_rsOther_cost_plan1['plan_id'] : 0;
 
 
-                                       $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
-                                       $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-                                       $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
-                                       $totalRows_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->rowCount();
-                                       $sum_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+                                          $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
+                                          $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+                                          $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                                          $totalRows_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->rowCount();
+                                          $sum_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
 
 
-                                       $outputid  = $site_id = 0;
-                                       $budget_line = "Administrative/Operational Cost";
+                                          $outputid  = $site_id = 0;
+                                          $budget_line = "Administrative/Operational Cost";
 
-                                       $budget_line_details =
-                                          "{
+                                          $budget_line_details =
+                                             "{
                                           cost_type : $cost_type,
                                           output_id: $outputid,
                                           budget_line_id: $budget_line_id,
@@ -529,69 +538,72 @@ if ($permission) {
                                           site_id:$site_id,
                                           sum_cost:$sum_cost
                                        }";
-                                       ?>
-                                       <div class="header">
-                                          <h4 class="contentheader">
-                                             Administrative/Operational Cost
-                                             <div class="btn-group" style="float:right">
+                                          ?>
+                                          <div class="header">
+                                             <h4 class="contentheader">
+                                                Administrative/Operational Cost
                                                 <div class="btn-group" style="float:right">
-                                                   <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                      <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                   </button>
+                                                   <div class="btn-group" style="float:right">
+                                                      <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                         <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                      </button>
+                                                   </div>
                                                 </div>
-                                             </div>
-                                          </h4>
-                                       </div>
-                                       <div class="body">
-                                          <div class="table-responsive">
-                                             <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                                <thead>
-                                                   <tr>
-                                                      <th style="width:5%">#</th>
-                                                      <th style="width:40%">Item</th>
-                                                      <th style="width:25%">Unit of Measure</th>
-                                                      <th style="width:10%">No. of Units</th>
-                                                      <th style="width:10%">Unit Cost (Ksh)</th>
-                                                      <th style="width:10%">Total Cost (Ksh)</th>
-                                                   </tr>
-                                                </thead>
-                                                <tbody id="budget_lines_table2">
-                                                   <?php
-                                                   if ($totalRows_rsOther_cost_plan > 0) {
-                                                      $table_counter = 0;
-                                                      while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
-                                                         $table_counter++;
-                                                         $rmkid = $row_rsOther_cost_plan['id'];
-                                                         $description = $row_rsOther_cost_plan['description'];
-                                                         $financial_year = $row_rsOther_cost_plan['financial_year'];
-                                                         $unit = $row_rsOther_cost_plan['unit'];
-                                                         $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                         $units_no = $row_rsOther_cost_plan['units_no'];
-                                                         $total_cost = $unit_cost * $units_no;
+                                             </h4>
+                                          </div>
+                                          <div class="body">
+                                             <div class="table-responsive">
+                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                                   <thead>
+                                                      <tr>
+                                                         <th style="width:5%">#</th>
+                                                         <th style="width:40%">Item</th>
+                                                         <th style="width:25%">Unit of Measure</th>
+                                                         <th style="width:10%">No. of Units</th>
+                                                         <th style="width:10%">Unit Cost (Ksh)</th>
+                                                         <th style="width:10%">Total Cost (Ksh)</th>
+                                                      </tr>
+                                                   </thead>
+                                                   <tbody id="budget_lines_table2">
+                                                      <?php
+                                                      if ($totalRows_rsOther_cost_plan > 0) {
+                                                         $table_counter = 0;
+                                                         while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
+                                                            $table_counter++;
+                                                            $rmkid = $row_rsOther_cost_plan['id'];
+                                                            $description = $row_rsOther_cost_plan['description'];
+                                                            $financial_year = $row_rsOther_cost_plan['financial_year'];
+                                                            $unit = $row_rsOther_cost_plan['unit'];
+                                                            $unit_cost = $row_rsOther_cost_plan['unit_cost'];
+                                                            $units_no = $row_rsOther_cost_plan['units_no'];
+                                                            $total_cost = $unit_cost * $units_no;
 
-                                                         $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-                                                         $query_rsIndUnit->execute(array(":unit_id" => $unit));
-                                                         $row_rsIndUnit = $query_rsIndUnit->fetch();
-                                                         $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-                                                         $unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
-                                                   ?>
-                                                         <tr id="row">
-                                                            <td style="width:5%"><?= $table_counter ?></td>
-                                                            <td style="width:40%"><?= $description ?></td>
-                                                            <td style="width:25%"><?= $unit_of_measure ?></td>
-                                                            <td style="width:10%"><?= number_format($units_no) ?></td>
-                                                            <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
-                                                            <td style="width:10%"><?= number_format($total_cost, 2) ?></td>
-                                                         </tr>
-                                                   <?php
+                                                            $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+                                                            $query_rsIndUnit->execute(array(":unit_id" => $unit));
+                                                            $row_rsIndUnit = $query_rsIndUnit->fetch();
+                                                            $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+                                                            $unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+                                                      ?>
+                                                            <tr id="row">
+                                                               <td style="width:5%"><?= $table_counter ?></td>
+                                                               <td style="width:40%"><?= $description ?></td>
+                                                               <td style="width:25%"><?= $unit_of_measure ?></td>
+                                                               <td style="width:10%"><?= number_format($units_no) ?></td>
+                                                               <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
+                                                               <td style="width:10%"><?= number_format($total_cost, 2) ?></td>
+                                                            </tr>
+                                                      <?php
+                                                         }
                                                       }
-                                                   }
-                                                   ?>
-                                                </tbody>
-                                             </table>
+                                                      ?>
+                                                   </tbody>
+                                                </table>
+                                             </div>
                                           </div>
                                        </div>
-                                    </div>
+                                    <?php
+                                    }
+                                    ?>
                                  </div>
                               </fieldset>
                               <fieldset class="scheduler-border" style="border-radius:3px">
@@ -713,10 +725,14 @@ if ($permission) {
                                              $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
                                              $direct_budget = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
 
-                                             $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
-                                             $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => 2));
-                                             $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
-                                             $administrative_budget = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+                                             $administrative_budget = 0;
+                                             if ($administrative_cost > 0) {
+                                                $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
+                                                $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => 2));
+                                                $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                                                $administrative_budget = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+                                             }
+
                                              $result =   $direct_budget == $direct_cost && $administrative_budget == $administrative_cost ? true : false;
                                              return $result;
                                           }

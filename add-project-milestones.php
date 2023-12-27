@@ -110,7 +110,7 @@ if ($permission) {
                                                                             <a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
                                                                                 <i class="fa fa-users"></i> Assign
                                                                             </a>
-                                                                        </li>
+                                                                        </li> 
                                                                     <?php
                                                                     }
                                                                     if ($assigned_responsible) {

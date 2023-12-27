@@ -1,11 +1,8 @@
-const ajax_url = 'ajax/payments/index';
-
+const ajax_url = "ajax/payments/contractor";
 
 $(document).ready(function () {
     $("#modal_form_submit").submit(function (e) {
         e.preventDefault();
-        var purpose = $("#purpose").val();
-        var msg = purpose != '' && purpose == '1' ? "Approved" : "Rejected";
         $.ajax({
             type: "post",
             url: ajax_url,
@@ -13,51 +10,50 @@ $(document).ready(function () {
             dataType: "json",
             success: function (response) {
                 if (response.success) {
-                    success_alert(`Successfully ${msg}`);
+                    success_alert("Approved payment successfully");
                 } else {
-                    success_alert("Error occured kindly repeat the process")
+                    error_alert("Approval error !!");
                 }
-
+                $(".modal").each(function () {
+                    $(this).modal("hide");
+                    $(this)
+                        .find("form")
+                        .trigger("reset");
+                });
                 setTimeout(() => {
-                    window.location.reload(true)
+                    window.location.reload();
                 }, 3000);
             }
         });
     });
 
-    $("#modal_form_submit_disburse").submit(function (e) {
+    $("#modal_submit_form").submit(function (e) {
         e.preventDefault();
+        // $("#modal-form-submit").prop("disabled", true);
         var form = $(this)[0];
         var form_details = new FormData(form);
-        var financier_contribution = calculate_financiers_contributions();
-        var disburse_amount = $("#disburse_amount").val();
-        if (financier_contribution == disburse_amount) {
-            $.ajax({
-                type: "post",
-                url: "ajax/payments/index",
-                data: form_details,
-                cache: false,
-                contentType: false,
-                processData: false,
-                dataType: "json",
-                success: function (response) {
-                    if (response.success) {
-                        success_alert("Congratulations you have disbursed the budgetline");
-                        setTimeout(() => {
-                            window.location.reload(true);
-                        }, 100);
-                    } else {
-                        alert("Sorry record could not be created");
-                    }
+        $.ajax({
+            type: "post",
+            url: ajax_url,
+            data: form_details,
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    success_alert("Congratulations you have disbursed the budgetline");
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 100);
+                } else {
+                    error_alert("Sorry record could not be created");
                 }
-            });
-        } else {
-            error_alert("Please ensure the contribution by financiers is equal to request amount")
-        }
+            }
+        });
     });
 });
 
-//function to put commas to the data
 function commaSeparateNumber(val) {
     while (/(\d+)(\d{3})/.test(val.toString())) {
         val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
@@ -65,107 +61,72 @@ function commaSeparateNumber(val) {
     return val;
 }
 
-function get_approval_details(request_id, stage, amount_requested, requested_amount) {
-    $("#stage_id").val(stage);
-    $("#request_id").val(request_id);
-    $("#h_requested_amount").val(amount_requested);
-    $("#a_requested_amount").val(requested_amount);
-    $("#status_id").attr("required", "required")
-    $("#status_id").val("");
-    if (stage == "2") {
-        $("#purpose_div").hide("required");
-        $("#status_id").removeAttr("required");
-        $("#status_id").val(1);
-        $("#status_id").attr("disabled", "disabled");
+function set_details(details) {
+    $("#project_name").val(details.project_name);
+    $("#contractor_name").val(details.contractor_name);
+    $("#contractor_number").val(details.contract_no);
+    $("#request_id").val(details.request_id);
+    $("#projid").val(details.projid);
+    $("#payment_plan").val(details.payment_plan);
+    $("#project_plan").val(details.project_plan);
+    $("#stage").val(details.stage);
+    $("#complete").val(details.complete);
+
+    $("#milestones").hide();
+    $("#tasks").hide();
+    var payment_plan = details.payment_plan;
+
+    if (payment_plan == "1") {
+        $("#milestones").show();
+    } else if (payment_plan == "2") {
+        $("#tasks").show();
+    } else {
+        console.log("payment plan for work measured");
     }
 }
 
+function get_details(details, plan) {
+    set_details(details);
+    $("#project_approve_div").hide();
+    $("#modal-form-submit").hide();
+    if (plan == 2) {
+        $("#project_approve_div").show();
+        $("#modal-form-submit").show();
+    }
 
-const get_more_info = (request_id) => {
-    $(".disbursed_div").hide();
-    if (request_id != "") {
+    if (details.request_id != "") {
         $.ajax({
             type: "get",
             url: ajax_url,
             data: {
                 get_more_info: "get_more_info",
-                request_id: request_id,
+                request_id: details.request_id,
             },
             dataType: "json",
             success: function (response) {
-                if (response.success) {
-                    var stage = response.details.stage;
-                    var status = response.details.status;
-                    var purpose = response.details.purpose;
-                    var request_amount = response.request_amount;
-
-                    var payment_stage = '';
-                    if (stage == 1) {
-                        payment_stage = 'CO Department';
-                    } else if (stage == 2) {
-                        payment_stage = 'CO Finance';
-                    } else if (stage == 3) {
-                        payment_stage = 'Director Finance';
-                    }
-
-                    var payment_status = '';
-                    if (status == 1) {
-                        payment_status = 'Pending';
-                    } else if (status == 2) {
-                        payment_status = 'Canceled';
-                    } else if (status == 3) {
-                        $(".disbursed_div").show();
-                        payment_status = 'Disbursed';
-                        $("#payment_mode").html(response.disbursement.payment_mode);
-                        $("#receipt_no").html(response.disbursement.receipt_no);
-                        $("#receipt").attr("href", response.disbursement.receipt);
-                        $("#date_paid").html(response.disbursement.date_paid);
-                        $("#financier_table_body").html(response.financiers);
-                    }
-
-                    var payment_purpose = '';
-                    if (purpose == 1) {
-                        payment_purpose = 'Direct Cost';
-                    } else if (purpose == 2) {
-                        payment_purpose = 'Administrative Cost';
-                    } else if (purpose == 3) {
-                        payment_purpose = 'Mapping Cost';
-                    } else if (purpose == 4 || purpose == 5) {
-                        payment_purpose = 'Evaluation Cost';
-                    }
-                    var fullname = response.details.ttitle + ' ' + response.details.fullname;
-
-                    //
-
+                if (response.details.success) {
                     $("#comments_div").html(response.comments);
-                    $("#project_name").html(response.project_details.projname);
-                    $("#project_code").html(response.project_details.projcode);
-                    $("#requested_amount").html(response.request_amount);
-                    $("#requested_by").html(fullname);
-                    $("#date_requested").html(response.details.date_requested);
-                    $("#due_date").html(response.details.due_date);
-                    $("#stage").html(payment_stage);
-                    $("#status").html(payment_status);
-                    $("#purpose").html(payment_purpose);
-
-                    if (purpose == '1') {
+                    $("#attachment_div").html(response.attachment);
+                    if (details.payment_plan == '1') {
+                        $("#milestones").show();
                         $("#milestone_table").html(response.details.milestones);
                         $("#request_amount").val(response.details.request_amount);
                         $("#request_percentage").val(response.details.request_percentage);
                         $("#requested_amount").val(response.details.request_amount);
-                        $("#payment_phase").html(response.details.payment_phases);
+                        $("#payment_phase").val(response.details.payment_phase);
                     } else {
-                        $("#tasks_table").html(response.data);
-                        $("#requested_amount").val(response.details.amount_requested);
-                        $("#subtotal").html(request_amount);
+                        $("#tasks").show();
+                        $("#tasks_table").html(response.details.tasks);
+                        $("#subtotal").html(response.details.task_amount);
+                        $("#requested_amount").val(response.details.task_amount);
                     }
                 } else {
-                    success_alert("No data found !!!")
+                    error_alert("Could not find any record");
                 }
             }
         });
     } else {
-        success_alert("Ensure that the request is correct");
+        error_alert("Ensure that the request is correct");
     }
 }
 
@@ -174,7 +135,6 @@ const disburse_funds = (projid, request_id, amount_requested, amount_disbursed) 
     $("#amount_requested").val(amount_disbursed);
     $("#disburse_amount").val(amount_requested);
     $("#projid").val(projid);
-
     add_row_financier();
 }
 

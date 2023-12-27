@@ -69,9 +69,10 @@ if ($permission) {
 				<h4 class="contentheader" style="color:#FFF">
 					<?= $icon ?>
 					<?= $pageTitle ?>
+					<?= $results ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-							<a type="button" id="outputItemModalBtnrow" href="project-collaboration.php?projid=<?=$projid_hashed?>" class="btn btn-warning pull-right">
+							<a type="button" id="outputItemModalBtnrow" href="project-collaboration.php?projid=<?= $projid_hashed ?>" class="btn btn-warning pull-right">
 								Exit
 							</a>
 						</div>
@@ -102,7 +103,6 @@ if ($permission) {
 														<?php
 														if ($totalRows_issuediscussion > 0) {
 															while ($row_issuediscussion = $query_discussion->fetch()) {
-																$poster = $row_issuediscussion["title"] . "." . $row_issuediscussion["fullname"];
 																$comments = $row_issuediscussion['message'];
 																$file_type = $row_issuediscussion['file_type'];
 																$avatar = $row_issuediscussion['floc'];
@@ -112,6 +112,15 @@ if ($permission) {
 																$image_array = array('gif', 'jpg', 'jpeg', 'png');
 																$audio_array = array('mp3');
 																$video_array = array('mp4');
+																$title_id = $row_issuediscussion["title"];
+
+																$query_rsTitle = $db->prepare("SELECT * FROM tbl_titles WHERE id=:title_id");
+																$query_rsTitle->execute(array(":title_id" => $title_id));
+																$row_rsTitle = $query_rsTitle->fetch();
+																$totalRows_rsTitle = $query_rsTitle->rowCount();
+																$title = $totalRows_rsTitle > 0 ? $row_rsTitle['title'] : '';
+																$poster = $title . "." . $row_issuediscussion["fullname"];
+
 																if ($created_by == $user_name) {
 														?>
 																	<li class="timeline-inverted">

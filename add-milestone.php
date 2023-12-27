@@ -233,20 +233,13 @@ if ($permission) {
                                                                                                     <i class=" fa fa-pencil-square"></i> Check Activities
                                                                                                 </a>
                                                                                             </li>
-                                                                                        <?php
-                                                                                        } else {
-                                                                                        ?>
-                                                                                            <li>
-                                                                                                <a type="button" href="add-milestone-output-activities.php?output_id=<?= $output_hashed ?>&milestone_id=<?= $hashed_milestone_id ?>">
-                                                                                                    <i class=" fa fa-pencil-square"></i> <?= $edit ? "Edit" : "Add" ?> Activities
-                                                                                                </a>
-                                                                                            </li>
                                                                                             <?php
+                                                                                        } else {
                                                                                             if ($milestone_type == 1) {
                                                                                             ?>
                                                                                                 <li>
-                                                                                                    <a type="button" data-toggle="modal" data-target="#outputMilestoneItemModal" id="outputMilestoneItemModalRowss" onclick='add_output(<?= $options ?>, 2)"'>
-                                                                                                        <i class=" fa fa-pencil-square"></i> Edit Output
+                                                                                                    <a type="button" href="add-milestone-output-activities.php?output_id=<?= $output_hashed ?>&milestone_id=<?= $hashed_milestone_id ?>">
+                                                                                                        <i class=" fa fa-pencil-square"></i> <?= $edit ? "Edit" : "Add" ?> Activities
                                                                                                     </a>
                                                                                                 </li>
                                                                                             <?php

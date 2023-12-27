@@ -940,7 +940,7 @@ function update_projects_status()
                     $subtask_status = 3;
                     if ($start_date > $today && $achieved > 0) {
                         $subtask_status = 4;
-                    }else if ($today > $start_date) {
+                    } else if ($today > $start_date) {
                         $subtask_status = 4;
                         if ($today < $end_date) {
                             $subtask_status = 4;
@@ -966,22 +966,18 @@ function update_projects_status()
                     $projstatus = 4;
                 }
             } else {
-                $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=1");
+                $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
                 $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
                 $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
 
-                if ($totalRows_rsTask_Start_Dates > 0) {
-                    $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid AND complete =0");
-                    $query_Output->execute(array(":projid" => $projid));
-                    $total_Output = $query_Output->rowCount();
+                $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid AND complete =0");
+                $query_Output->execute(array(":projid" => $projid));
+                $total_Output = $query_Output->rowCount();
 
-                    $query_rsIssues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status <> 7");
-                    $query_rsIssues->execute(array(":projid" => $projid));
-                    $total_rsIssues = $query_rsIssues->rowCount();
-                    if ($total_rsIssues > 0 && $total_Output  == 0) {
-                        $projstatus = 5;
-                    }
-                }
+                $query_rsIssues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status <> 7");
+                $query_rsIssues->execute(array(":projid" => $projid));
+                $total_rsIssues = $query_rsIssues->rowCount();
+                $projstatus = ($totalRows_rsTask_Start_Dates == 0 && $total_rsIssues == 0 && $total_Output  == 0) ? 5 : $projstatus;
             }
 
             $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
@@ -989,7 +985,4 @@ function update_projects_status()
         }
     }
 }
-
-
-
 update_projects_status();

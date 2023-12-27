@@ -203,8 +203,8 @@ if ($permission) {
             $members = $_POST['member'];
             $roles = $_POST['role'];
 
-            $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type <= 3");
-            $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage));
+            $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND team_type <= 3");
+            $result = $sql->execute(array(':projid' => $projid));
 
 
             $total_members = count($members);
@@ -237,7 +237,8 @@ if ($permission) {
         function validate_mne()
         {
             global $db, $projid, $projevaluation, $mappingactivite, $mne_budget, $project_impact, $monitoring_frequency, $implimentation_stage;
-            $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=3 ");
+
+            $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=4 ");
             $query_rs_output_cost_plan->execute(array(":projid" => $projid));
             $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
             $result[] = $totalRows_rs_output_cost_plan > 0 ? true : false;
@@ -260,17 +261,17 @@ if ($permission) {
                 $totalRows_outcome_details = $query_outcome_details->rowCount();
                 $result[] = $totalRows_outcome_details > 0 ? true : false;
 
+                $query_rs_Evaluation =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type =5 ");
+                $query_rs_Evaluation->execute(array(":projid" => $projid));
+                $totalRows_rs_Evaluation = $query_rs_Evaluation->rowCount();
+                $result[] = $totalRows_rs_Evaluation > 0 ? true : false;
+
                 if ($project_impact != 0) {
                     $query_impact_details = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE projid=:projid");
                     $query_impact_details->execute(array(":projid" => $projid));
                     $totalRows_impact_details = $query_impact_details->rowCount();
                     $result[] = $totalRows_impact_details > 0 ? true : false;
                 }
-
-                $query_rs_Evaluation =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=3 ");
-                $query_rs_Evaluation->execute(array(":projid" => $projid));
-                $totalRows_rs_Evaluation = $query_rs_Evaluation->rowCount();
-                $result[] = $totalRows_rs_Evaluation > 0 ? true : false;
             }
 
             $query_rsTask_direct = $db->prepare("SELECT SUM(units_no * unit_cost) as total_cost FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type > 2");
@@ -281,8 +282,6 @@ if ($permission) {
             $result[] = $monitoring_frequency != '' ? true : false;
             return !in_array(false, $result) ? true : false;
         }
-
-        $proceed = validate_mne();
     } catch (PDOException $ex) {
         $result = "An error occurred: " . $ex->getMessage();
         print($result);
@@ -409,13 +408,7 @@ if ($permission) {
                                                                 <input type="hidden" name="store_project_details" id="store_project_details" value="store_project_details">
                                                                 <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
                                                                 <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                                                <?php
-                                                                if (!$approval_stage) {
-                                                                ?>
-                                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $monitoring_frequency == "" ? "Save" : "Update" ?>" />
-                                                                <?php
-                                                                }
-                                                                ?>
+                                                                <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $monitoring_frequency == "" ? "Save" : "Update" ?>" />
                                                             </div>
                                                         </form>
                                                     </div>
@@ -433,13 +426,7 @@ if ($permission) {
                                                     <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
                                                     </div>
                                                     <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                                                        <?php
-                                                        if (!$approval_stage) {
-                                                        ?>
-                                                            <button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
-                                                        <?php
-                                                        }
-                                                        ?>
+                                                        <button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
                                                     </div>
                                                 </div>
                                                 <div class="body">
@@ -475,13 +462,7 @@ if ($permission) {
                                                     <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
                                                     </div>
                                                     <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                                                        <?php
-                                                        if (!$approval_stage) {
-                                                        ?>
-                                                            <button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
-                                                        <?php
-                                                        }
-                                                        ?>
+                                                        <button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
                                                     </div>
                                                 </div>
                                                 <div class="body">
@@ -523,16 +504,10 @@ if ($permission) {
                                                                                 <th style="width:40%">Result Level *:</th>
                                                                                 <th style="width:45%">Member *:</th>
                                                                                 <th style="width:5%">
-                                                                                    <?php
-                                                                                    if (!$approval_stage) {
-                                                                                    ?>
-                                                                                        <button type="button" name="addplus" id="add_row_gen" onclick="add_member()" class="btn btn-success btn-sm">
-                                                                                            <span class="glyphicon glyphicon-plus">
-                                                                                            </span>
-                                                                                        </button>
-                                                                                    <?php
-                                                                                    }
-                                                                                    ?>
+                                                                                    <button type="button" name="addplus" id="add_row_gen" onclick="add_member()" class="btn btn-success btn-sm">
+                                                                                        <span class="glyphicon glyphicon-plus">
+                                                                                        </span>
+                                                                                    </button>
                                                                                 </th>
                                                                             </tr>
                                                                         </thead>
@@ -547,7 +522,7 @@ if ($permission) {
                                                                                     $counter++;
                                                                                     $responsible = $row_rsProject_Members['responsible'];
                                                                                     $role = $row_rsProject_Members['role'];
-																					?>
+                                                                            ?>
                                                                                     <tr id="memrow<?= $counter ?>">
                                                                                         <td><?= $counter ?></td>
                                                                                         <td>
@@ -562,7 +537,7 @@ if ($permission) {
                                                                                         </td>
                                                                                         <td>
                                                                                             <?php
-                                                                                            if ($counter != 1 && !$approval_stage) {
+                                                                                            if ($counter != 1) {
                                                                                             ?>
                                                                                                 <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_member("memrow<?= $counter ?>")'>
                                                                                                     <span class="glyphicon glyphicon-minus"></span>
@@ -602,13 +577,7 @@ if ($permission) {
                                                                 <input type="hidden" name="projevaluation" id="projevaluation" value="<?= $projevaluation ?>" />
                                                                 <input type="hidden" name="project_impact" id="project_impact" value="<?= $project_impact ?>" />
                                                                 <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                                                <?php
-                                                                if (!$approval_stage) {
-                                                                ?>
-                                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $totalRows_rsProject_Members  == 0 ? "Save" : "Update" ?>" />
-                                                                <?php
-                                                                }
-                                                                ?>
+                                                                <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="project_submit" value="<?= $totalRows_rsProject_Members  == 0 ? "Save" : "Update" ?>" />
                                                             </div>
                                                         </form>
                                                     </div>
@@ -619,7 +588,7 @@ if ($permission) {
                                     <div id="budget" class="tab-pane fade">
                                         <fieldset class="scheduler-border" style="border-radius:3px">
                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                <i class="fa fa-money" style="color:#F44336" aria-hidden="true"></i> M&E Budget (Ksh. <?= number_format($mne_budget,2)?>)
+                                                <i class="fa fa-money" style="color:#F44336" aria-hidden="true"></i> M&E Budget (Ksh. <?= number_format($mne_budget, 2) ?>)
                                             </legend>
                                             <div class="card-header">
                                                 <ul class="nav nav-tabs" style="font-size:14px">
@@ -677,15 +646,9 @@ if ($permission) {
                                                                 <h4><u>Monitoring Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
                                                             </div>
                                                             <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-                                                                <?php
-                                                                if (!$approval_stage) {
-                                                                ?>
-                                                                    <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                        <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span> ' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                    </button>
-                                                                <?php
-                                                                }
-                                                                ?>
+                                                                <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                    <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span> ' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -740,6 +703,7 @@ if ($permission) {
                                                 <?php
                                                 if ($mappingactivite) {
                                                 ?>
+
                                                     <div id="mapping" class="tab-pane fade ">
                                                         <?php
                                                         $cost_type = 3;
@@ -772,15 +736,9 @@ if ($permission) {
                                                                     <h4><u>Mapping Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
                                                                 </div>
                                                                 <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-                                                                    <?php
-                                                                    if (!$approval_stage) {
-                                                                    ?>
-                                                                        <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                            <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                        </button>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
+                                                                    <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                        <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -868,15 +826,9 @@ if ($permission) {
                                                                     <h4><u>Evaluation Cost: <?= number_format($sum_cost, 2) ?> </u></h4>
                                                                 </div>
                                                                 <div class="col-lg-1 col-md-1 col-sm-12 col-xs-12">
-                                                                    <?php
-                                                                    if (!$approval_stage) {
-                                                                    ?>
-                                                                        <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right">
-                                                                            <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                        </button>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
+                                                                    <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" onclick="add_budgetline(<?= $budget_line_details ?>)" class="btn btn-success btn-sm" style="float:right">
+                                                                        <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -938,6 +890,7 @@ if ($permission) {
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                     <?php
+                                    $proceed = validate_mne();
                                     if ($proceed) {
                                         $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
                                         $stage = $workflow_stage;
@@ -1132,13 +1085,18 @@ if ($permission) {
                                                                     $question = $row_outcomeevalqstns['question'];
                                                                     $orowno++; */
                                                             ?>
-                                                                    <tr id="questionrow<?//= $orowno ?>">
-                                                                        <td> <?//= $orowno ?> </td>
+                                                                    <tr id="questionrow<? //= $orowno
+                                                                                        ?>">
+                                                                        <td> <? //= $orowno
+                                                                                ?> </td>
                                                                         <td>
-                                                                            <input type="text" name="outcomeotherquestions[]" id="questions<?//= $orowno ?>" value="<?//= $question ?>" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
+                                                                            <input type="text" name="outcomeotherquestions[]" id="questions<? //= $orowno
+                                                                                                                                            ?>" value="<? //= $question
+                                                                                                                                                        ?>" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
                                                                         </td>
                                                                         <td>
-                                                                            <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?//= $orowno ?>" class="form-control querry">
+                                                                            <select data-id="0" name="outcomeotheranswertype[]" id="answertype<? //= $orowno
+                                                                                                                                                ?>" class="form-control querry">
                                                                                 <?php
                                                                                 /* $input = '<option value="">... Select ...</option>';
                                                                                 $input .= '<option value="1">Number</option>';
@@ -1153,14 +1111,16 @@ if ($permission) {
                                                                             </select>
                                                                         </td>
                                                                         <td>
-                                                                            <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?//= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                            <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<? //= $orowno
+                                                                                                                                                                    ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                         </td>
 
                                                                         <td>
                                                                             <?php
-                                                                           // if ($orowno != 1) {
+                                                                            // if ($orowno != 1) {
                                                                             ?>
-                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_question("questionrow<?//= $orowno ?>")'>
+                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_row_question("questionrow<? //= $orowno
+                                                                                                                                                                                            ?>")'>
                                                                                     <span class="glyphicon glyphicon-minus"></span>
                                                                                 </button>
                                                                             <?php
@@ -1179,9 +1139,10 @@ if ($permission) {
                                                                         <input type="text" name="outcomeotherquestions[]" id="questions90" value="" placeholder="Enter any other outcome evaluation question" class="form-control querry" />
                                                                     </td>
                                                                     <td>
-                                                                        <select data-id="0" name="outcomeotheranswertype[]" id="answertype<?//= $orowno ?>" class="form-control querry">
+                                                                        <select data-id="0" name="outcomeotheranswertype[]" id="answertype<? //= $orowno
+                                                                                                                                            ?>" class="form-control querry">
                                                                             <?php
-                                                                           /*  $input = '<option value="">... Select ...</option>';
+                                                                            /*  $input = '<option value="">... Select ...</option>';
                                                                             $input .= '<option value="1">Number</option>';
                                                                             $input .= '<option value="2">Multiple Choice</option>';
                                                                             $input .= '<option value="3">Checkboxes</option>';
@@ -1194,14 +1155,15 @@ if ($permission) {
                                                                         </select>
                                                                     </td>
                                                                     <td>
-                                                                        <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<?//= $orowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                        <input type="text" name="outcome_other_answer_label[]" id="outcome_other_answer_label<? //= $orowno
+                                                                                                                                                                ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                     </td>
                                                                     <td>
 
                                                                     </td>
                                                                 </tr>
                                                             <?php
-                                                           // }
+                                                            // }
                                                             ?>
                                                         </tbody>
                                                     </table>
@@ -1212,13 +1174,7 @@ if ($permission) {
                                                     <input type="hidden" name="addoutcome" id="addoutcome" value="addoutcome">
                                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
                                                     <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                                    <?php
-                                                    if (!$approval_stage) {
-                                                    ?>
-                                                        <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="outcome-tag-form-submit" value="Save" />
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="outcome-tag-form-submit" value="Save" />
                                                     <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                                 </div>
                                             </div>
@@ -1382,7 +1338,7 @@ if ($permission) {
                                                         </thead>
                                                         <tbody id="impact_questions_table_body">
                                                             <?php
-                                                           /*  $iprowno = 0;
+                                                            /*  $iprowno = 0;
                                                             $iprowno++; */
                                                             ?>
                                                             <tr id="impactquestionrow90">
@@ -1391,9 +1347,10 @@ if ($permission) {
                                                                     <input type="text" name="impactquestions[]" id="impactquestions90" value="" placeholder="Enter any other impact evaluation questions" class="form-control impactquerry" />
                                                                 </td>
                                                                 <td>
-                                                                    <select data-id="0" name="impactanswertype[]" id="impactanswertype<?//= $iprowno ?>" class="form-control impactquerry">
+                                                                    <select data-id="0" name="impactanswertype[]" id="impactanswertype<? //= $iprowno
+                                                                                                                                        ?>" class="form-control impactquerry">
                                                                         <?php
-                                                                       /*  $impactotherinput = '<option value="">... Select ...</option>';
+                                                                        /*  $impactotherinput = '<option value="">... Select ...</option>';
                                                                         $impactotherinput .= '<option value="1">Number</option>';
                                                                         $impactotherinput .= '<option value="2">Mutiple Choice</option>';
                                                                         $impactotherinput .= '<option value="3">Checkboxes</option>';
@@ -1405,7 +1362,8 @@ if ($permission) {
                                                                     </select>
                                                                 </td>
                                                                 <td>
-                                                                    <input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label<?//= $iprowno ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
+                                                                    <input type="text" name="impact_other_answer_label[]" id="impact_other_answer_label<? //= $iprowno
+                                                                                                                                                        ?>" placeholder="Enter comma seperated labels" class="form-control querry" />
                                                                 </td>
                                                                 <td>
 
@@ -1420,13 +1378,7 @@ if ($permission) {
                                                     <input type="hidden" name="addimpact" id="addimpact" value="addimpact">
                                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
                                                     <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                                    <?php
-                                                    if (!$approval_stage) {
-                                                    ?>
-                                                        <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="impact-tag-form-submit" value="Save" />
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="impact-tag-form-submit" value="Save" />
                                                     <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                                 </div>
                                             </div>
@@ -1561,15 +1513,9 @@ if ($permission) {
                                 <input type="hidden" name="output_id" id="output_id" value="">
                                 <input type="hidden" name="plan_id" id="plan_id" value="">
                                 <input type="hidden" name="mne_budget" id="mne_budget" value="<?= $mne_budget ?>">
-
-                                <?php
-                                if (!$approval_stage) {
-                                ?>
-                                    <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
-                                        Save
-                                    </button> <?php
-                                            }
-                                                ?>
+                                <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
+                                    Save
+                                </button>
                                 <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                             </div>
                         </div> <!-- /modal-footer -->

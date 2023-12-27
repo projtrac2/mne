@@ -2,7 +2,6 @@
 require('includes/head.php');
 if ($permission) {
 ?>
-
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
@@ -111,7 +110,7 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="get_details('<?= $request_id ?>', <?= $amount_paid ?>)">
+																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>','<?= $request_id ?>', <?= $amount_paid ?>, '<?= number_format($amount_paid, 2) ?>')">
 																				<i class="fa fa-plus-square"></i> Disburse
 																			</a>
 																		</li>
@@ -151,7 +150,7 @@ if ($permission) {
 											</thead>
 											<tbody>
 												<?php
-												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3");
+												$query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid, d.receipt FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3");
 												$query_rsPayement_reuests->execute();
 												$total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 												if ($total_rsPayement_reuests > 0) {
@@ -163,6 +162,7 @@ if ($permission) {
 														$date_paid = $rows_rsPayement_reuests['date_paid'];
 														$created_by = $rows_rsPayement_reuests['created_by'];
 														$created_at = $rows_rsPayement_reuests['created_at'];
+														$receipt = $rows_rsPayement_reuests['receipt'];
 
 														$query_rsPayment_request_details =  $db->prepare("SELECT SUM(unit_cost * no_of_units) as amount_paid FROM tbl_payments_request_details WHERE request_id=:request_id");
 														$query_rsPayment_request_details->execute(array(":request_id" => $request_id));
@@ -199,8 +199,8 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" href="#">
-																				<i class="fa fa-info"></i>Receipt
+																			<a type="button" href="<?= $receipt ?>" target="_blank">
+																				<i class="fa fa-info"></i> Receipt
 																			</a>
 																		</li>
 																		<li>
@@ -311,6 +311,32 @@ if ($permission) {
 											</div>
 										</div>
 									</fieldset>
+									<fieldset class="scheduler-border disbursed_div">
+										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+											<i class="fa fa-comment" aria-hidden="true"></i> Financiers
+										</legend>
+										<div id="comment_section">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<div class="table-responsive">
+													<table class="table table-bordered table-striped table-hover" id="financier_table" style="width:100%">
+														<thead>
+															<tr>
+																<th width="10%">#</th>
+																<th width="60%">Financier</th>
+																<th width="35%">Amount</th>
+															</tr>
+														</thead>
+														<tbody id="financier_table_body">
+															<tr></tr>
+															<tr id="removeTr">
+																<td colspan="7">Add Financiers</td>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+											</div>
+										</div>
+									</fieldset>
 									<fieldset class="scheduler-border">
 										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 											<i class="fa fa-comment" aria-hidden="true"></i> Remarks
@@ -382,6 +408,39 @@ if ($permission) {
 								</div>
 							</div>
 						</fieldset>
+						<fieldset class="scheduler-border disbursed_div">
+							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+								<i class="fa fa-comment" aria-hidden="true"></i> Financiers
+							</legend>
+							<div id="comment_section">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="table-responsive">
+										<table class="table table-bordered table-striped table-hover" id="financier_table" style="width:100%">
+											<thead>
+												<tr>
+													<th width="10%">#</th>
+													<th width="30%" colspan="3">Financier</th>
+													<th width="30%">Ceiling</th>
+													<th width="30%">Amount</th>
+													<th width="5%">
+														<button type="button" name="addplus" id="addplus_financier" onclick="add_row_financier();" class="btn btn-success btn-sm">
+															<span class="glyphicon glyphicon-plus">
+															</span>
+														</button>
+													</th>
+												</tr>
+											</thead>
+											<tbody id="financier_table_body_d">
+												<tr></tr>
+												<tr id="removeTr1">
+													<td colspan="7">Add Financiers</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</fieldset>
 						<fieldset class="scheduler-border">
 							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 								<i class="fa fa-comment" aria-hidden="true"></i> Add Remarks
@@ -400,8 +459,10 @@ if ($permission) {
 					<div class="modal-footer">
 						<div class="col-md-12 text-center">
 							<input type="hidden" name="request_id" id="request_id" value="">
+							<input type="hidden" name="projid" id="projid" value="">
 							<input type="hidden" name="paid_to" id="paid_to" value="">
 							<input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
+							<input type="hidden" name="disburse_amount" id="disburse_amount" value="">
 							<input type="hidden" name="disburse" id="disburse" value="new">
 							<button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">Save</button>
 							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>

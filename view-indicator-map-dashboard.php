@@ -193,5 +193,5 @@ require('includes/footer.php');
 
 <!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
 <!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script> -->
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script>
 <script src="assets/js/map/output.js"></script>

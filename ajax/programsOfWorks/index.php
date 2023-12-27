@@ -159,7 +159,12 @@ try {
             $start_date = $start_dates[$i];
             $end_date = $end_dates[$i];
             $duration = $durations[$i];
-            if ($edit == 1) {
+
+            $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
+            $query_rsTask_Start_Dates->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $tkid));
+            $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
+            if ($totalRows_rsTask_Start_Dates > 0) {
                 $sql = $db->prepare("UPDATE `tbl_program_of_works` SET start_date=:start_date,duration=:duration, end_date=:end_date,updated_by=:updated_by,updated_at=:updated_at WHERE subtask_id=:subtask_id AND site_id=:site_id AND task_id=:task_id");
                 $sql->execute(array(':start_date' => $start_date, ':duration' => $duration, ':end_date' => $end_date, ':updated_by' => $user_name, ":updated_at" => $current_date, ":task_id" => $task_id, ':site_id' => $site_id, ":subtask_id" => $tkid));
             } else {

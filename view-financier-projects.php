@@ -1,4 +1,4 @@
-<?php 
+<?php
 require('includes/head.php');
 if ($permission) {
     try {
@@ -9,6 +9,23 @@ if ($permission) {
                 $query_dnrprojs->execute(array(":fnid" => $finid));
                 $count_projects = $query_dnrprojs->rowCount();
             }
+        }
+
+        function get_project_status($status)
+        {
+            global $db;
+            $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+            $query_Projstatus->execute(array(":projstatus" => $status));
+            $row_Projstatus = $query_Projstatus->fetch();
+            $total_Projstatus = $query_Projstatus->rowCount();
+            $status = "";
+            if ($total_Projstatus > 0) {
+                $status_name = $row_Projstatus['statusname'];
+                $status_class = $row_Projstatus['class_name'];
+                $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+            }
+
+            return $status;
         }
     } catch (PDOException $ex) {
         $result = flashMessage("An error occurred: " . $ex->getMessage());
@@ -52,31 +69,13 @@ if ($permission) {
                                     </thead>
                                     <tbody>
                                         <?php
+
                                         if ($count_projects > 0) {
                                             $sn = 0;
                                             while ($detail = $query_dnrprojs->fetch()) {
                                                 $sn++;
-                                                $class = $status = "";
-                                                if ($detail['projstatus'] == 11) {
-                                                    $class = 'class="bg-red"';
-                                                    $status =  "Behind Schedule";
-                                                } elseif ($detail['projstatus'] == 5) {
-                                                    $class = 'class="bg-green"';
-                                                    $status = "Complete";
-                                                } elseif ($detail['projstatus'] == 4) {
-                                                    $class = 'class="bg-light-blue"';
-                                                    $status = "In-progress";
-                                                } elseif ($detail['projstatus'] == 0) {
-                                                    $class = 'class="bg-grey"';
-                                                    $status = "Approved";
-                                                } elseif ($detail['projstatus'] == 6) {
-                                                    $class = 'class="bg-purple"';
-                                                    $status = "On Hold";
-                                                } elseif ($detail['projstatus'] == 2) {
-                                                    $class = 'class="bg-yellow"';
-                                                    $status = "Cancelled";
-                                                }
-
+                                                $status = $detail['projstatus'];
+                                                $project_status = get_project_status($status);
                                                 $projid = $detail['projid'];
                                                 $query_dnrprojsFunds = $db->prepare("SELECT sum(amountfunding) AS amnt FROM tbl_myprojfunding  WHERE projid='$projid' and financier = '$finid'");
                                                 $query_dnrprojsFunds->execute();
@@ -84,17 +83,17 @@ if ($permission) {
                                                 $count_projectsFunds = $query_dnrprojsFunds->rowCount();
                                                 $row_projectsFunds = $query_dnrprojsFunds->fetch();
                                                 $amount = $row_projectsFunds['amnt'];
-												?>
+                                        ?>
                                                 <tr>
                                                     <td><?php echo $sn; ?></td>
                                                     <td><?php echo $detail['projname']; ?></td>
-                                                    <td <?php echo $class ?>><?php echo $status; ?></td>
+                                                    <td><?php echo $project_status; ?></td>
                                                     <td><?php echo number_format($detail['projcost'], 2); ?></td>
                                                     <td><?php echo  number_format($amount, 2); ?></td>
                                                     <td><?php echo date("d M Y", strtotime($detail['projstartdate'])); ?></td>
                                                     <td><?php echo date("d M Y", strtotime($detail['projenddate'])); ?></td>
                                                 </tr>
-												<?php
+                                        <?php
                                             }
                                         }
                                         ?>

@@ -1,6 +1,6 @@
 const ajax_url = "ajax/activities/index";
-$(document).ready(function () {
 
+$(document).ready(function () {
     $("#output_form").submit(function (e) {
         e.preventDefault();
         var form_data = $(this).serialize();
@@ -99,6 +99,9 @@ function add_details(options, id) {
     $("#store_output_data").val("new");
     $("#milestone_data_task_based").hide();
     $("#milestone_data_output_based").hide();
+    $("#milestone_table_body").html(`<tr></tr><tr id="hideinfo1" align="center"><td colspan="5">Add Outputs!!</td></tr>`);
+    $("#milestone_task_table_body").html(`<tr></tr><tr id="hideinfo2" align="center"><td colspan="3">Add Outputs!!</td></tr>`);
+
     if (id == 2) {
         $("#milestone_data").hide();
         $("#store_output_data").val("edit");
@@ -107,9 +110,11 @@ function add_details(options, id) {
         $("#milestone_type").val(options.milestone_type);
 
         if (options.milestone_type == 1) {
-            $("#milestone_data_task_based").hide();
-            $("#milestone_data_output_based").show();
+            console.log(options.milestone_type);
+            $("#milestone_data_task_based").show();
+            $("#milestone_data_output_based").hide();
         } else if (options.milestone_type == 2) {
+            console.log(options.milestone_type);
             $("#milestone_data_task_based").hide();
             $("#milestone_data_output_based").show();
         }
@@ -263,7 +268,7 @@ function delete_task_output(rowno) {
     $number = $("#milestone_task_table_body tr").length;
     if ($number == 1) {
         $("#milestone_task_table_body tr:last").after(
-            '<tr id="hideinfo2"><td colspan="5" align="center"> Add Output</td></tr>'
+            '<tr></tr><tr id="hideinfo2"><td colspan="5" align="center"> Add Output</td></tr>'
         );
     }
 }
@@ -537,7 +542,7 @@ function edit_milestone(milestone_id) {
                     } else {
                         if (milestone_type == 1) {
                             $("#milestone_task_table_body").html(
-                                '<tr id="hideinfo2"><td colspan="5" align="center"> Add Output</td></tr>'
+                                '<tr></tr><tr id="hideinfo2"><td colspan="5" align="center"> Add Output</td></tr>'
                             );
                             numbering_task_output();
                         } else {

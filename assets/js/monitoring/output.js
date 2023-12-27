@@ -1,6 +1,6 @@
 var ajax_url = "ajax/monitoring/output";
 
-function submitForm(form){
+function submitForm(form) {
     $.ajax({
         type: "post",
         url: ajax_url,
@@ -120,15 +120,16 @@ function get_sites() {
                     $("#output_project_type").val(output_project_type);
                     $("#site").html(response.sites);
                     var output_details = response.output_details;
-                    console.log(output_details);
                     $("#target").val(output_details.output_target);
                     $("#cummulative").val(output_details.output_cummulative_record);
                     $("#previous").val(output_details.previous);
                     $("#completed").val(output_details.output_completed);
-
-                    if (output_details.output_complete == 2) {
+                    if (output_details.output_completed == 2) {
                         $("#tag-form-submit1").show();
                     }
+
+                    $("#previous_comments").html(response.comments);
+                    $("#attachments_table1").html(response.files);
                 } else {
                     error_alert("Sorrry could not find output sites");
                     $("#site").html('<option value="">.... Select Site ....</option>');
@@ -175,6 +176,8 @@ function get_milestones() {
                         $("#cummulative").val(site_details.site_cummulative_record);
                         $("#previous").val(site_details.site_previous_record);
                         $("#completed").val(site_details.site_completed);
+                        $("#previous_comments").html(response.comments);
+                        $("#attachments_table1").html(response.files);
                     } else {
                         error_alert("Sorrry could not find milestone outputs");
                         $("#milestone").html('<option value="">.... Select Milestone ....</option>');
@@ -232,6 +235,10 @@ function get_output_details() {
 
                     $("#site_target").val(site_details.site_target);
                     $("#site_achieved").val(site_details.site_achieved);
+
+                    $("#previous_comments").html(response.comments);
+                    $("#attachments_table1").html(response.files);
+
                 } else {
                     error_alert("Sorrry could not find milestone outputs");
                 }
@@ -311,6 +318,6 @@ const validateCeiling = () => {
             error_alert("Ensure you have Site/Ward Target");
         }
     } else {
-        console.log("Please enter value");
+        error_alert("Please enter value");
     }
 }

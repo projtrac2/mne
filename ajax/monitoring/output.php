@@ -108,11 +108,67 @@ try {
         return array("milestone_target" => $milestone_target, "milestone_cummulative_record" => $milestone_cummulative_record, "milestone_previous_record" => $milestone_previous_record, "milestone_completed" => $completed);
     }
 
-    function previous_remarks($milestone_id, $site_id, $subtask_id, $task_id, $record_type)
+
+    function previous_attachment($output_id, $milestone_id, $site_id, $record_type)
     {
         global $db;
-        $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE milestone_id=:milestone_id AND site_id=:site_id and subtask_id=:subtask_id AND task_id = :task_id AND record_type=:record_type");
-        $query_allObservation->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ":subtask_id" => $subtask_id, ":task_id" => $task_id, ':record_type' => $record_type));
+
+        $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND record_type=:record_type");
+        $query_project_videos->execute(array(":output_id" => $output_id, ':record_type' => $record_type));
+        if ($site_id != '') {
+            $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND site_id=:site_id AND record_type=:record_type");
+            $query_project_videos->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':record_type' => $record_type));
+            if ($milestone_id != '') {
+                $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE  opid=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND record_type=:record_type");
+                $query_project_videos->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ':record_type' => $record_type));
+            }
+        }
+        $count_project_videos = $query_project_videos->rowCount();
+        $data = '';
+        if ($count_project_videos > 0) {
+            $rowno = 0;
+            while ($rows_project_videos = $query_project_videos->fetch()) {
+                $rowno++;
+                $projstageid = $rows_project_videos['projstage'];
+                $filename = $rows_project_videos['filename'];
+                $filepath = $rows_project_videos['floc'];
+                $purpose = $rows_project_videos['reason'];
+
+                $query_project_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id=:projstageid");
+                $query_project_stage->execute(array(":projstageid" => $projstageid));
+                $rows_project_stage = $query_project_stage->fetch();
+                $projstage = $rows_project_stage['stage'];
+                $data .= '
+                <tr>
+                    <td width="5%">' . $rowno . '</td>
+                    <td width="35%">' . $filename . '</td>
+                    <td width="35%">' . $purpose . '</td>
+                    <td width="10%">' . $projstage . '</td>
+                    <td width="15%">
+                        <a href="' . $filepath . '" watch target="_balnk">Download</a>
+                    </td>
+                </tr>';
+            }
+        }
+
+        return $data;
+    }
+
+    function previous_remarks($output_id, $milestone_id, $site_id, $record_type)
+    {
+        global $db;
+        $observation_type = $record_type == 1 ? 2 : 3;
+        $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND observation_type=:observation_type");
+        $query_allObservation->execute(array(":output_id" => $output_id, ':observation_type' => $observation_type));
+        if ($site_id != '') {
+            $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND site_id=:site_id AND observation_type=:observation_type");
+            $query_allObservation->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
+            if ($milestone_id != '') {
+                $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE  output_id=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND observation_type=:observation_type");
+                $query_allObservation->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
+            }
+        }
+
         $totalrows_allObservation = $query_allObservation->rowCount();
         $comments_body = "";
         if ($totalrows_allObservation > 0) {
@@ -129,9 +185,7 @@ try {
                     </tr>';
             }
         }
-
-        $previous_records = $comments_body != "" ?  get_body($comments_body) : "<h4>No Records</h4>";
-        return $previous_records;
+        return $comments_body;
     }
 
 
@@ -221,7 +275,9 @@ try {
         $Rows_rsMl = $query_rsMl->rowCount();
         $output_project_type = $Rows_rsMl > 0 ?  2 : 1;
         $output_type = $mapping_type == 2 || $mapping_type == 0 ? 2 : 1;
-        echo json_encode(array("success" => $success, "sites" => $sites, 'output_type' => $output_type, 'output_project_type' => $output_project_type, "output_details" => get_output_details($output_id, $record_type)));
+        $files = previous_attachment($output_id, "", "", $record_type);
+        $comments = previous_remarks($output_id, "", "", $record_type);
+        echo json_encode(array("success" => $success, "sites" => $sites, 'output_type' => $output_type, 'output_project_type' => $output_project_type, "output_details" => get_output_details($output_id, $record_type), "comments" => $comments, "files" => $files));
     }
 
     if (isset($_GET['get_milestones'])) {
@@ -261,7 +317,10 @@ try {
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $Rows_rsOutput = $query_rsOutput->fetch();
         $mapping_type = ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
-        echo json_encode(array("success" => true, "milestones" => $milestones, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type)));
+
+        $files = previous_attachment($output_id, $milestone_id, $site_id, $record_type);
+        $comments = previous_remarks($output_id, $milestone_id, $site_id, $record_type);
+        echo json_encode(array("success" => true, "milestones" => $milestones, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type), "comments" => $comments, "files" => $files));
     }
 
     if (isset($_GET['get_output_details'])) {
@@ -276,7 +335,10 @@ try {
         $Rows_rsOutput = $query_rsOutput->fetch();
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $mapping_type =  ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
-        echo json_encode(array("success" => true, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type), "milestone_details" => get_milestone_details($output_id, $milestone_id, $record_type)));
+
+        $files = previous_attachment($output_id, $milestone_id, $site_id, $record_type);
+        $comments = previous_remarks($output_id, $milestone_id, $site_id, $record_type);
+        echo json_encode(array("success" => true, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type), "milestone_details" => get_milestone_details($output_id, $milestone_id, $record_type), "comments" => $comments, "files" => $files));
     }
 
     if (isset($_POST['store_outputs'])) {
@@ -286,6 +348,7 @@ try {
         $milestone_id = isset($_POST['milestone']) && $_POST['milestone'] != '' ? $_POST['milestone'] : 0;
         $site_id = $_POST['site'];
         $achieved = $_POST['current_measure'];
+        $complete = $_POST['button'];
         $created_at = date("Y-m-d");
         $formid = date("Y-m-d");
 
@@ -331,14 +394,24 @@ try {
 
                                 if (!file_exists($filepath)) {
                                     if (move_uploaded_file($_FILES['monitorattachment']['tmp_name'][$cnt], $filepath)) {
-                                        $qry2 = $db->prepare("INSERT INTO tbl_files (projid,opid,milestone_id,site_id,task_id,subtask_id,projstage,form_id,filename,ftype,floc,fcategory,reason,,record_type,uploaded_by,date_uploaded)  VALUES (:projid,:output_id, :milestone_id,:site_id,:task_id,:subtask_id,:projstage,:formid,:filename,:ftype,:floc,:fcat,:desc,:record_type,:user,:date)");
-                                        $result =  $qry2->execute(array(':projid' => $projid, ":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ":task_id" => $task_id, ':subtask_id' => $subtask_id, ':projstage' => $stage, ':formid' => $formid, ':filename' => $newname, ":ftype" => $ext, ":floc" => $path, ':fcat' => $filecategory, ":desc" => $purpose, ':record_type' => $record_type, ':user' => $user_name, ':date' => $currentdate));
+                                        $qry2 = $db->prepare("INSERT INTO tbl_files (projid,opid,milestone_id,site_id,task_id,subtask_id,projstage,form_id,filename,ftype,floc,fcategory,reason,record_type,uploaded_by,date_uploaded)  VALUES (:projid,:output_id, :milestone_id,:site_id,:task_id,:subtask_id,:projstage,:formid,:filename,:ftype,:floc,:fcat,:desc,:record_type,:user,:date)");
+                                        $result =  $qry2->execute(array(':projid' => $projid, ":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ":task_id" => 0, ':subtask_id' => 0, ':projstage' => $stage, ':formid' => $formid, ':filename' => $newname, ":ftype" => $ext, ":floc" => $path, ':fcat' => $filecategory, ":desc" => $purpose, ':record_type' => $record_type, ':user' => $user_name, ':date' => $currentdate));
                                     }
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+
+        if ($complete == 1) {
+            if ($record_type == 1) {
+                $sql = $db->prepare("UPDATE tbl_project_details SET complete=1, status=5 WHERE  projid=:projid AND id=:output_id");
+                $result  = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id));
+            } else {
+                $sql = $db->prepare("UPDATE tbl_project_details SET mne_complete=1 WHERE  projid=:projid AND id=:output_id");
+                $result  = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id));
             }
         }
         echo json_encode(array("success" => true));

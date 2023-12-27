@@ -3,10 +3,13 @@ let markersArray = [];
 let polyline = null;
 let coordinates = [];
 
+const latitude = $("#company_latitude").val();
+const longitude = $("#company_longitude").val();
+
 
 function initMap() {
-   map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: -1.2864, lng: 36.8172 },
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: latitude, lng: longitude },
     zoom: 13,
     mapTypeId: "roadmap",
   });
@@ -69,7 +72,7 @@ function initMap() {
 
   // map onclick listener
   map.addListener('click', function (e) {
-    addMarker(e.latLng); 
+    addMarker(e.latLng);
     drawPolyline();
   });
 }

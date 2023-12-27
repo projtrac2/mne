@@ -120,7 +120,6 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-
-
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
 <script src="assets/js/map/project.js"></script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script> 

@@ -383,3 +383,5 @@ function calculate_subtotal(task_id) {
     $(`#${task_id}_sub_total_amount`).val(commaSeparateNumber(total_amount));
     $(`#${task_id}_subtotal_percentage`).val(percentage);
 }
+
+

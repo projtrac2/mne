@@ -1,6 +1,6 @@
 <?php
 include_once "includes/permission.php";
-?> 
+?>
 <!DOCTYPE html>
 <html>
 
@@ -80,7 +80,7 @@ include_once "includes/permission.php";
 		.modal-lg {
 			max-width: 100% !important;
 			width: 90%;
-		} 
+		}
 		#links a {
 			color: #FFFFFF;
 			text-decoration: none;
@@ -149,7 +149,6 @@ include_once "includes/permission.php";
 
 	<!-- #Top Bar -->
 	<section>
-
 		<!-- Left Sidebar -->
 		<aside id="leftsidebar" class="sidebar">
 			<!-- User Info -->

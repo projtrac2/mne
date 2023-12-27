@@ -8,20 +8,30 @@ try {
     function timeline_chart($projid, $site_id)
     {
         global $db;
+        $series_arr = [];
 
         $query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = :projid ");
         $query_rsMyP->execute(array(":projid" => $projid));
         $row_rsMyP = $query_rsMyP->fetch();
         $projname = $row_rsMyP['projname'];
 
-
         $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid AND site_id=:site_id");
         $query_rsTask_Start_Dates->execute(array(":projid" => $projid, ":site_id" => $site_id));
         $row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
         if (!is_null($row_rsTask_Start_Dates['start_date']) && !is_null($row_rsTask_Start_Dates['end_date'])) {
-            $project_data = "
-            [{
-                name: '$projname',";
+            $series = new stdClass;
+            $series->name = $projname;
+            $series->data = [];
+
+            $inner = new stdClass;
+            $inner->name = $projname;
+            $inner->id = $projid;
+            $inner->owner = 'owner';
+
+            array_push(
+                $series->data,
+                $inner
+            );
 
             $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
             $query_Output->execute(array(":projid" => $projid));
@@ -41,13 +51,14 @@ try {
                         $start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
                         $end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
-                        $project_data .= "
-                        data: [{
-                            id: 'output_$output_id',
-                            name: '$output',
-                            start: $start_date,
-                            end:$end_date,
-                        },";
+                        $m_outputs = new stdClass;
+                        $m_outputs->name = $output;
+                        $m_outputs->id = $output_id;
+                        $m_outputs->parent = $projid;
+                        $m_outputs->start = $start_date;
+                        $m_outputs->end = $end_date;
+                        $m_outputs->dependencies = '';
+                        array_push($series->data, $m_outputs);
                         if ($totalRows_rsMilestone > 0) {
                             while ($row_rsMilestone = $query_rsMilestone->fetch()) {
                                 $milestone_name = $row_rsMilestone['milestone'];
@@ -60,15 +71,14 @@ try {
                                     $start_date =  strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
                                     $end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
-                                    $project_data .=
-                                        "{
-                                        id: 'task_$milestone_id',
-                                        name: '$milestone_name',
-                                        start: $start_date,
-                                        end:$end_date,
-                                        parent: 'output_$output_id'
-                                    },";
+                                    $m_tasks = new stdClass;
+                                    $m_tasks->id = $milestone_id;
+                                    $m_tasks->name = $milestone_name;
+                                    $m_tasks->parent = $output_id;
+                                    $m_tasks->start = $start_date;
+                                    $m_tasks->end = $end_date;
 
+                                    array_push($series->data, $m_tasks);
 
                                     $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid");
                                     $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $milestone_id));
@@ -87,37 +97,38 @@ try {
                                             if ($totalRows_rsTask_Start_Dates > 0) {
                                                 $start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
                                                 $end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
-                                                $project_data .=
-                                                    "{
-                                                    id: 'subtask_$task_id',
-                                                    name: '$task_name',
-                                                    start: $start_date,
-                                                    end:$end_date,
-                                                    dependency: 'subtask_$parent',
-                                                    parent: 'task_$milestone_id',
-                                                    task_id:$task_id
-                                                },";
+
+
+                                                $m_sub_tasks = new stdClass;
+                                                $m_sub_tasks->name = $task_name;
+                                                $m_sub_tasks->id = $task_id;
+                                                $m_sub_tasks->parent = $milestone_id;
+                                                $m_sub_tasks->dependency = $parent;
+                                                $m_sub_tasks->start = $start_date;
+                                                $m_sub_tasks->end = $end_date;
+
+                                                array_push($series->data, $m_sub_tasks);
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                        $project_data .= "],";
                     }
                 }
             }
+
+            array_push($series_arr, $series);
         }
 
-        $project_data .= "}]";
-        return $project_data;
+        return $series_arr;
     }
 
     if (isset($_GET['timeline_series'])) {
         $site_id = $_GET['site_id'];
         $projid = $_GET['projid'];
         $project_data = timeline_chart($projid, $site_id);
-        echo json_encode(array("success" => true, "series" => $project_data, "data" => $data));
+        echo json_encode(array("success" => true, "series" => $project_data));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

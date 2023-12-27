@@ -71,7 +71,7 @@ try {
                 $fsc_year = get_financial_year($year);
                 $filter .= '<h4>Financial Year: <small>' . $fsc_year . '</small></h4>';
             }
-            
+
             if ($sector != null) {
                 $sect = get_department($sector);
                 $filter .= '<h4>Department: <small>' . $sect . '</small></h4>';
@@ -81,7 +81,7 @@ try {
                 }
             }
         } else {
-			
+
 			$currentYear = date('Y');
 			$month =  date('m');
 
@@ -106,7 +106,7 @@ try {
     $query_user =  $db->prepare("SELECT p.*, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
     $query_user->execute(array(":user_id" => $user_name));
     $row_rsUser = $query_user->fetch();
-	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"]
+	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
 
     $yr = date("Y");
     $mnth = date("m");
@@ -127,7 +127,7 @@ try {
         $dept = !empty($_GET['dept']) ? $_GET['dept'] : null;
         $fyid = !empty($_GET['indfy']) ? $_GET['indfy'] : null;
         $filter = message($get = 1, $sector, $dept, $fyid);
-			
+
 		$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where id =:year ");
 		$query_rsFscYear->execute(array(":year"=>$fyid));
 		$row_rsFscYear = $query_rsFscYear->fetch();
@@ -147,7 +147,7 @@ try {
 		} elseif(!empty($fyid) && empty($sector) && empty($dept)){
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 			$query_indicators->execute();
-		} elseif(empty($_GET['indfy']) && empty($sector) && empty($dept)){	
+		} elseif(empty($_GET['indfy']) && empty($sector) && empty($dept)){
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 			$query_indicators->execute();
 		} elseif(!empty($sector) && !empty($dept) && !empty($fyid)){
@@ -158,7 +158,7 @@ try {
 		$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 		$query_indicators->execute();
         $filter = message($get = 0, $sector = 0, $dept = 0, $fyid = 0);
-		
+
 	 	$currentYear = date('Y');
 		$month =  date('m');
 
@@ -387,16 +387,16 @@ try {
                   <td colspan="">' . number_format($basevalue) . '</td>
                   <td colspan="">' . number_format($annualtarget) . '</td>
                   <td>' . number_format($quarter_one_target) . '</td>
-                  <td>' . number_format($quarter_one_achived) . '</td>	
-                  <td>' . $quarter_one_rate . '</td>	
-                  <td>' . number_format($quarter_two_target) . '</td>	
-                  <td>' . number_format($quarter_two_achived) . '</td>	
-                  <td>' . $quarter_two_rate . '</td>	
-                  <td>' . number_format($quarter_three_target) . '</td>	
-                  <td>' . number_format($quarter_three_achived) . '</td>	
-                  <td>' . $quarter_three_rate . '</td>	
-                  <td>' . number_format($quarter_four_target) . '</td>	
-                  <td>' . number_format($quarter_four_achived) . '</td>	
+                  <td>' . number_format($quarter_one_achived) . '</td>
+                  <td>' . $quarter_one_rate . '</td>
+                  <td>' . number_format($quarter_two_target) . '</td>
+                  <td>' . number_format($quarter_two_achived) . '</td>
+                  <td>' . $quarter_two_rate . '</td>
+                  <td>' . number_format($quarter_three_target) . '</td>
+                  <td>' . number_format($quarter_three_achived) . '</td>
+                  <td>' . $quarter_three_rate . '</td>
+                  <td>' . number_format($quarter_four_target) . '</td>
+                  <td>' . number_format($quarter_four_achived) . '</td>
                   <td>' . $quarter_four_rate . '</td>
                </tr>';
         }

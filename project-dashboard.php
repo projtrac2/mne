@@ -11,7 +11,7 @@ if ($permission) {
 		$query_rsMyP = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
-		$count_rsMyP = $query_rsMyP->rowCount(); 
+		$count_rsMyP = $query_rsMyP->rowCount();
 		$projstage = 0;
 		if ($row_rsMyP) {
 			$projstatusid = $row_rsMyP["projstatus"];
@@ -25,7 +25,7 @@ if ($permission) {
 		$projname = $row_rsMyP['projname'];
 
 		$level1  = [];
-		for ($i = 0; $i < count($projcommunity); $i++){
+		for ($i = 0; $i < count($projcommunity); $i++) {
 			$query_rslga = $db->prepare("SELECT * FROM tbl_state WHERE id ='$projcommunity[$i]' ");
 			$query_rslga->execute();
 			$row_rslga = $query_rslga->fetch();
@@ -33,7 +33,7 @@ if ($permission) {
 		}
 
 		$level2  = [];
-		for ($i = 0; $i < count($projlga); $i++){
+		for ($i = 0; $i < count($projlga); $i++) {
 			$query_rslga = $db->prepare("SELECT * FROM tbl_state WHERE id ='$projlga[$i]'");
 			$query_rslga->execute();
 			$row_rslga = $query_rslga->fetch();
@@ -75,8 +75,8 @@ if ($permission) {
 			$totalRows_tenderdetails = $query_tenderdetails->rowCount();
 			$tenderamount = 0;
 
-			if($totalRows_tenderdetails > 0){
-				while($row_tenderdetails = $query_tenderdetails->fetch()){
+			if ($totalRows_tenderdetails > 0) {
+				while ($row_tenderdetails = $query_tenderdetails->fetch()) {
 					$unitcost = $row_tenderdetails["unit_cost"];
 					$unitsno = $row_tenderdetails["units_no"];
 					$itemcost = $unitcost * $unitsno;
@@ -95,7 +95,7 @@ if ($permission) {
 			}
 
 			$consumed = 0;
-			$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 
@@ -196,7 +196,7 @@ if ($permission) {
 				$othercost = $othercost + $itemcost;
 			}
 			$consumed = 0;
-			$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 			if ($row_consumed) {
@@ -221,8 +221,9 @@ if ($permission) {
 
 		// $prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
-		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
-		$percentage_progress_remaining = 100 - $percent2;
+		$percent = calculate_project_progress($projid, $projcat);
+		$percent2 = number_format($percent, 2);
+		$percentage_progress_remaining = 100 - $percent;
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
 		$rate_balance = 100 - $rate;
@@ -264,7 +265,7 @@ if ($permission) {
 								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
+								<?php if ($projcat == 2 && $projstage > 4) { ?>
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
@@ -314,17 +315,17 @@ if ($permission) {
 							<div class="row clearfix">
 								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 									<figure class="highcharts-figure">
-									  <div id="highcharts-progress"></div>
+										<div id="highcharts-progress"></div>
 									</figure>
 								</div>
 								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 									<figure class="highcharts-figure">
-									  <div id="highcharts-time"></div>
+										<div id="highcharts-time"></div>
 									</figure>
 								</div>
 								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 									<figure class="highcharts-figure">
-									  <div id="highcharts-funds"></div>
+										<div id="highcharts-funds"></div>
 									</figure>
 								</div>
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -342,7 +343,9 @@ if ($permission) {
 											</div>
 											<hr style="border-top: 1px dashed red;">
 											<!--<div>
-												<strong><?//= $level3label ?>:</strong> <?php //echo implode(",", $level3); ?>
+												<strong><? //= $level3label
+														?>:</strong> <?php //echo implode(",", $level3);
+																						?>
 											</div>-->
 										</li>
 									</div>
@@ -391,159 +394,157 @@ if ($permission) {
 		</div>
 	</section>
 	<script>
-	Highcharts.chart('highcharts-progress', {
-	  chart: {
-		type: 'pie',
-		options3d: {
-		  enabled: true,
-		  alpha: 45,
-		  beta: 0
-		}
-	  },
-	  title: {
-		text: 'Project % Progress',
-		align: 'left'
-	  },
-	  accessibility: {
-		point: {
-		  valueSuffix: '%'
-		}
-	  },
-	  tooltip: {
-		pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-	  },
-	  plotOptions: {
-		pie: {
-		  allowPointSelect: true,
-		  cursor: 'pointer',
-		  depth: 35,
-		  dataLabels: {
-			enabled: true,
-			format: '{point.name}'
-		  }
-		}
-	  },
-	  series: [{
-		type: 'pie',
-		name: 'Percentage',
-		data: [
-		  {
-			name: 'Achieved',
-			y: <?php echo $percent2; ?>,
-			sliced: true,
-			selected: true
-		  },
-		  ['Pending', <?php echo $percentage_progress_remaining; ?>]
-		],
-		colors: [
-			'#db03fc',
-			'#03e3fc'
-		]
-	  }]
-	});
+		Highcharts.chart('highcharts-progress', {
+			chart: {
+				type: 'pie',
+				options3d: {
+					enabled: true,
+					alpha: 45,
+					beta: 0
+				}
+			},
+			title: {
+				text: 'Project % Progress',
+				align: 'left'
+			},
+			accessibility: {
+				point: {
+					valueSuffix: '%'
+				}
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					depth: 35,
+					dataLabels: {
+						enabled: true,
+						format: '{point.name}'
+					}
+				}
+			},
+			series: [{
+				type: 'pie',
+				name: 'Percentage',
+				data: [{
+						name: 'Achieved',
+						y: <?php echo $percent2; ?>,
+						sliced: true,
+						selected: true
+					},
+					['Pending', <?php echo $percentage_progress_remaining; ?>]
+				],
+				colors: [
+					'#db03fc',
+					'#03e3fc'
+				]
+			}]
+		});
 
-	Highcharts.chart('highcharts-time', {colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
-	  chart: {
-		type: 'pie',
-		options3d: {
-		  enabled: true,
-		  alpha: 45,
-		  beta: 0
-		}
-	  },
-	  title: {
-		text: 'Project % Time Consumed',
-		align: 'left'
-	  },
-	  accessibility: {
-		point: {
-		  valueSuffix: '%'
-		}
-	  },
-	  tooltip: {
-		pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-	  },
-	  plotOptions: {
-		pie: {
-		  allowPointSelect: true,
-		  cursor: 'pointer',
-		  depth: 35,
-		  dataLabels: {
-			enabled: true,
-			format: '{point.name}'
-		  }
-		}
-	  },
-	  series: [{
-		type: 'pie',
-		name: 'Percentage',
-		data: [
-		  {
-			name: 'Consumed',
-			y: <?php echo $percentage_duration_consumed ?>,
-			sliced: true,
-			selected: true
-		  },
-		  ['Pending', <?php echo $percentage_duration_remaining ?>]
-		],
-		colors: [
-			'#50B432',
-			'#FFF263'
-		]
-	  }]
-	});
+		Highcharts.chart('highcharts-time', {
+			colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
+			chart: {
+				type: 'pie',
+				options3d: {
+					enabled: true,
+					alpha: 45,
+					beta: 0
+				}
+			},
+			title: {
+				text: 'Project % Time Consumed',
+				align: 'left'
+			},
+			accessibility: {
+				point: {
+					valueSuffix: '%'
+				}
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					depth: 35,
+					dataLabels: {
+						enabled: true,
+						format: '{point.name}'
+					}
+				}
+			},
+			series: [{
+				type: 'pie',
+				name: 'Percentage',
+				data: [{
+						name: 'Consumed',
+						y: <?php echo $percentage_duration_consumed ?>,
+						sliced: true,
+						selected: true
+					},
+					['Pending', <?php echo $percentage_duration_remaining ?>]
+				],
+				colors: [
+					'#50B432',
+					'#FFF263'
+				]
+			}]
+		});
 
-	//Highcharts.chart('highcharts-funds', {colors: ['#6AF9C4', '#CB2326', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
-	Highcharts.chart('highcharts-funds', {
-	  chart: {
-		type: 'pie',
-		options3d: {
-		  enabled: true,
-		  alpha: 45,
-		  beta: 0
-		}
-	  },
-	  title: {
-		text: 'Project % Funds Consumed',
-		align: 'left'
-	  },
-	  accessibility: {
-		point: {
-		  valueSuffix: '%'
-		}
-	  },
-	  tooltip: {
-		pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-	  },
-	  plotOptions: {
-		pie: {
-		  allowPointSelect: true,
-		  cursor: 'pointer',
-		  depth: 35,
-		  dataLabels: {
-			enabled: true,
-			format: '{point.name}'
-		  }
-		}
-	  },
-	  series: [{
-		type: 'pie',
-		name: 'Percentage',
-		data: [
-		  {
-			name: 'Consumed',
-			y: <?php echo $rate ?>,
-			sliced: true,
-			selected: true
-		  },
-		  ['Pending', <?php echo $rate_balance ?>]
-		],
-		colors: [
-			'#6AF9C4',
-			'#CB2326'
-		]
-	  }]
-	});
+		//Highcharts.chart('highcharts-funds', {colors: ['#6AF9C4', '#CB2326', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
+		Highcharts.chart('highcharts-funds', {
+			chart: {
+				type: 'pie',
+				options3d: {
+					enabled: true,
+					alpha: 45,
+					beta: 0
+				}
+			},
+			title: {
+				text: 'Project % Funds Consumed',
+				align: 'left'
+			},
+			accessibility: {
+				point: {
+					valueSuffix: '%'
+				}
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					depth: 35,
+					dataLabels: {
+						enabled: true,
+						format: '{point.name}'
+					}
+				}
+			},
+			series: [{
+				type: 'pie',
+				name: 'Percentage',
+				data: [{
+						name: 'Consumed',
+						y: <?php echo $rate ?>,
+						sliced: true,
+						selected: true
+					},
+					['Pending', <?php echo $rate_balance ?>]
+				],
+				colors: [
+					'#6AF9C4',
+					'#CB2326'
+				]
+			}]
+		});
 	</script>
 	<!-- end body  -->
 <?php

@@ -144,7 +144,18 @@ if ($permission) {
                                                 $Date = date("Y-m-d");
                                                 $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
                                                 $project_complete = false;
-                                                if ($schedule_team) {
+                                                if ($daily_team) {
+                                                    $record_type = 1;
+                                                    $Date = date("Y-m-d");
+                                                    $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
+                                                    $project_complete = check_output_completion($projid, $record_type);
+
+                                                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid AND mne_complete=0");
+                                                    $query_rsOutput->execute(array(":projid" => $projid));
+                                                    $totalRows_rsOutput = $query_rsOutput->rowCount();
+                                                    $Rows_rsOutput = $query_rsOutput->fetch();
+                                                    $output_monitoring_complete = $totalRows_rsOutput > 0 ? true : false;
+                                                } else if ($schedule_team) {
                                                     $record_type = 2;
                                                     $query_rsFrequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE fqid = :fqid");
                                                     $query_rsFrequency->execute(array(":fqid" => $monitoring_frequency));
@@ -177,11 +188,12 @@ if ($permission) {
                                                         $due_date = date('Y-m-d', strtotime($Date . ' + ' . $days));
                                                     }
                                                     $project_complete = check_output_completion($projid, $record_type);
-                                                } else if ($daily_team) {
-                                                    $record_type = 1;
-                                                    $Date = date("Y-m-d");
-                                                    $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
-                                                    $project_complete = check_output_completion($projid, $record_type);
+
+                                                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid AND mne_complete=0");
+                                                    $query_rsOutput->execute(array(":projid" => $projid));
+                                                    $totalRows_rsOutput = $query_rsOutput->rowCount();
+                                                    $Rows_rsOutput = $query_rsOutput->fetch();
+                                                    $output_monitoring_complete = $totalRows_rsOutput > 0 ? true : false;
                                                 }
 
                                                 if ($schedule_team || $daily_team) {
@@ -226,7 +238,7 @@ if ($permission) {
                                                         <td style="width:10%"><?= $due_date ?></td>
                                                         <td style="width:10%">
                                                             <?php
-                                                            if (!$project_complete) {
+                                                            if (!$project_complete && $output_monitoring_complete) {
                                                             ?>
                                                                 <div class="btn-group">
                                                                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -284,7 +296,7 @@ if ($permission) {
                                 <a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Remarks &nbsp;<span class="badge bg-blue">|</span></a>
                             </li>
                             <li>
-                                <a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Attachments &nbsp;<span class="badge bg-blue">|</span></a>
+                                <a data-toggle="tab" href="#menu2"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Attachments &nbsp;<span class="badge bg-blue">|</span></a>
                             </li>
                         </ul>
                     </div>
@@ -398,8 +410,6 @@ if ($permission) {
                                     <input type="hidden" name="monitoring_type" id="monitoring_type" value="1">
                                     <input type="hidden" name="record_type" id="record_type" value="">
                                     <input type="hidden" name="completed" id="completed" value="">
-                                    <!-- <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="">Save</button> -->
-
                                     <button type="submit" class="btn btn-primary waves-effect waves-light" value="button1" id="tag-form-submit"> Save</button>
                                     <button type="submit" class="btn btn-success waves-effect waves-light" value="button2" id="tag-form-submit1"> Save and Complete</button>
                                     <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
@@ -408,7 +418,27 @@ if ($permission) {
                         </div>
                         <div id="menu1" class="tab-pane fade">
                             <div id="previous_remarks">
-                                <h1>No records Found</h1>
+                                <fieldset class="scheduler-border">
+                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                        <i class="fa fa-comment" aria-hidden="true"></i> Remark(s)
+                                    </legend>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped table-hover js-basic-example">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:5%">#</th>
+                                                        <th style="width:85%">Comment</th>
+                                                        <th style="width:10%">Date Posted</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="previous_comments">
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </fieldset>
                             </div>
                             <div class="modal-footer">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
@@ -418,7 +448,33 @@ if ($permission) {
                         </div>
                         <div id="menu2" class="tab-pane fade">
                             <div id="previous_images">
-                                <h1>No records Found</h1>
+                                <fieldset class="scheduler-border">
+                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                        <i class="fa fa-paperclip" aria-hidden="true"></i>Attachments (Files/Documents)
+                                    </legend>
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:2%">#</th>
+                                                            <th style="width:40%">Attachments</th>
+                                                            <th style="width:50%">Attachment Purpose</th>
+                                                            <th style="width:10%">Attachment Purpose</th>
+                                                            <th style="width:10%">Download</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="attachments_table1">
+                                                        <tr>
+                                                            <td colspan="3" class="text-center">No Files Found</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
                             </div>
                             <div class="modal-footer">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">

@@ -1,5 +1,7 @@
 const url1 = "ajax/maps/output";
 
+
+
 let map;
 let directionsService;
 var polylineOptions = {
@@ -7,14 +9,15 @@ var polylineOptions = {
 	strokeOpacity: 1,
 	strokeWeight: 4
 };
+
 var colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"];
 var polylines = [];
 let infoWindow;
+const latitude = $("#company_latitude").val();
+const longitude = $("#company_longitude").val();
 
-function initMap() {
-	const lats = $("#lat").val();
-	const longs = $("#long").val();
-	var center = new google.maps.LatLng(lats, longs);
+function initMap(lat, lng) {
+	var center = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
 	return new google.maps.Map(document.getElementById("map"), {
 		center: center,
 		zoom: 12,
@@ -23,12 +26,6 @@ function initMap() {
 		},
 	});
 }
-
-$(document).ready(function () {
-	// get_coordinates();
-	map = initMap();
-});
-
 
 // get level 2
 function conservancy() {

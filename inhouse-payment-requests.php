@@ -97,6 +97,7 @@ if ($permission) {
                                           $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
 
                                           $filter_department = view_record($project_department, $project_section, $project_directorate);
+
                                           if ($filter_department) {
                                              $counter++;
                                     ?>
@@ -147,6 +148,7 @@ if ($permission) {
                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                           $projid = $rows_rsPayement_reuests['projid'];
                                           $request_id = $rows_rsPayement_reuests['id'];
+                                          $request_id_hashed = base64_encode("projid54321{$request_id}");
                                           $payment_requested_date = $rows_rsPayement_reuests['date_requested'];
                                           $payment_due_date = $rows_rsPayement_reuests['due_date'];
                                           $payment_status = $rows_rsPayement_reuests['status'];
@@ -159,7 +161,10 @@ if ($permission) {
                                           $amount_paid = !is_null($rows_rsPayment_request_details['amount_paid']) ? $rows_rsPayment_request_details['amount_paid'] : 0;
 
                                           $status = $stage = "";
-                                          if ($payment_stage == 1) {
+                                          if ($payment_stage == 0) {
+                                             $status  =  "Draft";
+                                             $stage = "Request";
+                                          } else if ($payment_stage == 1) {
                                              $status  = $payment_status == 1 ? "Pending" : "Rejected";
                                              $stage = "CO Department";
                                           } else if ($payment_stage == 2) {
@@ -186,6 +191,8 @@ if ($permission) {
                                              request_id: $request_id,
                                              purpose:$purpose
                                           }";
+
+
                                           $counter++;
                                     ?>
                                           <tr class="">
@@ -204,10 +211,10 @@ if ($permission) {
                                                    </button>
                                                    <ul class="dropdown-menu">
                                                       <?php
-                                                      if ($payment_status == 2) {
+                                                      if ($payment_status == 2 || $payment_status == 0) {
                                                       ?>
                                                          <li>
-                                                            <a type="button" onclick="get_details(<?= $project_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#addFormModal" title="Click here to amend request payment">
+                                                            <a type="button" href="inhouse-payment-request-amend.php?request_id=<?= $request_id_hashed ?>" title="Click here to amend request payment">
                                                                <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Amend
                                                             </a>
                                                          </li>
@@ -224,6 +231,7 @@ if ($permission) {
                                              </td>
                                           </tr>
                                     <?php
+
                                        }
                                     }
                                     ?>
@@ -250,7 +258,7 @@ if ($permission) {
                                  </thead>
                                  <tbody>
                                     <?php
-                                    $query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid  FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3 AND request_type=1");
+                                    $query_rsPayement_reuests =  $db->prepare("SELECT r.*, d.created_at, d.created_by, d.date_paid, d.receipt  FROM tbl_payments_request r INNER JOIN tbl_payments_disbursed d ON d.request_id = r.id WHERE status = 3 AND request_type=1");
                                     $query_rsPayement_reuests->execute();
                                     $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
                                     if ($total_rsPayement_reuests > 0) {
@@ -263,6 +271,7 @@ if ($permission) {
                                           $date_paid = $rows_rsPayement_reuests['date_paid'];
                                           $created_by = $rows_rsPayement_reuests['created_by'];
                                           $created_at = $rows_rsPayement_reuests['created_at'];
+                                          $receipt = $rows_rsPayement_reuests['receipt'];
 
                                           $query_rsPayment_request_details =  $db->prepare("SELECT SUM(unit_cost * no_of_units) as amount_paid FROM tbl_payments_request_details WHERE request_id=:request_id");
                                           $query_rsPayment_request_details->execute(array(":request_id" => $request_id));
@@ -298,7 +307,7 @@ if ($permission) {
                                                    </button>
                                                    <ul class="dropdown-menu">
                                                       <li>
-                                                         <a type="button" href="#">
+                                                         <a type="button" href="<?= $receipt ?>" target="_blank">
                                                             <i class="fa fa-info"></i> Receipt
                                                          </a>
                                                       </li>
@@ -370,7 +379,7 @@ if ($permission) {
                                        <li class="list-group-item"><strong>Purpose: </strong> </strong> <span id="purpose"></span> </li>
                                     </ul>
                                  </div>
-                                 <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                 <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 disbursed_div">
                                     <ul class="list-group">
                                        <li class="list-group-item"><strong>Payment Mode: </strong> <span id="payment_mode"></span> </li>
                                        <li class="list-group-item"><strong>Receipt Number: </strong> </strong> <span id="receipt_no"></span> </li>
@@ -407,6 +416,39 @@ if ($permission) {
                                                 <td colspan="1" id="subtotal" align="right"> </td>
                                              </tr>
                                           </tfoot>
+                                       </table>
+                                    </div>
+                                 </div>
+                              </div>
+                           </fieldset>
+                           <fieldset class="scheduler-border disbursed_div">
+                              <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                 <i class="fa fa-comment" aria-hidden="true"></i> Financiers
+                              </legend>
+                              <div id="comment_section">
+                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div class="table-responsive">
+                                       <table class="table table-bordered table-striped table-hover" id="financier_table" style="width:100%">
+                                          <thead>
+                                             <tr>
+                                                <th width="10%">#</th>
+                                                <th width="30%" colspan="3">Financier</th>
+                                                <th width="30%">Ceiling</th>
+                                                <th width="30%">Amount</th>
+                                                <th width="5%">
+                                                   <button type="button" name="addplus" id="addplus_financier" onclick="add_row_financier();" class="btn btn-success btn-sm">
+                                                      <span class="glyphicon glyphicon-plus">
+                                                      </span>
+                                                   </button>
+                                                </th>
+                                             </tr>
+                                          </thead>
+                                          <tbody id="financier_table_body">
+                                             <tr></tr>
+                                             <tr id="removeTr">
+                                                <td colspan="7">Add Financiers</td>
+                                             </tr>
+                                          </tbody>
                                        </table>
                                     </div>
                                  </div>

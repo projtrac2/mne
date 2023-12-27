@@ -120,24 +120,78 @@ try {
         return $previous_records;
     }
 
-    if (isset($_GET['get_milestone_outputs'])) {
-        $milestone_id = $_GET['milestone_id'];
-        $query_rsOutput = $db->prepare("SELECT i.indicator_name, d.id,m.target FROM tbl_project_milestone_outputs m INNER JOIN tbl_project_details d ON m.output_id = d.id INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE milestone_id=:milestone_id");
-        $query_rsOutput->execute(array(":milestone_id" => $milestone_id));
-        $totalRows_rsOutput = $query_rsOutput->rowCount();
-        $outputs = '<option value="">... Select Output ...</option>';
-        $success = true;
-        if ($totalRows_rsOutput > 0) {
-            $mcounter = 0;
-            while ($row_rsOutput = $query_rsOutput->fetch()) {
-                $output_id = $row_rsOutput['id'];
-                $output_name = $row_rsOutput['indicator_name'];
-                if (validate_output($output_id)) {
-                    $outputs .= '<option value="' . $output_id . '">' . $output_name . '</option>';
+    function get_sites($output_id)
+    {
+        global $db;
+        $sites = '<option value="">... Select Site ...</option>';
+        $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
+        $query_Output->execute(array(":output_id" => $output_id));
+        $total_Output = $query_Output->rowCount();
+        if ($total_Output > 0) {
+            while ($row_rsOutput = $query_Output->fetch()) {
+                $site_id = $row_rsOutput['site_id'];
+                $site_name = $row_rsOutput['site'];
+                $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id = :site_id AND complete=0 ");
+                $query_rsPlan->execute(array(":site_id" => $site_id));
+                $totalRows_plan = $query_rsPlan->rowCount();
+                if ($totalRows_plan > 0) {
+                    $sites .= '<option value="' . $site_id . '">' . $site_name . '</option>';
                 }
             }
         }
-        echo json_encode(array("success" => $success, "outputs" => $outputs));
+        return $sites;
+    }
+
+    function get_output_milestones($projid, $output_id)
+    {
+        global $db;
+        $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid AND milestone_type=1");
+        $query_rsOutput->execute(array(":projid" => $projid));
+        $totalRows_rsOutput = $query_rsOutput->rowCount();
+        $milestones = '<option value="">... Select Milestone ...</option>';
+        $project_type = 1;
+        if ($totalRows_rsOutput > 0) {
+            $project_type = 2;
+            while ($row_rsOutput = $query_rsOutput->fetch()) {
+                $milestone_id = $row_rsOutput['id'];
+                $milestone = $row_rsOutput['milestone'];
+
+                $query_rsMilestone_Outputs = $db->prepare("SELECT * FROM tbl_project_milestone_outputs WHERE output_id=:output_id AND milestone_id=:milestone_id");
+                $query_rsMilestone_Outputs->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
+                $totalRows_rsMilestone_Outputs = $query_rsMilestone_Outputs->rowCount();
+
+                $query_rsSubtasks = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE milestone_id=:milestone_id ");
+                $query_rsSubtasks->execute(array(":milestone_id" => $milestone_id));
+                $totalRows_rsSubtasks = $query_rsSubtasks->rowCount();
+
+                if ($totalRows_rsSubtasks > 0 && $totalRows_rsMilestone_Outputs > 0) {
+                    $milestones .= '<option value="' . $milestone_id . '">' . $milestone . '</option>';
+                }
+            }
+        }
+
+        $milestone_array = array("project_type" => $project_type, "milestones" => $milestones);
+        return $milestone_array;
+    }
+
+    if (isset($_GET['get_milestones'])) {
+        $output_id = $_GET['output_id'];
+        $projid = $_GET['projid'];
+        $query_rsOutputs = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.id=:output_id");
+        $query_rsOutputs->execute(array(":output_id" => $output_id));
+        $Rows_rsOutputs = $query_rsOutputs->fetch();
+        $totalRows_rsOutputs = $query_rsOutputs->rowCount();
+        $mapping_type =  ($totalRows_rsOutputs > 0) ? $Rows_rsOutputs['indicator_mapping_type'] : '';
+
+        $sites =  $milestones = '';
+        if ($totalRows_rsOutputs > 0) {
+            $milestones = get_output_milestones($projid, $output_id);
+            if ($Rows_rsOutputs['indicator_mapping_type'] == 1 || $Rows_rsOutputs['indicator_mapping_type'] == 3) {
+                $sites = get_sites($output_id);
+            }
+        }
+
+        echo json_encode(array("success" => true, "milestone_data" => $milestones, "output_details" => $Rows_rsOutputs, "sites" => $sites));
     }
 
     function get_inspection_status($status_id)
@@ -220,88 +274,68 @@ try {
         return $total_rsMilestone_previous > 0 ? $row_rsMilestone_previous['achieved'] : 0;
     }
 
-
-    function get_subtasks($milestone_id, $output_id, $site_id)
-    {
-        global $db;
-        $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks s INNER JOIN tbl_task t ON t.tkid = s.subtask_id WHERE output_id=:output_id AND  milestone_id=:milestone_id AND complete=0");
-        $query_rsChecked->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
-        $totalRows_rsChecked = $query_rsChecked->rowCount();
-        $subtasks = '';
-        if ($totalRows_rsChecked > 0) {
-            $count = 0;
-            while ($Rows_rsChecked = $query_rsChecked->fetch()) {
-                $count++;
-                $task = $Rows_rsChecked['task'];
-                $tkid = $Rows_rsChecked['tkid'];
-                $msid = $Rows_rsChecked['msid'];
-                $unit = $Rows_rsChecked['unit_of_measure'];
-
-                $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE output_id = :output_id AND site_id=:site_id  AND subtask_id=:subtask_id AND complete=0 ");
-                $query_rsPlan->execute(array(":output_id" => $output_id, ':site_id' => $site_id, ":subtask_id" => $tkid));
-                $totalRows_plan = $query_rsPlan->rowCount();
-
-                if (validate_subtasks($tkid) && $totalRows_plan > 0) {
-                    $unit_of_measure =  get_measurement($unit);
-                    $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE site_id=:site_id  AND subtask_id=:subtask_id");
-                    $query_rsOther_cost_plan->execute(array(':site_id' => $site_id, ":subtask_id" => $tkid));
-                    $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
-                    $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
-                    $target = ($totalRows_rsOther_cost_plan > 0) ? $row_rsOther_cost_plan['units_no'] : 0;
-                    $cummulative = get_milestone_subtask_progress($milestone_id, $tkid, $site_id);
-                    $subtasks .= '
-                    <tr id="s_row">
-                        <td>' . $count . '</td>
-                        <td>' . $task . '</td>
-                        <td>' . $target  . " " . $unit_of_measure . ' </td>
-                        <td>' . $cummulative . " " . $unit_of_measure . ' </td>
-                        <td>
-                            <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_checklist(' . $msid . ', ' . $tkid . ')" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                        </td>
-                    </tr>';
-                }
-            }
-        }
-        return $subtasks;
-    }
-
-    if (isset($_GET['get_output_sites'])) {
-        $output_id = $_GET['output_id'];
-        $milestone_id = $_GET['milestone_id'];
-        $success = true;
-        $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_milestone_outputs m INNER JOIN tbl_project_details d ON m.output_id = d.id INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.id=:output_id");
-        $query_rsOutput->execute(array(":output_id" => $output_id));
-        $totalRows_rsOutput = $query_rsOutput->rowCount();
-        $Rows_rsOutput = $query_rsOutput->fetch();
-        $sites = '<option value="">... Select Site ...</option>';
-        $mapping_type = '';
-        if ($totalRows_rsOutput > 0) {
-            $mapping_type = $Rows_rsOutput['indicator_mapping_type'];
-            $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
-            $query_Output->execute(array(":output_id" => $output_id));
-            $total_Output = $query_Output->rowCount();
-            if ($total_Output > 0) {
-                while ($row_rsOutput = $query_Output->fetch()) {
-                    $site_id = $row_rsOutput['site_id'];
-                    $site_name = $row_rsOutput['site'];
-                    $sites .= '<option value="' . $site_id . '">' . $site_name . '</option>';
-                }
-            }
-        }
-
-        $output_type = $mapping_type == 2 || $mapping_type == 0 ? 2 : 1;
-        $subtasks = $output_type == 2 ? get_subtasks($milestone_id, $output_id, 0) : '';
-        echo json_encode(array("success" => $success, "sites" => $sites, 'output_type' => $output_type, "subtasks" => $subtasks));
-    }
-
     if (isset($_GET['get_subtasks'])) {
         $output_id = $_GET['output_id'];
         $milestone_id = $_GET['milestone_id'];
         $site_id = $_GET['site_id'];
         $success = true;
-        $subtasks = get_subtasks($milestone_id, $output_id, $site_id);
+
+
+        $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE output_id = :output_id AND site_id=:site_id AND complete=0 ");
+        $query_rsPlan->execute(array(":output_id" => $output_id, ':site_id' => $site_id));
+        $totalRows_plan = $query_rsPlan->rowCount();
+        $subtasks = '';
+
+        if ($totalRows_plan > 0) {
+            $count = 0;
+            while ($Rows_plan = $query_rsPlan->fetch()) {
+                $task_id = $Rows_plan['task_id'];
+                $subtask_id = $Rows_plan['subtask_id'];
+                $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE site_id=:site_id  AND subtask_id=:subtask_id");
+                $query_rsOther_cost_plan->execute(array(':site_id' => $site_id, ":subtask_id" => $subtask_id));
+                $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
+                $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
+
+                if ($totalRows_rsOther_cost_plan > 0) {
+                    $task = $row_rsOther_cost_plan['description'];
+                    $target = $row_rsOther_cost_plan['units_no'];
+                    $unit = $row_rsOther_cost_plan['unit'];
+                    $unit_of_measure =  get_measurement($unit);
+
+                    $milestone_validation = true;
+                    $query_rsMilestone_cummulative =  $db->prepare("SELECT SUM(achieved) AS cummulative FROM tbl_project_monitoring_checklist_score WHERE subtask_id=:subtask_id AND site_id=:site_id ");
+                    $query_rsMilestone_cummulative->execute(array(":subtask_id" => $subtask_id, ':site_id' => $site_id));
+
+                    if ($milestone_id  != 0) {
+                        $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE output_id=:output_id AND  milestone_id=:milestone_id AND subtask_id=:subtask_id AND complete=0");
+                        $query_rsChecked->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id, ":subtask_id" => $subtask_id));
+                        $totalRows_rsChecked = $query_rsChecked->rowCount();
+                        $milestone_validation = $totalRows_rsChecked > 0 ? true : false;
+
+                        $query_rsMilestone_cummulative =  $db->prepare("SELECT SUM(achieved) AS cummulative FROM tbl_project_monitoring_checklist_score WHERE subtask_id=:subtask_id AND milestone_id=:milestone_id AND site_id=:site_id ");
+                        $query_rsMilestone_cummulative->execute(array(":subtask_id" => $subtask_id, ':milestone_id' => $milestone_id, ':site_id' => $site_id));
+                    }
+                    $row_rsMilestone_cummulative = $query_rsMilestone_cummulative->fetch();
+                    $cummulative = $row_rsMilestone_cummulative['cummulative'] != null ? $row_rsMilestone_cummulative['cummulative'] : 0;
+
+                    $count++;
+                    $subtasks .= '
+                        <tr id="s_row">
+                            <td>' . $count . '</td>
+                            <td>' . $task . '</td>
+                            <td>' . $target  . " " . $unit_of_measure . ' </td>
+                            <td>' . $cummulative . " " . $unit_of_measure . ' </td>
+                            <td>
+                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false"
+                                onclick="add_checklist(' . $site_id . ',' . $milestone_id . ',' . $task_id . ', ' . $subtask_id . ')" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </td>
+                        </tr>';
+                }
+            }
+        }
+
         echo json_encode(array("success" => $success, "subtasks" => $subtasks));
     }
 
@@ -362,11 +396,11 @@ try {
         $complete = $_POST['button'];
 
         if ($complete == 1) {
-            $sql = $db->prepare("UPDATE tbl_program_of_works SET complete=:complete WHERE  site_id=:site_id AND projid=:projid AND subtask_id=:subtask_id AND status=5");
-            $result  = $sql->execute(array(":complete" => $complete, ":site_id" => $site_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
+            $sql = $db->prepare("UPDATE tbl_program_of_works SET complete=:complete, status=5 WHERE  site_id=:site_id AND projid=:projid AND subtask_id=:subtask_id");
+            $result  = $sql->execute(array(":complete" => $complete, ":site_id" => $site_id, ":projid" => $projid, ":subtask_id" => $subtask_id));
 
             $sql = $db->prepare("UPDATE tbl_milestone_output_subtasks SET complete=:complete WHERE  milestone_id=:milestone_id AND projid=:projid AND subtask_id=:subtask_id");
-            $result  = $sql->execute(array(":complete" => $complete, ":milestone_id" => $milestone_id, ":projid" => $projid, ":subtask_id" => $subtask_id,));
+            $result  = $sql->execute(array(":complete" => $complete, ":milestone_id" => $milestone_id, ":projid" => $projid, ":subtask_id" => $subtask_id));
         }
 
         $sql = $db->prepare("INSERT INTO tbl_project_monitoring_checklist_score (projid,output_id,milestone_id,site_id,task_id,subtask_id,formid,achieved,created_by,created_at) VALUES(:projid,:output_id,:milestone_id,:site_id,:task_id,:subtask_id,:formid,:achieved,:created_by,:created_at)");

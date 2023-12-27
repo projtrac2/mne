@@ -11,6 +11,7 @@ if ($permission) {
             $query_rsProjects->execute(array(":projid" => $projid));
             $row_rsProjects = $query_rsProjects->fetch();
             $totalRows_rsProjects = $query_rsProjects->rowCount();
+
             if ($totalRows_rsProjects > 0) {
                 $implimentation_type = $row_rsProjects['projcategory'];
                 $projname = $row_rsProjects['projname'];
@@ -24,10 +25,6 @@ if ($permission) {
                 $total_rsStage = $query_rsStage->rowCount();
                 $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
 
-                $query_rsPayement_requests =  $db->prepare("SELECT * FROM  tbl_payments_request WHERE status =0 AND projid=:projid");
-                $query_rsPayement_requests->execute(array("projid" => $projid));
-                $rows_rsPayement_requests = $query_rsPayement_requests->fetch();
-                $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
 
                 function get_unit_of_measure($unit)
                 {
@@ -78,229 +75,172 @@ if ($permission) {
                             </div>
                             <div class="body">
                                 <?php
+
+                                $query_rsPayement_requests =  $db->prepare("SELECT * FROM  tbl_payments_request WHERE status =0  AND stage=0 AND projid=:projid LIMIT 1");
+                                $query_rsPayement_requests->execute(array("projid" => $projid));
+                                $rows_rsPayement_requests = $query_rsPayement_requests->fetch();
+                                $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
+
                                 if ($total_rsPayement_requests > 0) {
                                     $purpose = $rows_rsPayement_requests['purpose'];
                                     $request_id = $rows_rsPayement_requests['id'];
-                                    if ($purpose == 1) {
-                                        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
-                                        $query_Output->execute(array(":projid" => $projid));
-                                        $total_Output = $query_Output->rowCount();
-                                        if ($total_Output > 0) {
-                                            $counter = 0;
-                                            while ($row_rsOutput = $query_Output->fetch()) {
-                                                $output_id = $row_rsOutput['id'];
-                                                $output = $row_rsOutput['indicator_name'];
-                                                $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
-                                                $query_rsPayement_requests =  $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE output_id=:output_id AND request_id =:request_id");
-                                                $query_rsPayement_requests->execute(array(":output_id" => $output_id, ":request_id" => $request_id));
-                                                $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-                                                if ($total_rsPayement_requests > 0) {
-                                                    $counter++;
+                                    $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+                                    $query_Output->execute(array(":projid" => $projid));
+                                    $total_Output = $query_Output->rowCount();
+                                    if ($total_Output > 0) {
+                                        $counter = 0;
+                                        while ($row_rsOutput = $query_Output->fetch()) {
+                                            $output_id = $row_rsOutput['id'];
+                                            $output = $row_rsOutput['indicator_name'];
+                                            $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
+
+                                            $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE  outputid=:output_id AND request_id =:request_id");
+                                            $query_rsPayement_requests->execute(array(":output_id" => $output_id, ":request_id" => $request_id));
+                                            $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
+
+                                            if ($total_rsPayement_requests > 0) {
+                                                $counter++;
                                 ?>
-                                                    <fieldset class="scheduler-border">
-                                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                            <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
-                                                        </legend>
-                                                        <?php
-                                                        if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
-                                                            $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
-                                                            $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
-                                                            $totalsSite = $querysSite->rowCount();
-                                                            if ($totalsSite > 0) {
-                                                                $scounter = 0;
-                                                                while ($row_rsSite = $querysSite->fetch()) {
-                                                                    $site_id = $row_rsSite['site_id'];
-                                                                    $state_id = $row_rsSite['state_id'];
-                                                                    $site = $row_rsSite['site'];
-                                                                    $state = $row_rsSite['state'];
-                                                                    $query_rsPayement_requests =  $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE output_id=:output_id AND site_id=:site_id AND request_id =:request_id");
-                                                                    $query_rsPayement_requests->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ":request_id" => $request_id));
-                                                                    $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-                                                                    if ($total_rsPayement_requests > 0) {
-                                                                        $scounter++;
-                                                        ?>
-                                                                        <fieldset class="scheduler-border">
-                                                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                                                <i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $scounter ?> : <?= $site ?>
-                                                                            </legend>
-                                                                            <?php
-                                                                            ?>
-                                                                            <div class="table-responsive">
-                                                                                <table class="table table-bordered">
-                                                                                    <thead>
+                                                <fieldset class="scheduler-border">
+                                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                        <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
+                                                    </legend>
+                                                    <?php
+                                                    if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+                                                        $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
+                                                        $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
+                                                        $totalsSite = $querysSite->rowCount();
+                                                        if ($totalsSite > 0) {
+                                                            $scounter = 0;
+                                                            while ($row_rsSite = $querysSite->fetch()) {
+                                                                $site_id = $row_rsSite['site_id'];
+                                                                $state_id = $row_rsSite['state_id'];
+                                                                $site = $row_rsSite['site'];
+                                                                $state = $row_rsSite['state'];
+
+                                                                $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE outputid=:output_id AND site_id=:site_id AND request_id =:request_id");
+                                                                $query_rsPayement_requests->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ":request_id" => $request_id));
+
+                                                                var_dump($total_rsPayement_requests);
+
+                                                                $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
+                                                                if ($total_rsPayement_requests > 0) {
+                                                                    $scounter++;
+                                                    ?>
+                                                                    <fieldset class="scheduler-border">
+                                                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                                            <i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $scounter ?> : <?= $site ?>
+                                                                        </legend>
+                                                                        <?php
+                                                                        ?>
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-bordered">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th style="width:30%">Description </th>
+                                                                                        <th style="width:15%">Unit</th>
+                                                                                        <th style="width:15%">Unit Cost</th>
+                                                                                        <th style="width:10%">No. of Units</th>
+                                                                                        <th style="width:10%">Remaining Units</th>
+                                                                                        <th style="width:15%">Total Cost</th>
+                                                                                        <th style="width:5%">
+                                                                                        </th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    <?php
+                                                                                    while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
+                                                                                        $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
+                                                                                        $no_of_units = $rows_rsPayement_requests['no_of_units'];
+                                                                                        $description = $rows_rsPayement_requests['description'];
+                                                                                        $unit = $rows_rsPayement_requests['unit'];
+                                                                                        $unit_cost = $rows_rsPayement_requests['unit_cost'];
+                                                                                        $units_no = $rows_rsPayement_requests['no_of_units'];
+                                                                                        $total_cost = $unit_cost * $no_of_units;
+                                                                                        $unit_of_measure = get_unit_of_measure($unit);
+                                                                                        $remaining_units = 0;
+                                                                                    ?>
                                                                                         <tr>
-                                                                                            <th style="width:30%">Description </th>
-                                                                                            <th style="width:15%">Unit</th>
-                                                                                            <th style="width:15%">Unit Cost</th>
-                                                                                            <th style="width:10%">No. of Units</th>
-                                                                                            <th style="width:10%">Remaining Units</th>
-                                                                                            <th style="width:15%">Total Cost</th>
-                                                                                            <th style="width:5%">
-                                                                                            </th>
+                                                                                            <td style="width:30%"><?= $description ?> </td>
+                                                                                            <td style="width:15%"><?= $unit_of_measure ?></td>
+                                                                                            <td style="width:15%"><?= number_format($unit_cost, 2) ?></td>
+                                                                                            <td style="width:10%"><?= number_format($units_no, 2) ?></td>
+                                                                                            <td style="width:10%"><?= number_format($remaining_units, 2) ?></td>
+                                                                                            <td style="width:15%"><?= number_format($total_cost, 2) ?></td>
+                                                                                            <td style="width:5%"></td>
                                                                                         </tr>
-                                                                                    </thead>
-                                                                                    <tbody>
-                                                                                        <?php
-                                                                                        while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
-                                                                                            $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-                                                                                            $no_of_units = $rows_rsPayement_requests['no_of_units'];
-                                                                                            $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE id=:direct_cost_id");
-                                                                                            $query_rsOther_cost_plan->execute(array(":direct_cost_id" => $direct_cost_id));
-                                                                                            $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
-                                                                                            $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
-                                                                                            if ($totalRows_rsOther_cost_plan > 0) {
-                                                                                                $description = $row_rsOther_cost_plan['description'];
-                                                                                                $unit = $row_rsOther_cost_plan['unit'];
-                                                                                                $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                                                                $units_no = $row_rsOther_cost_plan['units_no'];
-                                                                                                $total_cost = $unit_cost * $no_of_units;
-                                                                                                $unit_of_measure = get_unit_of_measure($unit);
-                                                                                                $remaining_units = 0;
-                                                                                        ?>
-                                                                                                <tr>
-                                                                                                    <td style="width:30%"><?= $description ?> </td>
-                                                                                                    <td style="width:15%"><?= $unit_of_measure ?></td>
-                                                                                                    <td style="width:15%"><?= number_format($unit_cost, 2) ?></td>
-                                                                                                    <td style="width:10%"><?= number_format($units_no, 2) ?></td>
-                                                                                                    <td style="width:10%"><?= number_format($remaining_units, 2) ?></td>
-                                                                                                    <td style="width:15%"><?= number_format($total_cost, 2) ?></td>
-                                                                                                    <td style="width:5%"></td>
-                                                                                                </tr>
-                                                                                        <?php
-                                                                                            }
-                                                                                        }
-                                                                                        ?>
-                                                                                    </tbody>
-                                                                                </table>
-                                                                            </div>
-                                                                        </fieldset>
-                                                            <?php
-                                                                    }
+                                                                                    <?php
+                                                                                    }
+                                                                                    ?>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    </fieldset>
+                                                        <?php
                                                                 }
                                                             }
-                                                            ?>
-
-                                                        <?php
-                                                        } else {
-                                                            $counter++;
-                                                        ?>
-                                                            <div class="table-responsive">
-                                                                <table class="table table-bordered">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th style="width:30%">Description </th>
-                                                                            <th style="width:15%">Unit</th>
-                                                                            <th style="width:15%">Unit Cost</th>
-                                                                            <th style="width:10%">No. of Units</th>
-                                                                            <th style="width:10%">Remaining Units</th>
-                                                                            <th style="width:15%">Total Cost</th>
-                                                                            <th style="width:5%">
-                                                                            </th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <?php
-                                                                        while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
-                                                                            $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-                                                                            $no_of_units = $rows_rsPayement_requests['no_of_units'];
-                                                                            $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE id=:direct_cost_id");
-                                                                            $query_rsOther_cost_plan->execute(array(":direct_cost_id" => $direct_cost_id));
-                                                                            $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
-                                                                            $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
-                                                                            if ($totalRows_rsOther_cost_plan > 0) {
-                                                                                $description = $row_rsOther_cost_plan['description'];
-                                                                                $unit = $row_rsOther_cost_plan['unit'];
-                                                                                $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                                                $units_no = $row_rsOther_cost_plan['units_no'];
-                                                                                $total_cost = $unit_cost * $no_of_units;
-                                                                                $unit_of_measure = get_unit_of_measure($unit);
-                                                                                $remaining_units = 0;
-                                                                        ?>
-                                                                                <tr>
-                                                                                    <td style="width:30%"><?= $description ?> </td>
-                                                                                    <td style="width:15%"><?= $unit_of_measure ?></td>
-                                                                                    <td style="width:15%"><?= number_format($unit_cost, 2) ?></td>
-                                                                                    <td style="width:10%"><?= number_format($units_no, 2) ?></td>
-                                                                                    <td style="width:10%"><?= number_format($remaining_units, 2) ?></td>
-                                                                                    <td style="width:15%"><?= number_format($total_cost, 2) ?></td>
-                                                                                    <td style="width:5%"></td>
-                                                                                </tr>
-                                                                        <?php
-                                                                            }
-                                                                        }
-                                                                        ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        <?php
                                                         }
                                                         ?>
-                                                    </fieldset>
-                                        <?php
-                                                }
+
+                                                    <?php
+                                                    } else {
+                                                        $counter++;
+                                                    ?>
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width:30%">Description </th>
+                                                                        <th style="width:15%">Unit</th>
+                                                                        <th style="width:15%">Unit Cost</th>
+                                                                        <th style="width:10%">No. of Units</th>
+                                                                        <th style="width:10%">Remaining Units</th>
+                                                                        <th style="width:15%">Total Cost</th>
+                                                                        <th style="width:5%">
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <?php
+                                                                    while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
+                                                                        $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
+                                                                        $no_of_units = $rows_rsPayement_requests['no_of_units'];
+                                                                        $description = $rows_rsPayement_requests['description'];
+                                                                        $unit = $rows_rsPayement_requests['unit'];
+                                                                        $unit_cost = $rows_rsPayement_requests['unit_cost'];
+                                                                        $units_no = $rows_rsPayement_requests['no_of_units'];
+                                                                        $total_cost = $unit_cost * $no_of_units;
+                                                                        $unit_of_measure = get_unit_of_measure($unit);
+                                                                        $remaining_units = 0;
+                                                                    ?>
+                                                                        <tr>
+                                                                            <td style="width:30%"><?= $description ?> </td>
+                                                                            <td style="width:15%"><?= $unit_of_measure ?></td>
+                                                                            <td style="width:15%"><?= number_format($unit_cost, 2) ?></td>
+                                                                            <td style="width:10%"><?= number_format($units_no, 2) ?></td>
+                                                                            <td style="width:10%"><?= number_format($remaining_units, 2) ?></td>
+                                                                            <td style="width:15%"><?= number_format($total_cost, 2) ?></td>
+                                                                            <td style="width:5%"></td>
+                                                                        </tr>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </fieldset>
+                                    <?php
                                             }
                                         }
-                                        ?>
-                                        <?php
-                                    } else {
-                                        $query_rsPayement_requests =  $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE projid=:projid AND request_id =:request_id");
-                                        $query_rsPayement_requests->execute(array(":projid" => $projid, ":request_id" => $request_id));
-                                        $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-                                        if ($total_rsPayement_requests > 0) {
-                                        ?>
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width:30%">Description </th>
-                                                            <th style="width:15%">Unit</th>
-                                                            <th style="width:15%">Unit Cost</th>
-                                                            <th style="width:10%">No. of Units</th>
-                                                            <th style="width:10%">Remaining Units</th>
-                                                            <th style="width:15%">Total Cost</th>
-                                                            <th style="width:5%">
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <?php
-                                                        while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
-                                                            $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-                                                            $no_of_units = $rows_rsPayement_requests['no_of_units'];
-                                                            $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE id=:direct_cost_id");
-                                                            $query_rsOther_cost_plan->execute(array(":direct_cost_id" => $direct_cost_id));
-                                                            $row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch();
-                                                            $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
-                                                            if ($totalRows_rsOther_cost_plan > 0) {
-                                                                $description = $row_rsOther_cost_plan['description'];
-                                                                $unit = $row_rsOther_cost_plan['unit'];
-                                                                $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                                $units_no = $row_rsOther_cost_plan['units_no'];
-                                                                $total_cost = $unit_cost * $no_of_units;
-                                                                $unit_of_measure = get_unit_of_measure($unit);
-                                                                $remaining_units = 0;
-                                                        ?>
-                                                                <tr>
-                                                                    <td style="width:30%"><?= $description ?> </td>
-                                                                    <td style="width:15%"><?= $unit_of_measure ?></td>
-                                                                    <td style="width:15%"><?= number_format($unit_cost, 2) ?></td>
-                                                                    <td style="width:10%"><?= number_format($units_no, 2) ?></td>
-                                                                    <td style="width:10%"><?= number_format($remaining_units, 2) ?></td>
-                                                                    <td style="width:15%"><?= number_format($total_cost, 2) ?></td>
-                                                                    <td style="width:5%"></td>
-                                                                </tr>
-                                                        <?php
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                    <?php
-                                        }
                                     }
-                                } else {
                                     ?>
+                                <?php
+
+                                } else {
+                                ?>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                             <i class="fa fa-calendar" aria-hidden="true"></i> Budgetline Details
@@ -934,7 +874,7 @@ require('includes/footer.php');
             console.log("Please select the description please");
         }
     }
-
+ 
     function calculate_total_cost(rowno) {
         var unit_cost = $(`#unit_cost${rowno}`).val();
         var no_units = $(`#no_units${rowno}`).val();

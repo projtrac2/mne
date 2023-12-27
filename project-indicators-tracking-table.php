@@ -1,7 +1,7 @@
 <?php
 require('includes/head.php');
 if ($permission) {
-	$rows_count =0 ;
+	$rows_count = 0;
 	try {
 		function projfy()
 		{
@@ -44,7 +44,7 @@ if ($permission) {
 		$totalRows_rsProjImplMethod = $query_rsProjImplMethod->rowCount();
 
 		// get project risks
-		$query_rsRiskCategories =  $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
+		$query_rsRiskCategories =  $db->prepare("SELECT catid, category FROM tbl_projrisk_categories");
 		$query_rsRiskCategories->execute();
 		$row_rsRiskCategories = $query_rsRiskCategories->fetch();
 		$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
@@ -90,7 +90,7 @@ if ($permission) {
 
 			$base_url = "?sector=$prjsector&department=$prjdept&projfyfrom=$projfyfrom&projfyto=$projfyto&btn_search=FILTER";
 		} else {
-			$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstatus > 9 ORDER BY `projid` ASC");
+			$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstage > 9 ORDER BY `projid` ASC");
 			$sql->execute();
 		}
 
@@ -227,53 +227,45 @@ if ($permission) {
 									<tbody>
 										<?php
 										try {
-											function statuses($projstatus)
+											function get_status($status_id)
 											{
 												global $db;
-												$status = $db->prepare("SELECT * FROM `tbl_status` WHERE statusid=:statusid LIMIT 1");
-												$status->execute(array(":statusid" => $projstatus));
-												$rowstatus = $status->fetch();
-												$status = $rowstatus ? $rowstatus["statusname"] : "";
-
-												$active = '';
-												if ($projstatus == 3) {
-													$active = '<button type="button" class="btn bg-yellow waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 4) {
-													$active = '<button type="button" class="btn btn-primary waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 11) {
-													$active = '<button type="button" class="btn bg-red waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 5) {
-													$active = '<button type="button" class="btn btn-success waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 1) {
-													$active = '<button type="button" class="btn bg-grey waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 2) {
-													$active = '<button type="button" class="btn bg-brown waves-effect" style="width:100%">' . $status . '</button>';
-												} else if ($projstatus == 6) {
-													$active = '<button type="button" class="btn bg-pink waves-effect" style="width:100%">' . $status . '</button>';
+												$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :status_id");
+												$query_Projstatus->execute(array(":status_id" => $status_id));
+												$row_Projstatus = $query_Projstatus->fetch();
+												$total_Projstatus = $query_Projstatus->rowCount();
+												$status = "";
+												if ($total_Projstatus > 0) {
+													$status_name = $row_Projstatus['statusname'];
+													$status_class = $row_Projstatus['class_name'];
+													$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
 												}
-												return $active;
+
+												return $status;
 											}
 
-											function progress($percentage)
+											function progress($projid, $implementation)
 											{
-												$percent = '';
-												if ($percentage < 100) {
-													$percent = '
-										<div class="progress" style="height:20px; font-size:10px; color:black">
-											<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $percentage . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percentage . '%; height:20px; font-size:10px; color:black">
-												' . $percentage . '%
-											</div>
-										</div>';
-												} elseif ($percentage == 100) {
-													$percent = '
-										<div class="progress" style="height:20px; font-size:10px; color:black">
-											<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $percentage . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percentage . '%; height:20px; font-size:10px; color:black">
-											' . $percentage . '%
-											</div>
-										</div>';
+												$progress = number_format(calculate_project_progress($projid, $implementation), 2);
+												$project_progress = '
+                                                    <div class="progress" style="height:20px; font-size:10px; color:black">
+                                                        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+                                                            ' . $progress . '%
+                                                        </div>
+                                                    </div>';
+
+												if ($progress == 100) {
+													$project_progress = '
+													<div class="progress" style="height:20px; font-size:10px; color:black">
+														<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+														' . $progress . '%
+														</div>
+													</div>';
 												}
-												return $percent;
+												return $project_progress;
 											}
+
+
 
 											if ($rows_count > 0) {
 												$active = "";
@@ -282,40 +274,28 @@ if ($permission) {
 													$sn++;
 													$itemId = $row['projid'];
 													$progid = $row['progid'];
+													$progid = $row['projcost'];
+													$projname = $row["projname"];
+													$projbudget = $row["projcost"];
+													$project_cost = number_format($projbudget, 2);
+													$projstatus = $row["projstatus"];
+													$projstartdate = $row["projstartdate"];
+													$projenddate = $row["projenddate"];
+													$implementation = $row['projcategory'];
+													$projstate = explode(",", $row['projlga']);
+													$status = get_status($status_id);
+													$progress = progress($projid, $implementation);
 
 													$queryobj = $db->prepare("SELECT objective FROM `tbl_programs` g inner join tbl_strategic_plan_objectives o on o.id=g.strategic_obj WHERE progid=:progid");
 													$queryobj->execute(array(":progid" => $progid));
 													$rowobj = $queryobj->fetch();
 													$objective = $rowobj ? $rowobj["objective"] : "";
 
-													$query_rsBudget = $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE projid ='$itemId'");
-													$query_rsBudget->execute();
-													$row_rsBudget = $query_rsBudget->fetch();
-													$totalRows_rsBudget = $query_rsBudget->rowCount();
-													$projbudget = $row_rsBudget['budget'];
-
-													$projname = $row["projname"];
-													$projbudget = $row["projcost"];
-													$budget = number_format($projbudget, 2);
-													$projstatus = $row["projstatus"];
-													$projstartdate = $row["projstartdate"];
-													$projenddate = $row["projenddate"];
-													$projstate = explode(",", $row['projlga']);
-
 													$query_projectexp = $db->prepare("SELECT SUM(amount_requested) AS exp FROM `tbl_payments_request` WHERE status=3 AND projid=:projid");
 													$query_projectexp->execute(array(":projid" => $itemId));
 													$row_projectexp = $query_projectexp->fetch();
 													$totalRows_projectexp = $query_projectexp->rowCount();
-													$projectcost = 0;
-													if ($totalRows_projectexp > 0) {
-														$projectcost = $row_projectexp["exp"];
-													}
-
-													$status = $db->prepare("SELECT * FROM `tbl_status` WHERE statusid=:statusid LIMIT 1");
-													$status->execute(array(":statusid" => $projstatus));
-													$rowstatus = $status->fetch();
-													$status = $rowstatus["statusname"];
-													//$progress = 45;
+													$project_expense = ($totalRows_projectexp > 0) ? $row_projectexp["exp"] : 0;
 
 													$states = array();
 													for ($i = 0; $i < count($projstate); $i++) {
@@ -326,16 +306,6 @@ if ($permission) {
 														array_push($states, $state);
 													}
 
-													// project percentage progress
-													$query_rsMlsProg = $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = :projid");
-													$query_rsMlsProg->execute(array(":projid" => $itemId));
-													$row_rsMlsProg = $query_rsMlsProg->fetch();
-													$percent2 = 0;
-													if ($row_rsMlsProg["mlprogress"] > 0 && $row_rsMlsProg["nmb"] > 0) {
-														$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
-														$percent2 = round($prjprogress, 2);
-													}
-
 													$queryactivities = $db->prepare("SELECT * FROM `tbl_task` t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid=:projid");
 													$queryactivities->execute(array(":projid" => $itemId));
 
@@ -343,30 +313,33 @@ if ($permission) {
 													$query_projremarks->execute(array(":projid" => $itemId));
 													$totalRows_projremarks = $query_projremarks->rowCount();
 
-													echo '<tr class="projects">
-                                            <td class="text-center mb-0" id="projects' . $itemId . '" data-toggle="collapse" data-target=".project' . $itemId . '">' . $sn . '
-												<button class="btn btn-link " title="Click once to expand and Click once to Collapse!!">
-													<i class="fa fa-plus-square" style="font-size:16px"></i>
-												</button>
-											</td>
-                                            <td>' . $projname . '</td>
-                                            <td>' . implode(", ", $states) . '</td>
-                                            <td>' . $projstartdate . '/' . $projenddate . '</td>
-                                            <td>' . number_format($projbudget, 2) . '</td>
-                                            <td>' . number_format($projectcost, 2) . '</td>
-                                            <td>' . statuses($projstatus) . '<br>' . progress($percent2) . '</td>';
+													echo '
+													<tr class="projects">
+														<td class="text-center mb-0" id="projects' . $itemId . '" data-toggle="collapse" data-target=".project' . $itemId . '">' . $sn . '
+															<button class="btn btn-link " title="Click once to expand and Click once to Collapse!!">
+																<i class="fa fa-plus-square" style="font-size:16px"></i>
+															</button>
+														</td>
+														<td>' . $projname . '</td>
+														<td>' . implode(", ", $states) . '</td>
+														<td>' . $projstartdate . '/' . $projenddate . '</td>
+														<td>' . number_format($project_cost, 2) . '</td>
+														<td>' . number_format($project_expense, 2) . '</td>
+														<td>' . statuses($projstatus) . '<br>' . progress($percent2) . '</td>';
 
 													echo '</tr>
-										<tr class="collapse project' . $itemId . '">
-											<td class="bg-grey text-center"></td><td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
-										</tr>
-										<tr class="collapse project' . $itemId . '">
-											<th class="bg-grey text-center"></th>
-											<th colspan="2">Activity</th>
-											<th colspan="3">Start and End Dates</th>
-											<th>Status & Progress</th>
-										</tr>';
+															<tr class="collapse project' . $itemId . '">
+																<td class="bg-grey text-center"></td><td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
+															</tr>
+															<tr class="collapse project' . $itemId . '">
+																<th class="bg-grey text-center"></th>
+																<th colspan="2">Activity</th>
+																<th colspan="3">Start and End Dates</th>
+																<th>Status & Progress</th>
+															</tr>';
 													$nm = 0;
+
+
 													while ($rowact = $queryactivities->fetch()) {
 														$nm++;
 														$activity = $rowact["task"];
@@ -378,15 +351,17 @@ if ($permission) {
 														$querytaskstatus = $db->prepare("SELECT statusname FROM `tbl_task_status` WHERE statusid=:statusid");
 														$querytaskstatus->execute(array(":statusid" => $statusid));
 														$rowtaskstatus = $querytaskstatus->fetch();
-														$taskstatus = $rowtaskstatus ? $rowtaskstatus["statusname"] :"" ;
+														$taskstatus = $rowtaskstatus ? $rowtaskstatus["statusname"] : "";
 
 														echo '<tr class="collapse project' . $itemId . '">
-												<td class="bg-grey text-center">' . $sn . '.' . $nm . '</td><td colspan="2">' . $activity . '</td><td colspan="3">' . $startdate . ' AND ' . $enddate . '</td><td>' . statuses($statusid) . '<br>' . progress($progress) . '</td>
-											</tr>';
+																<td class="bg-grey text-center">' . $sn . '.' . $nm . '</td><td colspan="2">' . $activity . '</td><td colspan="3">' . $startdate . ' AND ' . $enddate . '</td><td>' . statuses($statusid) . '<br>' . progress($progress) . '</td>
+															</tr>';
 													}
+
+													
 													echo '
-										<tr class="collapse project' . $itemId . '">
-											<td class="bg-grey text-center"></td><td colspan="6" class="bg-grey">';
+														<tr class="collapse project' . $itemId . '">
+															<td class="bg-grey text-center"></td><td colspan="6" class="bg-grey">';
 													if ($totalRows_projremarks > 0) {
 														$row_projremarks = $query_projremarks->fetch();
 														echo '<strong>Project Remarks: </strong>' . $row_projremarks["remarks"];
@@ -396,15 +371,15 @@ if ($permission) {
 														}
 													}
 													echo '</td>
-										</tr>';
+													</tr>';
 												}
 											} else {
 												echo '
-									<tr class="projects">
-										<td class="text-center mb-0">
-										</td>
-										<td colspan="6">No records found</td>
-									</tr>';
+												<tr class="projects">
+													<td class="text-center mb-0">
+													</td>
+													<td colspan="6">No records found</td>
+												</tr>';
 											}
 										} catch (PDOException $ex) {
 											$result = flashMessage("An error occurred: " . $ex->getMessage());

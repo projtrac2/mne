@@ -108,11 +108,12 @@ if ($permission) {
 			if ($implimentation_method == 2) {
 				$query_other_fin_lines =  $db->prepare("SELECT SUM(unit_cost * units_no) as planned_amount FROM tbl_project_tender_details WHERE projid = :projid");
 			}
+
 			$query_other_fin_lines->execute(array(":projid" => $projid));
 			$row_other_fin_lines = $query_other_fin_lines->fetch();
 			$planned_amount = !is_null($row_other_fin_lines['planned_amount']) ? $row_other_fin_lines['planned_amount'] : 0;
 
-			$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE  projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 			$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
@@ -268,7 +269,7 @@ if ($permission) {
 												$unit_id = $row_rsOutput['indicator_unit'];
 												$target = $row_rsOutput['total_target'];
 
-												$query_rsSite_cumulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE output_id = :output_id");
+												$query_rsSite_cumulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE output_id = :output_id AND record_type=1");
 												$query_rsSite_cumulative->execute(array(":output_id" => $output_id));
 												$rows_rsSite_cumulative = $query_rsSite_cumulative->fetch();
 												$total_rsSite_cumulative = $query_rsSite_cumulative->rowCount();

@@ -347,7 +347,7 @@ if ($permission) {
                 </div>
                 <form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <div class="col-md-12">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <fieldset class="scheduler-border">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                     <i class="fa fa-comment" aria-hidden="true"></i> Request Details
@@ -452,7 +452,7 @@ if ($permission) {
                                     <i class="fa fa-comment" aria-hidden="true"></i> Remarks
                                 </legend>
                                 <div id="comment_section">
-                                    <div class="col-md-12">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <label class="control-label">Remarks *:</label>
                                         <br />
                                         <div class="form-line">
@@ -465,7 +465,7 @@ if ($permission) {
                         <!-- /modal-body -->
                     </div> <!-- /modal-content -->
                     <div class="modal-footer">
-                        <div class="col-md-12 text-center">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                             <input type="hidden" name="projid" id="projid" value="">
                             <input type="hidden" name="payment_plan" id="payment_plan" value="">
                             <input type="hidden" name="stage" id="stage" value="1">
@@ -489,103 +489,4 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<script>
-    const ajax_url = "ajax/payments/contractor";
-    $(document).ready(function() {
-        $("#modal_form_submit").submit(function(e) {
-            e.preventDefault();
-            $.ajax({
-                type: "post",
-                url: ajax_url,
-                data: $(this).serialize(),
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        success_alert("Approved payment successfully");
-                    } else {
-                        error_alert("Approval error !!");
-                    }
-                    $(".modal").each(function() {
-                        $(this).modal("hide");
-                        $(this)
-                            .find("form")
-                            .trigger("reset");
-                    });
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 3000);
-                }
-            });
-        });
-    });
-
-    function set_details(details) {
-        $("#project_name").val(details.project_name);
-        $("#contractor_name").val(details.contractor_name);
-        $("#contractor_number").val(details.contract_no);
-        $("#request_id").val(details.request_id);
-        $("#projid").val(details.projid);
-        $("#payment_plan").val(details.payment_plan);
-        $("#project_plan").val(details.project_plan);
-        $("#stage").val(details.stage);
-
-        $("#milestones").hide();
-        $("#tasks").hide();
-        var payment_plan = details.payment_plan;
-
-        if (payment_plan == "1") {
-            $("#milestones").show();
-        } else if (payment_plan == "2") {
-            $("#tasks").show();
-        } else {
-            console.log("payment plan for work measured");
-        }
-    }
-
-    function get_details(details, plan) {
-        set_details(details);
-        $("#project_approve_div").hide();
-        $("#modal-form-submit").hide();
-        if (plan == 2) {
-            $("#project_approve_div").show();
-            $("#modal-form-submit").show();
-        }
-
-        $("#milestones").hide();
-        $("#tasks").hide();
-
-        if (details.request_id != "") {
-            $.ajax({
-                type: "get",
-                url: ajax_url,
-                data: {
-                    get_more_info: "get_more_info",
-                    request_id: details.request_id,
-                },
-                dataType: "json",
-                success: function(response) {
-                    if (response.details.success) {
-                        $("#comments_div").html(response.comments);
-                        $("#attachment_div").html(response.attachment);
-                        if (details.payment_plan == '1') {
-                            $("#milestones").show();
-                            $("#milestone_table").html(response.details.milestones);
-                            $("#request_amount").val(response.details.request_amount);
-                            $("#request_percentage").val(response.details.request_percentage);
-                            $("#requested_amount").val(response.details.request_amount);
-                            $("#payment_phase").val(response.details.payment_phase);
-                            console.log(response.details.payment_phase);
-                        } else {
-                            $("#tasks").show();
-                            $("#tasks_table").html(response.details.tasks);
-                            $("#subtotal").html(response.details.task_amount);
-                            $("#requested_amount").val(response.details.task_amount);
-                        }
-                    }
-                }
-            });
-        } else {
-            console.log("Ensure that the request is correct");
-        }
-    }
-</script>
+<script src="assets/js/payment/contractor.js"></script>

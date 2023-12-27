@@ -40,7 +40,7 @@ if ($permission && isset($_GET['projid'])) {
                 $query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name, ":team_type" => $team_type));
                 $row_rsOutput_standin = $query_rsOutput_standin->fetch();
                 $total_rsOutput_standin = $query_rsOutput_standin->rowCount();
-                $stand_in_responsible= false;
+                $stand_in_responsible = false;
 
                 if ($total_rsOutput_standin > 0) {
                     $owner_id = $row_rsOutput_standin['owner'];
@@ -91,32 +91,38 @@ if ($permission && isset($_GET['projid'])) {
                                 <div class="body">
                                     <div class="row clearfix">
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label class="control-label">Milestones *:</label>
+                                            <label class="control-label">Output *:</label>
                                             <div class="form-line">
-                                                <select name="milestone" id="milestone" class="form-control show-tick" onchange="get_outputs()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-                                                    <option value="">.... Select Milestone ....</option>
+                                                <select name="output" id="output" class="form-control show-tick" onchange="get_milestones()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                    <option value="">.... Select Output ....</option>
                                                     <?php
-                                                    $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid AND complete=0");
-                                                    $query_rsMilestone->execute(array(":projid" => $projid));
-                                                    $totalRows_rsMilestone = $query_rsMilestone->rowCount();
-                                                    if ($totalRows_rsMilestone > 0) {
-                                                        while ($row_rsMilestone = $query_rsMilestone->fetch()) {
-                                                            $milestone_name = $row_rsMilestone['milestone'];
-                                                            $milestone_id = $row_rsMilestone['id'];
+                                                    $query_rsOutput = $db->prepare("SELECT i.indicator_name, d.id FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid=:projid AND complete=0");
+                                                    $query_rsOutput->execute(array(":projid" => $projid));
+                                                    $totalRows_rsOutput = $query_rsOutput->rowCount();
+                                                    $outputs = '<option value="">... Select Output ...</option>';
+                                                    if ($totalRows_rsOutput > 0) {
+                                                        while ($row_rsOutput = $query_rsOutput->fetch()) {
+                                                            $output_id = $row_rsOutput['id'];
+                                                            $output_name = $row_rsOutput['indicator_name'];
+                                                            $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE output_id = :output_id AND complete=0 ");
+                                                            $query_rsPlan->execute(array(":output_id" => $output_id));
+                                                            $totalRows_plan = $query_rsPlan->rowCount();
+                                                            if ($totalRows_plan > 0) {
                                                     ?>
-                                                            <option value="<?= $milestone_id; ?>"><?= $milestone_name ?></option>
+                                                                <option value="<?= $output_id ?>"> <?= $output_name  ?></option>
                                                     <?php
+                                                            }
                                                         }
                                                     }
                                                     ?>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label class="control-label">Output *:</label>
+                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="milestone_div">
+                                            <label class="control-label">Milestones *:</label>
                                             <div class="form-line">
-                                                <select name="output" id="output" class="form-control show-tick" onchange="get_sites()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-                                                    <option value="">.... Select Output ....</option>
+                                                <select name="milestone" id="milestone" onchange="get_sites()" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                    <option value="">.... Select Milestone ....</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -124,7 +130,7 @@ if ($permission && isset($_GET['projid'])) {
                                             <label class="control-label">Site *:</label>
                                             <div class="form-line">
                                                 <input type="hidden" name="output_type" id="output_type">
-                                                <select name="site" id="site" class="form-control show-tick" onchange="get_subtasks()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                <select name="site" id="site" class="form-control show-tick" onchange="get_subtasks()" onchange="get_outputs()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
                                                     <option value="">.... Select Site ....</option>
                                                 </select>
                                             </div>
@@ -257,6 +263,8 @@ if ($permission && isset($_GET['projid'])) {
                                                 <input type="hidden" name="output_id" id="output_id" value="">
                                                 <input type="hidden" name="task_id" id="task_id" value="">
                                                 <input type="hidden" name="user_name" id="user_name" value="">
+                                                <input type="hidden" name="project_type" id="project_type" value="">
+                                                <input type="hidden" name="output_type" id="output_type" value="">
                                                 <input type="hidden" name="site_id" id="site_id" value="">
                                                 <input type="hidden" name="subtask_id" id="subtask_id" value="">
                                                 <input type="hidden" name="subtask_issues" id="subtask_issues" value="">

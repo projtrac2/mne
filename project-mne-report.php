@@ -4,7 +4,6 @@ if ($permission) {
 	$decode_proj = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: {$sourceurl}");
 	$proj_array = explode("rept321", $decode_proj);
 	$projid = $proj_array[1];
-	//$projid = 1;
 
 	$query_proj = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
 	$query_proj->execute(array(":projid" => $projid));
@@ -278,7 +277,7 @@ if ($permission) {
 																															<div class="btn-group" style="float:right">
 																															</div>
 																														</div>
-																													</li> 
+																													</li>
 																												</ul>
 																											</div>
 																										</div>

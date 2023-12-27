@@ -87,11 +87,11 @@ if ($permission) {
 
 														$success = "Successfully enabled financier ";
 														$status_text = " Are you sure you want to enable financier";
-														$update_status =1;
+														$update_status = 1;
 														if ($finstatus == 1) {
 															$status_text = " Are you sure you want to disable financier";
 															$success = "Successfully disabled financier ";
-															$update_status =0;
+															$update_status = 0;
 														}
 
 														$query_financierprojs = $db->prepare("SELECT p.projid FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.sourcecategory=:sourcecat and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
@@ -125,7 +125,6 @@ if ($permission) {
 															</td>
 															<td><?php echo number_format($tdn, 2); ?></td>
 															<td align="center"><?= $active ?></td>
-
 															<td>
 																<div class="btn-group">
 																	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
@@ -156,6 +155,9 @@ if ($permission) {
 																		<?php
 																		}
 																		?>
+																		<li>
+																			<a type="button" href="./reports/funding-report-pdf.php?fn=<?= $hashfnid ?>" target="_blank"><i class="fa fa-info"></i>Report</a>
+																		</li>
 																	</ul>
 																</div>
 															</td>
@@ -220,7 +222,7 @@ if ($permission) {
 															if ($finstatus == 1) {
 																$status_text = " Are you sure you want to disable financier";
 																$success = "Successfully disabled financier ";
-																$update_status =0;
+																$update_status = 0;
 															}
 
 															$query_financierprojs = $db->prepare("SELECT p.projid FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.sourcecategory=:sourcecat and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");

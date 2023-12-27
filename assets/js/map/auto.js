@@ -1,12 +1,14 @@
 const url1 = "ajax/maps/map";
 
+
+const latitude = $("#company_latitude").val();
+const longitude = $("#company_longitude").val();
+
 let map;
 let directionsService;
 $(document).ready(function () {
 	get_coordinates();
-	const lats = $("#lat").val();
-	const longs = $("#long").val();
-	var center = new google.maps.LatLng(lats, longs);
+	var center = new google.maps.LatLng(latitude, longitude);
 	map = new google.maps.Map(document.getElementById("map"), {
 		center: center,
 		zoom: 12,
@@ -37,7 +39,7 @@ const get_coordinates = () => {
 			success: function (response) {
 				if (response.success) {
 					if (mapping_type == '1') {
-						static_markers(response.markers); 
+						static_markers(response.markers);
 					} else if (mapping_type == '2') {
 						area_markers(response.markers);
 					} else if (mapping_type == '3') {

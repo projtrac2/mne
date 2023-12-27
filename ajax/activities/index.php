@@ -100,7 +100,7 @@ try {
                 $unit_options .= '<option value="' . $unit_id . '" ' . $selected . '>' . $unit . '</option>';
             }
         }
-        echo json_encode(array('success'=>true, 'options'=>$unit_options));
+        echo json_encode(array('success' => true, 'options' => $unit_options));
     }
 
     if (isset($_POST['destroy_item'])) {
@@ -286,6 +286,18 @@ try {
                 $target = $_POST['target'][$i];
                 $sql = $db->prepare("INSERT INTO tbl_project_milestone_outputs (projid,milestone_id,output_id,target,created_by,created_at) VALUES (:projid,:milestone_id,:output_id,:target,:user_name,:date_entered)");
                 $results = $sql->execute(array(':projid' => $projid, ':milestone_id' => $milestone_id, ":output_id" => $output_id, ":target" => $target, ':user_name' => $user_name, ':date_entered' => $current_date));
+
+                $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                $query_rsTasks->execute(array(":output_id" => $output_id));
+                $totalRows_rsTasks = $query_rsTasks->rowCount();
+                if ($totalRows_rsTasks > 0) {
+                    while ($row_rsTasks = $query_rsTasks->fetch()) {
+                        $task_id = $row_rsTasks['msid'];
+                        $subtask_id = $row_rsTasks['tkid'];
+                        $sql = $db->prepare("INSERT INTO tbl_milestone_output_subtasks (projid,output_id,milestone_id,task_id,subtask_id) VALUES (:projid,:output_id,:milestone_id,:task_id,:subtask_id)");
+                        $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ':milestone_id' => $milestone_id,  ":task_id" => $task_id, ':subtask_id' => $subtask_id));
+                    }
+                }
             }
         }
         echo json_encode(array('success' => true));

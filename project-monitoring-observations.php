@@ -741,9 +741,10 @@ if ($permission) {
                                                         <th style="width:40%">Attachments</th>
                                                         <th style="width:50%">Attachment Purpose</th>
                                                         <th style="width:10%">Attachment Purpose</th>
+                                                        <th style="width:10%">Download</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="attachments_table">
+                                                <tbody id="attachments_table1">
                                                     <tr>
                                                         <td colspan="3" class="text-center">No Files Found</td>
                                                     </tr>
@@ -790,10 +791,10 @@ require('includes/footer.php');
             dataType: "json",
             success: function(response) {
                 if (response.success) {
-                    $("#attachments_table").html(response.attachments);
+                    $("#attachments_table1").html(response.attachments);
                     $("#remarks").html(response.remarks);
                 } else {
-                    $("#attachments_table").html(`<tr><td colspan="3" class="text-center">No Files Found</td></tr>`);
+                    $("#attachments_table1").html(`<tr><td colspan="3" class="text-center">No Files Found</td></tr>`);
                 }
             }
         });
