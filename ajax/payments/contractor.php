@@ -343,10 +343,11 @@ try {
         echo json_encode(array("success" => true));
     }
 
-    if (isset($_POST['disburse_payment'])) {
+    if (isset($_POST['disburse_contractor_payment'])) {
         $request_id = $_POST['request_id'];
         $payment_mode = $_POST['payment_mode'];
         $comments = $_POST['comments'];
+        $disburse_amount = $_POST['disburse_amount'];
         $projid = $_POST['projid'];
         $paid_to = 0;
         $date_paid = $_POST['date_paid'];
@@ -373,8 +374,8 @@ try {
         }
 
         if ($msg) {
-            $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (request_id,payment_mode, comments, receipt,paid_to,request_type, date_paid,created_by,created_at) VALUES(:request_id,:payment_mode,:comments,:receipt,:paid_to,:request_type,:date_paid,:created_by,:created_at) ");
-            $result = $sql->execute(array(":request_id" => $request_id, ":payment_mode" => $payment_mode, ":comments" => $comments, ":receipt" => $receipt, ":paid_to" => $paid_to,  ":request_type" => 2, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
+            $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (projid,request_id,payment_mode,amount, comments, receipt,paid_to,request_type, date_paid,created_by,created_at) VALUES(:projid,:request_id,:payment_mode,:amount,:comments,:receipt,:paid_to,:request_type,:date_paid,:created_by,:created_at) ");
+            $result = $sql->execute(array(":projid" => $projid, ":request_id" => $request_id, ":payment_mode" => $payment_mode, ":amount" => $disburse_amount, ":comments" => $comments, ":receipt" => $receipt, ":paid_to" => $paid_to,  ":request_type" => 2, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
 
             if ($result) {
                 if (isset($_POST['financiers'])) {
@@ -388,12 +389,13 @@ try {
                     }
                 }
 
-                $sql = $db->prepare("UPDATE tbl_payments_request SET status = :status WHERE  request_id = :request_id");
+                $sql = $db->prepare("UPDATE tbl_contractor_payment_requests SET status = :status WHERE  id = :request_id");
                 $results  = $sql->execute(array(":status" => $status, ":request_id" => $request_id));
-                $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $created_by, ":created_at" => $created_at);
-                store_comments($data);
+                store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":created_by" => $created_by, ":created_at" => $created_at));
             }
         }
+
+
         echo json_encode(array("success" => true));
     }
 

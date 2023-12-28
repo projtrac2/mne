@@ -417,6 +417,7 @@ try {
       $request_type = 1;
       $date_paid = $_POST['date_paid'];
       $created_by = $_POST['user_name'];
+      $disburse_amount = $_POST['disburse_amount'];
       $projid = $_POST['projid'];
       $created_at = date("Y-m-d");
       $status = 3;
@@ -440,8 +441,8 @@ try {
       }
 
       if ($msg) {
-         $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (request_id,payment_mode,comments,receipt,date_paid,request_type,created_by,created_at) VALUES(:request_id,:payment_mode,:comments,:receipt,:date_paid,:request_type,:created_by,:created_at)");
-         $result = $sql->execute(array(":request_id" => $request_id, ":payment_mode" => $payment_mode, ":comments" => $comments, ":receipt" => $receipt, ":request_type" => $request_type, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
+         $sql = $db->prepare("INSERT INTO tbl_payments_disbursed (projid,request_id,payment_mode,amount,comments,receipt,date_paid,request_type,created_by,created_at) VALUES(:projid,:request_id,:payment_mode,:amount,:comments,:receipt,:date_paid,:request_type,:created_by,:created_at)");
+         $result = $sql->execute(array(":projid" => $projid, ":request_id" => $request_id, ":payment_mode" => $payment_mode, ":amount" => $disburse_amount, ":comments" => $comments, ":receipt" => $receipt, ":request_type" => $request_type, ":date_paid" => $date_paid, ":created_by" => $created_by, ":created_at" => $created_at));
 
          if ($result) {
             if (isset($_POST['financiers'])) {

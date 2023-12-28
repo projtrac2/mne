@@ -31,6 +31,8 @@ $(document).ready(function () {
             }
         });
     });
+
+
     $("#direct_cost").hide();
 
     // check if the input has already been selected
@@ -69,41 +71,10 @@ function commaSeparateNumber(val) {
     return val;
 }
 
-function get_tasks_budgetlines() {
-    var tasks = $("#tasks").val();
-    $("#budgetline_div").hide();
-
-    if (tasks.length > 0) {
-        $("#budgetline_div").show();
-    }
-}
-
 const add_request_details = () => {
     var purpose = $("#purpose").val();
     if (purpose != '') {
         get_details();
-        $("#output_div").hide();
-        $("#site_div").hide();
-        $("#tasks_div").hide();
-        $("#output").removeAttr("required");
-        $("#site_id").removeAttr("required");
-        $("#tasks").removeAttr("required");
-        $("#tasks").html("");
-        $(".selectpicker").selectpicker("refresh");
-        $("#store").val("new");
-        $("#budgetline_div").show();
-        $("#project_commets_div").show();
-        $("#comment").attr("required", "required");
-        $("#cost_type").val(purpose);
-        
-        if (purpose == '1') {
-            $("#project_commets_div").hide();
-            $("#budgetline_div").hide();
-            $("#output_div").show();
-            $("#output").attr('required', 'required');
-            $("#comment").removeAttr('required');
-        }
-
     } else {
         error_alert("Please select a purpose");
         setTimeout(() => {
@@ -156,6 +127,7 @@ function get_sites() {
         console.log("Error, please select an output");
     }
 }
+
 
 function get_tasks() {
     var projid = $("#projid").val();

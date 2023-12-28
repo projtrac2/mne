@@ -111,9 +111,10 @@ if ($permission) {
 
 			$query_other_fin_lines->execute(array(":projid" => $projid));
 			$row_other_fin_lines = $query_other_fin_lines->fetch();
+
 			$planned_amount = !is_null($row_other_fin_lines['planned_amount']) ? $row_other_fin_lines['planned_amount'] : 0;
 
-			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE  projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payments_disbursed WHERE  projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 			$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;

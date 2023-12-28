@@ -14,12 +14,14 @@ $(document).ready(function () {
                 } else {
                     error_alert("Approval error !!");
                 }
+
                 $(".modal").each(function () {
                     $(this).modal("hide");
                     $(this)
                         .find("form")
                         .trigger("reset");
                 });
+
                 setTimeout(() => {
                     window.location.reload();
                 }, 3000);
@@ -29,7 +31,8 @@ $(document).ready(function () {
 
     $("#modal_submit_form").submit(function (e) {
         e.preventDefault();
-        // $("#modal-form-submit").prop("disabled", true);
+        // $("#modal-form-submit").prop("disabled", true);]
+
         var form = $(this)[0];
         var form_details = new FormData(form);
         $.ajax({
@@ -208,7 +211,7 @@ function add_row_financier() {
 					<span id="financierCeilingrow${$rowno}" style="color:red"></span>
 				</td>
 				<td>
-					<input type="number" name="amountfunding[]" onkeyup=financier_funding("row${$rowno}") onchange=financier_funding("row${$rowno}")  id="amountfundingrow${$rowno}"  placeholder="Enter amount"  class="form-control financierTotal" required/>
+					<input type="number" name="amountfunding[]" onkeyup=financier_funding("row${$rowno}") onchange=financier_funding("row${$rowno}")  id="amountfundingrow${$rowno}"  placeholder="Enter amount" step="0.01"  class="form-control financierTotal" required/>
 				</td>
 				<td>
 					<button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_financier("financierrow${$rowno}")>

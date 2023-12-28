@@ -254,71 +254,77 @@ if ($permission) {
                                     <?php
                                     } else {
                                     ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width:5%"># </th>
-                                                        <th style="width:30%">Description </th>
-                                                        <th style="width:20%">No. of Units</th>
-                                                        <th style="width:10%">Unit Cost</th>
-                                                        <th style="width:10%">Total Cost</th>
-                                                        <th style="width:5%">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id, r.id as sub_request_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE request_id =:request_id");
-                                                    $query_rsPayement_requests->execute(array(":request_id" => $request_id));
-                                                    $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-                                                    if ($total_rsPayement_requests > 0) {
-                                                        $counter = 0;
-                                                        while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
-                                                            $counter++;
-                                                            $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-                                                            $no_of_units = $rows_rsPayement_requests['no_of_units'];
-                                                            $description = $rows_rsPayement_requests['description'];
-                                                            $unit = $rows_rsPayement_requests['unit'];
-                                                            $unit_cost = $rows_rsPayement_requests['unit_cost'];
-                                                            $units_no = $rows_rsPayement_requests['no_of_units'];
-                                                            $sub_request_id = $rows_rsPayement_requests['sub_request_id'];
-                                                            $total_cost = $unit_cost * $no_of_units;
-                                                            $unit_of_measure = get_unit_of_measure($unit);
-                                                    ?>
-                                                            <tr>
-                                                                <td style="width:5%"><?= $counter ?></td>
-                                                                <td style="width:30%"><?= $description ?> </td>
-                                                                <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
-                                                                <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
-                                                                <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
-                                                                <td style="width:5%">
-                                                                    <div class="btn-group">
-                                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                            Options <span class="caret"></span>
-                                                                        </button>
-                                                                        <ul class="dropdown-menu">
-                                                                            <li>
-                                                                                <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
-                                                                                    <i class="fa fa-check"></i> Edit
-                                                                                </a>
-                                                                            </li>
-                                                                            <li>
-                                                                                <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
-                                                                                    <i class="fa fa-check"></i> Delete
-                                                                                </a>
-                                                                            </li>
-                                                                        </ul>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                    <?php
-                                                        }
-                                                    }
-                                                    ?>
-                                                </tbody>
-                                            </table>
+                                        <div class="btn-group" style="float:right">
+                                            <a type="button" data-toggle="modal" class="btn btn-primary" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $request_id ?>)">
+                                                <i class="fa fa-plus"></i> Amend
+                                            </a>
                                         </div>
-                                        <?php
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:5%"># </th>
+                                                <th style="width:30%">Description </th>
+                                                <th style="width:20%">No. of Units</th>
+                                                <th style="width:10%">Unit Cost</th>
+                                                <th style="width:10%">Total Cost</th>
+                                                <th style="width:5%">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id, r.id as sub_request_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE request_id =:request_id");
+                                            $query_rsPayement_requests->execute(array(":request_id" => $request_id));
+                                            $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
+                                            if ($total_rsPayement_requests > 0) {
+                                                $counter = 0;
+                                                while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
+                                                    $counter++;
+                                                    $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
+                                                    $no_of_units = $rows_rsPayement_requests['no_of_units'];
+                                                    $description = $rows_rsPayement_requests['description'];
+                                                    $unit = $rows_rsPayement_requests['unit'];
+                                                    $unit_cost = $rows_rsPayement_requests['unit_cost'];
+                                                    $units_no = $rows_rsPayement_requests['no_of_units'];
+                                                    $sub_request_id = $rows_rsPayement_requests['sub_request_id'];
+                                                    $total_cost = $unit_cost * $no_of_units;
+                                                    $unit_of_measure = get_unit_of_measure($unit);
+                                            ?>
+                                                    <tr>
+                                                        <td style="width:5%"><?= $counter ?></td>
+                                                        <td style="width:30%"><?= $description ?> </td>
+                                                        <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
+                                                        <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
+                                                        <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
+                                                        <td style="width:5%">
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    Options <span class="caret"></span>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
+                                                                            <i class="fa fa-check"></i> Edit
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
+                                                                            <i class="fa fa-check"></i> Delete
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                            <?php
+                                                }
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php
                                     }
 
                                     $query_rsComments = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE request_id=:request_id ORDER BY id DESC");
@@ -339,24 +345,24 @@ if ($permission) {
                                             $row_rsPMbrs = $query_rsPMbrs->fetch();
                                             $count_row_rsPMbrs = $query_rsPMbrs->rowCount();
                                             $full_name = $count_row_rsPMbrs > 0 ? $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
-                                        ?>
-                                            <div class="row clearfix">
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                    <ul class="list-group">
-                                                        <li class="list-group-item list-group-item list-group-item-action active">Comment By:<?= $full_name ?></li>
-                                                        <li class="list-group-item"><strong>Role: </strong> <?= $role ?></li>
-                                                        <li class="list-group-item"><strong>Comment: </strong> <?= $comment ?></li>
-                                                        <li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)) ?> </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                    <?php
+                                ?>
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <ul class="list-group">
+                                                <li class="list-group-item list-group-item list-group-item-action active">Comment By:<?= $full_name ?></li>
+                                                <li class="list-group-item"><strong>Role: </strong> <?= $role ?></li>
+                                                <li class="list-group-item"><strong>Comment: </strong> <?= $comment ?></li>
+                                                <li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)) ?> </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                            <?php
                                         }
                                     }
 
-                                    ?>
-                                </div>
+                            ?>
                             </div>
+                        </div>
                         </div>
                     </section>
 
@@ -392,105 +398,122 @@ if ($permission) {
                                                                 </div>
                                                             </div>
                                                             <div class="row clearfix">
-                                                                <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="output_div">
-                                                                    <label for="output" class="control-label">Output *:</label>
-                                                                    <div class="form-line">
-                                                                        <select name="output" id="output" class="form-control show-tick" onchange="get_sites()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                                            <option value="">.... Select from list ....</option>
-                                                                            <?php
-                                                                            $outputs = '<option value="">Select Output from list</option>';
-                                                                            $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
-                                                                            $query_Output->execute(array(":projid" => $projid));
-                                                                            $total_Output = $query_Output->rowCount();
-                                                                            $success = false;
-                                                                            $outputs = '<option value="">.... Select Output ....</option>';
-                                                                            if ($total_Output > 0) {
-                                                                                $success = true;
-                                                                                while ($row_rsOutput = $query_Output->fetch()) {
-                                                                                    $output_id = $row_rsOutput['id'];
-                                                                                    $output = $row_rsOutput['indicator_name'];
-                                                                            ?>
-                                                                                    <option value="<?= $output_id ?>"><?= $output ?></option>';
-                                                                            <?php
+                                                                <?php
+                                                                if ($purpose == 1) {
+                                                                ?>
+                                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="output_div">
+                                                                        <label for="output" class="control-label">Output *:</label>
+                                                                        <div class="form-line">
+                                                                            <select name="output" id="output" class="form-control show-tick" onchange="get_sites()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                                <option value="">.... Select from list ....</option>
+                                                                                <?php
+                                                                                $outputs = '<option value="">Select Output from list</option>';
+                                                                                $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+                                                                                $query_Output->execute(array(":projid" => $projid));
+                                                                                $total_Output = $query_Output->rowCount();
+                                                                                $success = false;
+                                                                                $outputs = '<option value="">.... Select Output ....</option>';
+                                                                                if ($total_Output > 0) {
+                                                                                    $success = true;
+                                                                                    while ($row_rsOutput = $query_Output->fetch()) {
+                                                                                        $output_id = $row_rsOutput['id'];
+                                                                                        $output = $row_rsOutput['indicator_name'];
+                                                                                ?>
+                                                                                        <option value="<?= $output_id ?>"><?= $output ?></option>';
+                                                                                <?php
+                                                                                    }
                                                                                 }
-                                                                            }
-                                                                            ?>
-                                                                        </select>
+                                                                                ?>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="site_div">
-                                                                    <label for="site_id" class="control-label">Site *:</label>
-                                                                    <div class="form-line">
-                                                                        <select name="site_id" id="site_id" class="form-control show-tick" onchange="get_tasks()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                                            <option value="">.... Select from list ....</option>
-                                                                        </select>
+                                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="site_div">
+                                                                        <label for="site_id" class="control-label">Site *:</label>
+                                                                        <div class="form-line">
+                                                                            <select name="site_id" id="site_id" class="form-control show-tick" onchange="get_tasks()" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                                <option value="">.... Select from list ....</option>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="tasks_div">
-                                                                    <label for="tasks" class="control-label">Tasks *:</label>
-                                                                    <div class="form-line">
-                                                                        <select name="tasks[]" id="tasks" class="form-control show-tick selectpicker" onchange="get_tasks_budgetlines()" multiple style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false">
-                                                                            <option value="">.... Select from list ....</option>
-                                                                        </select>
+                                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="tasks_div">
+                                                                        <label for="tasks" class="control-label">Tasks *:</label>
+                                                                        <div class="form-line">
+                                                                            <select name="tasks[]" id="tasks" class="form-control show-tick selectpicker" onchange="get_tasks_budgetlines()" multiple style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false">
+                                                                                <option value="">.... Select from list ....</option>
+                                                                            </select>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
-                                                                    <div class="table-responsive">
-                                                                        <table class="table table-bordered">
-                                                                            <input type="hidden" name="task_id[]" id="task_id" value="0">
-                                                                            <thead>
-                                                                                <tr>
-                                                                                    <th style="width:30%">Description </th>
-                                                                                    <th style="width:15%">Unit</th>
-                                                                                    <th style="width:15%">Unit Cost</th>
-                                                                                    <th style="width:10%">No. of Units</th>
-                                                                                    <th style="width:10%">Remaining Units</th>
-                                                                                    <th style="width:15%">Total Cost</th>
-                                                                                    <th style="width:5%">
-                                                                                        <button type="button" name="addplus" id="addplus_financier" onclick="add_budget_costline(0);" class="btn btn-success btn-sm">
-                                                                                            <span class="glyphicon glyphicon-plus">
-                                                                                            </span>
-                                                                                        </button>
-                                                                                    </th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody id="_budget_lines_values_table">
-                                                                                <tr></tr>
-                                                                                <tr id="_removeTr" class="text-center">
-                                                                                    <td colspan="5">Add Budgetline Costlines</td>
-                                                                                </tr>
-                                                                            </tbody>
-                                                                            <tfoot id="budget_line_foot">
-                                                                                <tr>
-                                                                                    <td colspan="1"><strong>Sub Total</strong></td>
-                                                                                    <td colspan="1">
-                                                                                        <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
-                                                                                    </td>
-                                                                                    <td colspan="1"> <strong>% Sub Total</strong></td>
-                                                                                    <td colspan="2">
-                                                                                        <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </tfoot>
-                                                                        </table>
+                                                                <?php
+                                                                } else {
+                                                                ?>
+
+
+                                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-bordered">
+                                                                                <input type="hidden" name="task_id[]" id="task_id" value="0">
+                                                                                <thead>
+                                                                                    <tr>
+                                                                                        <th style="width:30%">Description </th>
+                                                                                        <th style="width:15%">Unit</th>
+                                                                                        <th style="width:15%">Unit Cost</th>
+                                                                                        <th style="width:10%">No. of Units</th>
+                                                                                        <th style="width:10%">Remaining Units</th>
+                                                                                        <th style="width:15%">Total Cost</th>
+                                                                                        <th style="width:5%">
+                                                                                            <button type="button" name="addplus" id="addplus_financier" onclick="add_budget_costline(0);" class="btn btn-success btn-sm">
+                                                                                                <span class="glyphicon glyphicon-plus">
+                                                                                                </span>
+                                                                                            </button>
+                                                                                        </th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody id="_budget_lines_values_table">
+                                                                                    <tr></tr>
+                                                                                    <tr id="_removeTr" class="text-center">
+                                                                                        <td colspan="5">Add Budgetline Costlines</td>
+                                                                                    </tr>
+                                                                                </tbody>
+                                                                                <tfoot id="budget_line_foot">
+                                                                                    <tr>
+                                                                                        <td colspan="1"><strong>Sub Total</strong></td>
+                                                                                        <td colspan="1">
+                                                                                            <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                                                        </td>
+                                                                                        <td colspan="1"> <strong>% Sub Total</strong></td>
+                                                                                        <td colspan="2">
+                                                                                            <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </tfoot>
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                <?php
+                                                                }
+                                                                ?>
                                                             </div>
                                                         </fieldset>
-                                                        <fieldset class="scheduler-border" id="project_commets_div">
-                                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                                <i class="fa fa-comment" aria-hidden="true"></i> Remarks
-                                                            </legend>
-                                                            <div id="comment_section">
-                                                                <div class="col-md-12">
-                                                                    <label class="control-label">Remarks *:</label>
-                                                                    <br />
-                                                                    <div class="form-line">
-                                                                        <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                                        <?php
+                                                        if ($purpose != 1) {
+                                                        ?>
+                                                            <fieldset class="scheduler-border">
+                                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                                    <i class="fa fa-comment" aria-hidden="true"></i> Remarks
+                                                                </legend>
+                                                                <div id="comment_section">
+                                                                    <div class="col-md-12">
+                                                                        <label class="control-label">Remarks *:</label>
+                                                                        <br />
+                                                                        <div class="form-line">
+                                                                            <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        </fieldset>
+                                                            </fieldset>
+                                                        <?php
+                                                        }
+                                                        ?>
                                                     </div>
                                                 </div>
                                             </div>
@@ -500,7 +523,7 @@ if ($permission) {
                                                 <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                                 <input type="hidden" name="project_stage" id="project_stage" value="<?= $project_stage ?>">
                                                 <input type="hidden" name="amount_requested" id="amount_requested" value="">
-                                                <input type="hidden" name="request_id" id="request_id" value="">
+                                                <input type="hidden" name="request_id" id="request_id" value="<?= $request_id ?>">
                                                 <input type="hidden" name="cost_type" id="cost_type" value="">
                                                 <input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
                                                 <input type="hidden" name="store" id="store" value="new">
@@ -513,7 +536,7 @@ if ($permission) {
                                         </div> <!-- /modal-footer -->
                                 </form> <!-- /.form -->
                             </div> <!-- /modal-content -->
-                        </div> <!-- /modal-dailog -->
+                        </div> <!-- /modal  -->
                     </div>
                     <!-- End add item -->
 <?php

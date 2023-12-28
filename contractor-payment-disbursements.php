@@ -146,7 +146,7 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>', '<?= $request_id ?>', '<?= $amount_paid ?>', '<?= number_format($amount_paid) ?>')">
+																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>', '<?= $costline_id ?>', '<?= $amount_paid ?>', '<?= number_format($amount_paid,2) ?>')">
 																				<i class="fa fa-plus-square"></i> Disburse
 																			</a>
 																		</li>
