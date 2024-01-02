@@ -13,8 +13,7 @@ if ($permission) {
 
         $query_partner = $db->prepare("SELECT * FROM tbl_partners WHERE id=:fn");
         $query_partner->execute(array(":fn" => $fn));
-        $row_partner = $query_partner->fetch();
-        $typeid = $row_partner['type'];
+        $row_partner = $query_partner->fetch(); 
     } catch (PDOException $ex) {
         $result = flashMessage("An error occurred: " . $ex->getMessage());
     }

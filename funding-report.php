@@ -9,6 +9,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
         $fndid_array = explode("fn918273AxZID", $decode_fndid);
         $financier_id = $fndid_array[1];
 
+
         $fyear = '';
         if (isset($_GET["fyear"]) && !empty($_GET["fyear"])) {
             $hash = $_GET['fyear'];
@@ -16,6 +17,10 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
             $fyear_array = explode("fn918273AxZID", $decode_fyear);
             $fyear = $fyear_array[1];
         }
+
+        $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE g.program_type=0 AND p.deleted='0' ORDER BY `projfscyear` DESC");
+        $sql->execute();
+        $rows_count = $sql->rowCount();
 
         function get_amount_funding($projid)
         {
@@ -33,7 +38,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
         function get_received_amount($projid)
         {
             global $db, $fyear, $financier_id;
-            $query_plannedfunds = $db->prepare("SELECT SUM(amount) as planned FROM tbl_financier_projects WHERE financier=:fid AND projid=:projid");
+            $query_plannedfunds = $db->prepare("SELECT SUM(amount) as planned FROM tbl_financier_projects WHERE financier_id=:fid AND projid=:projid");
             $query_plannedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
             if ($fyear != '') {
                 $query_plannedfunds = $db->prepare("SELECT SUM(amount) as planned FROM tbl_financier_projects WHERE financial_year=:fyear AND financier=:financier_id AND projid=:projid");
@@ -56,9 +61,62 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
             return  !is_null($row_utilizedfunds["utilized"]) ? $row_utilizedfunds["utilized"] : 0;
         }
 
-        $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE g.program_type=0 AND p.deleted='0' ORDER BY `projfscyear` DESC");
-        $sql->execute();
-        $rows_count = $sql->rowCount();
+        function get_status($status_id)
+        {
+            global $db;
+            $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+            $query_Projstatus->execute(array(":projstatus" => $status_id));
+            $row_Projstatus = $query_Projstatus->fetch();
+            $total_Projstatus = $query_Projstatus->rowCount();
+            $status = "";
+            if ($total_Projstatus > 0) {
+                $status_name = $row_Projstatus['statusname'];
+                $status_class = $row_Projstatus['class_name'];
+                $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+            }
+
+            return $status;
+        }
+
+        function get_financier_received_amount()
+        {
+            global $db, $fyear, $financier_id;
+            $query_plannedfunds = $db->prepare("SELECT SUM(amount) as planned FROM tbl_financier_projects WHERE financier_id=:fid");
+            $query_plannedfunds->execute(array(":fid" => $financier_id));
+            if ($fyear != '') {
+                $query_plannedfunds = $db->prepare("SELECT SUM(amount) as planned FROM tbl_financier_projects WHERE financial_year=:fyear AND financier=:financier_id");
+                $query_plannedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id));
+            }
+            $row_plannedfunds = $query_plannedfunds->fetch();
+            return  !is_null($row_plannedfunds["planned"]) ? $row_plannedfunds["planned"] : 0;
+        }
+
+
+        function get_financier_planned_amount()
+        {
+            global $db, $fyear, $financier_id;
+            $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE financier=:fid ");
+            $query_plannedfunds->execute(array(":fid" => $financier_id));
+            if ($fyear != '') {
+                $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE  financial_year=:fyear AND financier=:financier_id ");
+                $query_plannedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id));
+            }
+            $row_plannedfunds = $query_plannedfunds->fetch();
+            return  !is_null($row_plannedfunds["planned"]) ? $row_plannedfunds["planned"] : 0;
+        }
+
+        function get_financier_utilized_funds()
+        {
+            global $db, $financier_id, $fyear;
+            $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE financier_id=:fid");
+            $query_utilizedfunds->execute(array(":fid" => $financier_id));
+            if ($fyear != '') {
+                $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE  financial_year=:fyear AND financier_id=:financier_id");
+                $query_utilizedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id));
+            }
+            $row_utilizedfunds = $query_utilizedfunds->fetch();
+            return  !is_null($row_utilizedfunds["utilized"]) ? $row_utilizedfunds["utilized"] : 0;
+        }
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -72,7 +130,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                            <a type="button" id="outputItemModalBtnrow" href="./view-financiers.php" class="btn btn-warning pull-right">
                                 Go Back
                             </a>
                         </div>
@@ -89,45 +147,46 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <ul class="list-group">
-                                        <li class="list-group-item list-group-item list-group-item-action active">Financier: <?= $financier ?> </li>
-                                        <li class="list-group-item"><strong>Planned Cost: </strong> <?= $planned_cost ?> </li>
-                                        <li class="list-group-item"><strong>Amount Utilized: </strong> <?= $utilized_amount ?> </li>
+                                        <li class="list-group-item list-group-item list-group-item-action active">Financier: <?= $financier = "financier" ?> </li>
+                                        <li class="list-group-item"><strong>Planned Cost: </strong> <?= number_format(get_financier_planned_amount(), 2) ?> </li>
+                                        <li class="list-group-item"><strong>Received Amount: </strong> <?= number_format(get_financier_received_amount(), 2) ?> </li>
+                                        <li class="list-group-item"><strong>Amount Utilized: </strong> <?= number_format(get_financier_utilized_funds(), 2) ?> </li>
                                     </ul>
                                 </div>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="btn-group pull-right" style="margin-right: 10px">
-                                        <a href="reports/funding-report-pdf.php?financier_id=<?= base64_encode("fd918273ZaYID{$financier_id}") ?>&fyear=<?= base64_encode("fd918273ZaYID{$fyear}") ?>" target="_blank" class="btn btn-danger btn-sm" type="button">
+                                        <a href="./reports/funding-report-pdf.php?fn=<?= $hash ?>" target="_blank" class="btn btn-danger btn-sm" type="button">
                                             <i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF
                                         </a>
                                     </div>
                                 </div>
-                                <div class="body">
-                                    <div class="row clearfix">
-                                        <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+                                <!-- <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+                                        <div class="row clearfix">
                                             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                                 <select name="financial_year" id="financial_year" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
                                                     <option value="" selected="selected">Select Financial Year</option>
                                                     <?php
-                                                    $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE status=1");
-                                                    $projfy->execute();
-                                                    while ($row = $projfy->fetch()) {
-                                                        $query_plannedfunds = $db->prepare("SELECT * FROM tbl_myprojfunding WHERE financier=:fid AND projid=:projid");
-                                                        $query_plannedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
-                                                        $row_plannedfunds = $query_plannedfunds->fetch();
-                                                        if ($row_plannedfunds > 0) {
-                                                            echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
-                                                        }
-                                                    }
+                                                    // $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE status=1");
+                                                    // $projfy->execute();
+                                                    // while ($row = $projfy->fetch()) {
+                                                    //     $query_plannedfunds = $db->prepare("SELECT * FROM tbl_myprojfunding WHERE financier=:fid");
+                                                    //     $query_plannedfunds->execute(array(":fid" => $financier_id));
+                                                    //     $row_plannedfunds = $query_plannedfunds->fetch();
+                                                    //     if ($row_plannedfunds > 0) {
+                                                    //         echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
+                                                    //     }
+                                                    // }
                                                     ?>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                                 <input type="submit" class="btn btn-primary" name="btn_search" id="btn_search" value="FILTER" />
                                                 <input type="button" VALUE="RESET" class="btn btn-warning" onclick="location.href='output-indicators-quarterly-progress-report.php'" id="btnback">
                                             </div>
-                                        </form>
-                                    </div>
-                                </div>
+                                        </div>
+                                    </form>
+                                </div> -->
                             </div>
                         </div>
                         <div class="body">
@@ -137,6 +196,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                                         <tr>
                                             <th width="5%">#&nbsp;&nbsp;&nbsp;&nbsp;</th>
                                             <th width="25%">Project &nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                            <th width="10%">Status &nbsp;&nbsp;&nbsp;&nbsp;</th>
                                             <th width="10%">Start Date &nbsp;&nbsp;&nbsp;&nbsp;</th>
                                             <th width="10%">End Date &nbsp;&nbsp;&nbsp;&nbsp;</th>
                                             <th width="10%">Project Cost &nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -149,6 +209,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                                     <tbody>
                                         <?php
                                         if ($rows_count > 0) {
+                                            $counter = 0;
                                             while ($row_project = $sql->fetch()) {
                                                 $projid = $row_project['projid'];
                                                 $project_name = $row_project['projname'];
@@ -160,7 +221,9 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                                                 $query_plannedfunds = $db->prepare("SELECT * FROM tbl_myprojfunding WHERE financier=:fid AND projid=:projid");
                                                 $query_plannedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
                                                 $row_plannedfunds = $query_plannedfunds->fetch();
+
                                                 if ($row_plannedfunds > 0) {
+                                                    $counter++;
                                                     $planned_funds = get_amount_funding($projid);
                                                     $received_funds = get_amount_funding($projid);
                                                     $utilized_funds = get_utilized_amount($projid);
@@ -169,7 +232,7 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
                                                     <tr>
                                                         <td width="5%"><?= $counter ?></td>
                                                         <td width="35%"><?= $project_name ?></td>
-                                                        <td width="20%"><?= $status ?></td>
+                                                        <td width="20%"><?= get_status($status) ?></td>
                                                         <td width="20%"><?= $project_start_date ?></td>
                                                         <td width="20%"><?= $project_end_date ?></td>
                                                         <td width="5%"><?= number_format($project_cost, 2) ?></td>

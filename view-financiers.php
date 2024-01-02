@@ -156,7 +156,8 @@ if ($permission) {
 																		}
 																		?>
 																		<li>
-																			<a type="button" href="./reports/funding-report-pdf.php?fn=<?= $hashfnid ?>" target="_blank"><i class="fa fa-info"></i>Report</a>
+																			<a type="button" href="funding-report.php?fn=<?= $hashfnid ?>" target="_blank">
+																				<i class="fa fa-info"></i> Report</a>
 																		</li>
 																	</ul>
 																</div>
@@ -289,6 +290,11 @@ if ($permission) {
 																				}
 																			}
 																			?>
+																			<li>
+																				<a type="button" href="funding-report.php?fn=<?= $hashfnid ?>" target="_blank">
+																					<i class="fa fa-info"></i> Report
+																				</a>
+																			</li>
 																		</ul>
 																	</div>
 																</td>

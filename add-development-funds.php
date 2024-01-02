@@ -7,6 +7,7 @@ if ($permission) {
 			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
 		}
 
+		$fnd = '';
 		if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
 			$hash = $_GET['fn'];
 			$decode_fndid = base64_decode($hash);
@@ -56,6 +57,42 @@ if ($permission) {
 			}
 		}
 
+		function success_message($msg, $msg_type)
+		{
+			if ($msg_type == "1") {
+				$results = "
+				<script type=\"text/javascript\">
+					swal({
+						title: \"Error!\",
+						text: \" $msg \",
+						type: 'Danger',
+						timer: 3000,
+						'icon':'error',
+						showConfirmButton: false
+					});
+
+					setTimeout(function(){
+						window.location.href = 'view-financiers.php';
+					}, 2000);
+				</script>";
+			} else {
+				$results = "<script type=\"text/javascript\">
+					swal({
+						title: \"Success!\",
+						text: \" $msg\",
+						type: 'Success',
+						timer: 2000,
+                        'icon':'success',
+						showConfirmButton: false });
+						setTimeout(function(){
+							window.location.href = 'view-financiers.php';
+						}, 2000);
+					</script>";
+			}
+
+			return $results;
+		}
+
 		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addfundsfrm")) {
 			$grantlifespan = $grantinstallments = $grantinstallmentdate = NULL;
 
@@ -65,16 +102,30 @@ if ($permission) {
 			$current_date = date("Y-m-d");
 			$grantlifespan = $_POST['grantlifespan'];
 			$grantinstallments = $_POST['grantinstallments'];
-			$grantinstallmentdate = $_POST['grantinstallmentdate'];
+			// $grantinstallmentdate = $_POST['grantinstallmentdate'];
 			$grantlifespan = $grantinstallments =  $grantinstallmentdate = 0;
+			$financier_id = $_POST['financier'];
+			$financial_year = $_POST['year'];
 
 			if (!empty($_POST['code']) && !empty($_POST['year']) && !empty($_POST['amount']) && !empty($funddate) && !empty($_POST['user_name'])) {
 				$insertSQL = $db->prepare("INSERT INTO tbl_funds (funder, fund_code, financial_year, amount, currency, exchange_rate, date_funds_released, funds_purpose, grant_life_span, grant_installments, grant_installment_date, recorded_by, date_recorded)  VALUES (:funder, :code, :year, :amount, :currency, :rate, :funddate, :purpose, :lifespan, :installments, :installmentsdate, :recordedby, :recorddate)");
-				$result = $insertSQL->execute(array(':funder' => $_POST['financier'], ':code' => $_POST['code'], ':year' => $_POST['year'], ':amount' => $_POST['amount'], ':currency' => $_POST['currency'], ':rate' => $_POST['rate'], ':funddate' => $funddate, ':purpose' => $_POST['purpose'], ':lifespan' => $grantlifespan, ':installments' => $grantinstallments, ':installmentsdate' => $grantinstallmentdate, ':recordedby' => $_POST['user_name'], ':recorddate' => $current_date));
-
-				$last_id = $db->lastInsertId();
+				$result = $insertSQL->execute(array(':funder' => $financier_id, ':code' => $_POST['code'], ':year' => $financial_year, ':amount' => $_POST['amount'], ':currency' => $_POST['currency'], ':rate' => $_POST['rate'], ':funddate' => $funddate, ':purpose' => $_POST['purpose'], ':lifespan' => $grantlifespan, ':installments' => $grantinstallments, ':installmentsdate' => $grantinstallmentdate, ':recordedby' => $_POST['user_name'], ':recorddate' => $current_date));
 
 				if ($result) {
+					$last_id = $db->lastInsertId();
+
+					if (isset($_POST['cost'])) {
+						$total_amount_funding = count($_POST['cost']);
+						for ($q = 0; $q < $total_amount_funding; $q++) {
+							$projid = $_POST['projid'][$q];
+							$amount = $_POST['cost'][$q];
+							if ($amount != '') {
+								$sql = $db->prepare("INSERT INTO tbl_financier_projects (financier_id,fund_id,projid,financial_year,amount) VALUES (:financier_id,:fund_id,:projid,:financial_year,:amount)");
+								$result  = $sql->execute(array(":financier_id" => $financier_id, ":fund_id" => $last_id, ":projid" => $projid, ":financial_year" => $financial_year,  ":amount" => $amount));
+							}
+						}
+					}
+
 					$filecategory = "Funding";
 					$catid = $last_id;
 					$myUser = $_POST['user_name'];
@@ -95,55 +146,21 @@ if ($permission) {
 									}
 								} else {
 									$msg = 'File you are uploading already exists, try another file!!';
-									$results = "<script type=\"text/javascript\">
-									swal({
-										title: \"Error!\",
-										text: \" $msg \",
-										type: 'Danger',
-										timer: 3000,
-                                        'icon':'error',
-										showConfirmButton: false });
-								</script>";
+									$results = success_message($msg, 1);
 								}
 							} else {
 								$msg = 'This file type is not allowed, try another file!!';
-								$results = "<script type=\"text/javascript\">
-								swal({
-									title: \"Error!\",
-									text: \" $msg \",
-									type: 'Danger',
-									timer: 3000,
-                                    'icon':'error',
-									showConfirmButton: false });
-								</script>";
+								$results = success_message($msg, 1);
 							}
 						} else {
 							$msg = 'You have not attached any file!!';
-							$results = "<script type=\"text/javascript\">
-							swal({
-								title: \"Error!\",
-								text: \" $msg \",
-								type: 'Danger',
-								timer: 3000,
-                                'icon':'error',
-								showConfirmButton: false });
-						</script>";
+							$results = success_message($msg, 1);
 						}
 					}
 
 					$msg = 'Funds successfully added.';
-					$results = "<script type=\"text/javascript\">
-					swal({
-						title: \"Success!\",
-						text: \" $msg\",
-						type: 'Success',
-						timer: 2000,
-                        'icon':'success',
-						showConfirmButton: false });
-					setTimeout(function(){
-						window.location.href = 'view-financiers.php';
-					}, 2000);
-				</script>";
+					$results = success_message($msg, 2);
+					echo $results;
 				}
 			}
 		} elseif ((isset($_POST["MM_update"])) && ($_POST["MM_update"] == "editfundsfrm")) {
@@ -155,7 +172,7 @@ if ($permission) {
 			$current_date = date("Y-m-d");
 			$grantlifespan .= $_POST['grantlifespan'];
 			$grantinstallments .= $_POST['grantinstallments'];
-			$grantinstallmentdate .= $_POST['grantinstallmentdate'];
+			// $grantinstallmentdate .= $_POST['grantinstallmentdate'];
 
 
 			if (!empty($_POST['code']) && !empty($_POST['year']) && !empty($_POST['amount']) && !empty($funddate) && !empty($_POST['user_name'])) {
@@ -163,6 +180,21 @@ if ($permission) {
 				$result = $insertSQL->execute(array(':funder' => $_POST['financier'], ':code' => $_POST['code'], ':year' => $_POST['year'], ':amount' => $_POST['amount'], ':currency' => $_POST['currency'], ':rate' => $_POST['rate'], ':funddate' => $funddate, ':purpose' => $_POST['purpose'], ':lifespan' => $grantlifespan, ':installments' => $grantinstallments, ':installmentsdate' => $grantinstallmentdate, ':recordedby' => $_POST['user_name'], ':recorddate' => $current_date, ':funderid' => $funderid));
 
 				if ($result) {
+
+					$sql = $db->prepare("DELETE FROM `tbl_financier_projects` WHERE fund_id=:fund_id ");
+					$results = $sql->execute(array(':fund_id' => $funderid));
+
+					if (isset($_POST['cost'])) {
+						$total_amount_funding = count($_POST['cost']);
+						for ($q = 0; $q < $total_amount_funding; $q++) {
+							$projid = $_POST['projid'][$q];
+							$amount = $_POST['cost'][$q];
+							if (!empty($amount)) {
+								$sql = $db->prepare("INSERT INTO tbl_financier_projects (financier_id,fund_id,projid,financial_year,amount) VALUES (:financier_id,:fund_id,:projid,:amount)");
+								$result  = $sql->execute(array(":financier_id" => $financier_id, ":fund_id" => $last_id, ":projid" => $projid,  ":amount" => $amount));
+							}
+						}
+					}
 					$filecategory = "Funding";
 					$catid = $funderid;
 					$myUser = $_POST['user_name'];
@@ -185,55 +217,19 @@ if ($permission) {
 									}
 								} else {
 									$msg = 'File you are uploading already exists, try another file!!';
-									$results = "<script type=\"text/javascript\">
-									swal({
-										title: \"Error!\",
-										text: \" $msg \",
-										type: 'Danger',
-										timer: 3000,
-                                        'icon':'warning',
-										showConfirmButton: false });
-								</script>";
+									$results = success_message($msg, 1);
 								}
 							} else {
 								$msg = 'This file type is not allowed, try another file!!';
-								$results = "<script type=\"text/javascript\">
-								swal({
-									title: \"Error!\",
-									text: \" $msg \",
-									type: 'Danger',
-									timer: 3000,
-                                    'icon':'warning',
-									showConfirmButton: false });
-								</script>";
+								$results = success_message($msg, 1);
 							}
 						} else {
 							$msg = 'You have not attached any file!!';
-							$results = "<script type=\"text/javascript\">
-							swal({
-								title: \"Error!\",
-								text: \" $msg \",
-								type: 'Danger',
-								timer: 3000,
-                                'icon':'success',
-								showConfirmButton: false });
-						</script>";
+							$results = success_message($msg, 1);
 						}
 					}
-
 					$msg = 'Funds successfully updated.';
-					$results = "<script type=\"text/javascript\">
-					swal({
-						title: \"Success!\",
-						text: \" $msg\",
-						type: 'Success',
-						timer: 2000,
-                        'icon':'success',
-						showConfirmButton: false });
-					setTimeout(function(){
-						window.location.href = 'funding';
-					}, 2000);
-				</script>";
+					$results = success_message($msg, 2);
 				}
 			}
 		}
@@ -246,6 +242,7 @@ if ($permission) {
 			$currentyear = $cy;
 		}
 		$nxtyr = $currentyear + 1;
+
 		$query_rsFyear =  $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr >=:currentyear AND yr <= :nxtyr ORDER BY id ASC");
 		$query_rsFyear->execute(array(":currentyear" => $currentyear, ":nxtyr" => $nxtyr));
 
@@ -358,18 +355,18 @@ if ($permission) {
 											</select>
 										</div>
 									</div>
-									<script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
+									<!-- <script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
 									<script type="text/javascript">
 										webshims.setOptions('forms-ext', {
 											replaceUI: 'auto',
 											types: 'number'
 										});
 										webshims.polyfill('forms forms-ext');
-									</script>
+									</script> -->
 									<div class="col-md-4">
 										<label>Funding Amount *:</label>
 										<div class="form-line">
-											<input name="amount" type="number" onchange="calculate_funds()" onkeyup="calculate_funds()" id="amount_funds" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
+											<input name="amount" type="number" onchange="calculate_funds()" onkeyup="calculate_funds()" id="amount_funds" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
 										</div>
 									</div>
 									<div class="col-md-4">
@@ -417,7 +414,7 @@ if ($permission) {
 										<div class="col-md-12" id="ppprogram">
 											<label>Funds Purpose *:</label>
 											<div class="form-line">
-												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control currency" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
+												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
 											</div>
 										</div>
 									<?php
@@ -426,7 +423,7 @@ if ($permission) {
 										<div class="col-md-12" id="ppgeneral">
 											<label>Funds Purpose *:</label>
 											<div class="form-line">
-												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control currency" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
+												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
 											</div>
 										</div>
 									<?php
@@ -436,13 +433,13 @@ if ($permission) {
 										<div class="col-md-4" id="grantperiod">
 											<label>Projected Grant Lifespan *:</label>
 											<div class="form-line">
-												<input name="grantlifespan" type="number" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantspan : ""; ?>" required>
+												<input name="grantlifespan" type="number" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantspan : ""; ?>" required>
 											</div>
 										</div>
 										<div class="col-md-4" id="grantinstallment">
 											<label>Grant Installments *:</label>
 											<div class="form-line">
-												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control currency" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
+												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
 											</div>
 										</div>
 									</div>
@@ -456,6 +453,8 @@ if ($permission) {
 													<th style="width:5%">#</th>
 													<th style="width:35%">Project</th>
 													<th style="width:20%">Budget</th>
+													<th style="width:20%">Remaining</th>
+													<th style="width:20%">Allocated</th>
 													<th style="width:20%">Cost</th>
 												</tr>
 											</thead>
@@ -471,14 +470,22 @@ if ($permission) {
 														$project_name = $row_plannedfunds['projname'];
 														$projid = $row_plannedfunds['projid'];
 														$budget = $row_plannedfunds['amountfunding'];
+
+														$query_funds =  $db->prepare("SELECT * FROM tbl_financier_projects WHERE fund_id=:fund_id AND  projid=:projid");
+														$query_funds->execute(array(":fund_id" => $fnd, ":projid" => $projid));
+														$row_funds = $query_funds->fetch();
+														$rows_funds = $query_funds->rowCount();
+														$amount = $rows_funds > 0 ? $row_funds['amount'] : 0;
 												?>
 														<tr>
 															<td style="width:5%"><?= $counter ?></td>
 															<td style="width:35%"><?= $project_name ?></td>
-															<td style="width:20%"><?= number_format($budget, 2) ?></td>
+															<td style="width:10%"><?= number_format($budget, 2) ?></td>
+															<td style="width:10%"><?= number_format($remaining, 2) ?></td>
+															<td style="width:10%"><?= number_format($allocated, 2) ?></td>
 															<td style="width:20%">
-																<input type="number" name="cost" id="cost" class="form-control">
-																<input type="hidden" name="projid" value="<?= $projid ?>">
+																<input type="number" name="cost[]" id="cost<?= $projid ?>" class="form-control sub_total_cost" value="<?= $amount ?>">
+																<input type="hidden" name="projid[]" value="<?= $projid ?>">
 															</td>
 														</tr>
 												<?php

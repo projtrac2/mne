@@ -150,7 +150,7 @@ try {
       return $comments;
    }
 
-   function get_requested_items($costlineid)
+   function get_requested_items($costlineid, $edit = 1)
    {
       global $db;
       $query_rsTask_parameters = $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE r.request_id=:costlineid");
@@ -168,18 +168,89 @@ try {
 
             $unit_of_measure = get_measurement_unit($unit_id);
             $total_cost = $unit_cost * $unit_no;
+
             $tasks .=
                '<tr>
-               <td>' . $description . ' </td>
-               <td>' . number_format($unit_no, 2) . '  ' . $unit_of_measure . '</td>
-               <td>' . number_format($unit_cost, 2) . '</td>
-               <td>' . number_format($total_cost, 2) . '</td>
-            </tr>';
+                  <td>' . $description . ' </td>
+                  <td>' . number_format($unit_no, 2) . '  ' . $unit_of_measure . '</td>
+                  <td>' . number_format($unit_cost, 2) . '</td>
+                  <td>' . number_format($total_cost, 2) . '</td>
+               </tr>';
          }
       }
 
       return $tasks;
    }
+
+
+   if (isset($_GET['get_amend_details'])) {
+      $request_id = $_GET['request_id'];
+      $projid = $_GET['projid'];
+      $query_rsTask_parameters = $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE r.request_id=:request_id");
+      $query_rsTask_parameters->execute(array(":request_id" => $request_id));
+      $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
+      $tasks = '';
+      if ($totalRows_rsTask_parameters > 0) {
+         $plan_counter = 0;
+         while ($row_rsTask_parameters = $query_rsTask_parameters->fetch()) {
+            $plan_counter++;
+            $description = $row_rsTask_parameters['description'];
+            $direct_cost_id = $row_rsTask_parameters['direct_cost_id'];
+            $unit_no = $row_rsTask_parameters['no_of_units'];
+            $unit_cost = $row_rsTask_parameters['unit_cost'];
+            $unit_id = $row_rsTask_parameters['unit'];
+            $cost_details = get_costline_details($projid, $direct_cost_id);
+            $unit_of_measure = get_measurement_unit($unit_id);
+            $total_cost = $unit_cost * $unit_no;
+            $budget_line_items = '';
+
+            $tasks .=
+               '<tr id="budget_line_cost_line' . $plan_counter . '">
+                  <td>
+                        <select name="direct_cost_id[]" id="description' . $plan_counter . '" data-id="' . $plan_counter . '" onchange="get_costline_details(' . $plan_counter . ')" class="form-control show-tick description" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                           <option value="">.... Select from list ....</option>
+                           ' . $budget_line_items . '
+                        </select>
+                  </td>
+                  <td id="unit' . $plan_counter . '"> ' . $unit_of_measure . ' </td>
+                  <td>
+                        <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost' . $plan_counter . '" onchange="calculate_total_cost(' . $plan_counter . ')" onkeyup="calculate_total_cost(' . $plan_counter . ')" value="' . $unit_cost . '">
+                  </td>
+                  <td>
+                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $plan_counter . ')" onkeyup="calculate_total_cost(' . $plan_counter . ')" id="no_units' . $plan_counter . '" value="' . $unit_no . '>
+                  </td>
+                  <td>
+                     <input type="hidden" name="h_no_units[]" id="h_no_units' . $plan_counter . '">
+                     <input type="text" name="p_no_units[]" min="0" class="form-control " id="p_no_units' . $plan_counter . '" readonly>
+                  </td>
+                  <td>
+                     <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $plan_counter . '" class="subamount sub" value="' . $total_cost . '">
+                     <span id="subtotal_cost' . $plan_counter . '" style="color:red">' . number_format($total_cost, 2) . '/</span>
+                  </td>
+                  <td style="width:2%">
+                        <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_budget_costline(\'budget_line_cost_line' . $plan_counter . '\')">
+                           <span class="glyphicon glyphicon-minus"></span>
+                        </button>
+                  </td>
+               </tr>';
+         }
+      }
+
+      if ($stage == 8) {
+         $cost =  get_financial_cost($projid, 3);
+         $used_budget = get_budget_used($projid, $stage, 3);
+      } else if ($stage == 9) {
+         $cost =  get_financial_cost($projid, 4);
+         $used_budget = get_budget_used($projid, $stage, 4);
+      } else {
+         $cost =  get_financial_cost($projid, 4);
+         $used_budget = get_budget_used($projid, $stage, 4);
+      }
+
+      echo json_encode(array("success" => true, "budget" => $budget, "edit_details" => $tasks));
+   }
+
+
 
    if (isset($_GET['get_details'])) {
       $projid = $_GET['projid'];

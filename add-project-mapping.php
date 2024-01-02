@@ -11,7 +11,7 @@ if ($permission) {
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $projname = $workflow_stage = $sub_stage = $projcode = $project_directorate = $implementation = '';
-        $project_impact = $project_evaluation = '';
+        $project_impact = $project_evaluation = 0;
 
         if ($totalRows_rsProjects > 0) {
             $projname = $row_rsProjects['projname'];
@@ -328,7 +328,7 @@ if ($permission) {
                                             $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
                                             if ($assigned_responsible) {
                                                 if ($approval_stage) {
-                                                    $workflow_stage = $project_impact == 0 && $project_evaluation ? $workflow_stage + 1 : $workflow_stage;
+                                                    $workflow_stage = $project_impact == 1 || $project_evaluation == 1 ? $workflow_stage :  $workflow_stage + 1;
                                                     $approve_details =
                                                         "{
                                                         get_edit_details: 'details',

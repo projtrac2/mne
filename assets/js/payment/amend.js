@@ -71,9 +71,8 @@ function commaSeparateNumber(val) {
     return val;
 }
 
-const add_request_details = () => {
-    var purpose = $("#purpose").val();
-    if (purpose != '') {
+const add_request_details = (request_id) => {
+    if (request_id != '') {
         get_details();
     } else {
         error_alert("Please select a purpose");
@@ -128,7 +127,6 @@ function get_sites() {
     }
 }
 
-
 function get_tasks() {
     var projid = $("#projid").val();
     var output_id = $("#output").val();
@@ -170,7 +168,7 @@ function get_details() {
             type: "get",
             url: "ajax/payments/index",
             data: {
-                get_details: "get_details",
+                get_amend_details: "get_amend_details",
                 projid: projid,
                 stage: stage,
                 purpose: purpose,

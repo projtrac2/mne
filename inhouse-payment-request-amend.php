@@ -254,77 +254,80 @@ if ($permission) {
                                     <?php
                                     } else {
                                     ?>
-                                        <div class="btn-group" style="float:right">
-                                            <a type="button" data-toggle="modal" class="btn btn-primary" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $request_id ?>)">
-                                                <i class="fa fa-plus"></i> Amend
-                                            </a>
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="btn-group" style="float:right">
+                                                <a type="button" data-toggle="modal" class="btn btn-primary" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $request_id ?>)">
+                                                    <i class="fa fa-plus"></i> Amend
+                                                </a>
+                                            </div>
                                         </div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                        <thead>
-                                            <tr>
-                                                <th style="width:5%"># </th>
-                                                <th style="width:30%">Description </th>
-                                                <th style="width:20%">No. of Units</th>
-                                                <th style="width:10%">Unit Cost</th>
-                                                <th style="width:10%">Total Cost</th>
-                                                <th style="width:5%">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id, r.id as sub_request_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE request_id =:request_id");
-                                            $query_rsPayement_requests->execute(array(":request_id" => $request_id));
-                                            $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-                                            if ($total_rsPayement_requests > 0) {
-                                                $counter = 0;
-                                                while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
-                                                    $counter++;
-                                                    $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-                                                    $no_of_units = $rows_rsPayement_requests['no_of_units'];
-                                                    $description = $rows_rsPayement_requests['description'];
-                                                    $unit = $rows_rsPayement_requests['unit'];
-                                                    $unit_cost = $rows_rsPayement_requests['unit_cost'];
-                                                    $units_no = $rows_rsPayement_requests['no_of_units'];
-                                                    $sub_request_id = $rows_rsPayement_requests['sub_request_id'];
-                                                    $total_cost = $unit_cost * $no_of_units;
-                                                    $unit_of_measure = get_unit_of_measure($unit);
-                                            ?>
-                                                    <tr>
-                                                        <td style="width:5%"><?= $counter ?></td>
-                                                        <td style="width:30%"><?= $description ?> </td>
-                                                        <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
-                                                        <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
-                                                        <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
-                                                        <td style="width:5%">
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
-                                                                            <i class="fa fa-check"></i> Edit
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
-                                                                            <i class="fa fa-check"></i> Delete
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                            <?php
-                                                }
-                                            }
-                                            ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <?php
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:5%"># </th>
+                                                            <th style="width:30%">Description </th>
+                                                            <th style="width:20%">No. of Units</th>
+                                                            <th style="width:10%">Unit Cost</th>
+                                                            <th style="width:10%">Total Cost</th>
+                                                            <th style="width:5%">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id, r.id as sub_request_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE request_id =:request_id");
+                                                        $query_rsPayement_requests->execute(array(":request_id" => $request_id));
+                                                        $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
+                                                        if ($total_rsPayement_requests > 0) {
+                                                            $counter = 0;
+                                                            while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
+                                                                $counter++;
+                                                                $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
+                                                                $no_of_units = $rows_rsPayement_requests['no_of_units'];
+                                                                $description = $rows_rsPayement_requests['description'];
+                                                                $unit = $rows_rsPayement_requests['unit'];
+                                                                $unit_cost = $rows_rsPayement_requests['unit_cost'];
+                                                                $units_no = $rows_rsPayement_requests['no_of_units'];
+                                                                $sub_request_id = $rows_rsPayement_requests['sub_request_id'];
+                                                                $total_cost = $unit_cost * $no_of_units;
+                                                                $unit_of_measure = get_unit_of_measure($unit);
+                                                        ?>
+                                                                <tr>
+                                                                    <td style="width:5%"><?= $counter ?></td>
+                                                                    <td style="width:30%"><?= $description ?> </td>
+                                                                    <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
+                                                                    <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
+                                                                    <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
+                                                                    <td style="width:5%">
+                                                                        <div class="btn-group">
+                                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                                Options <span class="caret"></span>
+                                                                            </button>
+                                                                            <ul class="dropdown-menu">
+                                                                                <li>
+                                                                                    <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
+                                                                                        <i class="fa fa-check"></i> Edit
+                                                                                    </a>
+                                                                                </li>
+                                                                                <li>
+                                                                                    <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
+                                                                                        <i class="fa fa-check"></i> Delete
+                                                                                    </a>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                        <?php
+                                                            }
+                                                        }
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <?php
                                     }
 
                                     $query_rsComments = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE request_id=:request_id ORDER BY id DESC");
@@ -345,24 +348,24 @@ if ($permission) {
                                             $row_rsPMbrs = $query_rsPMbrs->fetch();
                                             $count_row_rsPMbrs = $query_rsPMbrs->rowCount();
                                             $full_name = $count_row_rsPMbrs > 0 ? $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
-                                ?>
-                                    <div class="row clearfix">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <ul class="list-group">
-                                                <li class="list-group-item list-group-item list-group-item-action active">Comment By:<?= $full_name ?></li>
-                                                <li class="list-group-item"><strong>Role: </strong> <?= $role ?></li>
-                                                <li class="list-group-item"><strong>Comment: </strong> <?= $comment ?></li>
-                                                <li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)) ?> </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                            <?php
+                                        ?>
+                                            <div class="row clearfix">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <ul class="list-group">
+                                                        <li class="list-group-item list-group-item list-group-item-action active">Comment By:<?= $full_name ?></li>
+                                                        <li class="list-group-item"><strong>Role: </strong> <?= $role ?></li>
+                                                        <li class="list-group-item"><strong>Comment: </strong> <?= $comment ?></li>
+                                                        <li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)) ?> </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                    <?php
                                         }
                                     }
 
-                            ?>
+                                    ?>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </section>
 
@@ -527,7 +530,7 @@ if ($permission) {
                                                 <input type="hidden" name="cost_type" id="cost_type" value="">
                                                 <input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
                                                 <input type="hidden" name="store" id="store" value="new">
-                                                <input type="hidden" name="project_purpose" id="project_purpose" value="">
+                                                <input type="hidden" name="project_purpose" id="project_purpose" value="<?= $projid ?>">
                                                 <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
                                                     Save
                                                 </button>
@@ -562,5 +565,4 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
-<script src="assets/js/payment/inhouse-request.js"></script>
+<script src="assets/js/payment/amend.js"></script>

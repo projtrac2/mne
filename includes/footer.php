@@ -93,7 +93,7 @@
                  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
                  <!-- date picker -->
-                 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+                 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script> -->
 
 
                  <script>

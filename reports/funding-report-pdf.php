@@ -44,6 +44,8 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
             $rows_financier = $query_financier->rowCount();
             return $rows_financier > 0 ? $row_financier['financier'] : '';
         }
+
+        
         $financier = get_financier();
 
         if ($financier != '') {
@@ -158,7 +160,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
             {
                 global $db, $financier_id;
                 $total_received_funds = $total_project_cost = $total_amount_utilized  =  $total_planned_funds = 0;
-                $body = ''; 
+                $body = '';
 
                 $sql = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
                 $sql->execute(array(":fnid" => $financier_id));

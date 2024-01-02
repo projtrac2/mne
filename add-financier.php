@@ -115,7 +115,9 @@ if ($permission) {
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-
+                            <a type="button" id="outputItemModalBtnrow" href="./view-financiers.php" class="btn btn-warning pull-right">
+                                Go Back
+                            </a>
                         </div>
                     </div>
                 </h4>
