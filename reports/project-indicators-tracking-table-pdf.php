@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 //include_once 'projtrac-dashboard/resource/session.php';
 session_start();
 $user_name = $_SESSION['MM_Username'];
@@ -47,14 +51,14 @@ try {
         }
     }
 
-    function message($get = null, $sector = null, $dept = null, $year = null, $projfyto=null)
+    function message($get = null, $sector = null, $dept = null, $year = null, $projfyto = null)
     {
         $filter = '<h4 style="color:green" align="left">Filters </h4>';
         if ($get) {
             if ($year) {
                 $fsc_year = get_financial_year($year);
                 $filter .= '<h4>From Financial Year:<small>' . $fsc_year . '</small></h4>';
-                if($projfyto){ 
+                if ($projfyto) {
                     $fsc_year = get_financial_year($projfyto);
                     $filter .= '<h4>To Financial Year:<small>' . $fsc_year . '</small></h4>';
                 }
@@ -74,14 +78,140 @@ try {
         }
     }
 
+    function get_status($status_id)
+    {
+        global $db;
+        $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :status_id");
+        $query_Projstatus->execute(array(":status_id" => $status_id));
+        $row_Projstatus = $query_Projstatus->fetch();
+        $total_Projstatus = $query_Projstatus->rowCount();
+        $status = "";
+        if ($total_Projstatus > 0) {
+            $status_name = $row_Projstatus['statusname'];
+            $status_class = $row_Projstatus['class_name'];
+            $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+        }
+        return $status;
+    }
+
+
+
+    function get_subtask_status($progress, $start_date, $end_date, $status, $project_status)
+    {
+        $today = date('Y-m-d');
+        if ($project_status == 6) {
+            $status_id = 6;
+        } else {
+            $status_id = $progress > 0 ? 4 : 3;
+            if ($today > $start_date) {
+                if ($today < $end_date) {
+                    $status_id = 4;
+                    if ($progress == 0) {
+                        $status_id = 11;
+                    }
+                } else if ($today > $end_date) {
+                    $status_id = 11;
+                }
+            }
+        }
+
+        $status_id = $status == 5 ? 5 : $status_id;
+        return    get_status($status_id);
+    }
+
+
+
+    function get_progress($progress)
+    {
+        $project_progress = '
+        <div class="progress" style="height:20px; font-size:10px; color:black">
+            <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+                ' . $progress . '%
+            </div>
+        </div>';
+
+        if ($progress == 100) {
+            $project_progress = '
+            <div class="progress" style="height:20px; font-size:10px; color:black">
+                <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+                ' . $progress . '%
+                </div>
+            </div>';
+        }
+        return $project_progress;
+    }
+
+
+    function calculate_project_progress($projid, $implimentation_type)
+    {
+        global $db;
+        $direct_cost = 0;
+        if ($implimentation_type == 1) {
+            $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=1 ");
+            $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid));
+            $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+            $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+        } else {
+            $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE projid =:projid ");
+            $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid));
+            $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+            $direct_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+        }
+
+        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid=:projid");
+        $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+        $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+
+        $progress = 0;
+        $cost_used = 0;
+        $project_complete = [];
+        if ($totalRows_rsTask_Start_Dates > 0) {
+            while ($Rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch()) {
+                $subtask_id = $Rows_rsTask_Start_Dates['subtask_id'];
+                $site_id = $Rows_rsTask_Start_Dates['site_id'];
+                $complete = $Rows_rsTask_Start_Dates['complete'];
+
+                $query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_direct_cost_plan WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id AND cost_type=1 ");
+                $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+                $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+
+                if ($implimentation_type == 2) {
+                    $query_rsOther_cost_plan_budget =  $db->prepare("SELECT unit_cost , units_no FROM tbl_project_tender_details WHERE projid =:projid AND site_id=:site_id AND subtask_id=:subtask_id");
+                    $query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+                    $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                }
+
+                $units = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['units_no'] : 0;
+                $unit_cost = $row_rsOther_cost_plan_budget ? $row_rsOther_cost_plan_budget['unit_cost'] : 0;
+                $cost = $units * $unit_cost;
+                $cost_used += $units * $unit_cost;
+                $percentage = 100;
+
+                if ($complete == 0) {
+                    $project_complete[] = false;
+                    $query_rsPercentage =  $db->prepare("SELECT SUM(achieved)  as achieved FROM tbl_project_monitoring_checklist_score WHERE projid =:projid  AND site_id=:site_id AND subtask_id=:subtask_id");
+                    $query_rsPercentage->execute(array(":projid" => $projid, ":site_id" => $site_id, ":subtask_id" => $subtask_id));
+                    $row_rsPercentage = $query_rsPercentage->fetch();
+                    $sub_percentage = $row_rsPercentage['achieved'] != null ?  ($row_rsPercentage['achieved'] / $units) * 100 : 0;
+                    $percentage = $sub_percentage >= 100 ? 99 : $sub_percentage;
+                }
+
+                $progress += $cost > 0 && $direct_cost > 0 ? $cost / $direct_cost * $percentage : 0;
+            }
+            $progress =  !in_array(false, $project_complete) ? 100 : $progress;
+        }
+
+        return $progress;
+    }
+
     $query_user =  $db->prepare("SELECT p.*, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
     $query_user->execute(array(":user_id" => $user_name));
     $row_rsUser = $query_user->fetch();
-	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
-	
-	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
-	$query_company->execute(array(":stid" => $stid));
-	$row_company = $query_company->fetch();
+    $printedby = $row_rsUser["title"] . "." . $row_rsUser["fullname"];
+
+    $query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+    $query_company->execute();
+    $row_company = $query_company->fetch();
 
     $filter = "";
 
@@ -91,7 +221,7 @@ try {
         $projfyfrom = $_GET['projfyfrom'];
         $projfyto = $_GET['projfyto'];
 
-        $sector =!empty($_GET['sector']) ? $_GET['sector'] : null;;
+        $sector = !empty($_GET['sector']) ? $_GET['sector'] : null;;
         $dept = !empty($_GET['department']) ? $_GET['department'] : null;
         $fyfrom = !empty($_GET['projfyfrom']) ? $_GET['projfyfrom'] : null;
         $fyto = !empty($_GET['projfyto']) ? $_GET['projfyto'] : null;
@@ -191,16 +321,16 @@ try {
     $mpdf->WriteHTML('
       <div style="text-align: center;">
          <img src="' . $logo . '" height="180px" style="max-height: 200px; text-align: center;"/>
-         <h2 style="" >'.$row_company["company_name"].'</h2>
+         <h2 style="" >' . $row_company["company_name"] . '</h2>
          <br/>
          <hr/>
          <h3 style="margin-top:10px;" >PROJECTS IMPLEMENTATION STATUS REPORT</h3>
          <hr/>
          <div style="margin-top:80px;" >
             <address>
-               <h5>The County Treasury '.$row_company["postal_address"].', KENYA </h5>
-               <h5>Email: '.$row_company["email_address"].' </h5>
-               <h5>Website: '.$row_company["domain_address"].'</h5>
+               <h5>The County Treasury ' . $row_company["postal_address"] . ', KENYA </h5>
+               <h5>Email: ' . $row_company["email_address"] . ' </h5>
+               <h5>Website: ' . $row_company["domain_address"] . '</h5>
             </address>
             <h4>' . date('d M Y') . '</h4>
          </div>
@@ -216,13 +346,15 @@ try {
     );
 
     $mpdf->AddPage('L');
-    $body = $filter.'
+
+    
+    $body = $filter . '
     <table class="table table-bordered table-striped table-hover" id="manageItemTable">
     <thead>
         <tr>
             <th width="5%">#</th>
             <th width="38%">Project Name</th>
-            <th width="15%">Location</th>
+            <th width="15%">Ward</th>
             <th width="12%">Start/End&nbsp;Date</th>
             <th width="10%">Cost</th>
             <th width="10%">Expenditure</th>
@@ -286,94 +418,105 @@ try {
             }
 
             // project percentage progress
-            $query_rsMlsProg = $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = :projid");
-            $query_rsMlsProg->execute(array(":projid" => $itemId));
-            $row_rsMlsProg = $query_rsMlsProg->fetch();
-            $percent2 = 0;
-            if ($row_rsMlsProg["mlprogress"] > 0 && $row_rsMlsProg["nmb"] > 0) {
-                $prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
-                $percent2 = round($prjprogress, 2);
-            }
+            $progress = number_format(calculate_project_progress($itemId, $implementation), 2);
+            $percent2 = get_progress($progress);
 
-            $queryactivities = $db->prepare("SELECT * FROM `tbl_task` t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid=:projid");
-            $queryactivities->execute(array(":projid" => $itemId));
+
 
             $query_projremarks = $db->prepare("SELECT * FROM `tbl_projects_performance_report_remarks` WHERE projid=:projid LIMIT 1");
             $query_projremarks->execute(array(":projid" => $itemId));
             $totalRows_projremarks = $query_projremarks->rowCount();
 
             $body .= '
-       <tr class="projects">
-         <td>' . $sn . '</td>
-         <td>' . $projname . '</td>
-         <td>' . implode(", ", $states) . '</td>
-         <td>' . $projstartdate . '/' . $projenddate . '</td>
-         <td>' . number_format($projbudget, 2) . '</td>
-         <td>' . number_format($projectcost, 2) . '</td>
-         <td>' . statuses($projstatus) . '<br>' . progress($percent2) . '</td>
-      </tr>
-      <tr class="">
-         <td class="bg-grey text-center"></td>
-         <td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
-      </tr>
-      <tr class="">
-         <th class="bg-grey text-center"></th>
-         <th colspan="2">Activity</th>
-         <th colspan="3">Start and End Dates</th>
-         <th>Status & Progress</th>
-      </tr>
+            <tr class="projects">
+                <td>' . $sn . '</td>
+                <td>' . $projname . '</td>
+                <td>' . implode(", ", $states) . '</td>
+                <td>' . $projstartdate . '/' . $projenddate . '</td>
+                <td>' . number_format($projbudget, 2) . '</td>
+                <td>' . number_format($projectcost, 2) . '</td>
+                <td>' . get_status($projstatus) . '<br>' . $percent2 . '</td>
+            </tr>
+            <tr class="">
+                <td class="bg-grey text-center"></td>
+                <td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
+            </tr>
+            <tr class="">
+                <th class="bg-grey text-center"></th>
+                <th colspan="2">Activity</th>
+                <th colspan="3">Start and End Dates</th>
+                <th>Status & Progress</th>
+            </tr>';
 
-      ';
 
+            $queryactivities = $db->prepare("SELECT * FROM `tbl_task`  WHERE projid=:projid");
+            $queryactivities->execute(array(":projid" => $itemId));
             $nm = 0;
             while ($rowact = $queryactivities->fetch()) {
                 $nm++;
                 $activity = $rowact["task"];
-                $startdate = $rowact["start_date"];
-                $enddate = $rowact["end_date"];
-                $statusid = $rowact["status"];
-                $progress = $rowact["progress"];
-                $querytaskstatus = $db->prepare("SELECT statusname FROM `tbl_task_status` WHERE statusid=:statusid");
-                $querytaskstatus->execute(array(":statusid" => $statusid));
+                $subtask_id = $rowact["tkid"];
+
+                $querytaskstatus = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM `tbl_program_of_works` WHERE subtask_id=:subtask_id");
+                $querytaskstatus->execute(array(":subtask_id" => $subtask_id));
                 $rowtaskstatus = $querytaskstatus->fetch();
-                $taskstatus = $rowtaskstatus["statusname"];
+                $startdate = $rowtaskstatus ? date('d M Y', strtotime($rowtaskstatus["start_date"])) : "";
+                $enddate = $rowtaskstatus ? date('d M Y', strtotime($rowtaskstatus["end_date"])) : "";
+
+                $query_Site_score = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_project_monitoring_checklist_score where  subtask_id=:subtask_id");
+                $query_Site_score->execute(array(":subtask_id" => $subtask_id));
+                $row_site_score = $query_Site_score->fetch();
+                $units_no = ($row_site_score['achieved'] != null) ? $row_site_score['achieved'] : 0;
+
+                $query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(units_no) as units_no FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id");
+                $query_rsOther_cost_plan_budget->execute(array(":subtask_id" => $subtask_id));
+                $row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+                $target_units = !is_null($row_rsOther_cost_plan_budget['units_no']) ? $row_rsOther_cost_plan_budget['units_no'] : 0;
+                $progress = number_format(($units_no / $target_units) * 100);
+
+                $query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE  subtask_id=:subtask_id AND complete=0 ");
+                $query_rsPlan->execute(array(':subtask_id' => $subtask_id));
+                $totalRows_plan = $query_rsPlan->rowCount();
+                $status = $totalRows_plan > 0 ? 0 : 5;
+
                 $body .= '
-           <tr class="">
-              <td class="bg-grey text-center">' . $sn . '.' . $nm . '</td>
-              <td colspan="2">' . $activity . '</td>
-              <td colspan="3">' . $startdate . ' AND ' . $enddate . '</td>
-              <td>' . statuses($statusid) . '<br>' . progress($progress) . '</td>
-           </tr>';
+                <tr class="">
+                    <td class="bg-grey text-center">' . $sn . '.' . $nm . '</td>
+                    <td colspan="2">' . $activity . '</td>
+                    <td colspan="3">' . $startdate . ' AND ' . $enddate . '</td>
+                    <td>' . get_subtask_status($progress, $startdate, $enddate, $status, $projstatus) . '<br>' . get_progress($progress) . '</td>
+                </tr>';
             }
 
             $body .= '
-      <tr class="">
-         <td class="bg-grey text-center"></td>
-         <td colspan="6" class="bg-grey">';
+            <tr class="">
+                <td class="bg-grey text-center"></td>
+                <td colspan="6" class="bg-grey">';
             if ($totalRows_projremarks > 0) {
                 $row_projremarks = $query_projremarks->fetch();
                 $body .= '<strong>Project Remarks: </strong>' . $row_projremarks["remarks"];
             } else {
                 $body .= '<strong>Project Remarks: Data not available!</strong>';
             }
-            $body .= '</td></tr>';
+            $body .= '</td>
+            </tr>';
         }
     } else {
         $body .= '
-   <tr class="projects">
-       <td class="text-center mb-0">
-       </td>
-       <td colspan="6">No records found</td>
-   </tr>';
+        <tr class="projects">
+            <td class="text-center mb-0">
+            </td>
+            <td colspan="6">No records found</td>
+        </tr>';
     }
 
-    $body .= '</></table>';
+    $body .= '</table>';
 
     $stylesheet = file_get_contents('bootstrap.css');
     $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
     //  $mpdf->WriteHTML($body);
-    $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
+    $mpdf->WriteHTML('<h5 style="color:green">Printed By: ' . $printedby . '</h5>');
     $mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County {PAGENO}');
     $mpdf->Output();
 } catch (PDOException $ex) {

@@ -4,11 +4,21 @@ if ($permission) {
 	function projfy()
 	{
 		global $db;
-		$projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE status=1");
-		$projfy->execute();
-		while ($row = $projfy->fetch()) {
+		$sql = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE status=1");
+		$sql->execute();
+		while ($row = $sql->fetch()) {
 			echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
 		}
+	}
+
+	function get_achieved($indid, $start_date, $end_date)
+	{
+		global $db;
+		$query_quarter_four_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m
+		inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created>=:start_date AND date_created<=:end_date)AND record_type=1");
+		$query_quarter_four_actual->execute(array(":indid" => $indid, ":start_date" => $start_date, ":end_date" => $end_date));
+		$rows_quarter_four_actual = $query_quarter_four_actual->fetch();
+		return !is_null($rows_quarter_four_actual["achieved"]) ? $rows_quarter_four_actual["achieved"] : 0;
 	}
 
 	$yr = date("Y");
@@ -25,8 +35,7 @@ if ($permission) {
 	}
 
 	$base_url = "";
-
-	//$quarter_dates_arr = ["-07-01", "-09-30", "-10-01", "-12-31", "-01-01", "-03-30", "-04-01","-06-30"];
+	$drilldown_link = false;
 
 	$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where yr =:year ");
 	$query_rsFscYear->execute(array(":year" => $startyear));
@@ -35,9 +44,12 @@ if ($permission) {
 	$fyid = $row_rsFscYear['id'];
 
 	if (isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER") {
-		$sector = $_GET['sector'];
-		$dept = $_GET['department'];
-		$fyid = $_GET['indfy'];
+		$sector = isset($_GET['sector']) ? $_GET['sector'] : '';
+		$dept = isset($_GET['department']) ? $_GET['department'] : '';
+		$fyid = isset($_GET['indfy']) ? $_GET['indfy'] : '';
+		$btn_search = isset($_GET['btn_search']) ? $_GET['btn_search'] : '';
+
+		$drilldown_link = $sector != '' || $dept != '' ? true : false;
 
 		if (!empty($sector) && !empty($fyid) && empty($dept)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector ORDER BY `indid` ASC");
@@ -49,17 +61,17 @@ if ($permission) {
 			$startyear = $row_rsFscYear['yr'];
 			$endyear = $startyear + 1;
 
-			$base_url = "indfy=$fyid&sector=$sector";
+			$base_url = "btn_search=$btn_search&indfy=$fyid&sector=$sector";
 		}
 
 		if (!empty($sector) && empty($dept) && empty($fyid)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector ORDER BY `indid` ASC");
 			$query_indicators->execute(array(":sector" => $sector));
-			$base_url = "sector=$sector";
+			$base_url = "btn_search=$btn_search&sector=$sector";
 		} elseif (!empty($sector) && !empty($dept) && empty($fyid)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector and indicator_dept=:dept ORDER BY `indid` ASC");
 			$query_indicators->execute(array(":sector" => $sector, ":dept" => $dept));
-			$base_url = "dept=$dept&sector=$sector";
+			$base_url = "btn_search=$btn_search&dept=$dept&sector=$sector";
 		} elseif (!empty($fyid) && empty($sector) && empty($dept)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 			$query_indicators->execute();
@@ -69,65 +81,35 @@ if ($permission) {
 			$row_rsFscYear = $query_rsFscYear->fetch();
 			$startyear = $row_rsFscYear['yr'];
 			$endyear = $startyear + 1;
-			$base_url = "indfy=$fyid";
+			$base_url = "btn_search=$btn_search&indfy=$fyid";
 		} elseif (empty($_GET['indfy']) && empty($sector) && empty($dept)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 			$query_indicators->execute();
 		} elseif (!empty($sector) && !empty($dept) && !empty($fyid)) {
 			$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector and indicator_dept=:dept ORDER BY `indid` ASC");
 			$query_indicators->execute(array(":sector" => $sector, ":dept" => $dept));
-			$base_url = "indfy=$fyid&dept=$dept&sector=$sector";
+			$base_url = "btn_search=$btn_search&indfy=$fyid&dept=$dept&sector=$sector";
 		}
 	} else {
 		$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1");
 		$query_indicators->execute();
 	}
+
 	$financialyear = $startyear . "/" . $endyear;
 	$totalRows_indicators = $query_indicators->rowCount();
+
+	$basedate = $startyear . "-06-30";
+	$startq1 = $startyear . "-07-01";
+	$endq1 = $startyear . "-09-30";
+	$startq2 = $startyear . "-10-01";
+	$endq2 = $startyear . "-12-31";
+	$startq3 = $endyear . "-01-01";
+	$endq3 = $endyear . "-03-31";
+	$startq4 = $endyear . "-04-01";
+	$endq4 = $endyear . "-06-30";
 ?>
 
-	<script type="text/javascript">
-		function goBack() {
-			window.history.back();
-		}
 
-		function sectors() {
-			var sector = $("#sector").val();
-			if (sector != "") {
-				$.ajax({
-					type: "post",
-					url: "assets/processor/reports-processor",
-					data: {
-						get_dept: sector
-					},
-					dataType: "html",
-					success: function(response) {
-						$("#dept").html(response);
-					},
-				});
-			}
-		}
-
-		$(document).ready(function() {
-
-			$("#obj").on("change", function() {
-				var objid = $(this).val();
-				if (objid != '') {
-					$.ajax({
-						type: "post",
-						url: "addProjectLocation.php",
-						data: "objid=" + objid,
-						dataType: "html",
-						success: function(response) {
-							$("#output").html(response);
-						}
-					});
-				} else {
-					$("#output").html('<option value="">... First Select Strategic Objective ...</option>');
-				}
-			});
-		});
-	</script>
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
@@ -211,22 +193,6 @@ if ($permission) {
 												<div class="table-responsive">
 													<table class="table table-bordered table-striped table-hover dataTable" id="qapr_reports">
 														<thead>
-															<?php
-															$basedate = $startyear . "-06-30";
-															$startq1 = $startyear . "-07-01";
-															$endq1 = $startyear . "-09-30";
-															$startq2 = $startyear . "-10-01";
-															$endq2 = $startyear . "-12-31";
-															$startq3 = $endyear . "-01-01";
-															$endq3 = $endyear . "-03-31";
-															$startq4 = $endyear . "-04-01";
-															$endq4 = $endyear . "-06-30";
-
-															$quarter_one_rate = "N/A";
-															$quarter_two_rate = "N/A";
-															$quarter_three_rate = "N/A";
-															$quarter_four_rate = "N/A";
-															?>
 															<tr class="bg-light-blue">
 																<th colspan="" rowspan="2">#</th>
 																<th colspan="" rowspan="2">Indicator </th>
@@ -234,16 +200,8 @@ if ($permission) {
 																<th colspan="" rowspan="2">Annual Target</th>
 																<?php
 																$years = $target_rows = $target_quarters = '';
-																/* $minyear = $program_year;
-
-																	$years .= '
-																	<th colspan="12" align="center">
-																			'.$minyear.'
-																	</th>'; */
-
 																$q1_link = $q2_link = $q3_link = $q4_link = "";
-																//if ($base_url != "" && $drill_down) {
-																if ($base_url != "") {
+																if ($base_url != "" && $drilldown_link) {
 																	$q1_link = '<a href="view-qpr-report?quarter=1&' . $base_url . '"> Q1 (' . $startq1 . ' to ' . $endq1 . ') </a>';
 																	$q2_link = '<a href="view-qpr-report?quarter=2&' . $base_url . '"> Q2 (' . $startq2 . ' to ' . $endq2 . ') </a>';
 																	$q3_link = '<a href="view-qpr-report?quarter=3&' . $base_url . '"> Q3 (' . $startq3 . ' to ' . $endq3 . ') </a>';
@@ -276,29 +234,14 @@ if ($permission) {
 														</thead>
 														<tbody>
 															<?php
-															$basedate = $startyear . "-06-30";
-															$startq1 = $startyear . "-07-01";
-															$endq1 = $startyear . "-09-30";
-															$startq2 = $startyear . "-10-01";
-															$endq2 = $startyear . "-12-31";
-															$startq3 = $endyear . "-01-01";
-															$endq3 = $endyear . "-03-31";
-															$startq4 = $endyear . "-04-01";
-															$endq4 = $endyear . "-06-30";
-
-															$quarter_one_rate = "N/A";
-															$quarter_two_rate = "N/A";
-															$quarter_three_rate = "N/A";
-															$quarter_four_rate = "N/A";
-
 															$sn = 0;
-
 															if ($totalRows_indicators > 0) {
 																while ($row_indicators = $query_indicators->fetch()) {
 																	$initial_basevalue = 0;
 																	$actual_basevalue = 0;
 																	$annualtarget = 0;
 																	$basevalue = 0;
+
 																	$quarter_one_target = 0;
 																	$quarter_two_target = 0;
 																	$quarter_three_target = 0;
@@ -325,14 +268,11 @@ if ($permission) {
 																			$initial_basevalue = $rows_initial_indbasevalue["basevalue"];
 																		}
 
-																		$query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE d.indicator=:indid AND m.date_created < '$basedate'");
+																		$query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE d.indicator=:indid AND m.date_created < '$basedate' AND record_type=2");
 																		$query_actual_ind_value->execute(array(":indid" => $indid));
 																		$rows_actual_ind_value = $query_actual_ind_value->fetch();
-																		$totalRows_actual_indbasevalue = $query_actual_ind_value->rowCount();
+																		$actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
 
-																		if ($totalRows_actual_indbasevalue > 0) {
-																			$actual_basevalue = $rows_actual_ind_value["basevalue"];
-																		}
 
 																		$basevalue = $initial_basevalue + $actual_basevalue;
 
@@ -350,67 +290,38 @@ if ($permission) {
 																		$rows_quarterly_target = $query_quarterly_target->fetch();
 																		$totalRows_quarterly_target = $query_quarterly_target->rowCount();
 
-																		$query_quarter_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created>=:startq1 AND date_created<=:endq1)");
-																		$query_quarter_one_actual->execute(array(":indid" => $indid, ":startq1" => $startq1, ":endq1" => $endq1));
-																		$rows_quarter_one_actual = $query_quarter_one_actual->fetch();
-																		$totalRows_quarter_one_actual = $query_quarter_one_actual->rowCount();
-																		if ($totalRows_quarter_one_actual > 0) {
-																			$quarter_one_achived = $rows_quarter_one_actual["achieved"];
-																		}
 
-																		$query_quarter_two_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created>=:startq2 AND date_created<=:endq2)");
-																		$query_quarter_two_actual->execute(array(":indid" => $indid, ":startq2" => $startq2, ":endq2" => $endq2));
-																		$rows_quarter_two_actual = $query_quarter_two_actual->fetch();
-																		$totalRows_quarter_two_actual = $query_quarter_two_actual->rowCount();
-																		if ($totalRows_quarter_two_actual > 0) {
-																			$quarter_two_achived = $rows_quarter_two_actual["achieved"];
-																		}
-
-																		$query_quarter_three_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created>=:startq3 AND date_created<=:endq3)");
-																		$query_quarter_three_actual->execute(array(":indid" => $indid, ":startq3" => $startq3, ":endq3" => $endq3));
-																		$rows_quarter_three_actual = $query_quarter_three_actual->fetch();
-																		$totalRows_quarter_three_actual = $query_quarter_three_actual->rowCount();
-																		if ($totalRows_quarter_three_actual > 0) {
-																			$quarter_three_achived = $rows_quarter_three_actual["achieved"];
-																		}
-
-																		$query_quarter_four_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created>=:startq4 AND date_created<=:endq4)");
-																		$query_quarter_four_actual->execute(array(":indid" => $indid, ":startq4" => $startq4, ":endq4" => $endq4));
-																		$rows_quarter_four_actual = $query_quarter_four_actual->fetch();
-																		$totalRows_quarter_four_actual = $query_quarter_four_actual->rowCount();
-																		if ($totalRows_quarter_four_actual > 0) {
-																			$quarter_four_achived = $rows_quarter_four_actual["achieved"];
-																		}
-
-																		/* $query_Indicator = $db->prepare("SELECT tbl_measurement_units.unit FROM tbl_indicator INNER JOIN tbl_measurement_units ON tbl_measurement_units.id =tbl_indicator.indicator_unit WHERE tbl_indicator.indid ='$indicatorID' AND baseline=1 AND indicator_category='Output' ");
-																		$query_Indicator->execute();
-																		$row = $query_Indicator->fetch();
-																		$unit = $row['unit']; */
-
+																		$quarter_one_achived = get_achieved($indid, $startq1, $endq1);
+																		$quarter_two_achived = get_achieved($indid, $startq2, $endq2);
+																		$quarter_three_achived = get_achieved($indid, $startq3, $endq3);
+																		$quarter_four_achived = get_achieved($indid, $startq4, $endq4);
+																		$quarter_one_rate = 0 . "%";
+																		$quarter_two_rate = 0 . "%";
+																		$quarter_three_rate = 0 . "%";
+																		$quarter_four_rate = 0 . "%";
 
 																		if ($totalRows_quarterly_target > 0) {
-																			$quarter_one_rate = 0 . "%";
-																			$quarter_two_rate = 0 . "%";
-																			$quarter_three_rate = 0 . "%";
-																			$quarter_four_rate = 0 . "%";
+																			$quarter_one_target = $rows_quarterly_target["Q1"];
+																			$quarter_two_target = $rows_quarterly_target["Q2"];
+																			$quarter_three_target = $rows_quarterly_target["Q3"];
+																			$quarter_four_target = $rows_quarterly_target["Q4"];
 
-																			if ($rows_quarterly_target["Q1"] > 0) {
-																				$quarter_one_target = $rows_quarterly_target["Q1"];
+																			if ($quarter_one_target > 0 && $quarter_one_achived > 0) {
 																				$quarter_1_rate = number_format((($quarter_one_achived / $quarter_one_target) * 100), 2);
 																				$quarter_one_rate = $quarter_1_rate . "%";
 																			}
-																			if ($rows_quarterly_target["Q2"] > 0) {
-																				$quarter_two_target = $rows_quarterly_target["Q2"];
+
+																			if ($quarter_two_target > 0 && $quarter_two_achived > 0) {
 																				$quarter_2_rate = number_format((($quarter_two_achived / $quarter_two_target) * 100), 2);
 																				$quarter_two_rate = $quarter_2_rate . "%";
 																			}
-																			if ($rows_quarterly_target["Q3"] > 0) {
-																				$quarter_three_target = $rows_quarterly_target["Q3"];
+
+																			if ($quarter_three_target > 0 && $quarter_three_achived > 0) {
 																				$quarter_3_rate = number_format((($quarter_three_achived / $quarter_three_target) * 100), 2);
 																				$quarter_three_rate = $quarter_3_rate . "%";
 																			}
-																			if ($rows_quarterly_target["Q4"] > 0) {
-																				$quarter_four_target = $rows_quarterly_target["Q4"];
+
+																			if ($quarter_four_target > 0 && $quarter_four_achived > 0) {
 																				$quarter_4_rate = number_format((($quarter_four_achived / $quarter_four_target) * 100), 2);
 																				$quarter_four_rate = $quarter_4_rate . "%";
 																			}
@@ -470,8 +381,48 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script>
+
+<script type="text/javascript">
+	function goBack() {
+		window.history.back();
+	}
+
+	function sectors() {
+		var sector = $("#sector").val();
+		if (sector != "") {
+			$.ajax({
+				type: "post",
+				url: "assets/processor/reports-processor",
+				data: {
+					get_dept: sector
+				},
+				dataType: "html",
+				success: function(response) {
+					$("#dept").html(response);
+				},
+			});
+		}
+	}
+
 	$(document).ready(function() {
+		$("#obj").on("change", function() {
+			var objid = $(this).val();
+			if (objid != '') {
+				$.ajax({
+					type: "post",
+					url: "addProjectLocation.php",
+					data: "objid=" + objid,
+					dataType: "html",
+					success: function(response) {
+						$("#output").html(response);
+					}
+				});
+			} else {
+				$("#output").html('<option value="">... First Select Strategic Objective ...</option>');
+			}
+		});
+
 		$('#qapr_reports').DataTable();
+
 	});
 </script>

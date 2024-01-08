@@ -65,27 +65,33 @@ if ($permission) {
 												$timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $today);
 												$hashproc = base64_encode("encodeprocprj{$projid}");
 												$filter_department = view_record($project_department, $project_section, $project_directorate);
-												$assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
-												$details = "{
-													get_edit_details: 'details',
-													projid:$projid,
-													workflow_stage:$workflow_stage,
-													sub_stage:$sub_stage,
-													project_directorate:$project_directorate,
-													project_name:'$projname',
-												}";
+												$assign_responsible = in_array("assign_data_entry_responsible", $page_actions) || in_array("assign_approval_responsible", $page_actions) ? true : false;
 
 
 												if ($filter_department) {
 													$activity = $totalRows_projteam == 0 ? "Add" : "Edit";
-                                                    if ($sub_stage == 0) {
-                                                        $activity_status = "Pending";
-                                                    } else if ($sub_stage == 1) {
-                                                        $activity_status = "Assigned";
-                                                    } else if ($sub_stage > 1) {
-                                                        $activity_status = "Pending Approval";
-                                                        $activity = "Approve";
-                                                    }
+													$assigned = false;
+													if ($sub_stage == 0) {
+														$activity_status = "Pending";
+													} else if ($sub_stage == 3 || $sub_stage == 1) {
+														$activity_status = "Assigned";
+														$assigned = true;
+													} else if ($sub_stage > 1) {
+														$activity_status = "Pending Approval";
+														$activity = "Approve";
+													}
+
+													$edit =  $assigned ? "edit" : "new";
+
+													$details = "{
+                                                        get_edit_details: 'details',
+                                                        projid:$projid,
+                                                        workflow_stage:$workflow_stage,
+                                                        sub_stage:$sub_stage,
+                                                        project_directorate:$project_directorate,
+                                                        project_name:'$projname',
+                                                        edit:'$edit'
+                                                    }";
 													$counter++;
 										?>
 													<tr>
@@ -110,7 +116,7 @@ if ($permission) {
 																	?>
 																		<li>
 																			<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
-																				<i class="fa fa-file-text"></i> Assign
+																				<i class="fa fa-file-text"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
 																			</a>
 																		</li>
 																	<?php
@@ -119,7 +125,7 @@ if ($permission) {
 																	?>
 																		<li>
 																			<a type="button" href="add-team.php?projid=<?= $hashproc ?>" id="addFormModalBtn">
-																				<i class="fa fa-plus-square-o"></i> <?=  $activity ?> Team
+																				<i class="fa fa-plus-square-o"></i> <?= $activity ?> Team
 																			</a>
 																		</li>
 																	<?php
@@ -185,7 +191,7 @@ if ($permission) {
 							<input type="hidden" name="projid" id="projid" value="">
 							<input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
 							<input type="hidden" name="sub_stage" id="sub_stage" value="">
-							<input type="hidden" name="assign_responsible" id="assign_responsible" value="new">
+							<input type="hidden" name="assign_responsible" id="assign_responsible_data" value="new">
 							<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
 							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
 						</div>
@@ -203,5 +209,9 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
+<script>
+	const redirect_url = "add-project-team.php";
+</script>
+
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/master/index.js"></script>

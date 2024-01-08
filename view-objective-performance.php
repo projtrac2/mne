@@ -17,29 +17,6 @@ if ($permission) {
 			$finyear = $strategicPlan["starting_year"] - 1;
 			$fnyear = $strategicPlan["starting_year"] - 1;
 
-
-
-			$editFormAction = $_SERVER['PHP_SELF'];
-			if (isset($_SERVER['QUERY_STRING'])) {
-				$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-			}
-
-			if (isset($_SESSION['MM_Username'])) {
-				$user_name = $_SESSION['MM_Username'];
-			}
-
-			$query_years = $db->prepare("SELECT * FROM tbl_fiscal_year");
-			$query_years->execute();
-
-			$q1startdate = "07-01";
-			$q1enddate = "09-30";
-			$q2startdate = "10-01";
-			$q2enddate = "12-31";
-			$q3startdate = "01-01";
-			$q3enddate = "03-30";
-			$q4startdate = "04-01";
-			$q4enddate = "06-30";
-
 			$query_sector = $db->prepare("SELECT indicator_sector,stid,sector FROM tbl_indicator i inner join tbl_sectors s on s.stid=i.indicator_sector WHERE i.indicator_category = 'Output' AND s.deleted='0' GROUP BY stid ORDER BY stid");
 			$query_sector->execute();
 			$totalRows_sector = $query_sector->rowCount();
@@ -81,20 +58,6 @@ if ($permission) {
 												</div>
 											</div>
 											<div class="body" style="margin-top:5px">
-												<div class="row">
-													<script>
-														$(function() {
-															$('#dynamic_select').on('change', function() {
-																var url = $(this).val();
-																if (url) {
-																	window.location = url;
-																}
-																return false;
-															});
-														});
-													</script>
-												</div>
-
 												<form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
 													<?php
 													if ($totalRows_sector > 0) {
@@ -247,10 +210,10 @@ if ($permission) {
 																									}
 
 																									echo '
-																							<td style="color: black;" class="text-center bg-lime"><font color="#f7070b"><strong>' . $basevalue . '</strong></font></td>
-																							<td style="color: black;" class="text-center bg-lime">' . number_format($target) . '</td>
-																							<td style="color: black;" class="text-center bg-lime">' . number_format($achieved) . '</td>
-																							<td style="color: black;" class="text-center bg-lime">' . number_format($rate, 2) . '%</td>';
+																										<td style="color: black;" class="text-center bg-lime"><font color="#f7070b"><strong>' . $basevalue . '</strong></font></td>
+																										<td style="color: black;" class="text-center bg-lime">' . number_format($target) . '</td>
+																										<td style="color: black;" class="text-center bg-lime">' . number_format($achieved) . '</td>
+																										<td style="color: black;" class="text-center bg-lime">' . number_format($rate, 2) . '%</td>';
 																									unset($target);
 																									unset($achieved);
 																									unset($rate);
@@ -322,21 +285,3 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script>
-	function update_total(indicator_id) {
-		var total = 0;
-		$(".indicator" + indicator_id).each(function() {
-			if ($(this).val() != "") {
-				total += parseInt($(this).val());
-			}
-		});
-		$("#indtotaltarget" + indicator_id).html(total);
-	}
-	$(document).ready(function() {
-		$('.dataTable').DataTable();
-	});
-
-	function openInNewTab(url) {
-		window.open(url, '_blank').focus();
-	}
-</script>

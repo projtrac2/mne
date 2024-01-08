@@ -4,6 +4,7 @@ if ($permission) {
 	$decode_proj = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: {$sourceurl}");
 	$proj_array = explode("rept321", $decode_proj);
 	$projid = $proj_array[1];
+	//$projid = 1;
 
 	$query_proj = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
 	$query_proj->execute(array(":projid" => $projid));
@@ -188,7 +189,7 @@ if ($permission) {
 																																<th style="width:5%">#</th>
 																																<th style="width:40%">Item</th>
 																																<th style="width:25%">Unit of Measure</th>
-																																<th style="width:10%">Record Date</th>
+																																<th style="width:10%">Last Record Date</th>
 																																<th style="width:10%">Target</th>
 																																<th style="width:10%">Achieved</th>
 																																<th style="width:10%">Rate (%)</th>
@@ -220,21 +221,21 @@ if ($permission) {
 																																	$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
 																																	$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 
-																																	$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE  site_id=:site_id AND task_id=:task_id AND subtask_id=:task_id ORDER BY id DESC LIMIT 1");
-																																	$query_rsMonitoring_Achieved->execute(array(":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $task_id));
+																																	$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE  site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id ORDER BY id DESC LIMIT 1");
+																																	$query_rsMonitoring_Achieved->execute(array(":site_id" => $site_id, ":task_id" => $msid, ":subtask_id" => $task_id));
 
 																																	$Rows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->fetch();
 																																	$totalRows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->rowCount();
 																																	$achieved = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['achieved'] : 0;
-																																	$record_date = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['created_at'] : 0;
+																																	$record_date = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : "";
 																																	$rate = $units_no > 0 && $achieved > 0 ? $achieved / $units_no * 100 : 0;
 																															?>
 																																	<tr id="row<?= $tcounter ?>">
 																																		<td style="width:5%"><?= $tcounter ?></td>
 																																		<td style="width:40%"><?= $task_name ?></td>
 																																		<td style="width:25%"><?= $unit_of_measure ?></td>
-																																		<td style="width:25%"><?= date("d M Y", strtotime($record_date)) ?></td>
-																																		<td style="width:10%"><?= number_format($units_no) ?></td>
+																																		<td style="width:25%"><?= $record_date ?></td>
+																																		<td style="width:10%"><?= number_format($units_no, 2) ?></td>
 																																		<td style="width:10%"><?= number_format($achieved, 2) ?></td>
 																																		<td style="width:10%"><?= number_format($rate, 2) ?></td>
 																																	</tr>
@@ -289,9 +290,9 @@ if ($permission) {
 																													<th style="width:5%">#</th>
 																													<th style="width:40%">Item</th>
 																													<th style="width:25%">Unit of Measure</th>
-																													<th style="width:10%">Record Date</th>
+																													<th style="width:10%">Last Record Date</th>
 																													<th style="width:10%">Target</th>
-																													<th style="width:10%">AchievedAchieved</th>
+																													<th style="width:10%">Achieved</th>
 																													<th style="width:10%">Rate (%)</th>
 																												</tr>
 																											</thead>
@@ -322,21 +323,21 @@ if ($permission) {
 																														$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
 																														$unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 
-																														$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE  site_id=:site_id AND task_id=:task_id AND subtask_id=:task_id ORDER BY id DESC LIMIT 1");
-																														$query_rsMonitoring_Achieved->execute(array(":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $task_id));
+																														$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE  site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id ORDER BY id DESC LIMIT 1");
+																														$query_rsMonitoring_Achieved->execute(array(":site_id" => $site_id, ":task_id" => $msid, ":subtask_id" => $task_id));
 
 																														$Rows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->fetch();
 																														$totalRows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->rowCount();
 																														$achieved = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['achieved'] : 0;
-																														$record_date = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['created_at'] : 0;
+																														$record_date = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : "";
 																														$rate = $units_no > 0 && $achieved > 0 ? $achieved / $units_no * 100 : 0;
 																												?>
 																														<tr id="row<?= $tcounter ?>">
 																															<td style="width:5%"><?= $tcounter ?></td>
 																															<td style="width:40%"><?= $task_name ?></td>
 																															<td style="width:25%"><?= $unit_of_measure ?></td>
-																															<td style="width:25%"><?= date("d M Y", strtotime($record_date)) ?></td>
-																															<td style="width:10%"><?= number_format($units_no) ?></td>
+																															<td style="width:25%"><?= $record_date ?></td>
+																															<td style="width:10%"><?= number_format($units_no, 2) ?></td>
 																															<td style="width:10%"><?= number_format($achieved, 2) ?></td>
 																															<td style="width:10%"><?= number_format($rate, 2) ?></td>
 																														</tr>
@@ -380,7 +381,7 @@ if ($permission) {
 																				<tr>
 																					<th style="width:5%"># </th>
 																					<th style="width:35%">Output</th>
-																					<th style="width:15%"><?=$level2label?></th>
+																					<th style="width:15%"><?= $level2label ?></th>
 																					<th style="width:15%">Site</th>
 																					<th style="width:10%">Target</th>
 																					<th style="width:10%">Achieved</th>
@@ -409,7 +410,7 @@ if ($permission) {
 																						$row_indicator_unit = $query_indicator_unit->fetch();
 																						$indicatorunit = $row_indicator_unit['unit'];
 
-																						if ($indicator_mapping_type == 1) {
+																						if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
 																							$query_rsSite_details = $db->prepare("SELECT * FROM tbl_output_disaggregation b INNER JOIN tbl_project_sites p ON p.site_id = b.output_site INNER JOIN tbl_state s ON s.id = p.state_id WHERE outputid = :outputid");
 																							$query_rsSite_details->execute(array(":outputid" => $output_id));
 																							$total_rsSite_details = $query_rsSite_details->rowCount();
@@ -421,7 +422,7 @@ if ($permission) {
 																									$site_id = $rows_rsSite_details['site_id'];
 																									$target = $unit_type == 1 ? $rows_rsSite_details['total_target'] : 1;
 
-																									$query_rsSite_cummulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE site_id = :site_id AND output_id=:output_id ");
+																									$query_rsSite_cummulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE site_id = :site_id AND output_id=:output_id AND record_type=1");
 																									$query_rsSite_cummulative->execute(array(":site_id" => $site_id, ':output_id' => $output_id));
 																									$rows_rsSite_cummulative = $query_rsSite_cummulative->fetch();
 																									$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;
@@ -452,7 +453,7 @@ if ($permission) {
 																									$state = $rows_rsSite_details['state'];
 																									$state_id = $rows_rsSite_details['outputstate'];
 																									$target = $rows_rsSite_details['total_target'];
-																									$query_rsSite_cummulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE site_id = :site_id AND output_id=:output_id ");
+																									$query_rsSite_cummulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE site_id = :site_id AND output_id=:output_id AND record_type=1");
 																									$query_rsSite_cummulative->execute(array(":site_id" => $site_id, ':output_id' => $output_id));
 																									$rows_rsSite_cummulative = $query_rsSite_cummulative->fetch();
 																									$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;

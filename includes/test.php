@@ -1,61 +1,55 @@
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+<?php
+	function projfy()
+	{
+		global $db;
+		$projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE status=1");
+		$projfy->execute();
+		while ($row = $projfy->fetch()) {
+			echo '<option value="' . $row['id'] . '">' . $row['year'] . '</option>';
+		}
+	}
 
-include_once 'projtrac-dashboard/resource/Database.php';
-include_once 'projtrac-dashboard/resource/utilities.php';
-include_once("includes/system-labels.php");
+	$yr = date("Y");
+	$mnth = date("m");
+	$startmnth = 07;
+	$endmnth = 06;
 
-require 'vendor/autoload.php';
-include "Models/Auth.php";
-include "Models/Company.php";
-include "Models/Permission.php";
-require 'Models/Connection.php';
+	if ($mnth >= 7 && $mnth <= 12) {
+		$startyear = $yr;
+		$endyear = $yr + 1;
+	} elseif ($mnth >= 1 && $mnth <= 6) {
+		$startyear = $yr - 1;
+		$endyear = $yr;
+	}
 
-session_start();
-(!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
+	$base_url = "";
+
+	//$quarter_dates_arr = ["-07-01", "-09-30", "-10-01", "-12-31", "-01-01", "-03-30", "-04-01","-06-30"];
+
+	$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where yr =:year ");
+	$query_rsFscYear->execute(array(":year" => $startyear));
+	$row_rsFscYear = $query_rsFscYear->fetch();
+	$fyid = $row_rsFscYear['id'];
+	$financialyear = $startyear . "/" . $endyear;
+
+	$basedate = $startyear . "-06-30";
+	$startq1 = $startyear . "-07-01";
+	$endq1 = $startyear . "-09-30";
+	$startq2 = $startyear . "-10-01";
+	$endq2 = $startyear . "-12-31";
+	$startq3 = $endyear . "-01-01";
+	$endq3 = $endyear . "-03-31";
+	$startq4 = $endyear . "-04-01";
+	$endq4 = $endyear . "-06-30";
+
+	$quarter_one_rate = "N/A";
+	$quarter_two_rate = "N/A";
+	$quarter_three_rate = "N/A";
+	$quarter_four_rate = "N/A";
+
+	$years = $target_rows = $target_quarters = '';
 
 
-$user_name = $_SESSION['MM_Username'];
-$user_auth = new Auth();
-$user_details = $user_auth->get_user_by_id($user_name);
 
 
-$ministry = $user_details->ministry;
-$sector = $user_details->department;
-$designation = $user_details->designation;
-$role_group = $user_details->role_group;
-$directorate = $user_details->directorate;
-$fullname = $user_details->fullname;
-$avatar = $user_details->floc;
 
-$results = "";
-$currentdate = date("Y-m-d");
-$results = $Id = $subId = "";
-$permissions = new Permission();
-$parent_sidebar = $permissions->get_parent_side_bar();
-$current_url =  basename($_SERVER['PHP_SELF'], ".php");
-$permission = $permissions->get_page_permissions($current_url);
-$Id =  $permission ? $permission->parent : "";
-$subId = $permission ?  $permission->id : "";
-$pageTitle = $permission ? $permission->Name : "";
-$icon = $permission ? $permission->icons : "";
-$_SESSION['subId'] = $subId;
-$parentId = 3; 
-function restriction()
-{
-	$msg = "Sorry you are not permitted to access this page";
-	return	$results = "
-	<script type=\"text/javascript\">
-		swal({
-		title: \"Success!\",
-		text: \" $msg\",
-		type: 'Error',
-		timer: 2000, 
-		icon:'error',
-		showConfirmButton: false });
-		setTimeout(function(){ 
-			window.history.back();
-		}, 2000);
-	</script>";
-}

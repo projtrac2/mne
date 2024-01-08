@@ -371,11 +371,11 @@ if ($permission) {
 
 																												if ($progress == 100) {
 																													$subtask_progress = '
-																												<div class="progress" style="height:20px; font-size:10px; color:black">
-																													<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
-																													' . $progress . '%
-																													</div>
-																												</div>';
+																													<div class="progress" style="height:20px; font-size:10px; color:black">
+																														<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																														' . $progress . '%
+																														</div>
+																													</div>';
 																												}
 
 																												$query_rsProgramOfWorks =  $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");

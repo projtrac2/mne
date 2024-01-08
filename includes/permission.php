@@ -381,7 +381,7 @@ function check_if_assigned($projid, $workflow_stage, $sub_stage, $activity)
     if ($user_designation <= 8) {
         $output_responsible = true;
     } else {
-        $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage =:sub_stage AND responsible=:responsible");
+    $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage =:sub_stage AND responsible=:responsible");
         $query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":sub_stage" => $sub_stage, ":responsible" => $user_name));
         $total_rsOutput = $query_rsOutput->rowCount();
         $output_responsible = $total_rsOutput > 0 ? true : false;
@@ -624,12 +624,13 @@ function restriction()
     return "
 	<script type='text/javascript'>
 		swal({
-		title: 'Success!',
-		text: 'Sorry you are not permitted to access this page',
-		type: 'Error',
-		timer: 3000,
-		icon:'error',
-		showConfirmButton: false });
+            title: 'Success!',
+            text: 'Sorry you are not permitted to access this page',
+            type: 'Error',
+            timer: 3000,
+            icon:'error',
+            showConfirmButton: false
+        });
 		setTimeout(function(){
 			window.history.back();
 		}, 3000);

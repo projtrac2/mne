@@ -9,7 +9,7 @@ if ($permission) {
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
-	?>
+?>
 
 	<!-- start body  -->
 	<section class="content">
@@ -51,35 +51,36 @@ if ($permission) {
 											<?php
 											$nm = 0;
 											while ($rows_mne_projects = $query_mne_projects->fetch()) {
-												$nm = $nm + 1;
 												$projid = $rows_mne_projects['projid'];
 												$project = $rows_mne_projects['projname'];
 												$projoutcome = $rows_mne_projects['projevaluation'];
 												$projcategory = $rows_mne_projects['projcategory'];
 												$projstartdate = $rows_mne_projects['projstartdate'];
+												$projenddate = $rows_mne_projects['projenddate'];
 												$duration = $rows_mne_projects['projduration'];
-												
-												$projsdate  = date('d M Y', strtotime($projstartdate));												
-												$projedate  = date('d M Y', strtotime($projstartdate . ' + ' . $duration . ' days'));
-												
-												if($projcategory == '2'){
+
+												$projsdate  = date('d M Y', strtotime($projstartdate));
+												$projedate  = date('d M Y', strtotime($projenddate));
+
+												if ($projcategory == '2') {
 													$query_projdates = $db->prepare("SELECT startdate, enddate FROM tbl_tenderdetails  where projid=:projid");
 													$query_projdates->execute(array(":projid" => $projid));
 													$row_projdates = $query_projdates->fetch();
 													$projsdate  = date('d M Y', strtotime($row_projdates['startdate']));
 													$projedate  = date('d M Y', strtotime($row_projdates['enddate']));
 												}
-											
+
 												$rows_mne_status = 1;
-												if($projoutcome ==1){
+												if ($projoutcome == 1) {
 													$query_mne_status = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE projid=:projid");
 													$query_mne_status->execute(array(":projid" => $projid));
 													$rows_mne_status = $query_mne_status->rowCount();
 												}
-											
-												if($rows_mne_status > 0){
-													$projid = base64_encode("rept321{$projid}");
-													?>
+
+												if ($rows_mne_status > 0) {
+													$nm = $nm + 1;
+													$project_id_hash = base64_encode("rept321{$projid}");
+											?>
 													<tr style="background-color:#eff9ca">
 														<td align="center"><?php echo $nm; ?></td>
 														<td><?php echo $project; ?></td>
@@ -87,11 +88,11 @@ if ($permission) {
 														<td><?php echo $projedate; ?></td>
 														<td>
 															<div align="center">
-																<a href="project-mne-report?proj=<?php echo $projid; ?>" alt="View Project M&E Report" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Project M&E Report"><i class="fa fa-bar-chart fa-2x text-success" aria-hidden="true"></i></a>
+																<a href="project-mne-report?proj=<?php echo $project_id_hash; ?>" alt="View Project M&E Report" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Project M&E Report"><i class="fa fa-bar-chart fa-2x text-success" aria-hidden="true"></i></a>
 															</div>
 														</td>
 													</tr>
-												<?php
+											<?php
 												}
 											}
 											?>

@@ -29,7 +29,7 @@ try {
         return array("output_target" => $target, "output_cummulative_record" => $cummulative_record, "output_previous_record" => $previous_record, "output_completed" => $completed);
     }
 
-    function get_site_ward_details($site_id, $output_id, $mapping_type, $record_type)
+    function get_site_ward_details($site_id, $state_id, $output_id, $mapping_type, $record_type)
     {
         global $db;
         $site_target = $site_cummulative_record = $site_previous_record =  $completed = 0;
@@ -57,18 +57,18 @@ try {
             $completed = $totalRows_rsCompleted > 0 ? 1 : 2;
         } else {
             $query_rsSite = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputstate=:state_id AND outputid=:output_id");
-            $query_rsSite->execute(array(":state_id" => $site_id, ":output_id" => $output_id));
+            $query_rsSite->execute(array(":state_id" => $state_id, ":output_id" => $output_id));
             $Rows_rsSite = $query_rsSite->fetch();
             $totalRows_rsSite = $query_rsSite->rowCount();
             $site_target =  ($totalRows_rsSite > 0) ? $Rows_rsSite['total_target'] : 0;
 
             $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE state_id=:state_id AND output_id=:output_id AND record_type=:record_type");
-            $query_rsTargetUsed->execute(array(":state_id" => $site_id, ":output_id" => $output_id, ":record_type" => $record_type));
+            $query_rsTargetUsed->execute(array(":state_id" => $state_id, ":output_id" => $output_id, ":record_type" => $record_type));
             $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-            $site_cummulative_record = $Rows_rsTargetUsed['achieved'] != null ? $Rows_rsTargetUsed['achieved'] : 0;
+            $site_cummulative_record = !is_null($Rows_rsTargetUsed['achieved'])  ? $Rows_rsTargetUsed['achieved'] : 0;
 
-            $query_rsPrevious = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE output_id=:output_id AND record_type=:record_type ORDER BY moid DESC LIMIT 1");
-            $query_rsPrevious->execute(array(":output_id" => $output_id, ":record_type" => $record_type));
+            $query_rsPrevious = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE state_id=:state_id AND output_id=:output_id AND record_type=:record_type ORDER BY moid DESC LIMIT 1");
+            $query_rsPrevious->execute(array(":state_id" => $state_id, ":output_id" => $output_id, ":record_type" => $record_type));
             $Rows_rsPrevious = $query_rsTargetUsed->fetch();
             $site_previous_record = $Rows_rsPrevious ? $Rows_rsPrevious['achieved'] : 0;
 
@@ -109,26 +109,35 @@ try {
     }
 
 
-    function previous_attachment($output_id, $milestone_id, $site_id, $record_type)
+    function previous_attachment($output_id, $milestone_id, $site_id, $state_id, $record_type)
     {
         global $db;
-
         $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND record_type=:record_type");
         $query_project_videos->execute(array(":output_id" => $output_id, ':record_type' => $record_type));
-        if ($site_id != '') {
-            $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND site_id=:site_id AND record_type=:record_type");
-            $query_project_videos->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':record_type' => $record_type));
-            if ($milestone_id != '') {
-                $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE  opid=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND record_type=:record_type");
-                $query_project_videos->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ':record_type' => $record_type));
+        if ($site_id != '' && $state_id != '') {
+            if ($site_id != 0) {
+                $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND record_type=:record_type");
+                $query_project_videos->execute(array(":output_id" => $output_id, ':record_type' => $record_type));
+                if ($milestone_id != '') {
+                    $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE  opid=:output_id AND milestone_id=:milestone_id AND state_id=:state_id AND record_type=:record_type");
+                    $query_project_videos->execute(array(":milestone_id" => $milestone_id, ":state_id" => $state_id, ':record_type' => $record_type));
+                }
+            } else {
+                $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE opid=:output_id AND site_id=:site_id AND record_type=:record_type");
+                $query_project_videos->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':record_type' => $record_type));
+                if ($milestone_id != '') {
+                    $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE  opid=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND record_type=:record_type");
+                    $query_project_videos->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ':record_type' => $record_type));
+                }
             }
         }
+
         $count_project_videos = $query_project_videos->rowCount();
         $data = '';
         if ($count_project_videos > 0) {
-            $rowno = 0;
+            $counter = 0;
             while ($rows_project_videos = $query_project_videos->fetch()) {
-                $rowno++;
+                $counter++;
                 $projstageid = $rows_project_videos['projstage'];
                 $filename = $rows_project_videos['filename'];
                 $filepath = $rows_project_videos['floc'];
@@ -138,9 +147,10 @@ try {
                 $query_project_stage->execute(array(":projstageid" => $projstageid));
                 $rows_project_stage = $query_project_stage->fetch();
                 $projstage = $rows_project_stage['stage'];
+
                 $data .= '
                 <tr>
-                    <td width="5%">' . $rowno . '</td>
+                    <td width="5%">' . $counter . '</td>
                     <td width="35%">' . $filename . '</td>
                     <td width="35%">' . $purpose . '</td>
                     <td width="10%">' . $projstage . '</td>
@@ -154,18 +164,28 @@ try {
         return $data;
     }
 
-    function previous_remarks($output_id, $milestone_id, $site_id, $record_type)
+    function previous_remarks($output_id, $milestone_id, $site_id, $state_id, $record_type)
     {
         global $db;
         $observation_type = $record_type == 1 ? 2 : 3;
         $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND observation_type=:observation_type");
         $query_allObservation->execute(array(":output_id" => $output_id, ':observation_type' => $observation_type));
-        if ($site_id != '') {
-            $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND site_id=:site_id AND observation_type=:observation_type");
-            $query_allObservation->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
-            if ($milestone_id != '') {
-                $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE  output_id=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND observation_type=:observation_type");
-                $query_allObservation->execute(array(":milestone_id" => $milestone_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
+
+        if ($site_id != "" && $state_id != "") {
+            if ($site_id != 0) {
+                $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND observation_type=:observation_type AND state_id=:state_id");
+                $query_allObservation->execute(array(":output_id" => $output_id, ':observation_type' => $observation_type, ":state_id" => $state_id));
+                if ($milestone_id != '') {
+                    $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE  output_id=:output_id AND milestone_id=:milestone_id AND state_id=:state_id AND observation_type=:observation_type");
+                    $query_allObservation->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id, ":state_id" => $state_id, ':observation_type' => $observation_type));
+                }
+            } else {
+                $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE output_id=:output_id AND site_id=:site_id AND observation_type=:observation_type");
+                $query_allObservation->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
+                if ($milestone_id != '') {
+                    $query_allObservation = $db->prepare("SELECT * FROM tbl_monitoring_observations WHERE  output_id=:output_id AND milestone_id=:milestone_id AND site_id=:site_id AND observation_type=:observation_type");
+                    $query_allObservation->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ':observation_type' => $observation_type));
+                }
             }
         }
 
@@ -201,11 +221,11 @@ try {
             while ($row_rsOutput = $query_Output->fetch()) {
                 $output_id = $row_rsOutput['id'];
                 $target = $row_rsOutput['total_target'];
-                $query_rsTargetUsed = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE output_id=:output_id");
+                $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) achieved FROM tbl_monitoringoutput WHERE output_id=:output_id");
                 $query_rsTargetUsed->execute(array(":output_id" => $output_id));
                 $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-                $output_achieved = $Rows_rsTargetUsed ? $Rows_rsTargetUsed['achieved'] : 0;
-                if ($target > $output_achieved) {
+                $output_achieved = !is_null($Rows_rsTargetUsed['achieved']) ? $Rows_rsTargetUsed['achieved'] : 0;
+                if ($target != $output_achieved) {
                     $output = $row_rsOutput['indicator_name'];
                     $outputs .= '<option value="' . $output_id . '">' . $output . '</option>';
                 }
@@ -239,11 +259,11 @@ try {
                         $site_name = $row_rsOutput['site'];
                         $target = $row_rsOutput['total_target'];
 
-                        $query_rsTargetUsed = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE site_id=:site_id AND output_id=:output_id AND record_type=:record_type");
+                        $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) achieved FROM tbl_monitoringoutput WHERE site_id=:site_id AND output_id=:output_id AND record_type=:record_type");
                         $query_rsTargetUsed->execute(array(":site_id" => $site_id, ":output_id" => $output_id, ":record_type" => $record_type));
                         $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-                        $site_achieved = $Rows_rsTargetUsed ? $Rows_rsTargetUsed['achieved'] : 0;
-                        if ($target > $site_achieved) {
+                        $site_achieved = !is_null($Rows_rsTargetUsed['achieved']) ? $Rows_rsTargetUsed['achieved'] : 0;
+                        if ($target != $site_achieved) {
                             $sites .= '<option value="' . $site_id . '">' . $site_name . '</option>';
                         }
                     }
@@ -258,11 +278,12 @@ try {
                         $state = $row_rsOutput['state'];
                         $state_id = $row_rsOutput['outputstate'];
                         $target = $row_rsOutput['total_target'];
-                        $query_rsTargetUsed = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE state_id=:state_id AND output_id=:output_id AND record_type=:record_type");
+
+                        $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) achieved FROM tbl_monitoringoutput WHERE state_id=:state_id AND output_id=:output_id AND record_type=:record_type");
                         $query_rsTargetUsed->execute(array(":state_id" => $state_id, ":output_id" => $output_id, ":record_type" => $record_type));
                         $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-                        $site_achieved = $Rows_rsTargetUsed ? $Rows_rsTargetUsed['achieved'] : 0;
-                        if ($target > $site_achieved) {
+                        $site_achieved = !is_null($Rows_rsTargetUsed['achieved']) ? $Rows_rsTargetUsed['achieved'] : 0;
+                        if ($target != $site_achieved) {
                             $sites .= '<option value="' . $state_id . '">' . $state . '</option>';
                         }
                     }
@@ -273,10 +294,11 @@ try {
         $query_rsMl =  $db->prepare("SELECT * FROM tbl_project_milestone m INNER JOIN tbl_project_milestone_outputs o ON  o.milestone_id=m.id  WHERE output_id =:output_id AND milestone_type = 2");
         $query_rsMl->execute(array(":output_id" => $output_id));
         $Rows_rsMl = $query_rsMl->rowCount();
+
         $output_project_type = $Rows_rsMl > 0 ?  2 : 1;
         $output_type = $mapping_type == 2 || $mapping_type == 0 ? 2 : 1;
-        $files = previous_attachment($output_id, "", "", $record_type);
-        $comments = previous_remarks($output_id, "", "", $record_type);
+        $files = previous_attachment($output_id, "", "", "", $record_type);
+        $comments = previous_remarks($output_id, "", "", "", $record_type);
         echo json_encode(array("success" => $success, "sites" => $sites, 'output_type' => $output_type, 'output_project_type' => $output_project_type, "output_details" => get_output_details($output_id, $record_type), "comments" => $comments, "files" => $files));
     }
 
@@ -301,11 +323,11 @@ try {
                 $Rows_rsOutput = $query_rsOutput->fetch();
                 if ($totalRows_rsOutput > 0) {
                     $target = $Rows_rsOutput['target'];
-                    $query_rsTargetUsed = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE milestone_id=:milestone_id AND output_id=:output_id AND record_type=:record_type");
+                    $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE milestone_id=:milestone_id AND output_id=:output_id AND record_type=:record_type");
                     $query_rsTargetUsed->execute(array(":milestone_id" => $milestone_id, ":output_id" => $output_id, ":record_type" => $record_type));
                     $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-                    $milestone_achieved = $Rows_rsTargetUsed ? $Rows_rsTargetUsed['achieved'] : 0;
-                    if ($target > $milestone_achieved) {
+                    $milestone_achieved = !is_null($Rows_rsTargetUsed['achieved']) ? $Rows_rsTargetUsed['achieved'] : 0;
+                    if ($target != $milestone_achieved) {
                         $milestones .= '<option value="' . $milestone_id . '">' . $milestone_name . '</option>';
                     }
                 }
@@ -317,10 +339,14 @@ try {
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $Rows_rsOutput = $query_rsOutput->fetch();
         $mapping_type = ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
+        $site_id =  $mapping_type == 1 || $mapping_type == 3 ? $site_id : 0;
+        $state_id =  $mapping_type == 1 || $mapping_type == 3 ? 0 : $_GET['site_id'];
 
-        $files = previous_attachment($output_id, $milestone_id, $site_id, $record_type);
-        $comments = previous_remarks($output_id, $milestone_id, $site_id, $record_type);
-        echo json_encode(array("success" => true, "milestones" => $milestones, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type), "comments" => $comments, "files" => $files));
+        $files = previous_attachment($output_id, $milestone_id, $site_id, $state_id, $record_type);
+        $comments = previous_remarks($output_id, $milestone_id, $site_id, $state_id, $record_type);
+        $output_details = get_output_details($output_id, $record_type);
+        $site_details = get_site_ward_details($site_id, $state_id, $output_id, $mapping_type, $record_type);
+        echo json_encode(array("success" => true, "milestones" => $milestones, 'output_details' => $output_details, "site_details" => $site_details, "comments" => $comments, "files" => $files));
     }
 
     if (isset($_GET['get_output_details'])) {
@@ -336,9 +362,13 @@ try {
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $mapping_type =  ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
 
-        $files = previous_attachment($output_id, $milestone_id, $site_id, $record_type);
-        $comments = previous_remarks($output_id, $milestone_id, $site_id, $record_type);
-        echo json_encode(array("success" => true, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $output_id, $mapping_type, $record_type), "milestone_details" => get_milestone_details($output_id, $milestone_id, $record_type), "comments" => $comments, "files" => $files));
+        $site_id =  $mapping_type == 1 || $mapping_type == 3 ? $site_id : 0;
+        $state_id =  $mapping_type == 1 || $mapping_type == 3 ? 0 : $_GET['site_id'];
+
+        $files = previous_attachment($output_id, $milestone_id, $site_id, $state_id, $record_type);
+        $comments = previous_remarks($output_id, $milestone_id, $site_id, $state_id, $record_type);
+
+        echo json_encode(array("success" => true, 'output_details' => get_output_details($output_id, $record_type), "site_details" => get_site_ward_details($site_id, $state_id, $output_id, $mapping_type, $record_type), "milestone_details" => get_milestone_details($output_id, $milestone_id, $record_type), "comments" => $comments, "files" => $files));
     }
 
     if (isset($_POST['store_outputs'])) {

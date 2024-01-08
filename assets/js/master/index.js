@@ -56,6 +56,7 @@ $(document).ready(function () {
 function get_responsible_options(details) {
     $("#projid").val(details.projid);
     $("#sub_stage").val(details.sub_stage);
+    $("#assign_responsible_data").val(details.edit);
     if (details.projid != "") {
         $.ajax({
             type: "get",

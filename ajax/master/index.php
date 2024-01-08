@@ -47,17 +47,19 @@ try {
         $sub_stage = $_POST['sub_stage'];
         $responsible = $_POST['responsible'];
         $store = $_POST['assign_responsible'];
+        $projsubstage = $sub_stage + 1;
         //  id  | projid |output_id | task_id| stage | sub_stage | member    | responsible  | created_by | created_at |
         $results = false;
         if ($store == 'new') {
             $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:responsible,:created_by,:created_at)");
-            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+            $sub_stage += 1;
+            update_project_stage($projid, $workflow_stage, $sub_stage);
         } else {
             $sql = $db->prepare("UPDATE tbl_projmembers SET responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
             $results = $sql->execute(array(':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
         }
-        $sub_stage += 1;
-        update_project_stage($projid, $workflow_stage, $sub_stage);
+        
         echo json_encode(array('success' => $results));
     }
 
@@ -68,18 +70,20 @@ try {
         $members = implode(",", $_POST['team']);
         $responsible = $_POST['responsible'];
         $store = $_POST['assign_mapping_responsible'];
+        $projsubstage = $sub_stage + 1;
+
         //  id  | projid |output_id | task_id| stage | sub_stage | member    | responsible  | created_by | created_at |
         $results = false;
         if ($store == 'new') {
             $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,members,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:members,:responsible,:created_by,:created_at)");
-            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':members' => $members, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':members' => $members, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+
+            $sub_stage += 1;
+            update_project_stage($projid, $workflow_stage, $sub_stage);
         } else {
             $sql = $db->prepare("UPDATE tbl_projmembers SET members=:members, responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
             $results = $sql->execute(array(':members' => $members, ':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
         }
-
-        $sub_stage += 1;
-        update_project_stage($projid, $workflow_stage, $sub_stage);
         echo json_encode(array('success' => $results));
     }
 
@@ -131,12 +135,11 @@ try {
         $rows = $sql->rowCount();
         $project_directorate = $rows > 0 ? $row['directorate_id'] : $p_directorate;
 
-        $sql =  $db->prepare("SELECT * FROM tbl_project_stage_responsible WHERE projid=:projid AND stage=:stage AND sub_stage=:sub_stage");
+        $sql =  $db->prepare("SELECT * FROM tbl_projmembers WHERE projid=:projid AND stage=:stage AND sub_stage=:sub_stage ");
         $sql->execute(array(":projid" => $projid, ":stage" => $workflow_stage, ":sub_stage" => $sub_stage));
         $row = $sql->fetch();
         $total = $sql->rowCount();
         $ptid = $total > 0 ? $row['responsible'] : '';
-
 
         if ($sub_stage == 2) {
             $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.directorate=:directorate AND (p.designation >= 7 AND p.designation <= 8)");
@@ -153,7 +156,7 @@ try {
                 $user_name = $user['fullname'];
                 $user_id = $user['userid'];
                 $selected = $ptid == $user_id ? 'selected' : '';
-                $users .= '<option value="' . $user_id . '">' . $user_name . '</option>';
+                $users .= '<option value="' . $user_id . '" ' . $selected . '>' . $user_name . '</option>';
             }
         }
         echo json_encode(array("responsible" => $users, "success" => true));

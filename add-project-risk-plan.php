@@ -1,11 +1,10 @@
-
 <?php
 require('includes/head.php');
 if ($permission) {
     try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-		
+
         /* $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND (p.projstage > 0 AND p.projstage < 10) ORDER BY p.projid DESC");
         $query_rsProjects->execute(); */
         //$row_rsProjects = $query_rsProjects->fetch();
@@ -59,38 +58,46 @@ if ($permission) {
                                                 $projname = $row_rsProjects['projname'];
                                                 $projcode = $row_rsProjects['projcode'];
                                                 $start_date = date('Y-m-d');
-				
-												$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
-												$query_proj_risks->execute(array(":projid" => $projid));
-												$totalRows_proj_risks = $query_proj_risks->rowCount();
+
+                                                $query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+                                                $query_proj_risks->execute(array(":projid" => $projid));
+                                                $totalRows_proj_risks = $query_proj_risks->rowCount();
 
                                                 $timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
                                                 $filter_department = view_record($project_department, $project_section, $project_directorate);
 
-                                                $details = "{
-                                                    get_edit_details: 'details',
-                                                    projid:$projid,
-                                                    workflow_stage:$workflow_stage,
-                                                    sub_stage:$sub_stage,
-                                                    project_directorate:$project_directorate,
-                                                    project_name:'$projname',
-                                                }";
+
                                                 $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
-                                                $assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
+                                                $assign_responsible = in_array("assign_data_entry_responsible", $page_actions) || in_array("assign_approval_responsible", $page_actions) ? true : false;
+
                                                 if ($filter_department) {
                                                     $counter++;
                                                     $activity_status = $activity = '';
                                                     $activity = $totalRows_proj_risks == 0 ? "Add" : "Edit";
+                                                    $assigned = false;
                                                     if ($sub_stage == 0) {
                                                         $activity_status = "Pending";
-                                                    } else if ($sub_stage == 1) {
+                                                    } else if ($sub_stage == 3 || $sub_stage == 1) {
                                                         $activity_status = "Assigned";
+                                                        $assigned = true;
                                                     } else if ($sub_stage > 1) {
                                                         $activity_status = "Pending Approval";
                                                         $activity = "Approve";
                                                     }
 
-													?>
+                                                    $edit =  $assigned ? "edit" : "new";
+
+                                                    $details = "{
+                                                        get_edit_details: 'details',
+                                                        projid:$projid,
+                                                        workflow_stage:$workflow_stage,
+                                                        sub_stage:$sub_stage,
+                                                        project_directorate:$project_directorate,
+                                                        project_name:'$projname',
+                                                        edit:'$edit'
+                                                    }";
+
+                                        ?>
                                                     <tr>
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?= $projcode ?></td>
@@ -113,7 +120,7 @@ if ($permission) {
                                                                     ?>
                                                                         <li>
                                                                             <a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
-                                                                                <i class="fa fa-users"></i> Assign
+                                                                                <i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
                                                                             </a>
                                                                         </li>
                                                                     <?php
@@ -134,7 +141,7 @@ if ($permission) {
                                                     </tr>
                                         <?php
                                                 }
-                                            } 
+                                            }
                                         }
                                         ?>
                                     </tbody>
@@ -190,7 +197,7 @@ if ($permission) {
                             <input type="hidden" name="projid" id="projid" value="">
                             <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
                             <input type="hidden" name="sub_stage" id="sub_stage" value="">
-                            <input type="hidden" name="assign_responsible" id="assign_responsible" value="new">
+                            <input type="hidden" name="assign_responsible" id="assign_responsible_data" value="new">
                             <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
                             <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                         </div>
@@ -200,8 +207,6 @@ if ($permission) {
             <!-- /modal-content -->
         </div>
     </div>
-
-
 <?php
 } else {
     $results =  restriction();
@@ -210,5 +215,8 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
+<script>
+    const redirect_url = "add-project-risk-plan.php";
+</script>
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/master/index.js"></script>

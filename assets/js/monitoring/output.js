@@ -300,24 +300,38 @@ const validateCeiling = () => {
     let completed = $("#completed").val();
     let target = $("#target").val();
     let cummulative = $("#cummulative").val();
+    var output_project_type = $("#output_project_type").val();
+    var site_target = $("#site_target").val();
+    var site_achieved = $("#site_achieved").val();
+    var site = $("#site").val();
+    var milestone = $("#milestone").val();
+    site_achieved = site_achieved != "" ? parseFloat(site_achieved) : 0;
+    measure = measure != "" ? parseFloat(measure) : 0;
+    cummulative = cummulative != "" ? parseFloat(cummulative) : 0;
 
-    if (measure != '') {
-        measure = parseFloat(measure);
-        if (target != '') {
-            target = parseFloat(target);
-            cummulative = parseFloat(cummulative);
-            total = cummulative + measure;
-            if (total > target) {
-                error_alert("Please ensure you do not exceed site target");
-                $("#current_measure").val("");
-            } else if (total == target && completed == '1') {
-                error_alert("Activity Monitoring is not complete");
-                $("#current_measure").val("");
-            }
-        } else {
-            error_alert("Ensure you have Site/Ward Target");
-        }
+    if (site == "") {
+        error_alert("Please select Ward/Site");
+        $("#current_measure").val("");
+        return;
     } else {
-        error_alert("Please enter value");
+        if (milestone == "" && output_project_type == '2') {
+            $("#current_measure").val("");
+            error_alert("Please select milestone");
+            return;
+        }
+
+        var total_site = site_achieved + measure;
+        var total_milestone = cummulative + measure;
+        if (total_site > site_target) {
+            $("#current_measure").val("");
+            error_alert(`The cummulative units should not exceed ${site_target} ward/site target`);
+            return;
+        } else {
+            if (total_milestone > target) {
+                $("#current_measure").val("");
+                error_alert(`The cummulative units should not exceed ${target} ward/site target`);
+                return;
+            }
+        }
     }
 }

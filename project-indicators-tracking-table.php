@@ -240,13 +240,38 @@ if ($permission) {
 													$status_class = $row_Projstatus['class_name'];
 													$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
 												}
-
 												return $status;
 											}
 
-											function progress($projid, $implementation)
+
+
+											function get_subtask_status($progress, $start_date, $end_date, $status, $project_status)
 											{
-												$progress = number_format(calculate_project_progress($projid, $implementation), 2);
+												$today = date('Y-m-d');
+												if ($project_status == 6) {
+													$status_id = 6;
+												} else {
+													$status_id = $progress > 0 ? 4 : 3;
+													if ($today > $start_date) {
+														if ($today < $end_date) {
+															$status_id = 4;
+															if ($progress == 0) {
+																$status_id = 11;
+															}
+														} else if ($today > $end_date) {
+															$status_id = 11;
+														}
+													}
+												}
+
+												$status_id = $status == 5 ? 5 : $status_id;
+												return	get_status($status_id);
+											}
+
+
+
+											function get_progress($progress)
+											{
 												$project_progress = '
                                                     <div class="progress" style="height:20px; font-size:10px; color:black">
                                                         <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
@@ -265,8 +290,6 @@ if ($permission) {
 												return $project_progress;
 											}
 
-
-
 											if ($rows_count > 0) {
 												$active = "";
 												$sn = 0;
@@ -283,15 +306,16 @@ if ($permission) {
 													$projenddate = $row["projenddate"];
 													$implementation = $row['projcategory'];
 													$projstate = explode(",", $row['projlga']);
-													$status = get_status($status_id);
-													$progress = progress($projid, $implementation);
+													$status = get_status($projstatus);
+													$progress = number_format(calculate_project_progress($itemId, $implementation), 2);
+													$percent2 = get_progress($progress);
 
 													$queryobj = $db->prepare("SELECT objective FROM `tbl_programs` g inner join tbl_strategic_plan_objectives o on o.id=g.strategic_obj WHERE progid=:progid");
 													$queryobj->execute(array(":progid" => $progid));
 													$rowobj = $queryobj->fetch();
 													$objective = $rowobj ? $rowobj["objective"] : "";
 
-													$query_projectexp = $db->prepare("SELECT SUM(amount_requested) AS exp FROM `tbl_payments_request` WHERE status=3 AND projid=:projid");
+													$query_projectexp = $db->prepare("SELECT SUM(amount) AS exp FROM `tbl_payments_disbursed` WHERE projid=:projid");
 													$query_projectexp->execute(array(":projid" => $itemId));
 													$row_projectexp = $query_projectexp->fetch();
 													$totalRows_projectexp = $query_projectexp->rowCount();
@@ -306,59 +330,75 @@ if ($permission) {
 														array_push($states, $state);
 													}
 
-													$queryactivities = $db->prepare("SELECT * FROM `tbl_task` t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid=:projid");
-													$queryactivities->execute(array(":projid" => $itemId));
 
 													$query_projremarks = $db->prepare("SELECT * FROM `tbl_projects_performance_report_remarks` WHERE projid=:projid LIMIT 1");
 													$query_projremarks->execute(array(":projid" => $itemId));
 													$totalRows_projremarks = $query_projremarks->rowCount();
-
-													echo '
+										?>
 													<tr class="projects">
-														<td class="text-center mb-0" id="projects' . $itemId . '" data-toggle="collapse" data-target=".project' . $itemId . '">' . $sn . '
+														<td class="text-center mb-0" id="projects<?= $itemId ?>" data-toggle="collapse" data-target=".project<?= $itemId ?>"><?= $sn ?>
 															<button class="btn btn-link " title="Click once to expand and Click once to Collapse!!">
 																<i class="fa fa-plus-square" style="font-size:16px"></i>
 															</button>
 														</td>
-														<td>' . $projname . '</td>
-														<td>' . implode(", ", $states) . '</td>
-														<td>' . $projstartdate . '/' . $projenddate . '</td>
-														<td>' . number_format($project_cost, 2) . '</td>
-														<td>' . number_format($project_expense, 2) . '</td>
-														<td>' . statuses($projstatus) . '<br>' . progress($percent2) . '</td>';
-
-													echo '</tr>
-															<tr class="collapse project' . $itemId . '">
-																<td class="bg-grey text-center"></td><td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
-															</tr>
-															<tr class="collapse project' . $itemId . '">
-																<th class="bg-grey text-center"></th>
-																<th colspan="2">Activity</th>
-																<th colspan="3">Start and End Dates</th>
-																<th>Status & Progress</th>
-															</tr>';
+														<td><?= $projname ?></td>
+														<td><?= implode(", ", $states) ?></td>
+														<td><?= $projstartdate . '/' . $projenddate ?></td>
+														<td><?= $project_cost ?></td>
+														<td><?= number_format($project_expense, 2) ?></td>
+														<td><?= get_status($projstatus) . '<br>' . $percent2 ?></td>
+													</tr>
+													<tr class="collapse project<?= $itemId ?>">
+														<td class="bg-grey text-center"></td>
+														<td colspan="6"><strong>Project Objective: </strong><?= $objective ?></td>
+													</tr>
+													<tr class="collapse project<?= $itemId ?>">
+														<th class="bg-grey text-center"></th>
+														<th colspan="2">Activity</th>
+														<th colspan="3">Start and End Dates</th>
+														<th>Status & Progress</th>
+													</tr>
+													<?php
 													$nm = 0;
-
-
+													$queryactivities = $db->prepare("SELECT * FROM `tbl_task` WHERE projid=:projid");
+													$queryactivities->execute(array(":projid" => $itemId));
 													while ($rowact = $queryactivities->fetch()) {
 														$nm++;
 														$activity = $rowact["task"];
-														$startdate = $rowact["sdate"];
-														$enddate = $rowact["edate"];
+														$subtask_id = $rowact["tkid"];
 														$statusid = $rowact["status"];
 														$progress = $rowact["progress"];
 
-														$querytaskstatus = $db->prepare("SELECT statusname FROM `tbl_task_status` WHERE statusid=:statusid");
-														$querytaskstatus->execute(array(":statusid" => $statusid));
+														$querytaskstatus = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM `tbl_program_of_works` WHERE subtask_id=:subtask_id");
+														$querytaskstatus->execute(array(":subtask_id" => $subtask_id));
 														$rowtaskstatus = $querytaskstatus->fetch();
-														$taskstatus = $rowtaskstatus ? $rowtaskstatus["statusname"] : "";
+														$startdate = $rowtaskstatus ? date('d M Y', strtotime($rowtaskstatus["start_date"])) : "";
+														$enddate = $rowtaskstatus ? date('d M Y', strtotime($rowtaskstatus["end_date"])) : "";
 
-														echo '<tr class="collapse project' . $itemId . '">
-																<td class="bg-grey text-center">' . $sn . '.' . $nm . '</td><td colspan="2">' . $activity . '</td><td colspan="3">' . $startdate . ' AND ' . $enddate . '</td><td>' . statuses($statusid) . '<br>' . progress($progress) . '</td>
-															</tr>';
+														$query_Site_score = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_project_monitoring_checklist_score where  subtask_id=:subtask_id");
+														$query_Site_score->execute(array(":subtask_id" => $subtask_id));
+														$row_site_score = $query_Site_score->fetch();
+														$units_no = ($row_site_score['achieved'] != null) ? $row_site_score['achieved'] : 0;
+
+														$query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(units_no) as units_no FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id");
+														$query_rsOther_cost_plan_budget->execute(array(":subtask_id" => $subtask_id));
+														$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+														$target_units = !is_null($row_rsOther_cost_plan_budget['units_no']) ? $row_rsOther_cost_plan_budget['units_no'] : 0;
+														$progress = number_format(($units_no / $target_units) * 100);
+
+														$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE  subtask_id=:subtask_id AND complete=0 ");
+														$query_rsPlan->execute(array(':subtask_id' => $subtask_id));
+														$totalRows_plan = $query_rsPlan->rowCount();
+														$status = $totalRows_plan > 0 ? 0 : 5;
+													?>
+														<tr class="collapse project<?= $itemId ?>">
+															<td class="bg-grey text-center"><?= $sn . '.' . $nm ?></td>
+															<td colspan="2"><?= $activity ?></td>
+															<td colspan="3"><?= $startdate . ' AND ' . $enddate ?></td>
+															<td><?= get_subtask_status($progress, $startdate, $enddate, $status, $projstatus) . '<br>' . get_progress($progress) ?></td>
+														</tr>
+												<?php
 													}
-
-													
 													echo '
 														<tr class="collapse project' . $itemId . '">
 															<td class="bg-grey text-center"></td><td colspan="6" class="bg-grey">';
@@ -374,12 +414,13 @@ if ($permission) {
 													</tr>';
 												}
 											} else {
-												echo '
+												?>
 												<tr class="projects">
 													<td class="text-center mb-0">
 													</td>
 													<td colspan="6">No records found</td>
-												</tr>';
+												</tr>
+										<?php
 											}
 										} catch (PDOException $ex) {
 											$result = flashMessage("An error occurred: " . $ex->getMessage());

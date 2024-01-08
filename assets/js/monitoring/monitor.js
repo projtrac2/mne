@@ -85,13 +85,16 @@ function get_milestones() {
                     var milestone_data = response.milestone_data;
                     var output_details = response.output_details;
                     var project_type = milestone_data.project_type;
-
                     $("#project_type").val(project_type);
 
-                    if (milestone_data == 2) {
+                    if (project_type == 2) {
                         var milestones = response.milestones;
                         $("#milestone_div").show();
                         $("#milestone").html(milestones);
+                    }
+
+                    if (project_type == 1) {
+                        $("#subtask_table_body").html(response.subtasks);
                     }
 
                     var mapping_type = output_details.indicator_mapping_type;
