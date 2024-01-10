@@ -146,7 +146,7 @@ if ($permission) {
 													<th style="width:10%">Paid By</th>
 													<th style="width:10%">Date Paid</th>
 													<th style="width:10%">Other Details</th>
-												</tr>
+												</tr> 
 											</thead>
 											<tbody>
 												<?php

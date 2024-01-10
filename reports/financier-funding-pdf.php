@@ -56,7 +56,7 @@ if (isset($_GET["fnid"]) && !empty($_GET["fnid"])) {
             $mpdf = new \Mpdf\Mpdf(['setAutoTopMargin' => 'pad']);
             $mpdf->SetWatermarkImage($logo);
             $mpdf->showWatermarkImage = true;
-            $mpdf->SetProtection(array(), 'UserPassword', 'password');
+            // $mpdf->SetProtection(array(), 'UserPassword', 'password');
 
             function get_financial_year()
             {

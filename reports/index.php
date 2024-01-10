@@ -39,7 +39,7 @@ try {
 
     $mpdf->SetWatermarkImage($logo);
     $mpdf->showWatermarkImage = true;
-    $mpdf->SetProtection(array(), 'UserPassword', 'password');
+   //  $mpdf->SetProtection(array(), 'UserPassword', 'password');
 
     $mpdf->AddPage('l');
     $mpdf->WriteHTML('
@@ -137,7 +137,7 @@ try {
                         $rate = 0;
                         $basevalue = 0;
                         $baseyear = "N/A";
-        
+
                         $query_indbaseyr = $db->prepare("SELECT yr FROM tbl_indicator_baseline_years b inner join  tbl_fiscal_year y on y.id=b.year WHERE indid='$indid'");
                         $query_indbaseyr->execute();
                         $totalRows_baseyr = $query_indbaseyr->rowCount();
@@ -145,7 +145,7 @@ try {
                             $row_indbaseyr = $query_indbaseyr->fetch();
                             $baseyear = $row_indbaseyr["yr"];
                         }
-        
+
                         $query_indbaseline = $db->prepare("SELECT SUM(value) as baseline FROM tbl_indicator_output_baseline_values WHERE indid='$indid'");
                         $query_indbaseline->execute();
                         $row_indbaseline = $query_indbaseline->fetch();
@@ -155,7 +155,7 @@ try {
                         } else {
                             $basevalue = 0;
                         }
-        
+
                         $budget = 0;
                         $query_indbudget = $db->prepare("SELECT budget FROM tbl_strategic_plan_op_indicator_budget WHERE indid='$indid' AND spid='$stplan'");
                         $query_indbudget->execute();
@@ -164,19 +164,19 @@ try {
                             $row_indbudget = $query_indbudget->fetch();
                             $budget = number_format($row_indbudget["budget"]);
                         }
-        
-                        $q_year = $start_year; 
+
+                        $q_year = $start_year;
                         $mn++;
                         $outputs = '';
                         for ($q = 0; $q < $years; $q++) {
                            //  $year = $spfnyear + $k;
                             $targetraw = get_strategic_plan_yearly_target($indid, $stplan, $q_year);
                             $achievedraw = get_strategic_plan_yearly_achieved($indid, $stplan, $q_year);
-        
+
                             if (!empty($achievedraw)) {
                                 $achieved = get_strategic_plan_yearly_achieved($indid, $stplan, $q_year);
                             }
-        
+
                             if (!empty($targetraw)) {
                                 $target = get_strategic_plan_yearly_target($indid, $stplan, $q_year);
                                 $rate = $achieved / $target;
@@ -190,7 +190,7 @@ try {
                         }
 
 
-        
+
                         $body .= '
                           <tr>
                              <td> ' . $sn . '.' . $mn . '</td>

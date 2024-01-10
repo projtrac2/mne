@@ -10,17 +10,17 @@ include_once '../projtrac-dashboard/resource/Database.php';
 include_once '../projtrac-dashboard/resource/utilities.php';
 require_once __DIR__ . '../../vendor/autoload.php';
 require '../functions/strategicplan.php';
- 
+
 try {
 	$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
 	$query_company->execute(array(":stid" => $stid));
 	$row_company = $query_company->fetch();
-	
+
     $query_user =  $db->prepare("SELECT p.*, u.password as password FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid =:user_id");
     $query_user->execute(array(":user_id" => $user_name));
     $row_rsUser = $query_user->fetch();
 	$printedby = $row_rsUser["title"].".".$row_rsUser["fullname"];
-	
+
     $query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE id='$stplan' and current_plan=1 LIMIT 1");
     $query_rsStrategicPlan->execute();
     $row_rsStrategicPlan = $query_rsStrategicPlan->fetch();
@@ -28,7 +28,7 @@ try {
 
 	/* $spyears = $row_stratplanyr["years"];
 	$spfnyear = $row_stratplanyr["starting_year"]; */
-	
+
     if ($totalRows_rsStrategicPlan == 0) {
         // redirect back to strategic plan
         header("Location: view-strategic-plans.php");
@@ -50,7 +50,7 @@ try {
 
     $mpdf->SetWatermarkImage($logo);
     $mpdf->showWatermarkImage = true;
-    $mpdf->SetProtection(array(), 'UserPassword', 'password');
+    // $mpdf->SetProtection(array(), 'UserPassword', 'password');
 
     $mpdf->AddPage('l');
 
@@ -170,7 +170,7 @@ try {
 
                     $budget = 0;
 					$query_indbudget =  $db->prepare("SELECT SUM(d.budget) AS budget FROM tbl_progdetails d left join tbl_programs g on g.progid=d.progid WHERE indicator='$indid' AND strategic_plan='$stplan'");
-																					
+
                     //$query_indbudget = $db->prepare("SELECT budget FROM tbl_strategic_plan_op_indicator_budget WHERE indid='$indid' AND spid='$stplan'");
                     $query_indbudget->execute();
                     $totalRows_indbudget = $query_indbudget->rowCount();
@@ -190,23 +190,23 @@ try {
 						$achieved = 0;
 						$target = 0;
 						$rate = 0;
-						
+
 						if (!empty($achievedraw)) {
 							$achieved = get_strategic_plan_yearly_achieved($indid, $year);
 						}
-						
+
 						if (!empty($targetraw)) {
 							$target = get_strategic_plan_yearly_target($indid, $year);
 							$rate  = ($achieved / $target)*100;
 						}
-                        
+
                         $outputs .= '
                           <td>' . $target . ' </td>
                           <td>' . $achieved . ' </td>
                           <td>' . number_format($rate, 2) . ' </td>
                           ';
                         $q_year++;
-						
+
 						unset($target);
 						unset($achieved);
 						unset($rate);
@@ -240,7 +240,7 @@ try {
         $body .= "No depatments Found !!!";
     }
     $mpdf->WriteHTML($body);
-    $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>'); 
+    $mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
     $mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County {PAGENO}');
     $mpdf->Output();
 

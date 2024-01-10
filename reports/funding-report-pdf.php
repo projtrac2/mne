@@ -45,7 +45,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
             return $rows_financier > 0 ? $row_financier['financier'] : '';
         }
 
-        
+
         $financier = get_financier();
 
         if ($financier != '') {
@@ -54,7 +54,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
             $mpdf = new \Mpdf\Mpdf(['setAutoTopMargin' => 'pad']);
             $mpdf->SetWatermarkImage($logo);
             $mpdf->showWatermarkImage = true;
-            $mpdf->SetProtection(array(), 'UserPassword', 'password');
+            // $mpdf->SetProtection(array(), 'UserPassword', 'password');
 
             function get_username()
             {

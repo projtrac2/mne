@@ -121,7 +121,7 @@ if ($permission && isset($_GET['projid'])) {
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="milestone_div">
                                             <label class="control-label">Milestones *:</label>
                                             <div class="form-line">
-                                                <select name="milestone" id="milestone" onchange="get_sites()" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                <select name="milestone" id="milestone" onchange="get_subtasks()" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
                                                     <option value="">.... Select Milestone ....</option>
                                                 </select>
                                             </div>

@@ -367,8 +367,9 @@ try {
                     $row_rsMilestone_cummulative = $query_rsMilestone_cummulative->fetch();
                     $cummulative = $row_rsMilestone_cummulative['cummulative'] != null ? $row_rsMilestone_cummulative['cummulative'] : 0;
 
-                    $count++;
-                    $subtasks .= '
+                    if ($milestone_validation) {
+                        $count++;
+                        $subtasks .= '
                         <tr id="s_row">
                             <td>' . $count . '</td>
                             <td>' . $task . '</td>
@@ -381,6 +382,7 @@ try {
                                 </button>
                             </td>
                         </tr>';
+                    }
                 }
             }
         }

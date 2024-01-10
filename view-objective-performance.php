@@ -102,9 +102,20 @@ if ($permission) {
 																							$spfnyear34 = $spfinyear + $i;
 																							$fiscalyear = $spfnyr . "/" . $spfnyear34;
 
+																							$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where yr =:year ");
+																							$query_rsFscYear->execute(array(":year" => $spfnyr));
+																							$row_rsFscYear = $query_rsFscYear->fetch();
+																							$totalRows_years = $query_rsFscYear->rowCount();
+																							$financial_year_id = ($totalRows_years > 0) ? $row_rsFscYear['id'] : 0;
+
 																							$url = $fiscalyear;
+																							$base  = "fyid=$financial_year_id&department=$stid";
 																						?>
-																							<th colspan="4"><?= $url ?></a></th>
+																							<th colspan="4">
+																								<a href="objective-performance.php?<?= $base ?>">
+																									<?= $url ?>
+																								</a>
+																							</th>
 																						<?php } ?>
 																						<th colspan="" rowspan="2">Total&nbsp;Budget</th>
 																					</tr>

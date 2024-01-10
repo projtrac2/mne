@@ -320,6 +320,12 @@ const validateCeiling = () => {
             return;
         }
 
+        if (completed == '1' && output_project_type == '1') {
+            $("#current_measure").val("");
+            error_alert("Please select ensure you have completed activity monitoring");
+            return;
+        }
+
         var total_site = site_achieved + measure;
         var total_milestone = cummulative + measure;
         if (total_site > site_target) {

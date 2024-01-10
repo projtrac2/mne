@@ -88,7 +88,7 @@ function get_milestones() {
                     $("#project_type").val(project_type);
 
                     if (project_type == 2) {
-                        var milestones = response.milestones;
+                        var milestones = milestone_data.milestones;
                         $("#milestone_div").show();
                         $("#milestone").html(milestones);
                     }
@@ -114,47 +114,48 @@ function get_milestones() {
     }
 }
 
+function validate(site_id, milestone_id) {
+    var val = true;
+    if (site_id == '') {
+        error_alert("Please select site first");
+        val = false;
+    }
+
+    if (milestone_id == '') {
+        error_alert("Please select milestone first");
+        val = false;
+    }
+
+    return val;
+}
+
 function get_subtasks() {
     var output_id = $("#output").val();
     var project_type = $("#project_type").val();
     var output_type = $("#output_type").val();
+    var milestone_id = (project_type == '2') ? $("#milestone").val() : 0;
+    var site_id = (output_type == 2) ? $("#site").val() : 0;
 
-    var milestone_id = 0;
-    if (project_type == 2) {
-        milestone_id = $("#milestone").val();
-        if (milestone_id == '') {
-            error_alert("Please select milestone first");
-            return;
-        }
+    if (validate()) {
+        $.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+                get_subtasks: "get_subtasks",
+                milestone_id: milestone_id,
+                output_id: output_id,
+                site_id: site_id,
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#subtask_table_body").html(response.subtasks);
+                } else {
+                    error_alert("Sorrry could not find milestone outputs");
+                }
+            },
+        });
     }
-
-    var site_id = 0;
-    if (output_type == 2) {
-        site_id = $("#site").val();
-        if (site_id == '') {
-            error_alert("Please select milestone first");
-            return;
-        }
-    }
-
-    $.ajax({
-        type: "get",
-        url: ajax_url,
-        data: {
-            get_subtasks: "get_subtasks",
-            milestone_id: milestone_id,
-            output_id: output_id,
-            site_id: site_id,
-        },
-        dataType: "json",
-        success: function (response) {
-            if (response.success) {
-                $("#subtask_table_body").html(response.subtasks);
-            } else {
-                error_alert("Sorrry could not find milestone outputs");
-            }
-        },
-    });
 }
 
 function add_checklist(site_id, milestone_id, task_id, subtask_id) {

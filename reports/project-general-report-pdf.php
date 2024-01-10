@@ -2,7 +2,7 @@
 session_start();
 $projid = (isset($_GET['projid'])) ? $_GET['projid'] : "";
 $user_name = $_SESSION['MM_Username'];
- 
+
 //include_once 'projtrac-dashboard/resource/session.php';
 
 include_once '../projtrac-dashboard/resource/Database.php';
@@ -15,15 +15,15 @@ require '../system-labels.php';
 	$query_logged_in_user->execute(array(":stid" => $stid));
 	$row_user = $query_logged_in_user->fetch();
 	$printedby = $row_user["title"].".".$row_user["fullname"];
- 
-try { 
+
+try {
     $logo = 'logo.jpg';
     $logo = 'logo.jpg';
     $mpdf = new \Mpdf\Mpdf(['setAutoTopMargin' => 'pad']);
     $mpdf->SetWatermarkImage($logo);
     $mpdf->showWatermarkImage = true;
-    $mpdf->SetProtection(array(), 'UserPassword', 'password');
- 
+   //  $mpdf->SetProtection(array(), 'UserPassword', 'password');
+
     $mpdf->AddPage('l');
     $mpdf->WriteHTML('
       <div style="text-align: center;">
@@ -31,7 +31,7 @@ try {
          <h2 style="">COUNTY GOVERNMENT OF UASIN GISHU</h2>
          <br/>
          <hr/>
-         <h3 style="margin-top:10px;" >PROJECT GENERAL REPORT</h3> 
+         <h3 style="margin-top:10px;" >PROJECT GENERAL REPORT</h3>
          <hr/>
          <div style="margin-top:80px;" >
             <address>
@@ -53,16 +53,16 @@ try {
 
     $mpdf->AddPage('L');
     $body ='
-    
+
     <table class="table table-bordered table-striped table-hover" id="" style="background-color:light-blue; font-size:12px">
        <thead>
-          <tr class="bg-orange"> 
+          <tr class="bg-orange">
                 <th style="width:6%">#</th>
                 <th style="width:30%" colspan="2">Output</th>
                 <th style="width:25%" colspan="2">Indicator </th>
                 <th style="width:7%">Target</th>
                 <th style="width:7%">Achieved</th>
-                <th style="width:7%">Rate %</th>  
+                <th style="width:7%">Rate %</th>
           </tr>
        </thead>
        <tbody>';
@@ -71,8 +71,8 @@ try {
          $query_rsProjects->execute();
          $row_rsProjects = $query_rsProjects->fetch();
          $totalRows_rsProjects = $query_rsProjects->rowCount();
-         $projstage  = $row_rsProjects['projstage']; 
-   
+         $projstage  = $row_rsProjects['projstage'];
+
          $query_rsOutputs = $db->prepare("SELECT g.output as  output, d.id as opid, g.indicator  FROM tbl_project_details d INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE projid='$projid'");
          $query_rsOutputs->execute();
          $row_rsOutputs = $query_rsOutputs->fetch();
@@ -85,19 +85,19 @@ try {
                   $outputid = $row_rsOutputs['opid'];
                   $indid = $row_rsOutputs['indicator'];
 
-                  $query_rsAchieved =  $db->prepare("SELECT SUM(actualoutput) as achieved FROM tbl_monitoringoutput WHERE projid=:projid AND opid=:opid"); 
+                  $query_rsAchieved =  $db->prepare("SELECT SUM(actualoutput) as achieved FROM tbl_monitoringoutput WHERE projid=:projid AND opid=:opid");
                   $query_rsAchieved->execute(array(":projid"=>$projid, ":opid"=>$outputid));
                   $row_rsAchieved = $query_rsAchieved->fetch();
-                  $totalRows_rsAchieved = $query_rsAchieved->rowCount();           
-                  $achieved = 0; 
-                  $achieved = $row_rsAchieved['achieved']; 
+                  $totalRows_rsAchieved = $query_rsAchieved->rowCount();
+                  $achieved = 0;
+                  $achieved = $row_rsAchieved['achieved'];
 
-                  $query_rsTarget =  $db->prepare("SELECT total_target FROM tbl_project_details  WHERE projid=:projid AND id=:opid"); 
+                  $query_rsTarget =  $db->prepare("SELECT total_target FROM tbl_project_details  WHERE projid=:projid AND id=:opid");
                   $query_rsTarget->execute(array(":projid"=>$projid, ":opid"=>$outputid));
                   $row_rsTarget = $query_rsTarget->fetch();
-                  $totalRows_rsTarget = $query_rsTarget->rowCount();        
-                  $target = $row_rsTarget['total_target']; 
-                  $rate =0; 
+                  $totalRows_rsTarget = $query_rsTarget->rowCount();
+                  $target = $row_rsTarget['total_target'];
+                  $rate =0;
 
                   if($target > 0  && $achieved > 0){
                      $rate = ($achieved/$target) * 100;
@@ -112,8 +112,8 @@ try {
                   $query_rsIndicator = $db->prepare("SELECT *  FROM tbl_indicator WHERE indid='$indid' ");
                   $query_rsIndicator->execute();
                   $row_rsIndicator = $query_rsIndicator->fetch();
-                  $totalRows_rsIndicator = $query_rsIndicator->rowCount(); 
-                  
+                  $totalRows_rsIndicator = $query_rsIndicator->rowCount();
+
                   $body .='
                   <tr class="outputs" style="background-color:#eff9ca">
                      <td>
@@ -122,10 +122,10 @@ try {
                      <td colspan="2">'.  $row_rsOutputs['output'] .'</td>
                      <td colspan="2">'. $row_rsIndicator['indicator_name'] .'</td>
                      <td>'. number_format($target) .'</td>
-                     <td>'. number_format($achieved ).'</td> 
-                     <td>'. number_format($rate, 2) .'</td> 
+                     <td>'. number_format($achieved ).'</td>
+                     <td>'. number_format($rate, 2) .'</td>
                   </tr>
-                  <tr style="background-color:#FF9800; color:#FFF"> 
+                  <tr style="background-color:#FF9800; color:#FFF">
                      <th style="width: 6%">#</th>
                      <th colspan="2" style="width: 96%">Milestone Name</th>
                      <th style="width:7%">Status</th>
@@ -134,7 +134,7 @@ try {
                      <th style="width:7%">Start Date</th>
                      <th style="width:7%">End Date</th>
                   </tr>';
-                  
+
                   if ($totalRows_rsMilestones > 0) {
                      $mcounter = 0;
                      do {
@@ -151,10 +151,10 @@ try {
 
                            $status = $db->prepare("SELECT * FROM `tbl_status` WHERE statusid=:statusid LIMIT 1");
                            $status->execute(array(":statusid" => $mstatus));
-                           $rowstatus = $status->fetch(); 
-                           $milestatus = $rowstatus["statusname"]; 
+                           $rowstatus = $status->fetch();
+                           $milestatus = $rowstatus["statusname"];
 
-                           $milefinance = $db->prepare(" SELECT SUM((p.units_no * p.unit_cost)) milecost FROM tbl_project_direct_cost_plan p 
+                           $milefinance = $db->prepare(" SELECT SUM((p.units_no * p.unit_cost)) milecost FROM tbl_project_direct_cost_plan p
                            INNER JOIN tbl_task t ON t.tkid = p.tasks WHERE t.projid='$projid' AND t.msid='$milestone'");
                            $milefinance->execute();
                            $rowmilefinance = $milefinance->fetch();
@@ -162,10 +162,10 @@ try {
 
                            // project percentage progress
                            $query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = :projid AND outputid=:outputid AND  msid=:msid");
-                           $query_rsMlsProg->execute(array(":projid" => $projid, ":outputid"=>$outputid, ":msid"=>$milestone));	
+                           $query_rsMlsProg->execute(array(":projid" => $projid, ":outputid"=>$outputid, ":msid"=>$milestone));
                            $row_rsMlsProg = $query_rsMlsProg->fetch();
                            $percent1 = 0;
-                           
+
                            if($row_rsMlsProg["mlprogress"] >0 && $row_rsMlsProg["nmb"] > 0 ){
                               $prjprogress = $row_rsMlsProg["mlprogress"]/$row_rsMlsProg["nmb"];
                               $percent1 = round($prjprogress,2);
@@ -180,12 +180,12 @@ try {
                                        '.$percent1.'%
                                  </div>
                               </div>';
-                           } 
+                           }
                            elseif ($percent1 ==100){
                               $percent = '
                               <div class="progress" style="height:20px; font-size:10px; color:black">
                                  <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="'.$percent1.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$percent1.'%; height:20px; font-size:10px; color:black">
-                                 '.$percent1.'%                                   
+                                 '.$percent1.'%
                                  </div>
                               </div>';
                            }
@@ -208,7 +208,7 @@ try {
                               $mactive = '<button type="button" class="btn bg-pink waves-effect" style="width:100%">'.$milestatus. '</button>';
                            }
                            $body .='
-                           <tr  style="background-color:#CDDC39"> 
+                           <tr  style="background-color:#CDDC39">
                               <td>'.$Ocounter . "." . $mcounter .'</td>
                               <td colspan="2">' .$row_rsMilestones['milestone'] .'</td>
                               <td>'.$mactive .'</td>
@@ -217,9 +217,9 @@ try {
                               <td>'. $sdate .'</td>
                               <td>'. $edate .'</td>
                            </tr>
-                           <tr style="background-color:#b8f9cb; color:#FFF"> 
+                           <tr style="background-color:#b8f9cb; color:#FFF">
                               <th style="width: 6%">#</th>
-                              <th colspan="2" style="width: 86%">Task Name</th> 
+                              <th colspan="2" style="width: 86%">Task Name</th>
                               <th style="width:7%">Status</th>
                               <th style="width:7%">Progress</th>
                               <th style="width:7%">Budget</th>
@@ -233,9 +233,9 @@ try {
                                  $tcounter++;
                                  $taskid = $row_rsTasks['tkid'];
                                  $tsdate = $row_rsTasks['sdate'];
-                                 $tedate = $row_rsTasks['edate'];                                                        
+                                 $tedate = $row_rsTasks['edate'];
 
-                                 $tsksfinance = $db->prepare(" SELECT (p.units_no * p.unit_cost) as taskcost FROM tbl_project_direct_cost_plan p 
+                                 $tsksfinance = $db->prepare(" SELECT (p.units_no * p.unit_cost) as taskcost FROM tbl_project_direct_cost_plan p
                                  INNER JOIN tbl_task t ON t.tkid = p.tasks WHERE t.tkid='$taskid' AND t.projid='$projid' AND t.msid='$milestone'");
                                  $tsksfinance->execute();
                                  $rowtsksfinance = $tsksfinance->fetch();
@@ -244,13 +244,13 @@ try {
                                  $query_rsChecklist = $db->prepare("SELECT *  FROM tbl_project_monitoring_checklist WHERE  taskid='$taskid'");
                                  $query_rsChecklist->execute();
                                  $row_rsChecklist = $query_rsChecklist->fetch();
-                                 $totalRows_rsChecklist = $query_rsChecklist->rowCount(); 
+                                 $totalRows_rsChecklist = $query_rsChecklist->rowCount();
 
-                                 $tstatus = $row_rsTasks['status']; 
+                                 $tstatus = $row_rsTasks['status'];
                                  $tskstatus = $db->prepare("SELECT * FROM `tbl_status` WHERE statusid=:statusid LIMIT 1");
                                  $tskstatus->execute(array(":statusid" => $tstatus));
                                  $rowtskstatus = $tskstatus->fetch();
-                                 $taskstatus = $rowtskstatus["statusname"]; 
+                                 $taskstatus = $rowtskstatus["statusname"];
 
                                  $tactive = '';
                                  if($tstatus == 3){
@@ -267,7 +267,7 @@ try {
                                        $tactive = '<button type="button" class="btn bg-brown waves-effect" style="width:100%">'.$taskstatus. '</button>';
                                  }else if($tstatus == 6){
                                        $tactive = '<button type="button" class="btn bg-pink waves-effect" style="width:100%">'.$taskstatus. '</button>';
-                                 } 
+                                 }
 
                                  $percent5 ='';
                                  $percent3 =66;
@@ -278,32 +278,32 @@ try {
                                              '.$percent3.'%
                                           </div>
                                        </div>';
-                                 } 
+                                 }
                                  elseif ($percent3 ==100){
                                        $percent5 = '
                                        <div class="progress" style="height:20px; font-size:10px; color:black">
                                           <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="'.$percent3.'" aria-valuemin="0" aria-valuemax="100" style="width: '.$percent3.'%; height:20px; font-size:10px; color:black">
-                                          '.$percent3.'%                                   
+                                          '.$percent3.'%
                                           </div>
                                        </div>';
-                                 } 
+                                 }
                                  $body .='
-                                 <tr style="background-color:#FFF"> 
+                                 <tr style="background-color:#FFF">
                                        <td>'. $Ocounter . "." . $mcounter . "." . $tcounter .'</td>
                                        <td colspan="2">'. $row_rsTasks['task'].'</td>
                                        <td>'.  $tactive .'</td>
                                        <td>'.  $percent5 .'</td>
                                        <td>'.  $tasksfinance.'</td>
                                        <td>'.  $tsdate .'</td>
-                                       <td>'.  $tedate .'</td> 
+                                       <td>'.  $tedate .'</td>
                                  </tr>';
 
 
-                           if($totalRows_rsChecklist > 0 && $projstage >= 10){ 
+                           if($totalRows_rsChecklist > 0 && $projstage >= 10){
                               $body .='
-                              <tr style="background-color:#b8f9cb; color:#FFF"> 
+                              <tr style="background-color:#b8f9cb; color:#FFF">
                                  <th style="width: 6%">#</th>
-                                 <th colspan="7" style="width: 86%">Task List</th> 
+                                 <th colspan="7" style="width: 86%">Task List</th>
                               </tr>';
 
                               $rowno = 0;
@@ -316,7 +316,7 @@ try {
                                        <td>'. $Ocounter . "." . $mcounter . "." . $tcounter."." . $rowno . '</td>
                                           <td colspan="7">
                                           ' . $checklist . '
-                                          </td> 
+                                          </td>
                                        </tr>';
                               } while ($row_rsChecklist = $query_rsChecklist->fetch());
                            }
@@ -349,12 +349,12 @@ try {
          </thead>
          <tbody>';
             $query_rsPrjTeam =  $db->prepare("SELECT t.fullname AS fullname, t.title AS title, t.email AS email, t.phone AS phone, d.designation AS designation, t.ministry AS ministry, t.department AS department FROM tbl_projmembers m INNER JOIN tbl_projteam2 t ON t.ptid=m.ptid INNER JOIN tbl_pmdesignation d ON d.moid=t.designation WHERE m.projid = '$projid' AND t.disabled='0' ORDER BY d.Reporting ASC");
-            $query_rsPrjTeam->execute();	
+            $query_rsPrjTeam->execute();
             $totalRows_rsPrjTeam = $query_rsPrjTeam->rowCount();
-           
+
             $num =0;
             if($totalRows_rsPrjTeam > 0){
-               while ($row_rsPrjTeam = $query_rsPrjTeam->fetch()){ 
+               while ($row_rsPrjTeam = $query_rsPrjTeam->fetch()){
                      $num = $num+1;
                      $mnst = $row_rsPrjTeam["ministry"];
                      $dept = $row_rsPrjTeam["department"];
@@ -363,20 +363,20 @@ try {
                         $ministry = "All Ministries";
                      }else{
                         $query_rsMinistry =  $db->prepare("SELECT sector FROM tbl_sectors WHERE stid='$mnst' AND deleted='0'");
-                        $query_rsMinistry->execute();		
+                        $query_rsMinistry->execute();
                         $row_rsMinistry = $query_rsMinistry->fetch();
                         $ministry = $row_rsMinistry["sector"];
                      }
-                     
+
                      if($dept==0){
                         $department = "All Departments";
                      }else{
                         $query_rsDept =  $db->prepare("SELECT sector FROM tbl_sectors WHERE stid='$dept' AND deleted='0'");
-                        $query_rsDept->execute();		
+                        $query_rsDept->execute();
                         $row_rsDept = $query_rsDept->fetch();
                         $department = $row_rsDept["sector"];
                      }
-                     
+
                      $fullname = $row_rsPrjTeam['title'].". ".$row_rsPrjTeam['fullname'];
 
                      $body .='
@@ -393,7 +393,7 @@ try {
             }else{
                $body .='
                <tr>
-                  <td align="center" colspan="7"> No Record found </td> 
+                  <td align="center" colspan="7"> No Record found </td>
                </tr>';
             }
             $body .='
@@ -404,7 +404,7 @@ try {
     $stylesheet = file_get_contents('bootstrap.css');
     $mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
-    
+
 	$mpdf->WriteHTML('<h5 style="color:green">Printed By: '.$printedby.'</h5>');
 	$mpdf->SetFooter('{DATE j-m-Y} Uasin Gishu County');
    $mpdf->Output();

@@ -32,7 +32,7 @@ try {
     $mpdf = new \Mpdf\Mpdf(['setAutoTopMargin' => 'pad']);
     $mpdf->SetWatermarkImage($logo);
     $mpdf->showWatermarkImage = true;
-    $mpdf->SetProtection(array(), 'UserPassword', 'password');
+    // $mpdf->SetProtection(array(), 'UserPassword', 'password');
 
     $mpdf->AddPage('l');
     $mpdf->WriteHTML('

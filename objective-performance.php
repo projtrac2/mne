@@ -1,334 +1,239 @@
-<?php 
+<?php
+require('includes/head.php');
+if ($permission && isset($_GET['fyid'])) {
+	$sector_id = $_GET['department'];
+	$financial_year_id = $_GET['fyid'];
 
-require 'authentication.php';
+	$base_url = "department=$sector_id&fyid=$financial_year_id";
 
-try{	
-		
-	$editFormAction = $_SERVER['PHP_SELF'];
-	if (isset($_SERVER['QUERY_STRING'])) {
-	  $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-	} 
-	
-	if(isset($_GET["plan"]) && !empty($_GET["plan"])){
-		$stplan = $_GET["plan"];
+	function get_financial_year($financial_year_id)
+	{
+		global $db;
+		$query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where id =:year ");
+		$query_rsFscYear->execute(array(":year" => $financial_year_id));
+		$row_rsFscYear = $query_rsFscYear->fetch();
+		$totalRows_years = $query_rsFscYear->rowCount();
+		return ($totalRows_years > 0) ? $row_rsFscYear['yr'] : 0;
 	}
-	
-	if(isset($_GET["obj"]) && !empty($_GET["obj"])){
-		$objid = $_GET["obj"];
-		$query_stratobj =  $db->prepare("SELECT * FROM tbl_strategic_plan_objectives WHERE id='$objid'");
-		$query_stratobj->execute();
-		$row_stratobj = $query_stratobj->fetch();
-		$objectiv = $row_stratobj["objective"];
-	}
-	
-	if(isset($_GET["op"]) && !empty($_GET["op"])){
-		$opid = $_GET["op"];
-	
-		$query_rsOp = $db->prepare("SELECT output,indname FROM tbl_expprojoutput e inner join tbl_outputs o on o.opid=e.expoutputname inner join tbl_indicator i on i.indid=e.expoutputindicator WHERE o.opid='$opid'");
-		$query_rsOp->execute();
-		$row_rsOp = $query_rsOp->fetch();
-		$specoutput = $row_rsOp["output"];
-		$indicator = $row_rsOp["indname"];
-	}
-	
-	if(isset($_GET["fy"]) && !empty($_GET["fy"])){
-		$fyid = $_GET["fy"];
-	}
-	
-	$current_date = date("Y-m-d");
 
-	$q1startdate = "07-01";
-	$q1enddate = "09-30";
-	$q2startdate = "10-01";
-	$q2enddate = "12-31";
-	$q3startdate = "01-01";
-	$q3enddate = "03-30";
-	$q4startdate = "04-01";
-	$q4enddate = "06-30";
-	
-	$query_rsFy = $db->prepare("SELECT year, yr FROM tbl_fiscal_year WHERE id='$fyid'");
-	$query_rsFy->execute();
-	$row_rsFy = $query_rsFy->fetch();
-	$fiscalyear = $row_rsFy["year"];
-	$financialyear = $row_rsFy["yr"];
-	$financialyear12 = $financialyear;
-	$financialyear34 = $financialyear + 1;
-	
-	$q1sdate = $financialyear12."-".$q1startdate;
-	$q1edate = $financialyear12."-".$q1enddate;
-	$q2sdate = $financialyear12."-".$q2startdate;
-	$q2edate = $financialyear12."-".$q2enddate;
-	$q3sdate = $financialyear34."-".$q3startdate;
-	$q3edate = $financialyear34."-".$q3enddate;
-	$q4sdate = $financialyear34."-".$q4startdate;
-	$q4edate = $financialyear34."-".$q4enddate;
-	
-	$query_stratplan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE id='$stplan'");
-	$query_stratplan->execute();
-	$row_stratplan = $query_stratplan->fetch();
-	$totalRows_stratplan = $query_stratplan->rowCount();
-	
-	$plan = $row_stratplan["plan"];	
-	$vision = $row_stratplan["vision"];	
-	$mission = $row_stratplan["mission"];
-	$years = $row_stratplan["years"];
-	$finyear = $row_stratplan["starting_year"] - 1;
-	$fnyear = $row_stratplan["starting_year"] - 1;
-	
-	$query_fyobj = $db->prepare("SELECT o.id AS objid, o.objective AS obj FROM tbl_key_results_area k inner join tbl_strategic_plan_objectives o on k.id=o.kraid WHERE k.spid = '$stplan'");
-	$query_fyobj->execute();
-	$totalRows_fyobj = $query_fyobj->rowCount();
-	
-	$query_obj = $db->prepare("SELECT o.id AS objid, o.objective AS obj FROM tbl_key_results_area k inner join tbl_strategic_plan_objectives o on k.id=o.kraid WHERE k.spid = '$stplan'");
-	$query_obj->execute();
-	$totalRows_obj = $query_obj->rowCount();	
+	function get_sector($sector_id)
+	{
+		global $db;
+		$query_Sectors = $db->prepare("SELECT * FROM tbl_sectors WHERE stid=:sector_id");
+		$query_Sectors->execute(array(":sector_id" => $sector_id));
+		$Rows_Sectors = $query_Sectors->fetch();
+		$totalRows_Sectors = $query_Sectors->rowCount();
+		return ($totalRows_Sectors > 0) ? $Rows_Sectors['sector'] : "";
+	}
 
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
-}
+	$start_year = get_financial_year($financial_year_id);
+
+	$end_year = $start_year + 1;
+	$financial_year = $start_year . "/" . $end_year;
+	$start = $start_year - 1;
+	$b_financial_year = $start . "/" . $start_year;
+	$indicator_sector = '';
+
+
+	$query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector ORDER BY `indid` ASC");
+	$query_indicators->execute(array(":sector" => $sector_id));
+	$sector = get_sector($sector_id);
+	$totalRows_indicators = $query_indicators->rowCount();
+
+	$query_rsConclusion = $db->prepare("SELECT * FROM `tbl_capr_report_conclusion` WHERE year=:year");
+	$query_rsConclusion->execute(array(":year" => $financial_year_id));
+	$Rows_rsConclusion = $query_rsConclusion->fetch();
+	$totalRows_rsConclusion = $query_rsConclusion->rowCount();
+
+	$base_date = $start_year . "-06-30";
+	$start_date = $start_year . "-10-01";
+	$end_date = $end_year . "-12-31";
 ?>
-<!DOCTYPE html>
-<html>
+	<section class="content">
+		<div class="container-fluid">
+			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+				<h4 class="contentheader">
+					<i class="fa fa-columns" aria-hidden="true"></i><?= $financial_year ?> PROGRESS REPORT
+					<div class="btn-group" style="float:right">
+						<div class="btn-group" style="float:right">
+							<a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+								Go Back
+							</a>
+						</div>
+					</div>
+				</h4>
+			</div>
+			<!-- Draggable Handles -->
+			<div class="row clearfix">
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<div class="card">
+						<div class="row clearfix">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+								<div class="card">
+									<div class="header">
+										<div class="row clearfix" style="margin-top:5px">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<div class="btn-group pull-right">
+													<a type="button" VALUE="PDF" class="btn btn-warning" target="_blank" href="reports/capr_report.php?<?= $base_url ?>" id="btnback" style="margin-right: 10px">
+														<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="body" style="margin-top:5px">
+										<form action="" method="post" enctype="multipart/form-data">
+											<div class="row clearfix">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<h4>Chapter 1: Performance</h4>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<h5> 1.1 Mandate and overall goals </h5>
+														<p>
+															<?= ($totalRows_rsConclusion > 0) ? $Rows_rsConclusion['section_comments'] : "No data"; ?>
+														</p>
+													</div>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<h5>1.2 Indicators Performance</h5>
+														<div class="table-responsive">
+															<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+																<thead>
 
-<head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
-	<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-	<title>Result-Based Monitoring &amp; Evaluation System</title>
-	<!-- Favicon-->
-	<link rel="icon" href="favicon.ico" type="image/x-icon">
+																	<tr class="bg-light-blue">
+																		<th style="width:3%">#</th>
+																		<th>Output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+																		<th>Indicator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+																		<th>Baseline&nbsp;&nbsp;(<?= $b_financial_year ?>)&nbsp;&nbsp;</th>
+																		<th>Target at end of the CIDP period&nbsp;&nbsp;(<?= $financial_year ?>)&nbsp;&nbsp;</th>
+																		<th>Target in review period &nbsp;&nbsp;(<?= $financial_year ?>)&nbsp;&nbsp;</th>
+																		<th>Achievement for&nbsp;&nbsp;(<?= $financial_year ?>)&nbsp;&nbsp;</th>
+																		<th>Rate of achievement for&nbsp;&nbsp;(<?= $financial_year ?>)&nbsp;&nbsp;</th>
+																		<th>Comments&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	<?php
+																	if ($totalRows_indicators > 0) {
+																		$counter = 0;
+																		while ($row_indicators = $query_indicators->fetch()) {
+																			$counter++;
+																			$initial_basevalue = 0;
+																			$actual_basevalue = 0;
+																			$annualtarget = 0;
+																			$basevalue = 0;
+																			$indid = $row_indicators['indid'];
+																			$indicator = $row_indicators['indicator_name'];
+																			$unit = $row_indicators['indicator_unit'];
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
-	<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-	
-    <!--CUSTOM MAIN STYLES-->
-    <link href="css/custom.css" rel="stylesheet" />
-    <link href="css/project-evaluation-conclusion.css" rel="stylesheet" />
+																			$query_indunit =  $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id='$unit'");
+																			$query_indunit->execute();
+																			$row_indunit = $query_indunit->fetch();
+																			$unit = ($row_indunit) ? $row_indunit["unit"] : "";
 
-    <!-- Bootstrap Core Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
+																			$query_indbasevalue_year = $db->prepare("SELECT * FROM tbl_indicator_baseline_years WHERE indid=:indid AND year <= :finyear");
+																			$query_indbasevalue_year->execute(array(":indid" => $indid, ":finyear" => $start));
+																			$totalRows_indbasevalue_year = $query_indbasevalue_year->rowCount();
+																			$year_rate = $year_target = $year_achived = 0;
 
-    <!-- Waves Effect Css -->
-    <link href="projtrac-dashboard/plugins/node-waves/waves.css" rel="stylesheet" />
+																			if ($totalRows_indbasevalue_year >= 0) {
+																				$query_initial_indbasevalue = $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid=:indid ");
+																				$query_initial_indbasevalue->execute(array(":indid" => $indid));
+																				$rows_initial_indbasevalue = $query_initial_indbasevalue->fetch();
+																				$initial_basevalue = !is_null($rows_initial_indbasevalue["basevalue"]) ? $rows_initial_indbasevalue["basevalue"] : 0;
 
-    <!-- Animation Css -->
-    <link href="projtrac-dashboard/plugins/animate-css/animate.css" rel="stylesheet" />
+																				$query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE m.record_type=1 AND d.indicator=:indid AND m.date_created <= '" . $base_date . "'");
+																				$query_actual_ind_value->execute(array(":indid" => $indid));
+																				$rows_actual_ind_value = $query_actual_ind_value->fetch();
+																				$actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
 
-    <!--WaitMe Css-->
-    <link href="projtrac-dashboard/plugins/waitme/waitMe.css" rel="stylesheet" />
+																				$basevalue = $initial_basevalue + $actual_basevalue;
 
-    <!-- Multi Select Css -->
-    <link href="projtrac-dashboard/plugins/multi-select/css/multi-select.css" rel="stylesheet">
+																				$query_annual_target = $db->prepare("SELECT SUM(target) as target FROM `tbl_progdetails` WHERE indicator=:indid AND year=:finyear");
+																				$query_annual_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+																				$rows_annual_target = $query_annual_target->fetch();
+																				$annualtarget = !is_null($rows_annual_target["target"]) ? $rows_annual_target["target"] : 0;
 
-    <!-- Bootstrap Spinner Css -->
-    <link href="projtrac-dashboard/plugins/jquery-spinner/css/bootstrap-spinner.css" rel="stylesheet">
-
-    <!-- Bootstrap Tagsinput Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css" rel="stylesheet">
-
-    <!-- Bootstrap Select Css -->
-    <link href="projtrac-dashboard/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
-
-    <!-- JQuery DataTable Css -->
-    <link href="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
-
-    <!-- Sweet Alert Css -->
-    <link href="projtrac-dashboard/plugins/sweetalert/sweetalert.css" rel="stylesheet" />
-
-    <!-- Custom Css -->
-    <link href="projtrac-dashboard/css/style.css" rel="stylesheet">
-	<link href="style.css" rel="stylesheet">
-	<script src="ckeditor/ckeditor.js"></script>
-
-    <!-- AdminBSB Themes. You can choose a theme from css/themes instead of get all themes -->
-    <link href="projtrac-dashboard/css/themes/all-themes.css" rel="stylesheet" />
-
-	<script type="text/javascript" >
-	$(document).ready(function()
-	{
-	$(".account").click(function()
-	{
-	var X=$(this).attr('id');
-
-	if(X==1)
-	{
-	$(".submenus").hide();
-	$(this).attr('id', '0');	
-	}
-	else
-	{
-
-	$(".submenus").show();
-	$(this).attr('id', '1');
-	}
-		
-	});
-
-	//Mouseup textarea false
-	$(".submenus").mouseup(function()
-	{
-	return false
-	});
-	$(".account").mouseup(function()
-	{
-	return false
-	});
+																				$query_year_target = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE indid=:indid AND year=:finyear");
+																				$query_year_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+																				$rows_year_target = $query_year_target->fetch();
+																				$totalRows_year_target = $query_year_target->rowCount();
 
 
-	//Textarea without editing.
-	$(document).mouseup(function()
-	{
-	$(".submenus").hide();
-	$(".account").attr('id', '');
-	});
-		
-	});</script>
-	<link rel="stylesheet" href="projtrac-dashboard/ajxmenu.css" type="text/css" />
-	<script src="projtrac-dashboard/ajxmenu.js" type="text/javascript"></script>
+																				$query_year_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created >= '" . $start_date . "' AND date_created <= '" . $end_date . "')");
+																				$query_year_one_actual->execute(array(":indid" => $indid));
+																				$rows_year_one_actual = $query_year_one_actual->fetch();
+																				$totalRows_year_one_actual = $query_year_one_actual->rowCount();
+																				$year_achived =  !is_null($rows_year_one_actual["achieved"]) ? $rows_quarter_one_actual["achieved"] : 0;
 
-    <link href="css/left_menu.css" rel="stylesheet">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<style>
-		#links a {
-			color: #FFFFFF;
-			text-decoration: none;
-		}  
-	</style>
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	
-	<script type="text/javascript">
-	$(document).ready(function(){
-		
-		$("#obj").on("change", function () {
-			var objid =$(this).val();
-			if(objid !=''){
-				$.ajax({
-					type: "post",
-					url: "addProjectLocation.php",
-					data: "objid="+objid,
-					dataType: "html",
-					success: function (response) {
-						$("#output").html(response);
-					}
-				});
-			}else{
-				$("#output").html('<option value="">... First Select Strategic Objective ...</option>');
-			}
-		});
-	});
+																				$year_rate1 = 0;
+																				if ($totalRows_year_target > 0) {
+																					$year_target +=  $rows_year_target["Q1"];
+																					$year_target +=  $rows_year_target["Q2"];
+																					$year_target +=  $rows_year_target["Q3"];
+																					$year_target +=  $rows_year_target["Q4"];
+																					$year_rate1 = $year_achived > 0 && $year_target > 0 ? (($year_achived / $year_target) * 100) : 0;
+																				}
+																				$year_rate = number_format($year_rate1, 2) . "%";
+																			}
 
-	</script>
-</head>
-
-<body class="theme-blue">
-    <!-- Page Loader --
-    <div class="page-loader-wrapper">
-        <div class="loader">
-            <div class="preloader">
-                <div class="spinner-layer pl-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
-                    </div>
-                </div>
-            </div>
-            <p>Please wait...</p>
-        </div>
-    </div>
-    <!-- #END# Page Loader -->
-    <!-- Overlay For Sidebars -->
-    <div class="overlay"></div>
-    <!-- #END# Overlay For Sidebars -->
-    <!-- Top Bar -->
-    <nav class="navbar" style="height:69px; padding-top:-10px">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-                <a href="javascript:void(0);" class="bars"></a>
-                <img src="images/logo.png" alt="logo" width="239" height="39">
-            </div>
-			
-        </div>
-    </nav>
-    <!-- #Top Bar -->
-    <section>
-        <!-- Left Sidebar -->
-        <aside id="leftsidebar" class="sidebar">
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="image">
-                    <img src="images/user.png" width="48" height="48" alt="User" />
-                </div>
-				<?php
-				include_once("includes/user-info.php");
-				?>
-            </div>
-            <!-- #User Info -->
-            <!-- Menu -->        
-			<?php
-			 include_once("includes/sidebar.php");
-			?>
-            <!-- #Menu -->
-            <!-- Footer -->
-			<div class="legal">
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 copyright">
-					ProjTrac M&E - Your Best Result-Based Monitoring & Evaluation System.
-				</div>
-				<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 version" align="right">
-					Copyright @ 2017 - 2019. ProjTrac Systems Ltd.
+																			$query_indRemarks =  $db->prepare("SELECT * FROM tbl_capr_report_remarks WHERE indid=:indid AND year=:financial_year_id");
+																			$query_indRemarks->execute(array(":indid" => $indid, ":financial_year_id" => $financial_year_id));
+																			$row_indRemarks = $query_indRemarks->fetch();
+																			$count_row_indRemarks = $query_indRemarks->rowCount();
+																			$remarks = ($count_row_indRemarks > 0) ?  $row_indRemarks['remarks'] : "No record";
+																	?>
+																			<tr>
+																				<td><?= $counter ?></td>
+																				<td colspan=""><?= $indicator ?></td>
+																				<td colspan=""><?= $unit . " of " .  $indicator ?></td>
+																				<td colspan=""><?= number_format($basevalue, 2) ?></td>
+																				<td colspan=""><?= number_format($annualtarget, 2) ?></td>
+																				<td><?= number_format($year_target, 2) ?></td>
+																				<td><?= number_format($year_achived, 2) ?></td>
+																				<td><?= $year_rate ?></td>
+																				<td><?= $remarks ?></td>
+																			</tr>
+																	<?php
+																		}
+																	}
+																	?>
+																</tbody>
+															</table>
+														</div>
+													</div>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<h4>Chapter 2: Challenges and Recommendations </h4>
+														<p><?= ($totalRows_rsConclusion > 0) ? $Rows_rsConclusion['challenges'] : "No data";  ?> </p>
+													</div>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<h4>Chapter 3: Lessons learnt and Conclusion</h4>
+														<p>
+															<?= ($totalRows_rsConclusion > 0) ? $Rows_rsConclusion['conclusion'] : "No data";  ?>
+														</p>
+													</div>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<h4>Appendices for additional documents/materials</h4>
+														<p>
+															<?= ($totalRows_rsConclusion > 0) ? $Rows_rsConclusion['appendices'] : "No data";  ?>
+														</p>
+													</div>
+												</div>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-            <!-- #Footer -->
-        </aside>
-        <!-- #END# Left Sidebar -->
-    </section>
-	<section class="content" style="margin-top:-20px; padding-bottom:0px">
-		<?php 
-			include_once('objective-performance-inner.php');
-		?>
+		</div>
 	</section>
+	<!-- end body  -->
+<?php
+} else {
+	$results =  restriction();
+	echo $results;
+}
 
-	<!-- Bootstrap Core Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script>
-
-	<!-- Select Plugin Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script>
-
-	<!-- Autosize Plugin Js -->
-	<script src="projtrac-dashboard/plugins/autosize/autosize.js"></script>
-
-	<!-- Moment Plugin Js -->
-	<script src="projtrac-dashboard/plugins/momentjs/moment.js"></script>
-
-	<!-- Jquery Spinner Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-
-    <!-- Jquery DataTable Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-datatable/jquery.dataTables.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.flash.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/jszip.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/pdfmake.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/vfs_fonts.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.html5.min.js"></script>
-    <script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.print.min.js"></script>
-
-    <!-- Custom Js -->
-    <script src="projtrac-dashboard/js/admin2.js"></script>
-    <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
-	<script src="projtrac-dashboard/js/pages/forms/basic-form-elements.js"></script>
-	
-    <!-- Demo Js -->
-    <script src="projtrac-dashboard/js/demo.js"></script>
-
-</body>
-
-</html>
+require('includes/footer.php');
+?>
