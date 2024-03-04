@@ -1,4 +1,4 @@
-<?php 
+<?php
 include '../controller.php';
 try {
     if (isset($_POST['store'])) {
@@ -124,7 +124,7 @@ try {
 
                 $query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE checklist_id=:checklist_id AND parameter_id=:parameter_id AND site_id=:site_id ORDER BY id DESC LIMIT 1");
                 $query_rsMonitoring_Achieved->execute(array(":checklist_id" => $checklist_id, ":parameter_id" => $parameter_id, ":site_id" => $site_id));
-                if ($mapping_type == 2 || $mapping_type == 3) {
+                if ($mapping_type != 1 ) {
                     $query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE checklist_id=:checklist_id AND parameter_id=:parameter_id AND state_id=:state_id ORDER BY id DESC LIMIT 1");
                     $query_rsMonitoring_Achieved->execute(array(":checklist_id" => $checklist_id, ":parameter_id" => $parameter_id, ":state_id" => $state_id));
                 }
@@ -136,10 +136,10 @@ try {
                 $data .= '
                 <tr id="s_row' . $rowno . '">
                     <td>' . $rowno . '</td>
-                    <td>' . $target . " " . $units . "  " . $checklist . ' </td>  
-                    <td>  
+                    <td>' . $target . " " . $units . "  " . $checklist . ' </td>
+                    <td>
                         <input type="number" min="' . $achieved . '" max="' . $target . '" name="achieved[]" id="achievedrow' . $rowno . '" value="" placeholder="Achived ' . $achieved . '" class="form-control" required/>
-                    </td> 
+                    </td>
                     <input type="hidden" name="target[]" id="targetrow' . $rowno . '" value="' . $target . '"/>
                     <input type="hidden" name="checklist[]" id="checklistrow' . $rowno . '" value="' . $checklist_id . '"/>
                 </tr>';
@@ -147,7 +147,7 @@ try {
         }
         echo json_encode(array("success" => $msg, "checklists" => $data));
     }
- 
+
     if (isset($_GET['get_issues'])) {
         $specification_id = $_GET['specification_id'];
         $query_allrisks = $db->prepare("SELECT C.rskid, C.category,R.observation, R.date_created, R.status FROM tbl_projrisk_categories C INNER JOIN tbl_projissues R ON C.rskid = R.risk_category WHERE origin = 2 AND  R.specification_id = :specification_id");
@@ -166,7 +166,7 @@ try {
                 $data .= '
                 <tr id="s_row">
                     <td>' . $count . '</td>
-                    <td>' . $category . '</td>  
+                    <td>' . $category . '</td>
                     <td>' . $reason . ' </td>
                     <td>' . $status . ' </td>
                     <td>' . date("Y-m-d", strtotime($issuedate)) . ' </td>
@@ -276,14 +276,14 @@ try {
                 $issues_body .= '
                 <tr id="s_row">
                     <td>' . $count . '</td>
-                    <td>' . $category . '</td>  
+                    <td>' . $category . '</td>
                     <td>' . $reason . ' </td>
                     <td>' . $status . ' </td>
                     <td>' . date("Y-m-d", strtotime($issuedate)) . ' </td>
                 </tr>';
             }
         }
- 
+
 
         $previous_records = $comments_body != "" || $issues_body != "" ?  get_body($comments_body, $issues_body) : "<h4>No Record</h4>";
         echo json_encode(array("success" => true, "issues" => $previous_records));
@@ -329,7 +329,7 @@ try {
                 $issues_body .= '
                 <tr id="s_row">
                     <td>' . $count . '</td>
-                    <td>' . $category . '</td>  
+                    <td>' . $category . '</td>
                     <td>' . $reason . ' </td>
                     <td>' . $status . ' </td>
                     <td>' . date("Y-m-d", strtotime($issuedate)) . ' </td>

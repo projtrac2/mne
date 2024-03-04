@@ -6,7 +6,7 @@ if ($permission) {
         /* $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage)); */
 		
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND projstatus <> 5 ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
     } catch (PDOException $ex) {
@@ -37,9 +37,8 @@ if ($permission) {
                                         <tr id="colrow">
                                             <th style="width:5%" align="center">#</th>
                                             <th style="width:10%">Project Code</th>
-                                            <th style="width:50%">Project Name </th>
-                                            <th style="width:15">Due Date</th>
-                                            <th style="width:15">Project Status</th>
+                                            <th style="width:55%">Project Name </th>
+                                            <th style="width:25">Project Status</th>
                                             <th style="width:5%">Action</th>
                                         </tr>
                                     </thead>
@@ -68,6 +67,10 @@ if ($permission) {
 													$statuslabelcolor = "label-info";
 												} elseif($projstatusid == 11){
 													$statuslabelcolor = "label-danger";
+												} elseif($projstatusid == 6){
+													$statuslabelcolor = "label-pink";
+												} elseif($projstatusid == 2){
+													$statuslabelcolor = "label-brown";
 												}
 												
 												$query_project_status = $db->prepare("SELECT statusname FROM tbl_status WHERE statusid=:projstatusid");
@@ -75,7 +78,7 @@ if ($permission) {
 												$row_project_status = $query_project_status->fetch();
 												$project_status = $row_project_status["statusname"];
 				
-												$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+												$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE projid=:projid GROUP BY r.id");
 												$query_proj_risks->execute(array(":projid" => $projid));
 												$totalRows_proj_risks = $query_proj_risks->rowCount();
 
@@ -99,7 +102,6 @@ if ($permission) {
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?= $projcode ?></td>
                                                         <td><?= $projname ?></td>
-                                                        <td><?= date('Y M d') ?></td>
                                                         <td><label class='label <?=$statuslabelcolor?>'><?= $project_status; ?></label></td>
                                                         <td>
                                                             <div class="btn-group">
@@ -127,7 +129,7 @@ if ($permission) {
                                                             </div>
                                                         </td>
                                                     </tr>
-                                        <?php
+													<?php
                                                 }
                                             } 
                                         }

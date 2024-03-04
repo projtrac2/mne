@@ -169,9 +169,13 @@ if ($permission) {
                 <h4 class="contentheader">
                     <?= $icon ?>
                     <?= $pageTitle ?>
-                    <div class="btn-group" style="float:right">
-                        
-                    </div>
+					<div class="btn-group" style="float:right; padding-right:5px">
+						<div class="btn-group" style="float:right">
+							<a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+								Go Back
+							</a>
+						</div>
+					</div>
                 </h4>
             </div>
             <div class="row clearfix">
@@ -249,7 +253,7 @@ if ($permission) {
 														<th width="12%">Answer Labels</th>
 														<th width="12%">Calculation Method</th>
 														<th width="10%">
-															<button type="button" name="addplus" id="addplus" class="btn btn-success btn-sm" data-toggle="modal" id="addQuestionsModalBtn" data-target="#addQuestionsModal">
+															<button type="button" name="addplus" id="addplus" class="btn btn-success btn-sm" data-toggle="modal" id="addQuestionsModalBtn" onclick="count_questions(<?=$projid?>,<?=$resultstype?>,<?=$resultstypeid?>)" data-target="#addQuestionsModal">
 																<span class="glyphicon glyphicon-plus"></span>
 															</button>
 														</th>
@@ -269,7 +273,7 @@ if ($permission) {
 										<input name="form_name" type="hidden" id="form_name" value="<?= $surveytype ?>" />
 										<input name="surveytype" type="hidden" id="surveytype" value="<?= $projstage ?>" />
 										<div class="btn-group">
-											<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Submit" />
+											<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit_evaluation_form" value="Submit" />
 										</div>
 										<input type="hidden" name="MM_insert" value="<?= $formid ?>" />
 									</div>
@@ -288,7 +292,7 @@ if ($permission) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="resetModalContent()><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title questionmodaltitle" style="color:#fff" align="center" id="modal-title">Add <?=$formtype?> Survey Question</h4>
                 </div>
                 <div class="modal-body">
@@ -308,12 +312,13 @@ if ($permission) {
 											$query_survey_questions->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
 											$count_survey_questions = $query_survey_questions->rowCount();
 											//$count_survey_questions = 1;
-											if ($count_survey_questions > 0) {
+											//if ($count_survey_questions > 0) {
 												?>
+											<div id="questions">
 												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
 													<label for="impactName" class="control-label">Question Type *:</label>
 													<div class="form-input">
-														<select data-id="0" name="question_type" id="question_type" onchange="add_question_type()" class="form-control impactquerry" required>
+														<select data-id="0" name="question_type" id="question_type" onchange="add_question_type()" class="form-control main_question_count">
 															<?php
 															$question_type = '<option value="">... Select ...</option>';
 															$question_type .= '<option value="1">Main Question</option>';
@@ -326,7 +331,7 @@ if ($permission) {
 												<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12" id="mainquestion">
 													<label for="main_question" class="control-label">Main Question *:</label>
 													<div class="form-input">
-														<select data-id="0" name="main_question" id="main_question" class="form-control impactquerry" required>
+														<select data-id="0" name="main_question" id="main_question" class="form-control main_question_count">
 															<?php
 															$query_main_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=:resultstype AND resultstypeid=:resultstypeid AND questiontype=1");
 															$query_main_questions->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
@@ -341,8 +346,9 @@ if ($permission) {
 														</select>
 													</div>
 												</div>
+											</div>
 												<?php 
-											}
+											//}
 											?>
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <label for="question" class="control-label">Question Description *:</label>
@@ -374,16 +380,16 @@ if ($permission) {
                                                 </div>
                                             </div>
                                             <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" id="calculation_method">
-                                                <label for="calc_method" class="control-label">Calculation Method *:</label>
+                                                <label for="calc_method" class="control-label">Summarization Techniques *:</label>
                                                 <div class="form-input">
 													<select data-id="0" name="calculation_method" id="calc_method" class="form-control impactquerry" required="required">
 														<?php
-														$query_calculation_method = $db->prepare("SELECT * FROM tbl_indicator_calculation_method WHERE active = 1");
+														$query_calculation_method = $db->prepare("SELECT * FROM tbl_numbers_aggregation_method WHERE active = 1");
 														$query_calculation_method->execute();
 														
 														$calculation_method = '<option value="">... Select ...</option>';
 														while($row_calculation_method = $query_calculation_method->fetch()){
-															$calculation_method .= '<option value="'.$row_calculation_method["id"].'">'.$row_calculation_method["method"].'</option>';
+															$calculation_method .= '<option value="'.$row_calculation_method["id"].'">'.$row_calculation_method["method"].' ['.$row_calculation_method["description"].']</option>';
 														}
 														echo $calculation_method;
 														?>
@@ -393,12 +399,13 @@ if ($permission) {
                                             <div class="modal-footer">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                     <input type="hidden" name="add_evaluation_questions" id="add_evaluation_questions" value="add">
+                                                    <input type="hidden" name="question_status" id="question_status" value="0">
                                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
 													<input name="resultstype" id="resultstype" type="hidden" value="<?php echo $resultstype; ?>" />
 													<input name="resultstypeid" id="resultstypeid" type="hidden" value="<?php echo $resultstypeid; ?>" />
                                                     <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                     <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="question-tag-form-submit" value="Save" />
-                                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal" onclick="resetModalContent()"> Cancel</button>
                                                 </div>
                                             </div>
                                         </form>
@@ -423,5 +430,5 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/indicator-details.js"></script>
-<script src="assets/custom js/baseline-survey.js"></script>
+<!--<script src="assets/custom js/baseline-survey.js"></script>-->
 <script src="assets/js/mneplan/survey.js"></script>

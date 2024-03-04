@@ -1,5 +1,55 @@
 var issues_url = "ajax/issuesandrisks/index";
 
+$(document).ready(function(){		
+	/* $('#par-change-form').on('submit', function(event){
+		event.preventDefault();
+		var form_data = $(this).serialize();
+		$.ajax({
+			type: "POST",
+			url: "parameterschange",
+			data: form_data,
+			dataType: "json",
+			success:function(response)
+			{   
+				if(response){
+					alert('Record Successfully Saved');
+					$('.modal').each(function(){
+						$(this).modal('hide');
+					});
+				}
+			},
+			error: function() {
+				alert('Error');
+			}
+		});
+		return false;
+	});
+			
+	$('#escalation-response-form').on('submit', function(event){
+		event.preventDefault();
+		var form_data = $(this).serialize();
+		$.ajax({
+			type: "POST",
+			url: "escalationresponse",
+			data: form_data,
+			dataType: "json",
+			success:function(response)
+			{   
+				if(response){
+					alert('Record Successfully Saved');
+					window.location.reload();
+				}
+			},
+			error: function() {
+				alert('Error');
+			}
+		});
+		return false;
+	}); */
+		
+	$(".adjustments").hide();
+});
+
 function issuemoreinfo(id) {
 	$.ajax({
 		type: 'get',
@@ -75,3 +125,16 @@ function project_adjustments(projid,issueid){
 		}
 	});
 }
+
+function adjustedscopes(issueid) {
+	var clicked = $("#clicked").val();
+	if ( clicked == 0 ){
+		$("." + issueid).show();
+		clicks = clicked + 1;
+	}else{
+		$("." + issueid).hide();
+		clicks = clicked - 1;
+	}
+	
+	$('#clicked').val(clicks);
+};

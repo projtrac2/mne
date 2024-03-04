@@ -19,7 +19,7 @@ if ($permission) {
 		$project_directorate = $row_rsProjects['directorate'];
 		$approve = $project_sub_stage >= 2 ? true : false;
 
-		$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+		$query_proj_risks = $db->prepare("SELECT *, r.id AS riskid FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE projid=:projid GROUP BY r.id");
 		$query_proj_risks->execute(array(":projid" => $projid));
 		$totalRows_proj_risks = $query_proj_risks->rowCount();
 
@@ -44,19 +44,20 @@ if ($permission) {
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<?php
+						if (!$approve) {
 						?>
-						<a type="button" data-toggle="modal" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary" style="margin-right: 10px;">
-							Add Risk
-						</a>
-						<?php
-						if ($totalRows_proj_risks > 0) {
-						?>
-							<a type="button" data-toggle="modal" data-target="#riskResponsibleModal" id="riskResponsibleModalBtnrow" class="btn btn-success" style="margin-right: 10px;">
-								Add Other Risk Details to Proceed
+							<a type="button" data-toggle="modal" data-target="#outputItemModal" id="outputItemModalBtnrow" class="btn btn-primary" style="margin-right: 10px;">
+								Add Risk
 							</a>
+							<?php
+							if ($totalRows_proj_risks > 0) {
+							?>
+								<a type="button" data-toggle="modal" data-target="#riskResponsibleModal" id="riskResponsibleModalBtnrow" class="btn btn-success" style="margin-right: 10px;">
+									Add Other Risk Details to Proceed
+								</a>
 						<?php
+							}
 						}
-
 						?>
 						<a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px;">
 							Go Back
@@ -128,7 +129,7 @@ if ($permission) {
 															$counter = 0;
 															while ($row_proj_risks = $query_proj_risks->fetch()) {
 																$counter++;
-																$rskid = $row_proj_risks['id'];
+																$rskid = $row_proj_risks['riskid'];
 																$category = $row_proj_risks['category'];
 																$risk = $row_proj_risks['risk_description'];
 																$riskleveldigit = $row_proj_risks['risk_level'];
@@ -155,16 +156,22 @@ if ($permission) {
 																						<i class="fa fa-info"></i> More Info
 																					</a>
 																				</li>
-																				<li>
-																					<a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="editrisk(<?= $rskid ?>)">
-																						<i class="fa fa-pencil-square"></i> Edit Risk
-																					</a>
-																				</li>
-																				<li>
-																					<a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $rskid ?>)">
-																						<i class="fa fa-trash-o"></i> Delete Risk
-																					</a>
-																				</li>
+																				<?php
+																				if (!$approve) {
+																				?>
+																					<li>
+																						<a type="button" data-toggle="modal" data-target="#outputItemModal" id="addFormModalBtn" onclick="editrisk(<?= $rskid ?>)">
+																							<i class="fa fa-pencil-square"></i> Edit Risk
+																						</a>
+																					</li>
+																					<li>
+																						<a type="button" data-toggle="modal" data-target="#removeItemModal" id="#removeItemModalBtn" onclick="destroy_task(<?= $rskid ?>)">
+																							<i class="fa fa-trash-o"></i> Delete Risk
+																						</a>
+																					</li>
+																				<?php
+																				}
+																				?>
 																			</ul>
 																		</div>
 																	</td>
@@ -300,7 +307,7 @@ if ($permission) {
 							<input type="hidden" name="store_responsible" id="store_responsible" value="responsible">
 							<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
 							<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-							<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+							<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="responsible-form-submit" value="Save" />
 							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
 						</div>
 					</div>
@@ -342,20 +349,14 @@ if ($permission) {
 								$query_risk_responsible = $db->prepare("SELECT *, tt.title AS user_title FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title where t.disabled=0");
 								$query_risk_responsible->execute();
 								?>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
-									<div class="form-inline">
-										<label for="">Risk Description</label>
-										<input name="risk" type="text" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" placeholder="Describe the risk" required>
-									</div>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+								<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 									<div class="form-inline">
 										<label for="">Risk Category</label>
-										<select name="risk_category" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+										<select name="risk_category" id="risk_category" class="form-control require" onchange="category_risks();" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
 											<option value="">.... Select Category ....</option>
 											<?php
 											while ($row_risk_categories = $query_risk_categories->fetch()) {
-											?>
+												?>
 												<font color="black">
 													<option value="<?php echo $row_risk_categories['catid'] ?>"><?php echo $row_risk_categories['category'] ?></option>
 												</font>
@@ -365,7 +366,15 @@ if ($permission) {
 										</select>
 									</div>
 								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+									<div class="form-inline">
+										<label for="">Risk Description</label>
+										<select name="risk_id" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" id="risk_id" required>
+											<option value="">.... First Select Risk Category ....</option>
+										</select>
+									</div>
+								</div>
+								<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 									<div class="form-inline">
 										<label for="">Risk Likelihood</label>
 										<select name="likelihood" id="likelihood" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
@@ -382,7 +391,7 @@ if ($permission) {
 										</select>
 									</div>
 								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+								<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 									<div class="form-inline">
 										<label for="">Risk Impact</label>
 										<select name="impact" id="impact" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
@@ -399,7 +408,7 @@ if ($permission) {
 										</select>
 									</div>
 								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+								<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 									<div class="form-inline">
 										<label for="">Risk Level</label>
 										<input name="risk_level" type="hidden" id="severity" required>
@@ -410,7 +419,7 @@ if ($permission) {
 						</fieldset>
 						<fieldset class="scheduler-border">
 							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Risk Strategic Measures </legend>
-							<div class="col-md-12" id="projRiskTable">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="projRiskTable">
 								<div class="table-responsive">
 									<table class="table table-bordered table-striped table-hover" id="tasks_table" style="width:100%">
 										<thead>
@@ -440,6 +449,7 @@ if ($permission) {
 					<div class="modal-footer">
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 							<input type="hidden" name="store_risk" id="store_risk" value="addrisk">
+							<input type="hidden" name="riskid" id="riskid">
 							<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
 							<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
 							<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
@@ -469,7 +479,7 @@ if ($permission) {
 					</fieldset>
 					<fieldset class="scheduler-border">
 						<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Strategic Measures </legend>
-						<div class="col-md-12">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<div class="table-responsive">
 								<table class="table table-bordered table-striped table-hover" id="measures_table" style="width:100%">
 									<thead>

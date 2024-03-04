@@ -76,18 +76,25 @@ if ($permission) {
 
                                                 if ($filter_department) {
                                                     $counter++;
-                                                    $activity_status = '';
-                                                    $activity = $totalRows_plan == 0 ? "Add" : "Edit";
-                                                    $assigned = false;
-                                                    if ($sub_stage == 0) {
-                                                        $activity_status = "Pending";
-                                                    } else if ($sub_stage == 3 || $sub_stage == 1) {
-                                                        $activity_status = "Assigned";
-                                                        $assigned = true;
-                                                    } else if ($sub_stage > 1) {
-                                                        $activity_status = "Pending Approval";
-                                                        $activity = "Approve";
+
+                                                    $today = date('Y-m-d');
+                                                    $assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
+                                                    $activity = "Add";
+                                                    if ($totalRows_plan > 0) {
+                                                        $activity = $sub_stage > 1 ? "Approve"  : "Edit";
                                                     }
+
+                                                    $due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
+                                                    $activity_status = "Pending";
+                                                    if ($sub_stage > 1) {
+                                                        $activity_status = "Pending Approval";
+                                                    } else if ($sub_stage < 2) {
+                                                        $activity_status = $sub_stage == 1 ?  "Assigned" : "Pending";
+                                                        if ($today > $due_date) {
+                                                            $activity_status = "Behind Schedule";
+                                                        }
+                                                    }
+
 
                                                     $edit =  $assigned ? "edit" : "new";
                                                     $details = "{
@@ -104,7 +111,7 @@ if ($permission) {
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?php echo $row_rsProjects['projcode'] ?></td>
                                                         <td><?php echo $row_rsProjects['projname'] ?></td>
-                                                        <td><?php echo date('Y M d') ?></td>
+                                                        <td><?= date('Y M d', strtotime($due_date))  ?></td>
                                                         <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                         <td>
                                                             <div class="btn-group">

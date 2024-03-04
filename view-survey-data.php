@@ -93,9 +93,7 @@ if ($permission) {
 				<?= $icon ?>
 				<?php echo "Project ".$surveytype." Evaluation" ?>
 				<div class="btn-group" style="float:right">
-					<div class="btn-group" style="float:right">
-						<input type="button" VALUE="Go Back" class="btn btn-warning pull-right" onclick="location.href='<?=$evaluationurl?>'" id="btnback">
-					</div>
+					<input type="button" VALUE="Go Back" class="btn btn-warning pull-right" onclick="location.href='<?=$evaluationurl?>'" id="btnback">
 				</div>
             </h4>
          </div>
@@ -174,7 +172,7 @@ if ($permission) {
 							$query_form_locations->execute(array(":formid" => $formid));
 							$rows_form_locations = $query_form_locations->fetchAll();
 							
-							$query_answers_type =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid and resultstype=:resultstype and resultstypeid=:resultstypeid ORDER BY id ASC");
+							$query_answers_type =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid and resultstype=:resultstype and resultstypeid=:resultstypeid and questiontype = 1 ORDER BY id ASC");
 							$query_answers_type->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
 							$count_answers_type = $query_answers_type->rowCount();
 							?>
@@ -189,6 +187,7 @@ if ($permission) {
 										$questiontype = $rows_answers_type["questiontype"];
 										$answertype = $rows_answers_type["answertype"];
 										$answerlabels = $rows_answers_type["answerlabels"];
+										$question_calculation_method = $rows_answers_type["question_calculation_method"];
 										$nb++;
 										echo '
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -198,15 +197,99 @@ if ($permission) {
 												echo '
 												<table class="table table-bordered table-striped">
 												  <thead>
-													<tr class="bg-light-blue">
-														<td style="width:5%">#</td>
-														<th style="width:50%">'.$level2label.'</th>
-														<th style="width:45%">Answer</th>
-													</tr>
-												  </thead>
+													<tr class="bg-light-blue">';
+														if($disaggregated == 1){
+															echo '
+															<td rowspan="2" style="width:5%">#</td>
+															<th rowspan="2" style="width:50%">'.$level2label.'</th>
+															<th colspan="'.$colspan.'" style="width:45%">Answer</th>';
+														} else {
+															echo '
+															<td style="width:5%">#</td>
+															<th style="width:50%">'.$level2label.'</th>
+															<th style="width:45%">Answer</th>';
+														}
+														echo '
+													</tr>';
+													if($disaggregated == 1){
+														echo '<tr class="bg-light-blue">';
+																foreach($row_indicator_disaggregations as $disaggregations){ 
+																	echo '<th>'.$disaggregations["disaggregation"].'</th>';
+																}
+														echo '</tr>';
+													}
+												  echo '</thead>
 												  <tbody>';
 												  
-												  $totalanswer = $sr=0;
+												  $sr=0;
+												  if($disaggregated == 1){
+													foreach($rows_form_locations as $locationid){
+														$sr++;
+														$locationid = $locationid["level3"];
+														$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+														$query_answer_location->execute(array(":locationid" => $locationid));
+														$rows_answer_location = $query_answer_location->fetch();
+														$location = $rows_answer_location["state"];
+														echo '<tr class="bg-lime">
+															<td>'.$sr.'</td>
+															<td>'.$location.'</td>';
+															foreach($row_indicator_disaggregations as $disaggregations){ 
+																$disaggregationid = $disaggregations["disid"];
+																$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregationid");
+																$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregationid" => $disaggregationid));
+																$count_answers = $query_answers->rowCount();
+																$question_answer = $summation = 0;
+																
+																if($question_calculation_method == 1){ //summation or aggregation
+																	while($rows_answers = $query_answers->fetch()){
+																		$question_answer +=$rows_answers["answer"];
+																	}
+																}elseif($question_calculation_method == 3){ //average
+																	$summation = 0;
+																	while($rows_answers = $query_answers->fetch()){
+																		$summation +=$rows_answers["answer"];
+																	}	
+																	$question_answer = $summation / $count_answers;
+																}
+																
+																echo '<td>'.$question_answer.'</td>';
+															}
+														echo '</tr>';
+													}
+													echo '<tr class="bg-green">
+														<td></td>
+														<td><strong>';
+															if($question_calculation_method == 1){
+																echo 'Total Number';
+															}elseif($question_calculation_method == 3){
+																echo 'Average Number';
+															}
+														echo '</strong></td>';
+														foreach($row_indicator_disaggregations as $disaggregations){ 
+															$disaggregationid = $disaggregations["disid"];
+															$query_disag_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and questionid=:questionid and disaggregation=:disaggregationid");
+															$query_disag_answers->execute(array(":formid" => $formid, ":questionid" => $questionid, ":disaggregationid" => $disaggregationid));
+															$count_disag_answers = $query_disag_answers->rowCount();
+															$question_answer = $summation = $totalamount = $totalanswer = 0;
+															if($question_calculation_method == 1){ //summation or aggregation
+																while($rows_answers = $query_disag_answers->fetch()){
+																	$question_answer +=$rows_answers["answer"];
+																}
+																$totalanswer += $question_answer;
+															}elseif($question_calculation_method == 3){ //average
+																$summation = 0;
+																while($rows_answers = $query_disag_answers->fetch()){
+																	$summation +=$rows_answers["answer"];
+																}	
+																$question_answer = $summation / $count_disag_answers;
+																$totalanswer += $question_answer;
+															}
+															$totalamount = $totalanswer / $sr;
+															echo '<td><strong>'.$totalamount.'</strong></td>';
+														}
+														echo '
+													</tr>';
+												  } else {
 													foreach($rows_form_locations as $locationid){
 														$sr++;
 														$locationid = $locationid["level3"];
@@ -221,21 +304,14 @@ if ($permission) {
 															$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
 															$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
 															$count_answers = $query_answers->rowCount();
-															
-															$totalamount = $question_answer = 0;
-															if($ind_calculation_method == 1){
+															$question_answer = $summation = $totalamount = $totalanswer = 0;
+															if($question_calculation_method == 1){
 																while($rows_answers = $query_answers->fetch()){
 																	$question_answer +=$rows_answers["answer"];
 																}
 																$totalanswer += $question_answer;
 																$totalamount = $totalanswer;
-															}elseif($ind_calculation_method == 2){
-																$summation = 0;
-																while($rows_answers = $query_answers->fetch()){
-																	$summation +=$rows_answers["answer"];
-																}																
-															}elseif($ind_calculation_method == 3){
-																$question_answer = $summation = 0;
+															}elseif($question_calculation_method == 3){
 																while($rows_answers = $query_answers->fetch()){
 																	$summation +=$rows_answers["answer"];
 																}
@@ -244,146 +320,290 @@ if ($permission) {
 																$totalamount = $totalanswer / $sr;
 															}
 															
-															echo '<td>'.$question_answer.' '.$unit.'</td>
+															echo '<td>'.$question_answer.'</td>
 														</tr>';
 													}
 													echo '<tr class="bg-green">
 														<td></td>
 														<td><strong>';
-															if($ind_calculation_method == 1){
+															if($question_calculation_method == 1){
 																echo 'Total Number';
-															}elseif($ind_calculation_method == 3){
+															}elseif($question_calculation_method == 3){
 																echo 'Average Number';
 															}
 														echo '</strong></td>
-														<td><strong>'.$totalamount.' '.$unit.'</strong></td>
+														<td><strong>'.$totalamount.'</strong></td>
 													</tr>';
+												  }
 												  echo '</tbody>
 												</table>';
 											}
 											elseif($answertype == 2){
 												$answerlabels = explode(",",$answerlabels);
 												$answerlabelscount = count($answerlabels);
-												$colwidth = number_format((80/$answerlabelscount),2);
-												echo '
-												<table class="table table-bordered table-striped">
-												  <thead>
-													<tr class="bg-light-blue">
-														<td style="width:5%">#</td>
-														<th style="width:20%">'.$level2label.'</th>';
-														foreach($answerlabels as $answerlabel){
-															echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
-														}
-													echo '</tr>
-												  </thead>
-												  <tbody>';
-												  $sr=0;
-													foreach($rows_form_locations as $locationid){
-														$sr++;
-														$locationid = $locationid["level3"];
-														$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
-														$query_answer_location->execute(array(":locationid" => $locationid));
-														$rows_answer_location = $query_answer_location->fetch();
-														$location = $rows_answer_location["state"];
-														echo '<tr class="bg-lime">
-															<td class="bg-light-green">'.$sr.'</td>
-															<td class="bg-light-green">'.$location.'</td>';
-															foreach($answerlabels as $answerlabel){
-																$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel");
-																$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel));
-																$count_answers = $query_answers->rowCount();
-																
-																echo '<td class="bg-light-green">'.$count_answers.'</td>';
+												
+												if($disaggregated == 1){
+													$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+													echo '
+													<table class="table table-bordered table-striped">
+													  <thead>
+														<tr class="bg-light-blue">
+															<td style="width:5%">#</td>
+															<th style="width:20%">'.$level2label.'</th>';
+															foreach($row_indicator_disaggregations as $disaggregations){ 
+																foreach($answerlabels as $answerlabel){
+																	echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																}
 															}
-														echo '</tr>';
-													}
-												  echo '</tbody>
-												</table>';											
+														echo '</tr>
+													  </thead>
+													  <tbody>';
+													  $sr=0;
+														foreach($rows_form_locations as $locationid){
+															$sr++;
+															$locationid = $locationid["level3"];
+															$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+															$query_answer_location->execute(array(":locationid" => $locationid));
+															$rows_answer_location = $query_answer_location->fetch();
+															$location = $rows_answer_location["state"];
+															echo '<tr class="bg-lime">
+																<td class="bg-light-green">'.$sr.'</td>
+																<td class="bg-light-green">'.$location.'</td>';
+																
+																foreach($row_indicator_disaggregations as $disaggregations){ 
+																	$disaggregationid = $disaggregations["disid"];
+																	foreach($answerlabels as $answerlabel){
+																		$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel and disaggregation=:disaggregation");
+																		$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel, ":disaggregation" => $disaggregationid));
+																		$count_answers = $query_answers->rowCount();
+																		
+																		echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																	}
+																}
+															echo '</tr>';
+														}
+													  echo '</tbody>
+													</table>';
+													
+													
+												} else {
+													$colwidth = number_format((80/$answerlabelscount),2);
+													echo '
+													<table class="table table-bordered table-striped">
+													  <thead>
+														<tr class="bg-light-blue">
+															<td style="width:5%">#</td>
+															<th style="width:20%">'.$level2label.'</th>';
+															foreach($answerlabels as $answerlabel){
+																echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+															}
+														echo '</tr>
+													  </thead>
+													  <tbody>';
+													  $sr=0;
+														foreach($rows_form_locations as $locationid){
+															$sr++;
+															$locationid = $locationid["level3"];
+															$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+															$query_answer_location->execute(array(":locationid" => $locationid));
+															$rows_answer_location = $query_answer_location->fetch();
+															$location = $rows_answer_location["state"];
+															echo '<tr class="bg-lime">
+																<td class="bg-light-green">'.$sr.'</td>
+																<td class="bg-light-green">'.$location.'</td>';
+																foreach($answerlabels as $answerlabel){
+																	$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel");
+																	$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel));
+																	$count_answers = $query_answers->rowCount();
+																	
+																	echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																}
+															echo '</tr>';
+														}
+													  echo '</tbody>
+													</table>';
+												}												
 											}elseif($answertype == 3){
 												$answerlabels = explode(",",$answerlabels);
 												$answerlabelscount = count($answerlabels);
-												$colwidth = number_format((80/$answerlabelscount),2);
-												echo '
-												<table class="table table-bordered table-striped">
-												  <thead>
-													<tr class="bg-light-blue">
-														<td style="width:5%">#</td>
-														<th style="width:20%">'.$level2label.'</th>';
-														foreach($answerlabels as $answerlabel){
-														  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
-														}
-													echo '</tr>
-												  </thead>
-												  <tbody>';
-													$sr=0;
-													foreach($rows_form_locations as $locationid){
-														$sr++;
-														$locationid = $locationid["level3"];
-														$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
-														$query_answer_location->execute(array(":locationid" => $locationid));
-														$rows_answer_location = $query_answer_location->fetch();
-														$location = $rows_answer_location["state"];
-												  
-														echo '<tr class="bg-lime">
-															<td class="bg-light-green">'.$sr.'</td>
-															<td class="bg-light-green">'.$location.'</td>';
-															foreach($answerlabels as $answerlabel){
-																$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
-																$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
-																$countanswers = 0;
-																while($rows_answers = $query_answers->fetch()){
-																	$answerarray = explode(",",$rows_answers["answer"]);
-																	if(in_array($answerlabel,$answerarray)){
-																		$countanswers++;
+												
+												if($disaggregated == 1){
+													$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+													echo '
+													<table class="table table-bordered table-striped">
+													  <thead>
+														<tr class="bg-light-blue">
+															<td style="width:5%">#</td>
+															<th style="width:20%">'.$level2label.'</th>';
+															foreach($row_indicator_disaggregations as $disaggregations){ 
+																foreach($answerlabels as $answerlabel){
+																  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																}
+															}
+														echo '</tr>
+													  </thead>
+													  <tbody>';
+														$sr=0;
+														foreach($rows_form_locations as $locationid){
+															$sr++;
+															$locationid = $locationid["level3"];
+															$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+															$query_answer_location->execute(array(":locationid" => $locationid));
+															$rows_answer_location = $query_answer_location->fetch();
+															$location = $rows_answer_location["state"];
+													  
+															echo '<tr class="bg-lime">
+																<td class="bg-light-green">'.$sr.'</td>
+																<td class="bg-light-green">'.$location.'</td>';
+																foreach($row_indicator_disaggregations as $disaggregations){ 
+																	$disaggregationid = $disaggregations["disid"];
+																	foreach($answerlabels as $answerlabel){
+																		$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregation");
+																		$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregation" => $disaggregationid));
+																		$countanswers = 0;
+																		while($rows_answers = $query_answers->fetch()){
+																			$answerarray = explode(",",$rows_answers["answer"]);
+																			if(in_array($answerlabel,$answerarray)){
+																				$countanswers++;
+																			}
+																		}
+																		echo '<td class="bg-light-green">'.$countanswers.'</td>';
 																	}
 																}
-																echo '<td class="bg-light-green">'.$countanswers.'</td>';
+															echo '</tr>';
+														}
+													  echo '</tbody>
+													</table>';
+												} else {
+													$colwidth = number_format((80/$answerlabelscount),2);
+													echo '
+													<table class="table table-bordered table-striped">
+													  <thead>
+														<tr class="bg-light-blue">
+															<td style="width:5%">#</td>
+															<th style="width:20%">'.$level2label.'</th>';
+															foreach($answerlabels as $answerlabel){
+															  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
 															}
-														echo '</tr>';
-													}
-												  echo '</tbody>
-												</table>';
+														echo '</tr>
+													  </thead>
+													  <tbody>';
+														$sr=0;
+														foreach($rows_form_locations as $locationid){
+															$sr++;
+															$locationid = $locationid["level3"];
+															$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+															$query_answer_location->execute(array(":locationid" => $locationid));
+															$rows_answer_location = $query_answer_location->fetch();
+															$location = $rows_answer_location["state"];
+													  
+															echo '<tr class="bg-lime">
+																<td class="bg-light-green">'.$sr.'</td>
+																<td class="bg-light-green">'.$location.'</td>';
+																foreach($answerlabels as $answerlabel){
+																	$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
+																	$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
+																	$countanswers = 0;
+																	while($rows_answers = $query_answers->fetch()){
+																		$answerarray = explode(",",$rows_answers["answer"]);
+																		if(in_array($answerlabel,$answerarray)){
+																			$countanswers++;
+																		}
+																	}
+																	echo '<td class="bg-light-green">'.$countanswers.'</td>';
+																}
+															echo '</tr>';
+														}
+													  echo '</tbody>
+													</table>';
+												}
 											}elseif($answertype == 4){
 												$answerlabels = explode(",",$answerlabels);
 												$answerlabelscount = count($answerlabels);
-												$colwidth = number_format((80/$answerlabelscount),2);
-												echo '
-												<table class="table table-bordered table-striped">
-												  <thead>
-													<tr class="bg-light-blue">
-														<td style="width:5%">#</td>
-														<th style="width:20%">'.$level2label.'</th>';
-														foreach($answerlabels as $answerlabel){
-														  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
-														}
-													echo '</tr>
-												  </thead>
-												  <tbody>';
-													$sr=0;
-													foreach($rows_form_locations as $locationid){
-														$sr++;
-														$locationid = $locationid["level3"];
-														$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
-														$query_answer_location->execute(array(":locationid" => $locationid));
-														$rows_answer_location = $query_answer_location->fetch();
-														$location = $rows_answer_location["state"];
-												  
-														echo '
-														<tr class="bg-lime">
-															<td class="bg-light-green">'.$sr.'</td>
-															<td class="bg-light-green">'.$location.'</td>';
-															foreach($answerlabels as $answerlabel){
-																$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
-																$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
-																$count_answers = $query_answers->rowCount();
-																
-																echo '<td class="bg-light-green">'.$count_answers.'</td>';
-															}
-														echo '</tr>';
-													}
-												  echo '</tbody>
-												</table>';
 												
+												if($disaggregated == 1){
+													$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+													echo '
+													<table class="table table-bordered table-striped">
+														<thead>
+															<tr class="bg-light-blue">
+																<td style="width:5%">#</td>
+																<th style="width:20%">'.$level2label.'</th>';
+																foreach($row_indicator_disaggregations as $disaggregations){ 
+																	foreach($answerlabels as $answerlabel){
+																		echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																	}
+																}
+															echo '</tr>
+														</thead>
+														<tbody>';
+															$sr=0;
+															foreach($rows_form_locations as $locationid){
+																$sr++;
+																$locationid = $locationid["level3"];
+																$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																$query_answer_location->execute(array(":locationid" => $locationid));
+																$rows_answer_location = $query_answer_location->fetch();
+																$location = $rows_answer_location["state"];
+														  
+																echo '
+																<tr class="bg-lime">
+																	<td class="bg-light-green">'.$sr.'</td>
+																	<td class="bg-light-green">'.$location.'</td>';
+																	foreach($row_indicator_disaggregations as $disaggregations){ 
+																		$disaggregationid = $disaggregations["disid"];
+																		foreach($answerlabels as $answerlabel){
+																			$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregation and answer=:answerlabel");
+																			$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregation" => $disaggregationid, ":answerlabel" => $answerlabel));
+																			$count_answers = $query_answers->rowCount();
+																			
+																			echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																		}
+																	}
+																echo '</tr>';
+															}
+														echo '
+														</tbody>
+													</table>';
+												} else {
+													$colwidth = number_format((80/$answerlabelscount),2);
+													echo '
+													<table class="table table-bordered table-striped">
+													  <thead>
+														<tr class="bg-light-blue">
+															<td style="width:5%">#</td>
+															<th style="width:20%">'.$level2label.'</th>';
+															foreach($answerlabels as $answerlabel){
+															  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+															}
+														echo '</tr>
+													  </thead>
+													  <tbody>';
+														$sr=0;
+														foreach($rows_form_locations as $locationid){
+															$sr++;
+															$locationid = $locationid["level3"];
+															$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+															$query_answer_location->execute(array(":locationid" => $locationid));
+															$rows_answer_location = $query_answer_location->fetch();
+															$location = $rows_answer_location["state"];
+													  
+															echo '
+															<tr class="bg-lime">
+																<td class="bg-light-green">'.$sr.'</td>
+																<td class="bg-light-green">'.$location.'</td>';
+																foreach($answerlabels as $answerlabel){
+																	$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel");
+																	$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel));
+																	$count_answers = $query_answers->rowCount();
+																	
+																	echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																}
+															echo '</tr>';
+														}
+													  echo '</tbody>
+													</table>';
+												}
 											}elseif($answertype == 5){
 												
 												echo '
@@ -392,7 +612,7 @@ if ($permission) {
 													<tr class="bg-light-blue">
 														<th style="width:5%">#</th>
 														<th style="width:20%">'.$level2label.'</th>
-														<th style="width:75%">Description</th>
+														<th style="width:75%">Answer</th>
 													</tr>
 												  </thead>
 												  <tbody>';
@@ -459,6 +679,525 @@ if ($permission) {
 												</table>';
 											}
 										echo '</div>';
+										
+											
+										//Follow up questions
+										if($questiontype == 1){
+											//evaluation follow-up questions
+											$query_survey_follow_up_questions =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE parent_question=:parentquestionid");
+											$query_survey_follow_up_questions->execute(array(":parentquestionid" => $questionid));
+											$count_survey_follow_up_questions = $query_survey_follow_up_questions->rowCount();
+											$sn = 0;
+											if ($count_survey_follow_up_questions > 0) {
+												while ($row_survey_follow_up_questions = $query_survey_follow_up_questions->fetch()) {
+													$sn++;
+													$followupsquestionid = $row_survey_follow_up_questions['id'];
+													$followupsquestion = $row_survey_follow_up_questions['question'];
+													$followupsquestiontype = "Follow Up";
+													$followupsparent_question = $row_survey_follow_up_questions['parent_question'];
+													$followupsanswertypeid = $row_survey_follow_up_questions['answertype'];
+													$answerlabels = $row_survey_follow_up_questions['answerlabels'];
+													$followupscalculation_method = $followupsanswerlabels = "N/A";
+													$question_calculation_method = $row_survey_follow_up_questions['question_calculation_method'];
+													
+													echo '
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<fieldset class="scheduler-border">
+															<legend class="scheduler-border bg-orange" style="border:#000 thin solid;; color:white"><strong>Follow Up Question '.$sn.': '.$followupsquestion.'</strong>
+															</legend>';
+														
+														if($followupsanswertypeid == 1){
+															echo '
+															<table class="table table-bordered table-striped">
+															  <thead>
+																<tr class="bg-light-blue">';
+																	if($disaggregated == 1){
+																		echo '
+																		<td rowspan="2" style="width:5%">#</td>
+																		<th rowspan="2" style="width:50%">'.$level2label.'</th>
+																		<th colspan="'.$colspan.'" style="width:45%">Answer</th>';
+																	} else {
+																		echo '
+																		<td style="width:5%">#</td>
+																		<th style="width:50%">'.$level2label.'</th>
+																		<th style="width:45%">Answer</th>';
+																	}
+																	echo '
+																</tr>';
+																if($disaggregated == 1){
+																	echo '<tr class="bg-light-blue">';
+																			foreach($row_indicator_disaggregations as $disaggregations){ 
+																				echo '<th>'.$disaggregations["disaggregation"].'</th>';
+																			}
+																	echo '</tr>';
+																}
+															  echo '</thead>
+															  <tbody>';
+															  
+															  $sr=0;
+															  if($disaggregated == 1){
+																foreach($rows_form_locations as $locationid){
+																	$sr++;
+																	$locationid = $locationid["level3"];
+																	$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																	$query_answer_location->execute(array(":locationid" => $locationid));
+																	$rows_answer_location = $query_answer_location->fetch();
+																	$location = $rows_answer_location["state"];
+																	echo '<tr class="bg-lime">
+																		<td>'.$sr.'</td>
+																		<td>'.$location.'</td>';
+																		foreach($row_indicator_disaggregations as $disaggregations){ 
+																			$disaggregationid = $disaggregations["disid"];
+																			$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregationid");
+																			$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregationid" => $disaggregationid));
+																			$count_answers = $query_answers->rowCount();
+																			$question_answer = $summation = 0;
+																			
+																			if($question_calculation_method == 1){ //summation or aggregation
+																				while($rows_answers = $query_answers->fetch()){
+																					$question_answer +=$rows_answers["answer"];
+																				}
+																			}elseif($question_calculation_method == 3){ //average
+																				$summation = 0;
+																				while($rows_answers = $query_answers->fetch()){
+																					$summation +=$rows_answers["answer"];
+																				}	
+																				$question_answer = $summation / $count_answers;
+																			}
+																			
+																			echo '<td>'.$question_answer.'</td>';
+																		}
+																	echo '</tr>';
+																}
+																echo '<tr class="bg-green">
+																	<td></td>
+																	<td><strong>';
+																		if($question_calculation_method == 1){
+																			echo 'Total Number';
+																		}elseif($question_calculation_method == 3){
+																			echo 'Average Number';
+																		}
+																	echo '</strong></td>';
+																	foreach($row_indicator_disaggregations as $disaggregations){ 
+																		$disaggregationid = $disaggregations["disid"];
+																		$query_disag_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and questionid=:questionid and disaggregation=:disaggregationid");
+																		$query_disag_answers->execute(array(":formid" => $formid, ":questionid" => $questionid, ":disaggregationid" => $disaggregationid));
+																		$count_disag_answers = $query_disag_answers->rowCount();
+																		$question_answer = $summation = 0;
+																		
+																		$totalamount = $totalanswer = 0;
+																		if($question_calculation_method == 1){ //summation or aggregation
+																			while($rows_answers = $query_disag_answers->fetch()){
+																				$question_answer +=$rows_answers["answer"];
+																			}
+																			$totalanswer += $question_answer;
+																		}elseif($question_calculation_method == 3){ //average
+																			$summation = 0;
+																			while($rows_answers = $query_disag_answers->fetch()){
+																				$summation +=$rows_answers["answer"];
+																			}	
+																			$question_answer = $summation / $count_disag_answers;
+																			$totalanswer += $question_answer;
+																		}
+																		$totalamount = $totalanswer / $sr;
+																		echo '<td><strong>'.$totalamount.'</strong></td>';
+																	}
+																	echo '
+																</tr>';
+															  } else {
+																foreach($rows_form_locations as $locationid){
+																	$sr++;
+																	$locationid = $locationid["level3"];
+																	$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																	$query_answer_location->execute(array(":locationid" => $locationid));
+																	$rows_answer_location = $query_answer_location->fetch();
+																	$location = $rows_answer_location["state"];
+																	echo '<tr class="bg-lime">
+																		<td>'.$sr.'</td>
+																		<td>'.$location.'</td>';
+																		
+																		$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
+																		$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
+																		$count_answers = $query_answers->rowCount();
+																		$question_answer = $summation = 0;
+																		if($question_calculation_method == 1){
+																			while($rows_answers = $query_answers->fetch()){
+																				$question_answer +=$rows_answers["answer"];
+																			}
+																			$totalanswer += $question_answer;
+																			$totalamount = $totalanswer;
+																		}elseif($question_calculation_method == 3){
+																			while($rows_answers = $query_answers->fetch()){
+																				$summation +=$rows_answers["answer"];
+																			}
+																			$question_answer = $summation / $count_answers;
+																			$totalanswer += $question_answer;
+																			$totalamount = $totalanswer / $sr;
+																		}
+																		
+																		echo '<td>'.$question_answer.'</td>
+																	</tr>';
+																}
+																echo '<tr class="bg-green">
+																	<td></td>
+																	<td><strong>';
+																		if($question_calculation_method == 1){
+																			echo 'Total Number';
+																		}elseif($question_calculation_method == 3){
+																			echo 'Average Number';
+																		}
+																	echo '</strong></td>
+																	<td><strong>'.$totalamount.'</strong></td>
+																</tr>';
+															  }
+															  echo '</tbody>
+															</table>';
+														}
+														elseif($followupsanswertypeid == 2){
+															$answerlabels = explode(",",$answerlabels);
+															$answerlabelscount = count($answerlabels);
+															
+															if($disaggregated == 1){
+																$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																  <thead>
+																	<tr class="bg-light-blue">
+																		<td style="width:5%">#</td>
+																		<th style="width:20%">'.$level2label.'</th>';
+																		foreach($row_indicator_disaggregations as $disaggregations){ 
+																			foreach($answerlabels as $answerlabel){
+																				echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																			}
+																		}
+																	echo '</tr>
+																  </thead>
+																  <tbody>';
+																  $sr=0;
+																	foreach($rows_form_locations as $locationid){
+																		$sr++;
+																		$locationid = $locationid["level3"];
+																		$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																		$query_answer_location->execute(array(":locationid" => $locationid));
+																		$rows_answer_location = $query_answer_location->fetch();
+																		$location = $rows_answer_location["state"];
+																		echo '<tr class="bg-lime">
+																			<td class="bg-light-green">'.$sr.'</td>
+																			<td class="bg-light-green">'.$location.'</td>';
+																			
+																			foreach($row_indicator_disaggregations as $disaggregations){ 
+																				$disaggregationid = $disaggregations["disid"];
+																				foreach($answerlabels as $answerlabel){
+																					$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel and disaggregation=:disaggregation");
+																					$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel, ":disaggregation" => $disaggregationid));
+																					$count_answers = $query_answers->rowCount();
+																					
+																					echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																				}
+																			}
+																		echo '</tr>';
+																	}
+																  echo '</tbody>
+																</table>';
+																
+																
+															} else {
+																$colwidth = number_format((80/$answerlabelscount),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																  <thead>
+																	<tr class="bg-light-blue">
+																		<td style="width:5%">#</td>
+																		<th style="width:20%">'.$level2label.'</th>';
+																		foreach($answerlabels as $answerlabel){
+																			echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																		}
+																	echo '</tr>
+																  </thead>
+																  <tbody>';
+																  $sr=0;
+																	foreach($rows_form_locations as $locationid){
+																		$sr++;
+																		$locationid = $locationid["level3"];
+																		$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																		$query_answer_location->execute(array(":locationid" => $locationid));
+																		$rows_answer_location = $query_answer_location->fetch();
+																		$location = $rows_answer_location["state"];
+																		echo '<tr class="bg-lime">
+																			<td class="bg-light-green">'.$sr.'</td>
+																			<td class="bg-light-green">'.$location.'</td>';
+																			foreach($answerlabels as $answerlabel){
+																				$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel");
+																				$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel));
+																				$count_answers = $query_answers->rowCount();
+																				
+																				echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																			}
+																		echo '</tr>';
+																	}
+																  echo '</tbody>
+																</table>';
+															}											
+														}elseif($followupsanswertypeid == 3){
+															$answerlabels = explode(",",$answerlabels);
+															$answerlabelscount = count($answerlabels);
+															
+															if($disaggregated == 1){
+																$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																  <thead>
+																	<tr class="bg-light-blue">
+																		<td style="width:5%">#</td>
+																		<th style="width:20%">'.$level2label.'</th>';
+																		foreach($row_indicator_disaggregations as $disaggregations){ 
+																			foreach($answerlabels as $answerlabel){
+																			  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																			}
+																		}
+																	echo '</tr>
+																  </thead>
+																  <tbody>';
+																	$sr=0;
+																	foreach($rows_form_locations as $locationid){
+																		$sr++;
+																		$locationid = $locationid["level3"];
+																		$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																		$query_answer_location->execute(array(":locationid" => $locationid));
+																		$rows_answer_location = $query_answer_location->fetch();
+																		$location = $rows_answer_location["state"];
+																  
+																		echo '<tr class="bg-lime">
+																			<td class="bg-light-green">'.$sr.'</td>
+																			<td class="bg-light-green">'.$location.'</td>';
+																			foreach($row_indicator_disaggregations as $disaggregations){ 
+																				$disaggregationid = $disaggregations["disid"];
+																				foreach($answerlabels as $answerlabel){
+																					$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregation");
+																					$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregation" => $disaggregationid));
+																					$countanswers = 0;
+																					while($rows_answers = $query_answers->fetch()){
+																						$answerarray = explode(",",$rows_answers["answer"]);
+																						if(in_array($answerlabel,$answerarray)){
+																							$countanswers++;
+																						}
+																					}
+																					echo '<td class="bg-light-green">'.$countanswers.'</td>';
+																				}
+																			}
+																		echo '</tr>';
+																	}
+																  echo '</tbody>
+																</table>';
+															} else {
+																$colwidth = number_format((80/$answerlabelscount),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																  <thead>
+																	<tr class="bg-light-blue">
+																		<td style="width:5%">#</td>
+																		<th style="width:20%">'.$level2label.'</th>';
+																		foreach($answerlabels as $answerlabel){
+																		  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																		}
+																	echo '</tr>
+																  </thead>
+																  <tbody>';
+																	$sr=0;
+																	foreach($rows_form_locations as $locationid){
+																		$sr++;
+																		$locationid = $locationid["level3"];
+																		$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																		$query_answer_location->execute(array(":locationid" => $locationid));
+																		$rows_answer_location = $query_answer_location->fetch();
+																		$location = $rows_answer_location["state"];
+																  
+																		echo '<tr class="bg-lime">
+																			<td class="bg-light-green">'.$sr.'</td>
+																			<td class="bg-light-green">'.$location.'</td>';
+																			foreach($answerlabels as $answerlabel){
+																				$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
+																				$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
+																				$countanswers = 0;
+																				while($rows_answers = $query_answers->fetch()){
+																					$answerarray = explode(",",$rows_answers["answer"]);
+																					if(in_array($answerlabel,$answerarray)){
+																						$countanswers++;
+																					}
+																				}
+																				echo '<td class="bg-light-green">'.$countanswers.'</td>';
+																			}
+																		echo '</tr>';
+																	}
+																  echo '</tbody>
+																</table>';
+															}
+														}elseif($followupsanswertypeid == 4){
+															$answerlabels = explode(",",$answerlabels);
+															$answerlabelscount = count($answerlabels);
+															
+															if($disaggregated == 1){
+																$colwidth = number_format((80/($answerlabelscount * $colspan)),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																	<thead>
+																		<tr class="bg-light-blue">
+																			<td style="width:5%">#</td>
+																			<th style="width:20%">'.$level2label.'</th>';
+																			foreach($row_indicator_disaggregations as $disaggregations){ 
+																				foreach($answerlabels as $answerlabel){
+																					echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																				}
+																			}
+																		echo '</tr>
+																	</thead>
+																	<tbody>';
+																		$sr=0;
+																		foreach($rows_form_locations as $locationid){
+																			$sr++;
+																			$locationid = $locationid["level3"];
+																			$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																			$query_answer_location->execute(array(":locationid" => $locationid));
+																			$rows_answer_location = $query_answer_location->fetch();
+																			$location = $rows_answer_location["state"];
+																	  
+																			echo '
+																			<tr class="bg-lime">
+																				<td class="bg-light-green">'.$sr.'</td>
+																				<td class="bg-light-green">'.$location.'</td>';
+																				foreach($row_indicator_disaggregations as $disaggregations){ 
+																					$disaggregationid = $disaggregations["disid"];
+																					foreach($answerlabels as $answerlabel){
+																						$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and disaggregation=:disaggregation and answer=:answerlabel");
+																						$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":disaggregation" => $disaggregationid, ":answerlabel" => $answerlabel));
+																						$count_answers = $query_answers->rowCount();
+																						
+																						echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																					}
+																				}
+																			echo '</tr>';
+																		}
+																	echo '
+																	</tbody>
+																</table>';
+															} else {
+																$colwidth = number_format((80/$answerlabelscount),2);
+																echo '
+																<table class="table table-bordered table-striped">
+																  <thead>
+																	<tr class="bg-light-blue">
+																		<td style="width:5%">#</td>
+																		<th style="width:20%">'.$level2label.'</th>';
+																		foreach($answerlabels as $answerlabel){
+																		  echo '<th style="width:'.$colwidth.'%">'.$answerlabel.'</th>';
+																		}
+																	echo '</tr>
+																  </thead>
+																  <tbody>';
+																	$sr=0;
+																	foreach($rows_form_locations as $locationid){
+																		$sr++;
+																		$locationid = $locationid["level3"];
+																		$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																		$query_answer_location->execute(array(":locationid" => $locationid));
+																		$rows_answer_location = $query_answer_location->fetch();
+																		$location = $rows_answer_location["state"];
+																  
+																		echo '
+																		<tr class="bg-lime">
+																			<td class="bg-light-green">'.$sr.'</td>
+																			<td class="bg-light-green">'.$location.'</td>';
+																			foreach($answerlabels as $answerlabel){
+																				$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid and answer=:answerlabel");
+																				$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid, ":answerlabel" => $answerlabel));
+																				$count_answers = $query_answers->rowCount();
+																				
+																				echo '<td class="bg-light-green">'.$count_answers.'</td>';
+																			}
+																		echo '</tr>';
+																	}
+																  echo '</tbody>
+																</table>';
+															}
+														}elseif($followupsanswertypeid == 5){
+															
+															echo '
+															<table class="table table-bordered table-striped">
+															  <thead>
+																<tr class="bg-grey">
+																	<th style="width:5%">#</th>
+																	<th style="width:20%">'.$level2label.'</th>
+																	<th style="width:75%">Answer</th>
+																</tr>
+															  </thead>
+															  <tbody>';
+																$sr=0;
+																foreach($rows_form_locations as $locationid){
+																	$locationid = $locationid["level3"];
+																	$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																	$query_answer_location->execute(array(":locationid" => $locationid));
+																	$rows_answer_location = $query_answer_location->fetch();
+																	$location = $rows_answer_location["state"];
+																	
+																	$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
+																	$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $followupsquestionid));
+																	$count_answers = $query_answers->rowCount();
+																	
+																	while($rows_answers = $query_answers->fetch()){
+																		$sr++;
+																		$answer = $rows_answers["answer"];
+																		echo '<tr class="bg-light-grey">
+																			<td class="bg-light-grey">'.$sr.'</td>
+																			<td class="bg-light-grey">'.$location.'</td>
+																			<td class="bg-light-grey" style="color:black;">
+																				<textarea style="border:#CCC thin solid; border-radius:5px; color:black; padding:5px; width:100%" colspan="" rowspan="" readonly>'.$answer.'</textarea>
+																			</td>
+																		</tr>';
+																	}
+																}
+															  echo '</tbody>
+															</table>';
+														}elseif($followupsanswertypeid == 6){												
+															echo '
+															<table class="table table-bordered table-striped">
+															  <thead>
+																<tr class="bg-grey">
+																	<th style="width:5%">#</th>
+																	<th style="width:20%">'.$level2label.'</th>
+																	<th style="width:75%">File</th>
+																</tr>
+															  </thead>
+															  <tbody>';
+																$sr=0;
+																foreach($rows_form_locations as $locationid){
+																	$locationid = $locationid["level3"];
+																	$query_answer_location = $db->prepare("SELECT * FROM tbl_state WHERE id=:locationid");
+																	$query_answer_location->execute(array(":locationid" => $locationid));
+																	$rows_answer_location = $query_answer_location->fetch();
+																	$location = $rows_answer_location["state"];
+																	
+																	$query_answers =  $db->prepare("SELECT * FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
+																	$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $followupsquestionid));
+																	$count_answers = $query_answers->rowCount();
+																	
+																	while($rows_files = $query_answers->fetch()){
+																		$sr++;
+																		$answer = $rows_files["answer"];
+																		echo '<tr class="bg-light-grey">
+																			<td class="bg-light-grey">'.$sr.'</td>
+																			<td class="bg-light-grey">'.$location.'</td>
+																			<td class="bg-light-grey"><a href="'.$answer.'" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new">'.str_replace("uploads/evaluation/", "",$answer).'</a></td>
+																		</tr>';
+																	}
+																}
+															  echo '</tbody>
+															</table>';
+														}
+													echo '</fieldset>
+													</div>';
+												}
+											}
+										}
 									}
 								}
 								?>		

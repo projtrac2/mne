@@ -13,17 +13,17 @@ if ($permission) {
 		$row_projdetails = $query_projdetails->fetch();
 		$projname = $row_projdetails['projname'];
 		$projcategory = $row_projdetails['projcategory']; 
-		$percent2 = calculate_project_progress($projid, $projcategory);
+		$percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
 
 
-		$query_issues = $db->prepare("SELECT c.catid, c.category, i.issue_description, i.issue_area, i.issue_impact, i.issue_priority, i.date_created, i.status FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category WHERE projid = :projid");
+		$query_issues = $db->prepare("SELECT c.catid, c.category, i.id, i.issue_description, i.issue_area, i.issue_impact, i.issue_priority, i.date_created, i.status FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category WHERE projid = :projid");
 		$query_issues->execute(array(":projid" => $projid));
 		$count_issues = $query_issues->rowCount();
 
 		function get_inspection_status($status_id)
 		{
 			global $db;
-			$sql = $db->prepare("SELECT * FROM tbl_issue_status WHERE id = :status_id");
+			$sql = $db->prepare("SELECT * FROM tbl_issue_status WHERE statuskey = :status_id");
 			$sql->execute(array(":status_id" => $status_id));
 			$row = $sql->fetch();
 			$rows_count = $sql->rowCount();
@@ -51,7 +51,7 @@ if ($permission) {
 					<?php echo $pageTitle ?>
 
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -90,12 +90,12 @@ if ($permission) {
 									<thead>
 										<tr class="bg-orange">
 											<th style="width:3%">#</th>
-											<th style="width:37%">Issue</th>
+											<th style="width:35%">Issue</th>
 											<th style="width:10%">Category</th>
 											<th style="width:10%">Issue Area</th>
 											<th style="width:10%">Priority</th>
 											<th style="width:10%">Impact</th>
-											<th style="width:8%">Status</th>
+											<th style="width:10%">Resolution</th>
 											<th style="width:12%">Date Recorded</th>
 										</tr>
 									</thead>
@@ -106,6 +106,7 @@ if ($permission) {
 
 											while ($row_issues = $query_issues->fetch()) {
 												$nm = $nm + 1;
+												$issueid = $row_issues["id"];
 												$issueareaid = $row_issues["issue_area"];
 												$category = $row_issues["category"];
 												$issue = $row_issues["issue_description"];
@@ -160,7 +161,7 @@ if ($permission) {
 													$actionstatus = "Behind Schedule";
 													$styled = 'style="color:red"';
 												}
-											?>
+												?>
 												<tr style="background-color:#fff">
 													<td align="center"><?php echo $nm; ?></td>
 													<td><?php echo $issue; ?></td>
@@ -168,7 +169,21 @@ if ($permission) {
 													<td><?php echo $issue_area; ?></td>
 													<td><?php echo $impact; ?></td>
 													<td><span class="badge <?= $priorityclass; ?>"><?php echo $priority; ?></span></td>
-													<td <?= $styled ?>><?php echo $status; ?></td>
+													<?php if ($status_id == 0) { ?>
+														<td <?= $styled ?>><?php echo $status; ?></td>
+													<?php } elseif ($status_id == 7) { ?>
+														<td>
+															<a data-toggle="modal" data-target="#closedIssueDetailsModal" data-backdrop="static" data-keyboard="false" onclick="closed_project_issue(<?= $issueid ?>)" style="color:green">
+																<strong><?php echo $status; ?></strong>
+															</a>
+														</td>
+													<?php } else { ?>
+														<td>
+															<a data-toggle="modal" data-target="#issueClosureModal" data-backdrop="static" data-keyboard="false" onclick="close_project_issue(<?= $issueid ?>, <?= $projid ?>)" <?= $styled ?>>
+																<strong><?php echo $status; ?></strong>
+															</a>
+														</td>
+													<?php } ?>
 													<td><?php echo date("d M Y", strtotime($issuedate)); ?></td>
 												</tr>
 										<?php
@@ -187,49 +202,78 @@ if ($permission) {
 	<!-- end body  -->
 
 
-	<!-- Modal Issue Escalation -->
-	<div class="modal fade" id="issueOwnerModal" role="dialog">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#795548">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3 class="modal-title" align="center">
-						<font color="#FFF">Issue Owner Details</font>
-					</h3>
-				</div>
-				<form class="tagForm" action="issueescalation" method="post" id="issue-escalation-form" enctype="multipart/form-data" autocomplete="off">
-					<div class="modal-body">
-						<div class="row clearfix">
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<div class="card">
-									<div class="body">
-										<div class="table-responsive" style="background:#eaf0f9">
-											<div id="issueescalation">
-											</div>
+    <!-- start issues modal  -->
+    <div class="modal fade" id="issueClosureModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> PROJECT ISSUE</span></h3>
+                </div>
+                <div class="modal-body">
+					<ul class="list-group">
+						<li class="list-group-item list-group-item list-group-item-action" style="height: auto"><strong>Project Name: <span id="project_name"></span></strong></li>
+					</ul>
+					<div id="issue_details">
+                    </div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<form class="form-horizontal" id="add_issue_closure" action="" method="POST">
+							<fieldset class="scheduler-border" id="specification_issues">
+								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+									<i class="fa fa-exclamation-circle" aria-hidden="true"></i> Issue Closure
+								</legend>
+								<div class="row clearfix">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+										<div class="form-inline">
+											<label for="">Remarks</label>
+											<textarea name="closing_remarks" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" placeholder="Describe the issue" required></textarea>
 										</div>
 									</div>
 								</div>
-							</div>
+								<!-- Task Checklist Questions -->
+							</fieldset>
 						</div>
-
 					</div>
 					<div class="modal-footer">
-						<div class="col-md-3">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+							<input type="hidden" name="close_issue" id="close_issue" value="close_issue">
+							<input type="hidden" name="projid" id="projid" >
+							<input type="hidden" name="issueid" id="issueid" >
+							<input type="hidden" name="user_name" value="<?=$user_name?>" >
+							<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="add_issue_closure-form-submit" value="Close Issue" />
+							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
 						</div>
-						<div class="col-md-6" align="center">
-							<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Escalate" />
-							<button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
-							<input type="hidden" name="username" id="username" value="<?php echo $user_name; ?>" />
-							<input type="hidden" name="stchange" value="1" />
-						</div>
-						<div class="col-md-3">
-						</div>
-					</div>
+					</div> <!-- /modal-footer -->
 				</form>
-			</div>
-		</div>
-	</div>
-	<!-- #END# Modal Issue Escalation -->
+
+            </div> <!-- /modal-content -->
+        </div> <!-- /modal-dailog -->
+    </div>
+
+
+    <!-- start issues modal  -->
+    <div class="modal fade" id="closedIssueDetailsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-green">
+                    <h3 class="modal-title" style="color:#fff" align="center"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> CLOSED PROJECT ISSUE</span></h3>
+                </div>
+                <div class="modal-body">
+					<ul class="list-group">
+						<li class="list-group-item list-group-item list-group-item-action" style="height: auto"><strong>Project Name: <span id="closed_issue_project_name"></span></strong></li>
+					</ul>
+					<div id="closed_issue_details">
+                    </div>
+                </div>
+				<div class="modal-footer">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+					</div>
+				</div> <!-- /modal-footer -->
+            </div> <!-- /modal-content -->
+        </div> <!-- /modal-dailog -->
+    </div>
+
+    <script src="assets/js/monitoring/issues.js"></script>
 
 <?php
 } else {
@@ -239,264 +283,3 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
-<script type="text/javascript">
-	$(document).ready(function() {
-		$('#issue-analysis-form').on('submit', function(event) {
-			event.preventDefault();
-			var form_data = $(this).serialize();
-			$.ajax({
-				type: "POST",
-				url: "issueanalysis",
-				data: form_data,
-				dataType: "json",
-				success: function(response) {
-					if (response) {
-						alert('Record Successfully Saved');
-						window.location.reload();
-					}
-				},
-				error: function() {
-					alert('Error');
-				}
-			});
-			return false;
-		});
-
-		$('#assign-issues-form').on('submit', function(event) {
-			event.preventDefault();
-			var form_data = $(this).serialize();
-			$.ajax({
-				type: "POST",
-				url: "issueassignment",
-				data: form_data,
-				dataType: "json",
-				success: function(response) {
-					if (response) {
-						alert('Record successfully saved');
-						window.location.reload();
-					}
-				},
-				error: function() {
-					alert('Error');
-				}
-			});
-			return false;
-		});
-	});
-
-	function CallIssueAssignment(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callissueaction',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#issueassignment').html(data);
-				$("#assignModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallRiskAction(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callriskaction',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#riskaction').html(data);
-				$("#riskModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallRiskAnalysis(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callriskanalysis',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#riskanalysis').html(data);
-				$("#riskAnalysisModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-</script>
-
-<script language="javascript" type="text/javascript">
-	$(document).ready(function() {
-		$('#issue-closure-form').on('submit', function(event) {
-			event.preventDefault();
-			var form_data = $(this).serialize();
-			$.ajax({
-				type: "POST",
-				url: "issueclosure",
-				data: form_data,
-				dataType: "json",
-				success: function(response) {
-					if (response) {
-						alert('Issue Closed Successfully');
-						window.location.reload();
-					}
-				},
-				error: function() {
-					alert('Error');
-				}
-			});
-			return false;
-		});
-		$('#issue-escalation-form').on('submit', function(event) {
-			event.preventDefault();
-			var form_data = $(this).serialize();
-			$.ajax({
-				type: "POST",
-				url: "issueescalation",
-				data: form_data,
-				dataType: "json",
-				success: function(response) {
-					if (response) {
-						alert('Issue Escalated Successfully');
-						window.location.reload();
-					}
-				},
-				error: function() {
-					alert('Error');
-				}
-			});
-			return false;
-		});
-		// $('#issue-analysis-form').on('submit', function(event) {
-		// 	event.preventDefault();
-		// 	var form_data = $(this).serialize();
-		// 	$.ajax({
-		// 		type: "POST",
-		// 		url: "issueanalysis",
-		// 		data: form_data,
-		// 		dataType: "json",
-		// 		success: function(response) {
-		// 			if (response) {
-		// 				alert('Record Successfully Saved');
-		// 				window.location.reload();
-		// 			}
-		// 		},
-		// 		error: function() {
-		// 			alert('Error');
-		// 		}
-		// 	});
-		// 	return false;
-		// });
-
-
-		// $('#assign-issues-form').on('submit', function(event) {
-		// 	event.preventDefault();
-		// 	var form_data = $(this).serialize();
-		// 	$.ajax({
-		// 		type: "POST",
-		// 		url: "issueassignment",
-		// 		data: form_data,
-		// 		dataType: "json",
-		// 		success: function(response) {
-		// 			if (response) {
-		// 				alert('Record successfully saved');
-		// 				window.location.reload();
-		// 			}
-		// 		},
-		// 		error: function() {
-		// 			alert('Error');
-		// 		}
-		// 	});
-		// 	return false;
-		// });
-	});
-
-	function CallIssueAssignment(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callissueaction',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#issueassignment').html(data);
-				$("#assignModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallRiskAction(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callriskaction',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#riskaction').html(data);
-				$("#riskModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallRiskAnalysis(id) {
-		$.ajax({
-			type: 'post',
-			url: 'callriskanalysis',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#riskanalysis').html(data);
-				$("#riskAnalysisModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallIssueEscalate(id) {
-		$.ajax({
-			type: 'post',
-			url: 'assets/processor/callissueescalate',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#issueescalation').html(data);
-				$("#issueEscalateModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-
-	function CallIssueClosure(id) {
-		$.ajax({
-			type: 'post',
-			url: 'assets/processor/callissueclosure',
-			data: {
-				rskid: id
-			},
-			success: function(data) {
-				$('#issueclosure').html(data);
-				$("#issueClosureModal").modal({
-					backdrop: "static"
-				});
-			}
-		});
-	}
-</script>

@@ -7,6 +7,8 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 if ($permission) {
 	try {
+		$back_url = $_SESSION['back_url'];
+
 		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -85,7 +87,7 @@ if ($permission) {
 					<?= $pageTitle ?>
 
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -96,7 +98,7 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
 								<?php if ($projcat == 2 && $projstage > 4) { ?>
@@ -128,16 +130,16 @@ if ($permission) {
 							<ul class="nav nav-tabs" style="font-size:14px">
 								<li class="active">
 									<a data-toggle="tab" href="#home">
-										<i class="fa fa-caret-square-o-down bg-orange" aria-hidden="true"></i> Financial Plan &nbsp;<span class="badge bg-orange">|</span>
+										<i class="fa fa-book bg-blue" aria-hidden="true"></i> Financial Plan &nbsp;<span class="badge bg-blue">|</span>
 									</a>
 								</li>
 								<li>
 									<a data-toggle="tab" href="#menu1">
-										<i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Funding &nbsp;<span class="badge bg-blue">|</span>
+										<i class="fa fa-filter bg-green" aria-hidden="true"></i> Funding &nbsp;<span class="badge bg-green">|</span>
 									</a>
 								</li>
 								<li>
-									<a data-toggle="tab" href="#menu2"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Payment &nbsp;<span class="badge bg-blue">|</span></a>
+									<a data-toggle="tab" href="#menu2"><i class="fa fa-money bg-orange" aria-hidden="true"></i> Payment &nbsp;<span class="badge bg-orange">|</span></a>
 								</li>
 							</ul>
 						</div>
@@ -148,39 +150,14 @@ if ($permission) {
 										<ul class="nav nav-tabs" style="font-size:14px">
 											<li class="active">
 												<a data-toggle="tab" href="#direct_cost">
-													<i class="fa fa-hourglass-half bg-orange" aria-hidden="true"></i> Direct Project Cost &nbsp;<span class="badge bg-orange"></span>
+													<i class="fa fa-tasks bg-blue" aria-hidden="true"></i> Direct Project Cost &nbsp;<span class="badge bg-blue"></span>
 												</a>
 											</li>
 											<?php
 											if ($administrative_cost > 0) {
 											?>
 												<li>
-													<a data-toggle="tab" href="#administrative"><i class="fa fa-pencil-square-o bg-light-blue" aria-hidden="true"></i> Administrative/Operational Cost&nbsp;<span class="badge bg-light-blue"></span></a>
-												</li>
-											<?php
-											}
-											?>
-											<li>
-												<a data-toggle="tab" href="#monitoring">
-													<i class="fa fa-list bg-deep-orange" aria-hidden="true"></i> Monitoring&nbsp;<span class="badge bg-deep-orange"></span>
-												</a>
-											</li>
-											<?php
-											if ($mappingactivite) {
-											?>
-												<li>
-													<a data-toggle="tab" href="#mapping">
-														<i class="fa fa-map bg-deep-orange" aria-hidden="true"></i> Mapping &nbsp;<span class="badge bg-deep-orange"></span>
-													</a>
-												</li>
-											<?php
-											}
-											if ($outcomeactive) {
-											?>
-												<li>
-													<a data-toggle="tab" href="#evaluation">
-														<i class="fa fa-book  bg-deep-orange" aria-hidden="true"></i> Evaluation Cost&nbsp;<span class="badge  bg-deep-orange"></span>
-													</a>
+													<a data-toggle="tab" href="#administrative"><i class="fa fa-pencil-square-o bg-green" aria-hidden="true"></i> Administrative/Operational Cost&nbsp;<span class="badge bg-green"></span></a>
 												</li>
 											<?php
 											}
@@ -363,7 +340,7 @@ if ($permission) {
 													}
 												}
 
-												$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
+												$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1  AND projid = :projid");
 												$query_Output->execute(array(":projid" => $projid));
 												$total_Output = $query_Output->rowCount();
 												$outputs = '';
@@ -554,211 +531,13 @@ if ($permission) {
 										<?php
 										}
 										?>
-										<div id="monitoring" class="tab-pane fade">
-											<?php
-											$cost_type = 4;
-											$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-											$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-											$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-
-											$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-											$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-											$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-											$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-											$sum_cost = $totalRows_rs_output_cost_plan > 0 ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-
-											?>
-											<div class="header">
-												<h4 class="contentheader">Monitoring Cost: <?= number_format($sum_cost, 2) ?> </h4>
-											</div>
-											<div class="body">
-												<div class="table-responsive">
-													<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-														<thead>
-															<tr>
-																<th># </th>
-																<th>Description </th>
-																<th>Unit</th>
-																<th>Unit Cost</th>
-																<th>No. of Units</th>
-																<th>Total Cost</th>
-															</tr>
-														</thead>
-														<tbody id="budget_lines_tableA">
-															<?php
-															if ($totalRows_rs_output_cost_plan > 0) {
-																$table_counter = 0;
-																while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																	$table_counter++;
-																	$unit = $row_rsOther_cost_plan['unit'];
-																	$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																	$units_no = $row_rsOther_cost_plan['units_no'];
-																	$rmkid = $row_rsOther_cost_plan['id'];
-																	$description = $row_rsOther_cost_plan['description'];
-																	$financial_year = $row_rsOther_cost_plan['financial_year'];
-																	$end_year = $financial_year + 1;
-																	$total_cost = $unit_cost * $units_no;
-																	$unit_of_measure =  get_measurement($unit);
-															?>
-																	<tr id="row">
-																		<td> <?= $table_counter ?></td>
-																		<td> <?= $description ?></td>
-																		<td> <?= $unit_of_measure ?></td>
-																		<td> <?= number_format($unit_cost, 2) ?></td>
-																		<td> <?= number_format($units_no) ?></td>
-																		<td> <?= number_format($total_cost, 2) ?></td>
-																	</tr>
-															<?php
-																}
-															}
-															?>
-														</tbody>
-													</table>
-												</div>
-											</div>
-										</div>
-										<?php
-										if ($mappingactivite) {
-										?>
-											<div id="mapping" class="tab-pane fade ">
-												<?php
-												$cost_type = 3;
-												$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-												$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-												$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-
-												$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-												$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-												$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-												$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-												$sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-												$budget_line = "Mapping";
-												?>
-												<div class="header">
-													<h4 class="contentheader">Mapping Cost: <?= number_format($sum_cost, 2) ?> </h4>
-												</div>
-												<div class="body">
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-															<thead>
-																<tr>
-																	<th># </th>
-																	<th>Description </th>
-																	<th>Unit</th>
-																	<th>Unit Cost</th>
-																	<th>No. of Units</th>
-																	<th>Total Cost</th>
-																</tr>
-															</thead>
-															<tbody id="budget_lines_tableB">
-																<?php
-																if ($totalRows_rs_output_cost_plan > 0) {
-																	$table_counter = 0;
-																	while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																		$table_counter++;
-																		$unit = $row_rsOther_cost_plan['unit'];
-																		$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																		$units_no = $row_rsOther_cost_plan['units_no'];
-																		$rmkid = $row_rsOther_cost_plan['id'];
-																		$description = $row_rsOther_cost_plan['description'];
-																		$financial_year = $row_rsOther_cost_plan['financial_year'];
-																		$total_cost = $unit_cost * $units_no;
-																		$unit_of_measure =  get_measurement($unit);
-																?>
-																		<tr id="row">
-																			<td> <?= $table_counter ?></td>
-																			<td> <?= $description ?></td>
-																			<td> <?= $unit_of_measure ?></td>
-																			<td> <?= number_format($unit_cost, 2) ?></td>
-																			<td> <?= number_format($units_no) ?></td>
-																			<td> <?= number_format($total_cost, 2) ?></td>
-																		</tr>
-																<?php
-
-																	}
-																}
-																?>
-															</tbody>
-														</table>
-													</div>
-												</div>
-											</div>
-										<?php
-										}
-										if ($outcomeactive) {
-										?>
-											<div id="evaluation" class="tab-pane fade">
-												<?php
-												$cost_type = 5;
-												$query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=:cost_type ");
-												$query_rs_output_cost_plan->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-												$totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-												$edit = $totalRows_rs_output_cost_plan > 0 ? 1 : 0;
-
-												$query_rsDirect_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-												$query_rsDirect_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
-												$row_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->fetch();
-												$totalRows_rsDirect_cost_plan_budget = $query_rsDirect_cost_plan_budget->rowCount();
-												$sum_cost = $row_rsDirect_cost_plan_budget['sum_cost'] != null ? $row_rsDirect_cost_plan_budget['sum_cost'] : 0;
-												$budget_line = "Outcome Baseline Evaluation";
-												?>
-												<div class="header">
-													<h4 class="contentheader">Evaluation Cost: <?= number_format($sum_cost, 2) ?> </h4>
-												</div>
-												<div class="body">
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-															<thead>
-																<tr>
-																	<th># </th>
-																	<th>Description </th>
-																	<th>Unit</th>
-																	<th>Unit Cost</th>
-																	<th>No. of Units</th>
-																	<th>Total Cost</th>
-																</tr>
-															</thead>
-															<tbody id="budget_lines_tableC">
-																<?php
-																if ($totalRows_rs_output_cost_plan > 0) {
-																	$table_counter = 0;
-																	while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
-																		$table_counter++;
-																		$unit = $row_rsOther_cost_plan['unit'];
-																		$unit_cost = $row_rsOther_cost_plan['unit_cost'];
-																		$units_no = $row_rsOther_cost_plan['units_no'];
-																		$rmkid = $row_rsOther_cost_plan['id'];
-																		$description = $row_rsOther_cost_plan['description'];
-																		$total_cost = $unit_cost * $units_no;
-																		$unit_of_measure =  get_measurement($unit);
-																?>
-																		<tr id="row">
-																			<td> <?= $table_counter ?></td>
-																			<td> <?= $description ?></td>
-																			<td> <?= $unit_of_measure ?></td>
-																			<td> <?= number_format($unit_cost, 2) ?></td>
-																			<td> <?= number_format($units_no) ?></td>
-																			<td> <?= number_format($total_cost, 2) ?></td>
-																		</tr>
-																<?php
-																	}
-																}
-																?>
-															</tbody>
-														</table>
-													</div>
-												</div>
-											</div>
-										<?php
-										}
-										?>
 									</div>
 								</div>
 								<div id="menu1" class="tab-pane fade">
 									<div class="row clearfix">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<fieldset class="scheduler-border" style="border-radius:3px">
-												<legend class="scheduler-border" style="background-color:orange; border-radius:3px">
+												<legend class="scheduler-border" style="color:white; background-color:green; border-radius:3px">
 													<i class="fa fa-university" aria-hidden="true"></i> Funding Details
 												</legend>
 												<div class="table-responsive">
@@ -829,7 +608,7 @@ if ($permission) {
 									<div class="row clearfix">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<fieldset class="scheduler-border row setup-content" id="step-2">
-												<legend class="scheduler-border" style="background-color:#079BF5; color:#fff; border-radius:3px"><i class="fa fa-credit-card" aria-hidden="true"></i> Payment Details</legend>
+												<legend class="scheduler-border bg-orange" style="border-radius:3px"><i class="fa fa-credit-card" aria-hidden="true"></i> Payment Details</legend>
 												<div class="table-responsive">
 													<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 														<thead>

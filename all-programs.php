@@ -10,12 +10,10 @@ if ($permission) {
         $sql_ind_programs->execute();
         $totalRows_ind_programs = $sql_ind_programs->rowCount();
 
-
-
         function get_source_categories()
         {
             global $db;
-            $query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_funding_type");
+            $query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_financier_type WHERE status=1");
             $query_rsFunding_type->execute();
             $totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
             $input = '';
@@ -164,12 +162,12 @@ if ($permission) {
                                                             }
 
                                                             // get program quarterly targets
-                                                            $query_pbbtargets =  $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid = :progid and year = :fnyear");
-                                                            $query_pbbtargets->execute(array(":progid" => $progid, ":fnyear" => $fnyear));
+                                                            $query_pbbtargets =  $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid = :progid");
+                                                            $query_pbbtargets->execute(array(":progid" => $progid));
                                                             $norows_pbbtargets = $query_pbbtargets->rowCount();
 
                                                             $button = '';
-                                                            if ($totalRows_projs == 0) {
+                                                            if ($norows_pbbtargets == 0 && $totalRows_projs == 0) {
                                                                 if (in_array("update", $page_actions)) {
                                                                     $button .= '<li><a type="button" data-toggle="modal" id="editprogram"  href="edit-program?progid=' . $progid_hashed . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>';
                                                                 }
@@ -179,24 +177,7 @@ if ($permission) {
                                                                 }
                                                             }
 
-                                                            if ($norows_pbbtargets > 0) {
-                                                                $details = "{
-                                                                    program_name:'$progname',
-                                                                    progid:'$progid',
-                                                                    edit:'1'
-                                                                }";
-                                                                $query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
-                                                                $query_projects_count->execute();
-                                                                $count_projects_count = $query_projects_count->rowCount();
-                                                                if (in_array("update_quarterly_targets", $page_actions)  && $count_projects_count == 0) {
-                                                                    $button .= '
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" id="editquarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="add_independent_quarterly_targets(' . $details . ')">
-                                                                            <i class="glyphicon glyphicon-edit"></i> Edit Quarterly Targets
-                                                                        </a>
-                                                                    </li>';
-                                                                }
-                                                            } else {
+                                                            if ($norows_pbbtargets == 0){
                                                                 $details = "{
                                                                     program_name:'$progname',
                                                                     progid:'$progid',
@@ -210,14 +191,28 @@ if ($permission) {
                                                                         </a>
                                                                     </li>';
                                                                 }
+                                                            } else {
+                                                                $details = "{
+                                                                    program_name:'$progname',
+                                                                    progid:'$progid',
+                                                                    edit:'1'
+                                                                }";
+                                                                $query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 0");
+                                                                $query_projects_count->execute();
+                                                                $count_projects_count = $query_projects_count->rowCount();
+                                                                if (in_array("update_quarterly_targets", $page_actions)  && $count_projects_count == 0) {
+                                                                    $button .= '
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" id="editquarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="add_independent_quarterly_targets(' . $details . ')">
+                                                                            <i class="glyphicon glyphicon-edit"></i> Edit Quarterly Targets
+                                                                        </a>
+                                                                    </li>';
+                                                                }
                                                             }
 
                                                             if (in_array("create", $page_actions)) {
                                                                 $button .= '<li><a type="button" id="addproject"  href="add-project.php?progid=' . $progid_hashed . '" > <i class="fa fa-plus-square"></i> Add Project</a></li>';
                                                             }
-
-
-
 
                                                             //get financial years
                                                             $query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year WHERE yr='$projsyear'");
@@ -270,7 +265,7 @@ if ($permission) {
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
-                                                    ?>
+																?>
                                                                 <tr>
                                                                     <td><?= $sn ?></td>
                                                                     <td><?= $progname ?></td>
@@ -295,7 +290,7 @@ if ($permission) {
                                                                         </div>
                                                                     </td>
                                                                 </tr>
-                                                    <?php
+																<?php
                                                             }
                                                         } // /while
 
@@ -401,7 +396,7 @@ if ($permission) {
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
-                                                    ?>
+																?>
                                                                 <tr>
                                                                     <td><?= $sn ?> </td>
                                                                     <td><?= $projname ?> </td>
@@ -456,7 +451,7 @@ if ($permission) {
                     <div class="div-result">
                         <form class="form-horizontal" id="quarterlyTargetsForm" action="" method="POST">
                             <br />
-                            <div class="col-md-12" id="quarterlyTargetsBody">
+                            <div id="quarterlyTargetsBody">
 
                             </div>
                             <div class="modal-footer approveItemFooter">
@@ -589,7 +584,7 @@ require('includes/footer.php');
     const details = {
         partner_roles: '<?= $partner_roles ?>',
         source_categories: '<?= $source_categories ?>',
-        partners: '<?=$partners?>',
+        partners: '<?= $partners ?>',
     }
 </script>
 

@@ -28,35 +28,6 @@ $(document).ready(function () {
         }]
     });
 
-	// /submit survey questions form
-    $("#add_evaluation_questions_form").on("submit", function (event) {
-        event.preventDefault();
-		$("#question-tag-form-submit").prop("disabled", true);
-        var form_data = $(this).serialize();
-        var form = $(this);
-        var formData = new FormData(this);
-        $.ajax({
-            url:  "ajax/mneplan/add-monitoring-evaluation-plan-processor",
-            type: form.attr("method"),
-            data: form_data,
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    $("#add_evaluation_questions_form")[0].reset();
-                    $(".modal").each(function () {
-                        $(this).modal("hide");
-                    });
-                    swal(response.msg);
-                    setTimeout(() => {
-                        window.location.reload(true);
-                    }, 3000);
-                } // /if response.success
-            } // /success function
-        }); // /ajax function
-        // /if validation is ok
-        return false;
-    }); // /submit survey questions form
-
     $("#addimpactform").on("submit", function (event) {
         event.preventDefault();
       $("#impact-tag-form-submit").prop("disabled", true);
@@ -212,6 +183,18 @@ $(document).ready(function () {
         });
     });
 });
+
+/* function survey_questions_table(url3){
+    // manage Project Outcome data table
+    surveyQuestionsTable = $("#survey_questions_table").DataTable({
+        ajax: url3,
+        order: [],
+        'columnDefs': [{
+            'targets': [7],
+            'orderable': false,
+        }]
+    });
+} */
 
 function editItem(evalform = null, itemId = null) {
     if (itemId) {
@@ -385,8 +368,7 @@ function roles(){
     var projevaluation = $("#projevaluation").val();
     var project_impact = $("#project_impact").val();
     var role_input = `
-    <option value="">Select Result Level</option>
-    <option value="1" >Output</option>`;
+    <option value="">Select Result Level</option>`;
     if (projevaluation != '0') {
         role_input += `<option value="2" >Outcome</option>`;
         if (project_impact != '0') {

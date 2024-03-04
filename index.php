@@ -1,44 +1,78 @@
 <?php
-session_start();
-if (isset($_SESSION['MM_Username']))
-  header("location:dashboard.php");
-
-
 require 'vendor/autoload.php';
 require 'Models/Connection.php';
 include "Models/Auth.php";
 include "Models/Company.php";
-require 'Models/Email.php'; 
+require 'Models/Email.php';
+session_start();
+if (isset($_SESSION['MM_Username']))
+  header("location:dashboard.php");
+
+//check if can login again
+if (isset($_SESSION['attempt_again'])) {
+  $now = time();
+  if ($now >= $_SESSION['attempt_again']) {
+    unset($_SESSION['attempt']);
+    unset($_SESSION['attempt_again']);
+  }
+}
 
 $user_auth = new Auth();
-
 $company_details = new Company();
 $company_settings = $company_details->get_company_details();
 
- 
 if (isset($_POST['submit'])) {
+  //set login attempt if not set
+  if (!isset($_SESSION['attempt'])) {
+    $_SESSION['attempt'] = 0;
+  }
   $email = $_POST['email'];
   $password = $_POST['password'];
   $user = $user_auth->login($email, $password);
-  if ($user) {
-    $_SESSION['MM_Username'] = $user->userid;
-    if ($user->first_login) {
-      header("location: set-new-password.php");
-    } else {
-      $_SESSION['ministry'] = $user->ministry;
-      $_SESSION['sector'] = $user->department;
-      $_SESSION['designation'] = $user->designation;
-      $_SESSION['role_group'] = $user->role_group;
-      $_SESSION['directorate'] = $user->directorate;
-      $_SESSION['avatar'] = $user->floc;
-      $_SESSION['fullname'] = $user->fullname;
 
-      header("location: dashboard.php");
-    }
-  } else {
-    $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
+
+  //check if there are 3 attempts already
+  if ($_SESSION['attempt'] == 3) {
+    $_SESSION['errorMessage'] = 'Attempt limit reached';
+    $user_auth->suspicious_activity($email);
     header("location:index.php");
     return;
+  } else {
+    if ($user) {
+      //unset our attempt
+      unset($_SESSION['attempt']);
+      $_SESSION['MM_Username'] = $user->userid;
+      if ($user->first_login) {
+        header("location: set-new-password.php");
+      } else {
+        $_SESSION['ministry'] = $user->ministry;
+        $_SESSION['sector'] = $user->department;
+        $_SESSION['designation'] = $user->designation;
+        $_SESSION['role_group'] = $user->role_group;
+        $_SESSION['directorate'] = $user->directorate;
+        $_SESSION['avatar'] = $user->floc;
+        $_SESSION['fullname'] = $user->fullname;
+
+        if (isset($_GET['action'])) {
+          $page_url = $_GET['action'];
+          header("location: $page_url");
+        } else {
+          header("location: dashboard.php");
+        }
+      }
+    } else {
+      $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
+      //this is where we put our 3 attempt limit
+      $_SESSION['attempt'] += 1;
+      //set the time to allow login if third attempt is reach
+      if ($_SESSION['attempt'] == 3) {
+        $_SESSION['attempt_again'] = time() + (5 * 60);
+        //note 5*60 = 5mins, 60*60 = 1hr, to set to 2hrs change it to 2*60*60
+      }
+
+      header("location:index.php");
+      return;
+    }
   }
 }
 ?>
@@ -245,7 +279,8 @@ if (isset($_POST['submit'])) {
                 <div class='alert alert-danger'>
                   <p class="errormsg">
                     <img src="images/error.png" alt="errormsg" />
-                    Your login attempt failed. You may have entered a wrong username or wrong password.
+                    <?= $_SESSION["errorMessage"] ?>
+                    <!-- Your login attempt failed. You may have entered a wrong username or wrong password. -->
                   </p>
                 </div>
               <?php

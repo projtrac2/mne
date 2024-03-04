@@ -131,9 +131,9 @@ if ($permission) {
                                                                     <th width="4%"><strong>#</strong></th>
                                                                     <th width="29%"><strong>Financier</strong></th>
                                                                     <th width="12%"><strong>Financial Year</strong></th>
+                                                                    <th width="15%"><strong>Amount Financing (Ksh)</strong></th>
                                                                     <th width="15%"><strong>Amount Received (Ksh)</strong></th>
-                                                                    <th width="15%"><strong>Amount Planned</strong></th>
-                                                                    <th width="15%"><strong>Amount Utilized</strong></th>
+                                                                    <th width="15%"><strong>Amount Utilized (Ksh)</strong></th>
                                                                     <th width="10%"><strong>Action</strong></th>
                                                                 </tr>
                                                             </thead>
@@ -238,9 +238,9 @@ if ($permission) {
                                                                     <th><strong>#</strong></th>
                                                                     <th><strong>Financier</strong></th>
                                                                     <th><strong>Financial Year</strong></th>
-                                                                    <th><strong>Amount Received (Ksh)</strong></th>
-                                                                    <th><strong>Amount Planned</strong></th>
-                                                                    <th><strong>Amount Utilized</strong></th>
+                                                                    <th width="15%"><strong>Amount Financing (Ksh)</strong></th>
+                                                                    <th width="15%"><strong>Amount Received (Ksh)</strong></th>
+                                                                    <th width="15%"><strong>Amount Utilized (Ksh)</strong></th>
                                                                     <th><strong>Action</strong></th>
                                                                 </tr>
                                                             </thead>

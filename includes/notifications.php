@@ -3,17 +3,19 @@
         <!-- Notifications -->
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" id="notif" data-toggle="dropdown" role="button">
-                <span class="label label-pill label-danger count" style="border-radius:10px;"></span> <span class="fa fa-bell" style="font-size:18px;"></span>
+                <span class="label label-pill label-danger " id="notif_count" style="border-radius:10px;"></span> <span class="fa fa-bell" style="font-size:18px;"></span>
             </a>
             <ul class="dropdown-menu">
                 <li class="header">NOTIFICATIONS</li>
                 <li class="body">
                     <ul class="menu" id="mynotif">
-
+                        <li class="">
+                            <a href="javascript:void(0);">View All Messages</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="footer">
-                    <a href="#">View All Notifications</a>
+                    <a href="view-user-notifications.php">View All Notifications</a>
                 </li>
             </ul>
         </li>
@@ -21,17 +23,16 @@
         <!-- Tasks -->
         <li class="dropdown">
             <a href="javascript:void(0);" class="dropdown-toggle" id="msg" data-toggle="dropdown" role="button">
-                <span class="label label-pill label-danger number" style="border-radius:10px;"></span> <span class="fa fa-envelope-o" style="font-size:18px;"></span>
+                <span class="label label-pill label-danger " id="number" style=" border-radius:10px;"></span> <span class="fa fa-envelope-o" style="font-size:18px;"></span>
             </a>
             <ul class="dropdown-menu">
                 <li class="header">MESSAGES</li>
                 <li class="body">
                     <ul class="menu" id="mymsg">
-
                     </ul>
                 </li>
                 <li class="footer">
-                    <a href="javascript:void(0);">View All Messages</a>
+                    <a href="view-user-notifications.php">View All Messages</a>
                 </li>
             </ul>
             <!-- /.dropdown-messages -->
@@ -41,59 +42,85 @@
 </div>
 
 <script>
+    const notification_url = "ajax/notifications/fetchnotifications";
+
+    function load_unseen_notification(view = '') {
+        $.ajax({
+            url: notification_url,
+            method: "get",
+            data: {
+                get_alerts: "get_alerts",
+                view: view
+            },
+            dataType: "json",
+            success: function(data) {
+                if (data.success) {
+                    $('#mynotif').html(data.alerts);
+                    $('#notif_count').html(data.total_alerts);
+                } else {
+                    error_alert("Sorry error occurred");
+                }
+            }
+        });
+    }
+
+    function load_notification_alert(alert_id) {
+        $.ajax({
+            url: notification_url,
+            method: "get",
+            data: {
+                get_notifications: "get_notifications",
+                alert_id: alert_id
+            },
+            dataType: "json",
+            success: function(data) {
+                if (data.success) {
+                    $('#mymsg').html(data.notifications);
+                    $('#number').html(data.total_notifications);
+                } else {
+                    error_alert("Sorry error occurred");
+                }
+            }
+        });
+    }
+
+    function load_unseen_message(read = '') {
+        $.ajax({
+            url: notification_url,
+            method: "get",
+            data: {
+                get_notifications: "get_notifications",
+                read: read
+            },
+            dataType: "json",
+            success: function(data) {
+                if (data.success) {
+                    $('#mymsg').html(data.notifications);
+                    $('#number').html(data.total_notifications);
+                } else {
+                    error_alert("Sorry error occurred");
+                }
+            }
+        });
+    }
+
+
+
     $(document).ready(function() {
-
-        function load_unseen_notification(view = '') {
-            $.ajax({
-                url: "fetchnotifications.php",
-                method: "POST",
-                data: {
-                    view: view
-                },
-                dataType: "json",
-                success: function(data) {
-                    $('#mynotif').html(data.notification);
-                    if (data.unseen_notification > 0) {
-                        $('.count').html(data.unseen_notification);
-                    }
-                }
-            });
-        }
-
-        function load_unseen_message(read = '') {
-            $.ajax({
-                url: "ajax/notifications/fetchmessages",
-                method: "POST",
-                data: {
-                    read: read
-                },
-                dataType: "json",
-                success: function(data) {
-                    $('#mymsg').html(data.message);
-                    if (data.unseen_message > 0) {
-                        $('.number').html(data.unseen_message);
-                    }
-                }
-            });
-        }
-        //
-        // load_unseen_notification();
-        // load_unseen_message();
 
         // $(document).on('click', '#notif', function() {
         //     $('.count').html('');
         //     load_unseen_notification('yes');
         // });
-        //
+
         // $(document).on('click', '#msg', function() {
         //     $('.number').html('');
         //     load_unseen_message('yes');
         // });
-        //
-        // setInterval(function() {
-        //     load_unseen_notification();
-        //     load_unseen_message();
-        // }, 5000);
 
+        setInterval(function() {
+            load_unseen_notification();
+            load_unseen_message();
+        }, 5000);
     });
 </script>

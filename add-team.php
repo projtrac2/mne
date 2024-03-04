@@ -14,6 +14,7 @@ if ($permission) {
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $projname = $workflow_stage = $sub_stage = $projcode = $project_directorate = $project_sub_stage = '';
 
+
         if ($totalRows_rsProjects > 0) {
             $projname = $row_rsProjects['projname'];
             $workflow_stage =  $row_rsProjects['projstage'];
@@ -70,8 +71,8 @@ if ($permission) {
                                             <tr>
                                                 <th style="width: 5%;">#</th>
                                                 <th style="width:25%">Member *</th>
-                                                <th style="width:25%"><?=$ministrylabel?> *</th>
-                                                <th style="width:25%"><?=$departmentlabel?></th>
+                                                <th style="width:25%"><?= $ministrylabel ?> *</th>
+                                                <th style="width:25%"><?= $departmentlabel ?></th>
                                                 <th style="width:15%">Role</th>
 
                                                 <th style="width:5%" data-orderable="false">
@@ -80,13 +81,12 @@ if ($permission) {
                                                         </span>
                                                     </button>
                                                 </th>
-
                                             </tr>
                                         </thead>
                                         <tbody id="financier_table_body">
                                             <?php
                                             $query_rsMembers = $db->prepare("SELECT responsible, role FROM `tbl_projmembers` WHERE projid=:projid  AND stage=:workflow_stage and team_type=4");
-                                            $query_rsMembers->execute(array(":projid" => $projid, ":workflow_stage" => 10));
+                                            $query_rsMembers->execute(array(":projid" => $projid, ":workflow_stage" => 9));
                                             $total_rsMembers = $query_rsMembers->rowCount();
                                             if ($total_rsMembers > 0) {
                                                 $rowno = 0;
@@ -174,42 +174,23 @@ if ($permission) {
                                     function validate_team()
                                     {
                                         global $db, $projid;
-                                        $query_projteam = $db->prepare("SELECT * FROM tbl_projmembers WHERE projid=:projid AND stage=:stage AND team_type=4");
-                                        $query_projteam->execute(array(':projid' => $projid, ":stage" => 10));
-                                        $totalRows_projteam = $query_projteam->rowCount();
-                                        $result[] = $totalRows_projteam > 0   ? true : false;
-
-                                        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
-                                        $query_Output->execute(array(":projid" => $projid));
-                                        $total_Output = $query_Output->rowCount();
-                                        if ($total_Output > 0) {
-                                            if ($total_Output > 0) {
-                                                while ($row_rsOutput = $query_Output->fetch()) {
-                                                    $output_id = $row_rsOutput['id'];
-                                                    $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id");
-                                                    $query_rsMilestone->execute(array(":output_id" => $output_id));
-                                                    $totalRows_rsMilestone = $query_rsMilestone->rowCount();
-                                                    if ($totalRows_rsMilestone > 0) {
-                                                        while ($row_rsMilestone = $query_rsMilestone->fetch()) {
-                                                            $milestone_id = $row_rsMilestone['msid'];
-                                                            $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE msid=:milestone");
-                                                            $query_rsTasks->execute(array(":milestone" => $milestone_id));
-                                                            $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                            if ($totalRows_rsTasks > 0) {
-                                                                while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                    $task_id = $row_rsTasks['tkid'];
-                                                                    $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE subtask_id=:subtask_id ");
-                                                                    $query_rsUser->execute(array(":subtask_id" => $task_id));
-                                                                    $totalRows_rsUser = $query_rsUser->rowCount();
-                                                                    $result[] = $totalRows_rsUser > 0 ? true : false;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid = c.subtask_id WHERE t.projid=:projid ");
+                                        $query_rsTasks->execute(array(":projid" => $projid));
+                                        $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                        $result = [];
+                                        if ($totalRows_rsTasks > 0) {
+                                            $t_counter = 0;
+                                            while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                $t_counter++;
+                                                $site_id = $row_rsTasks['site_id'];
+                                                $task_id = $row_rsTasks['subtask_id'];
+                                                $query_rsSubTask = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE subtask_id=:subtask_id AND site_id=:site_id ");
+                                                $query_rsSubTask->execute(array(":subtask_id" => $task_id, ":site_id" => $site_id));
+                                                $totalRows_rsSubTask = $query_rsSubTask->rowCount();
+                                                $result[] = $totalRows_rsSubTask > 0 ? true : false;
                                             }
                                         }
-                                        return !in_array(false, $result) ? true : false;
+                                        return !empty($result) && in_array(false, $result) ? false : true;
                                     }
 
                                     $proceed = validate_team();

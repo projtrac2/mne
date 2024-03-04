@@ -69,15 +69,15 @@ if ($permission) {
 
                                                 $success = "Successfully enabled partner ";
                                                 $status_text = " Are you sure you want to enable partner";
-                                                $update_status=1;
+                                                $update_status = 1;
                                                 if ($finstatus == 1) {
                                                     $status_text = " Are you sure you want to disable partner";
                                                     $success = "Successfully disabled Partner ";
-                                                    $update_status =0;
+                                                    $update_status = 0;
                                                 }
 
                                                 $query_partnerprojs = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojpartner m on p.projid=m.projid WHERE p.deleted='0' and m.partner_id = :fnid ORDER BY m.id ASC");
-                                                $query_partnerprojs->execute(array( ":fnid" => $fnid));
+                                                $query_partnerprojs->execute(array(":fnid" => $fnid));
                                                 $row_partnerprojs = $query_partnerprojs->rowCount();
 
                                                 if ($row_rspartner['active'] == 1) {
@@ -108,12 +108,12 @@ if ($permission) {
                                                                     <a type="button" href="view-partner-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> More Info</a>
                                                                 </li>
                                                                 <li>
-                                                                    <a type="button" onclick="update_partner_status(<?=$fnid?>, '<?=$status_text?>', '<?=$success?>', <?=$update_status?>)"><i class="fa fa-plus-square"></i> Manage</a>
+                                                                    <a type="button" onclick="update_partner_status(<?= $fnid ?>, '<?= $status_text ?>', '<?= $success ?>', <?= $update_status ?>)"><i class="fa fa-plus-square"></i> <?= $finstatus == 0 ? "Activate" : "Deactivate" ?></a>
                                                                 </li>
                                                                 <?php
                                                                 if ($finstatus == 1) {
                                                                     if (in_array("create", $page_actions)) {
-                                                                    ?>
+                                                                ?>
                                                                         <li>
                                                                             <a type="button" href="edit-partner.php?fn=<?php echo $hashfnid; ?>">
                                                                                 <i class="glyphicon glyphicon-edit"></i> Edit </a>
@@ -148,47 +148,47 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script>
-	function update_partner_status(partner_id, status_text, success, status) {
-		swal({
-				title: "Are you sure?",
-				text: status_text,
-				icon: "warning",
-				buttons: true,
-				dangerMode: true,
-			})
-			.then((willDelete) => {
-				if (willDelete) {
-					$.ajax({
-						type: "post",
-						url: "ajax/partners/others",
-						data: {
-							update_status: 'update_status',
-							partner_id: partner_id,
-							status: status,
-						},
-						dataType: "json",
-						success: function(response) {
-							if (response.success == true) {
-								swal({
-									title: "Financier !",
-									text: success,
-									icon: "success",
-								});
-							} else {
-								swal({
-									title: "Financier !",
-									text: "Error changing status",
-									icon: "error",
-								});
-							}
-							setTimeout(function() {
-								window.location.reload(true);
-							}, 3000);
-						},
-					});
-				} else {
-					swal("You cancelled the action!");
-				}
-			});
-	}
+    function update_partner_status(partner_id, status_text, success, status) {
+        swal({
+                title: "Are you sure?",
+                text: status_text,
+                icon: "warning",
+                buttons: true,
+                dangerMode: true,
+            })
+            .then((willDelete) => {
+                if (willDelete) {
+                    $.ajax({
+                        type: "post",
+                        url: "ajax/partners/others",
+                        data: {
+                            update_status: 'update_status',
+                            partner_id: partner_id,
+                            status: status,
+                        },
+                        dataType: "json",
+                        success: function(response) {
+                            if (response.success == true) {
+                                swal({
+                                    title: "Financier !",
+                                    text: success,
+                                    icon: "success",
+                                });
+                            } else {
+                                swal({
+                                    title: "Financier !",
+                                    text: "Error changing status",
+                                    icon: "error",
+                                });
+                            }
+                            setTimeout(function() {
+                                window.location.reload(true);
+                            }, 3000);
+                        },
+                    });
+                } else {
+                    swal("You cancelled the action!");
+                }
+            });
+    }
 </script>

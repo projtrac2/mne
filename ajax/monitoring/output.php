@@ -33,7 +33,7 @@ try {
     {
         global $db;
         $site_target = $site_cummulative_record = $site_previous_record =  $completed = 0;
-        if ($mapping_type == 1 || $mapping_type == 3) {
+        if ($mapping_type == 1) {
             $query_rsSite = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE output_site=:site_id AND outputid=:output_id");
             $query_rsSite->execute(array(":site_id" => $site_id, ":output_id" => $output_id));
             $Rows_rsSite = $query_rsSite->fetch();
@@ -47,7 +47,7 @@ try {
 
             $query_rsPrevious = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE site_id=:site_id AND output_id=:output_id AND record_type=:record_type ORDER BY moid DESC LIMIT 1");
             $query_rsPrevious->execute(array(":site_id" => $site_id, ":output_id" => $output_id, ":record_type" => $record_type));
-            $Rows_rsPrevious = $query_rsTargetUsed->fetch();
+            $Rows_rsPrevious = $query_rsPrevious->fetch();
             $site_previous_record = $Rows_rsPrevious ? $Rows_rsPrevious['achieved'] : 0;
 
 
@@ -69,8 +69,9 @@ try {
 
             $query_rsPrevious = $db->prepare("SELECT achieved FROM tbl_monitoringoutput WHERE state_id=:state_id AND output_id=:output_id AND record_type=:record_type ORDER BY moid DESC LIMIT 1");
             $query_rsPrevious->execute(array(":state_id" => $state_id, ":output_id" => $output_id, ":record_type" => $record_type));
-            $Rows_rsPrevious = $query_rsTargetUsed->fetch();
-            $site_previous_record = $Rows_rsPrevious ? $Rows_rsPrevious['achieved'] : 0;
+            $Rows_rsPrevious = $query_rsPrevious->fetch();
+            $Row_rsPrevious = $query_rsPrevious->rowCount();
+            $site_previous_record = $Row_rsPrevious > 0 ? $Rows_rsPrevious['achieved'] : 0;
 
             $query_rsCompleted = $db->prepare("SELECT * FROM tbl_program_of_works WHERE output_id=:output_id AND complete=0");
             $query_rsCompleted->execute(array(":output_id" => $output_id));
@@ -211,7 +212,13 @@ try {
 
     if (isset($_GET['get_project_outputs'])) {
         $projid = $_GET['projid'];
-        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+        $record_type = $_GET['record_type'];
+        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid AND mne_complete <> 1");
+        if ($record_type == 1) {
+            $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid AND complete <>1");
+        }
+
+
         $query_Output->execute(array(":projid" => $projid));
         $total_Output = $query_Output->rowCount();
         $success = false;
@@ -248,7 +255,7 @@ try {
         $Rows_rsOutput = $query_rsOutput->fetch();
         if ($totalRows_rsOutput > 0) {
             $mapping_type = $Rows_rsOutput['indicator_mapping_type'];
-            if ($mapping_type == 1 || $mapping_type == 3) {
+            if ($mapping_type == 1) {
                 $sites = '<option value="">... Select Site ...</option>';
                 $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
                 $query_Output->execute(array(":output_id" => $output_id));
@@ -295,7 +302,7 @@ try {
         $query_rsMl->execute(array(":output_id" => $output_id));
         $Rows_rsMl = $query_rsMl->rowCount();
 
-        $output_project_type = $Rows_rsMl > 0 ?  2 : 1;
+        $output_project_type = $Rows_rsMl > 0 ?  1 : 2;
         $output_type = $mapping_type == 2 || $mapping_type == 0 ? 2 : 1;
         $files = previous_attachment($output_id, "", "", "", $record_type);
         $comments = previous_remarks($output_id, "", "", "", $record_type);
@@ -339,8 +346,8 @@ try {
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $Rows_rsOutput = $query_rsOutput->fetch();
         $mapping_type = ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
-        $site_id =  $mapping_type == 1 || $mapping_type == 3 ? $site_id : 0;
-        $state_id =  $mapping_type == 1 || $mapping_type == 3 ? 0 : $_GET['site_id'];
+        $site_id =  $mapping_type == 1 ? $site_id : 0;
+        $state_id =  $mapping_type == 1  ? 0 : $_GET['site_id'];
 
         $files = previous_attachment($output_id, $milestone_id, $site_id, $state_id, $record_type);
         $comments = previous_remarks($output_id, $milestone_id, $site_id, $state_id, $record_type);
@@ -362,8 +369,8 @@ try {
         $totalRows_rsOutput = $query_rsOutput->rowCount();
         $mapping_type =  ($totalRows_rsOutput > 0) ? $Rows_rsOutput['indicator_mapping_type'] : 0;
 
-        $site_id =  $mapping_type == 1 || $mapping_type == 3 ? $site_id : 0;
-        $state_id =  $mapping_type == 1 || $mapping_type == 3 ? 0 : $_GET['site_id'];
+        $site_id =  $mapping_type == 1  ? $site_id : 0;
+        $state_id =  $mapping_type == 1  ? 0 : $_GET['site_id'];
 
         $files = previous_attachment($output_id, $milestone_id, $site_id, $state_id, $record_type);
         $comments = previous_remarks($output_id, $milestone_id, $site_id, $state_id, $record_type);
@@ -386,10 +393,14 @@ try {
         $query_rsOutput->execute(array(":output_id" => $output_id));
         $Rows_rsOutput = $query_rsOutput->fetch();
         $totalRows_rsOutput = $query_rsOutput->rowCount();
+
+
+        $total_target = 0;
         if ($totalRows_rsOutput > 0) {
             $mapping_type = $Rows_rsOutput['indicator_mapping_type'];
-            $state_id = $mapping_type == 1 || $mapping_type == 3 ? 0 : $site_id;
-            $site_id = $mapping_type == 1 || $mapping_type == 3 ? $site_id : 0;
+            $total_target = $Rows_rsOutput['total_target'];
+            $state_id = $mapping_type == 1 ? 0 : $site_id;
+            $site_id = $mapping_type == 1  ? $site_id : 0;
         }
 
         $sql = $db->prepare("INSERT INTO tbl_monitoringoutput (projid,output_id,milestone_id,site_id,state_id,form_id,achieved,record_type,created_by,date_created) VALUES(:projid,:output_id,:milestone_id,:site_id,:state_id,:formid,:achieved,:record_type,:created_by,:created_at)");
@@ -435,7 +446,13 @@ try {
             }
         }
 
-        if ($complete == 1) {
+
+        $query_rsCummulative = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE output_id=:output_id AND record_type=:record_type");
+        $query_rsCummulative->execute(array(":output_id" => $output_id, ":record_type" => $record_type));
+        $Rows_rsCummulative = $query_rsCummulative->fetch();
+        $cummulative_record = $Rows_rsCummulative['achieved'] != null ? $Rows_rsCummulative['achieved'] : 0;
+
+        if ($complete == 1 || $cummulative_record == $total_target) {
             if ($record_type == 1) {
                 $sql = $db->prepare("UPDATE tbl_project_details SET complete=1, status=5 WHERE  projid=:projid AND id=:output_id");
                 $result  = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id));

@@ -1,154 +1,160 @@
 <?php
 require('includes/head.php');
-$permission = true;
 if ($permission) {
+
 ?>
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?php echo $pageTitle ?>
+                    <?= $icon . " " . $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <button type="button" id="modal_button" onclick="add('0', 'subcounty')" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
+                            <button type="button" id="modal_button" onclick="add_location('0','','new')" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
                                 <i class="fa fa-plus-square"></i> Add Location
                             </button>
                         </div>
                     </div>
+                </h4>
             </div>
-            </h4>
-        </div>
-        <div class="row clearfix">
-            <div class="block-header">
-                <?= $results; ?>
-            </div>
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <div class="card">
-                    <div class="body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped table-hover " id="manageItemTable">
-                                <thead>
-                                    <tr style="background-color:#0b548f; color:#FFF">
-                                        <th></th>
-                                        <th>#</th>
-                                        <th colspan="2"> <?= $level1label ?></th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $counter = 0;
-                                    $query_rsState = $db->prepare("SELECT id,state FROM tbl_state WHERE parent IS NULL");
-                                    $query_rsState->execute();
-                                    $rows_rsState = $query_rsState->rowCount();
-                                    if ($rows_rsState > 0) {
-                                        while ($row_rsState = $query_rsState->fetch()) {
-                                            $counter++;
-                                            $level1_id = $row_rsState['id'];
-                                            $level1 = $row_rsState['state'];
-                                            $status ='';
-                                    ?>
-                                            <tr class="projects" style="background-color:#eff9ca">
-                                                <td align="center" class="mb-0" id="projects<?php echo $level1_id ?>" data-toggle="collapse" data-target=".project<?php echo $level1_id ?>" style="background-color:#0b548f">
-                                                    <button class="btn btn-link " title="Click once to expand and Click once to Collapse!!" style="color:#FFF">
-                                                        <i class="fa fa-plus-square" style="font-size:16px"></i>
-                                                    </button>
-                                                </td>
-                                                <td align="center"><?= $counter ?></td>
-                                                <td colspan="2"><?= $level1 ?></td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                            Options <span class="caret"></span>
+            <div class="row clearfix">
+                <div class="block-header">
+                    <?= $results; ?>
+                </div>
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="body">
+                            <!-- ============================================================== -->
+                            <!-- Start Page Content -->
+                            <!-- ============================================================== -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover " id="manageItemTable">
+                                    <thead>
+                                        <tr style="background-color:#0b548f; color:#FFF">
+                                            <th style="width: 5%;"></th>
+                                            <th style="width: 5%;">#</th>
+                                            <th colspan="2" style="width: 80%;"> <?= $level1label ?></th>
+                                            <th style="width: 10%;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $counter = 0;
+                                        $query_rsState = $db->prepare("SELECT * FROM tbl_state WHERE parent IS NULL");
+                                        $query_rsState->execute();
+                                        $rows_rsState = $query_rsState->rowCount();
+                                        if ($rows_rsState > 0) {
+                                            while ($row_rsState = $query_rsState->fetch()) {
+                                                $counter++;
+                                                $level1_id = $row_rsState['id'];
+                                                $level1 = $row_rsState['state'];
+                                                $status_id = $row_rsState['active'];
+                                                $status = $status_id == 1 ? "Disable"   : "Enable";
+                                        ?>
+                                                <tr class="projects" style="background-color:#eff9ca">
+                                                    <td align="center" class="mb-0" id="projects<?php echo $level1_id ?>" data-toggle="collapse" data-target=".project<?php echo $level1_id ?>" style="background-color:#0b548f">
+                                                        <button class="btn btn-link " title="Click once to expand and Click once to Collapse!!" style="color:#FFF">
+                                                            <i class="fa fa-plus-square" style="font-size:16px"></i>
                                                         </button>
-                                                        <ul class="dropdown-menu">
-                                                            <li>
-                                                                <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreModalBtn" onclick="edit(0, 'subcounty',<?= $level1_id ?>)">
-                                                                    <i class="fa fa-file-text"></i> Edit  <?= $level1label ?>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a type="button" onclick="destroy(<?= $level1_id ?>,'<?= $status ?>', <?= $deleted ? 0 : 1 ?>)">
-                                                                    <i class="fa fa-file-text"></i> <?= $deleted ? "Enable" : "Disable" ?>  <?= $level1label ?>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a type="button" id="modal_button" onclick="add(<?= $level1_id ?>, 'ward')" class="" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
-                                                                    <i class="fa fa-plus-square"></i> Add <?= $level2label ?>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php
-                                            $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE parent=:parent ORDER BY id ASC");
-                                            $query_rsAllWards->execute(array(":parent"=>$level1_id));
-                                            $rows_rsAllWards = $query_rsAllWards->rowCount();
-                                            if ($rows_rsAllWards > 0) {
-                                            ?>
-                                                <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#2d8bd6; color:#FFF">
-                                                    <th width="5%"></th>
-                                                    <th width="5%">#</th>
-                                                    <th colspan="2" width="40%"> <?= $level2label ?></th>
-                                                    <th width="10%">Action</th>
+                                                    </td>
+                                                    <td align="center"><?= $counter ?></td>
+                                                    <td colspan="2"><?= $level1 ?></td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                Options <span class="caret"></span>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <a type="button" data-toggle="modal" data-target="#addItemModal" id="moreModalBtn" onclick="add_location('0','<?= $level1_id ?>','edit')">
+                                                                        <i class="fa fa-file-text"></i> Edit <?= $level1label ?>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a type="button" onclick="destroy(<?= $level1_id ?>, <?= $status_id == 1 ? 0 : 1 ?>,'<?= $status ?>', '<?= $level1 ?>')">
+                                                                        <i class="fa fa-file-text"></i> <?= $status  ?> <?= $level1label ?>
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a type="button" id="modal_button" onclick="add_location('<?= $level1_id ?>','','new')" class="" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
+                                                                        <i class="fa fa-plus-square"></i> Add <?= $level2label ?>
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                                 <?php
-                                                $Ocounter = 0;
-                                                while ($row_rsAllWards = $query_rsAllWards->fetch()) {
-                                                    $Ocounter++;
-                                                    $level2 = $row_rsAllWards['state'];
-                                                    $level2_id = $row_rsAllWards['id'];
+                                                $query_rsAllWards = $db->prepare("SELECT * FROM `tbl_state` WHERE parent=:parent ORDER BY id ASC");
+                                                $query_rsAllWards->execute(array(":parent" => $level1_id));
+                                                $rows_rsAllWards = $query_rsAllWards->rowCount();
+                                                if ($rows_rsAllWards > 0) {
                                                 ?>
-                                                    <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#dbdbdb">
-                                                        <td align="center" class="mb-0" id="outputs" data-toggle="collapse" data-parent="#accordion" data-target=".output" style="background-color:#2d8bd6">
-                                                        </td>
-                                                        <td align="center"> <?php echo $counter . "." . $Ocounter ?></td>
-                                                        <td colspan="2"><?= $level2; ?></td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreModalBtn" onclick="edit($level1_id, 'ward' ,<?= $level2_id ?>)">
-                                                                            <i class="fa fa-file-text"></i> Edit <?= $level2label ?>
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a type="button" onclick="destroy(<?= $level2_id ?>, <?= $deleted ? 0 : 1 ?>)">
-                                                                            <i class="fa fa-file-text"></i> <?= $deleted ? "Enable" : "Disable" ?>
-                                                                        </a>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
+                                                    <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#2d8bd6; color:#FFF">
+                                                        <th width="5%"></th>
+                                                        <th width="5%">#</th>
+                                                        <th colspan="2" width="40%"> <?= $level2label ?></th>
+                                                        <th width="10%">Action</th>
                                                     </tr>
-                                        <?php
+                                                    <?php
+                                                    $Ocounter = 0;
+                                                    while ($row_rsAllWards = $query_rsAllWards->fetch()) {
+                                                        $Ocounter++;
+                                                        $level2 = $row_rsAllWards['state'];
+                                                        $level2_id = $row_rsAllWards['id'];
+                                                        $status_id = $row_rsAllWards['active'];
+                                                        $status = $status_id == 1 ? "Disable"   : "Enable";
+                                                    ?>
+                                                        <tr class="collapse project<?php echo $level1_id ?>" style="background-color:#dbdbdb">
+                                                            <td align="center" class="mb-0" id="outputs" data-toggle="collapse" data-parent="#accordion" data-target=".output" style="background-color:#2d8bd6">
+                                                            </td>
+                                                            <td align="center"> <?php echo $counter . "." . $Ocounter ?></td>
+                                                            <td colspan="2"><?= $level2; ?></td>
+                                                            <td>
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                        Options <span class="caret"></span>
+                                                                    </button>
+                                                                    <ul class="dropdown-menu">
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#addItemModal" id="moreModalBtn" onclick="add_location('<?= $level1_id ?>','<?= $level2_id ?>','edit')">
+                                                                                <i class="fa fa-file-text"></i> Edit <?= $level2label ?>
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a type="button" onclick="destroy(<?= $level2_id ?>, <?= $status_id == 1 ? 0 : 1 ?>,'<?= $status ?>', '<?= $level2 ?>')">
+                                                                                <i class="fa fa-file-text"></i> <?= $status  ?>
+                                                                            </a>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                            <?php
+                                                    }
                                                 }
                                             }
+                                        } else {
+                                            ?>
+                                            <tr>
+                                                <td colspan="7">No Locations Currently</td>
+                                            </tr>
+                                        <?php
                                         }
-                                    } else {
                                         ?>
-                                        <tr>
-                                            <td colspan="7">No Locations Currently</td>
-                                        </tr>
-                                    <?php
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- ============================================================== -->
+                            <!-- End PAge Content -->
+                            <!-- ============================================================== -->
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     </section>
     <!-- end body  -->
-
     <!-- add item -->
     <div class="modal fade" id="addItemModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -156,9 +162,8 @@ if ($permission) {
                 <form class="form-horizontal" id="submitItemForm" action="" method="POST" enctype="multipart/form-data">
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add </h4>
+                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Location </h4>
                     </div>
-
                     <div class="modal-body">
                         <div class="card">
                             <div class="row clearfix">
@@ -166,12 +171,10 @@ if ($permission) {
                                     <div class="body">
                                         <div class="col-md-12 form-input">
                                             <label>
-                                                <font color="#174082"> <span id="value_type"></span> </font>
+                                                <font color="#174082"> <span id="value_type">Location :</span> </font>
                                             </label>
                                             <div class="form-input">
-                                                <input type="text" name="sector" class="form-control" id="sector" value="" style="height:35px; width:98%" placeholder="" required />
-                                                <input type="hidden" name="parent" id="parent">
-                                                <span id="projdurationmsg1" style="color:red"></span>
+                                                <input type="text" name="location" class="form-control" id="location" value="" style="height:35px; width:98%" placeholder="" required />
                                             </div>
                                         </div>
                                         <!-- /form-group-->
@@ -182,7 +185,9 @@ if ($permission) {
                     </div> <!-- /modal-body -->
                     <div class="modal-footer">
                         <div class="col-md-12 text-center">
-                            <input type="hidden" name="newitem" id="newitem" value="new">
+                            <input type="hidden" name="store_location" id="store_location" value="new">
+                            <input type="hidden" name="parent" id="parent">
+                            <input type="hidden" name="id" id="id">
                             <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                             <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
                         </div>
@@ -192,104 +197,23 @@ if ($permission) {
         </div> <!-- /modal-dailog -->
     </div>
     <!-- End add item -->
-
-
-    <!-- Start Modal Item Edit -->
-    <div class="modal fade" id="editItemModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Edit Project Funding Type</h4>
-                </div>
-                <div class="modal-body" style="max-height:450px; overflow:auto;">
-                    <div class="card">
-                        <div class="row clearfix">
-                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                <div class="body">
-                                    <div class="div-result">
-                                        <form class="form-horizontal" id="editItemForm" action="" method="POST">
-                                            <div class="col-md-3">
-                                                <label>Role Group *:</label>
-                                                <div class="form-line">
-                                                    <select name="role_group" id="role_group1" class=" form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
-                                                        <option value="" class="selection">...Select Role Group Type...</option>
-                                                        <option value="1" class="selection">...Role Group 1...</option>
-                                                        <option value="2" class="selection">...Role Group 2...</option>
-                                                        <option value="3" class="selection">...Role Group 3...</option>
-                                                        <option value="4" class="selection">...Role Group 4...</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-12 form-input">
-                                                <label>
-                                                    <font color="#174082"> <span id="value_type1"></span> </font>
-                                                </label>
-                                                <div class="form-input">
-                                                    <input type="text" name="sector" class="form-control" id="sector1" value="<?php echo (isset($_GET['sctid'])) ? $row_sctparent['sector'] : ""; ?>" style="height:35px; width:98%" placeholder="Enter sector/department" required />
-                                                    <input type="hidden" name="parent" id="parent1">
-                                                    <input type="hidden" name="stid" id="stid1">
-                                                    <span id="projdurationmsg1" style="color:red"></span>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer editItemFooter">
-                                                <div class="col-md-12 text-center">
-                                                    <input type="hidden" name="edititem" id="edititem" value="edit">
-                                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
-                                                    <input name="edit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
-                                                </div>
-                                            </div> <!-- /modal-footer -->
-                                        </form> <!-- /.form -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> <!-- /modal-body -->
-            </div>
-            <!-- /modal-content -->
-        </div>
-        <!-- /modal-dailog -->
-    </div>
-    <!-- End Item Edit -->
 <?php
 } else {
     $results =  restriction();
     echo $results;
 }
-
 require('includes/footer.php');
 ?>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 <script>
+    var ajax_url = "ajax/location/index";
     $(document).ready(function() {
-        $(".collapse td").click(function(e) {
-            e.preventDefault();
-            $(this)
-                .find("i")
-                .toggleClass("fa-plus-square fa-minus-square");
-        });
-
-        $(".projects td").click(function(e) {
-            e.preventDefault();
-            $(this)
-                .find("i")
-                .toggleClass("fa-plus-square fa-minus-square");
-        });
-
-        $(".output td").click(function(e) {
-            e.preventDefault();
-            $(this)
-                .find("i")
-                .toggleClass("fa-plus-square fa-minus-square");
-        });
-
         $("#submitItemForm").submit(function(e) {
             e.preventDefault();
             var form_data = $(this).serialize();
             $.ajax({
                 type: "post",
-                url: "ajax/sectors/index",
+                url: ajax_url,
                 data: form_data,
                 dataType: "json",
                 success: function(response) {
@@ -302,46 +226,38 @@ require('includes/footer.php');
                 }
             });
         });
-
-        $("#editItemForm").submit(function(e) {
-            e.preventDefault();
-            var form_data = $(this).serialize();
-            $.ajax({
-                type: "post",
-                url: "ajax/sectors/index",
-                data: form_data,
-                dataType: "json",
-                success: function(response) {
-                    if (response) {
-                        swal("Success!", "Record updated successfully!", "success");
-                    } else {
-                        swal("Error!", "Could not update record!", "error");
-                    }
-                    window.location.reload(true)
-                }
-            });
-        });
     });
 
+    function add_location(parent_id, state_id, edit) {
+        $("#store_location").val(edit);
+        $("#parent").val(parent_id);
+        $("#id").val(state_id);
 
-    function add(parent, value_type) {
-        $("#parent").val(parent);
-        $("#value_type").html(value_type);
+        if (edit == 'edit') {
+            $.ajax({
+                type: "get",
+                url: ajax_url,
+                data: {
+                    get_location_details: "get_location_details",
+                    state_id: state_id,
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        var state = response.state;
+                        $("#location").val(state.state);
+                    } else {
+                        error_alert("Sorry details not found ! try later");
+                    }
+                }
+            });
+        }
     }
 
-    function edit(parent, value_type, sector, role_group, stid) {
-        $("#parent1").val(parent);
-        $("#value_type1").html(value_type);
-        $("#sector1").val(sector);
-        $("#parent1").val(parent);
-        $("#role_group1").val(role_group);
-        $("#stid1").val(stid);
-    }
-
-    function destroy(stid, status, statusid) {
+    function destroy(state_id, status_id, status, state) {
         swal({
                 title: "Are you sure?",
-                text: `${status}`,
+                text: `you want to ${status} ${state}`,
                 icon: "warning",
                 buttons: true,
                 dangerMode: true,
@@ -350,11 +266,11 @@ require('includes/footer.php');
                 if (willDelete) {
                     $.ajax({
                         type: "post",
-                        url: "ajax/sectors/index",
+                        url: ajax_url,
                         data: {
                             deleteItem: "deleteItem",
-                            stid: stid,
-                            status: statusid,
+                            state_id: state_id,
+                            status_id: status_id,
                         },
                         dataType: "json",
                         success: function(response) {
@@ -363,7 +279,7 @@ require('includes/footer.php');
                             } else {
                                 swal("Error!", "Could not update status!", "error");
                             }
-                            window.location.reload(true)
+                            window.location.reload(true);
                         }
                     });
                 } else {

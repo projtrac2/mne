@@ -21,7 +21,7 @@ if ($permission) {
 		function get_source_categories()
 		{
 			global $db;
-			$query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_funding_type");
+			$query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_financier_type WHERE status=1");
 			$query_rsFunding_type->execute();
 			$totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
 			$input = '';
@@ -49,23 +49,23 @@ if ($permission) {
 		}
 
 		function get_partners()
-        {
-            global $db;
-            $query_rsParners =  $db->prepare("SELECT * FROM tbl_partners WHERE active=1");
-            $query_rsParners->execute();
-            $totalRows_rsParners = $query_rsParners->rowCount();
-            $input = '';
-            if ($totalRows_rsParners > 0) {
-                while ($row_rsParners = $query_rsParners->fetch()) {
-                    $input .= '<option value="' . $row_rsParners['id'] . '"> ' . $row_rsParners['partner'] . '</option>';
-                }
-            }
-            return $input;
-        }
+		{
+			global $db;
+			$query_rsParners =  $db->prepare("SELECT * FROM tbl_partners WHERE active=1");
+			$query_rsParners->execute();
+			$totalRows_rsParners = $query_rsParners->rowCount();
+			$input = '';
+			if ($totalRows_rsParners > 0) {
+				while ($row_rsParners = $query_rsParners->fetch()) {
+					$input .= '<option value="' . $row_rsParners['id'] . '"> ' . $row_rsParners['partner'] . '</option>';
+				}
+			}
+			return $input;
+		}
 
 		$source_categories = get_source_categories();
 		$partner_roles  = get_partner_roles();
-        $partners  = get_partners();
+		$partners  = get_partners();
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
 	}
@@ -184,7 +184,7 @@ if ($permission) {
 										$query_activeadp->execute();
 										$totalRows_activeadp = $query_activeadp->rowCount();
 										if ($totalRows_activeadp > 0) {
-								?>
+											?>
 											<li class="active">
 												<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-up bg-green" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-green"><?php echo $totalcount; ?></span></a>
 											</li>
@@ -194,7 +194,7 @@ if ($permission) {
 											<li>
 												<a data-toggle="tab" href="#menu<?= $adpfyid ?>"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-deep-orange"><?php echo $totalcount; ?></span></a>
 											</li>
-								<?php
+										<?php
 										}
 									}
 								}
@@ -219,7 +219,7 @@ if ($permission) {
 											$prog = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid=:progid");
 											$prog->execute(array(":progid" => $progid));
 											$rowprog = $prog->fetch();
-											if($rowprog){
+											if ($rowprog) {
 												$project_department = $rowprog['projsector'];
 												$project_section = $rowprog['projdept'];
 												$project_directorate = $rowprog['directorate'];
@@ -263,7 +263,7 @@ if ($permission) {
 										$totalRows_activeadpbody = $query_activeadpbody->rowCount();
 
 										if ($totalRows_activeadpbody > 0) {
-								?>
+											?>
 											<div id="home" class="tab-pane fade in active">
 												<div style="color:#fff; background-color:green; width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px"></i> <?= $adp ?> Projects</h4>
@@ -591,8 +591,8 @@ if ($permission) {
 										} else {
 										?>
 
-											<div id="menu<?= $adpfyid ?>" class="tab-pane fade">
-												<div style="color:#333; background-color:#EEE; width:100%; height:30px">
+											<div id="menu<?= $adpfyid ?>" class="tab-pane fade clearfix">											
+												<div class="bg-orange text-white" style="width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:#FF9800"></i> <?= $adp ?> Projects</h4>
 												</div>
 												<input type="hidden" id="tblid" value="<?= $adpfyid ?>">
@@ -623,15 +623,17 @@ if ($permission) {
 																while ($row = $sql->fetch()) {
 																	$sn++;
 																	$itemId = $row['projid'];
+																	$budget = $row['projcost'];
+																	$budget = number_format($budget, 2);
 
 																	$query_rsBudget = $db->prepare("SELECT SUM(o.budget) as budget FROM tbl_project_output_details o left join tbl_project_details d on d.id=o.outputid WHERE d.projid ='$itemId' AND o.year = '$adpyr'");
 																	$query_rsBudget->execute();
 																	$row_rsBudget = $query_rsBudget->fetch();
 																	$totalRows_rsBudget = $query_rsBudget->rowCount();
-																	$projbudget = $row_rsBudget['budget'];
+																	//$projbudget = $row_rsBudget['budget'];
 
 																	$projname = $row["projname"];
-																	$budget = number_format($projbudget, 2);
+																	//$budget = number_format($projbudget, 2);
 																	$progid = $row["progid"];
 																	$srcfyear = $row["projfscyear"];
 
@@ -658,16 +660,32 @@ if ($permission) {
 																	$query_rsDept->execute(array(":sector" => $projdept));
 																	$row_rsDept = $query_rsDept->fetch();
 																	$department = $row_rsDept['sector'];
+																	
+																	//check if project has adp budget tbl_adp_projects_budget
+																	$query_adp_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid = :projid AND year = :adpfyid");
+																	$query_adp_budget->execute(array(":projid" => $itemId, ":adpfyid" => $adpfyid));
+																	$row_adp_budget = $query_adp_budget->rowCount();
+																	
+																	if ($row_adp_budget == 0) {
+																		$buttonunapprov = '
+																		<li>
+																			<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')">
+																				<i class="glyphicon glyphicon-plus"></i> Add ADP Budget
+																			</a>
+																		</li>';
+																	}
 
 																	$progname = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $rowprog["progname"] . '</span>';
 
-																	$active = "<label class='label label-success'>Approved</label>";
+																	//$active = "<label class='label label-success'>Approved</label>";
+																	$active = "<label class='label label-danger'>Pending</label>";
 																	$button = '<!-- Single button -->
 																	<div class="btn-group">
 																		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 																			Options <span class="caret"></span>
 																		</button>
 																		<ul class="dropdown-menu">
+																			'.$buttonunapprov .'
 																			<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More Info</a></li>
 																		</ul>
 																	</div>';
@@ -675,7 +693,7 @@ if ($permission) {
 
 																	$filter_department = view_record($project_department, $project_section, $project_directorate);
 																	if ($filter_department) {
-															?>
+																		?>
 																		<tr>
 																			<td align="center" width="5%"><?php echo $sn; ?></td>
 																			<td width="30%"><?php echo $projname; ?></td>
@@ -685,7 +703,7 @@ if ($permission) {
 																			<td width="8%"><?php echo $active; ?></td>
 																			<td width="8%"><?php echo $button; ?></td>
 																		</tr>
-															<?php
+																		<?php
 																	} // /while
 																}
 															}
@@ -848,7 +866,7 @@ require('includes/footer.php');
 	const details = {
 		partner_roles: '<?= $partner_roles ?>',
 		source_categories: '<?= $source_categories ?>',
-        partners: '<?=$partners?>',
+		partners: '<?= $partners ?>',
 	}
 </script>
 <!-- <script src="general-settings/js/fetch-adp.js"></script>

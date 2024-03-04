@@ -62,43 +62,45 @@ if ($permission) {
                                                 $query_rsDesigns->execute(array(":projid" => $projid));
                                                 $totalRows_rsDesigns = $query_rsDesigns->rowCount();
 
+
                                                 $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
-                                                $assign_responsible = in_array("assign_data_entry_responsible", $page_actions) || in_array("assign_approval_responsible", $page_actions) ? true : false;
+                                                $assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
+
+                                                $details = "{
+														get_edit_details: 'details',
+														projid:$projid,
+														workflow_stage:$workflow_stage,
+														sub_stage:$sub_stage,
+														project_directorate:$project_directorate,
+													}";
 
                                                 $query_rsMapping = $db->prepare("SELECT * FROM tbl_markers  WHERE projid=:projid ");
                                                 $query_rsMapping->execute(array(":projid" => $projid));
                                                 $total_rsMapping = $query_rsMapping->rowCount();
 
-                                                $activity = $total_rsMapping == 0 ? "Add" : "Edit";
-                                                $assigned = false;
-                                                if ($sub_stage == 0) {
-                                                    $activity_status = "Pending";
-                                                } else if ($sub_stage == 3 || $sub_stage == 1) {
-                                                    $activity_status = "Assigned";
-                                                    $assigned = true;
-                                                } else if ($sub_stage > 1) {
-                                                    $activity_status = "Pending Approval";
-                                                    $activity = "Approve";
+                                                $today = date('Y-m-d');
+                                                $assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
+                                                $activity = "Add";
+                                                if ($total_rsMapping > 0) {
+                                                    $activity = $sub_stage > 1 ? "Approve"  : "Edit";
                                                 }
 
-                                                $edit =  $assigned ? "edit" : "new";
-
-                                                $details =
-                                                    "{
-                                                        get_edit_details: 'details',
-                                                        projid:$projid,
-                                                        workflow_stage:$workflow_stage,
-                                                        sub_stage:$sub_stage,
-                                                        project_directorate:$project_directorate,
-                                                        project_name:'$projname',
-                                                        edit:'$edit'
-                                                    }";
+                                                $due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
+                                                $activity_status = "Pending";
+                                                if ($sub_stage > 1) {
+                                                    $activity_status = "Pending Approval";
+                                                } else if ($sub_stage < 2) {
+                                                    $activity_status = $sub_stage == 1 ?  "Assigned" : "Pending";
+                                                    if ($today > $due_date) {
+                                                        $activity_status = "Behind Schedule";
+                                                    }
+                                                }
                                         ?>
                                                 <tr>
                                                     <td align="center"><?= $counter ?></td>
                                                     <td><?= $projcode ?></td>
                                                     <td><?= $projname ?></td>
-                                                    <td><?= date('Y M d') ?></td>
+                                                    <td><?= date('Y M d', strtotime($due_date)) ?></td>
                                                     <td><label class='label label-success'><?= $activity_status; ?></td>
                                                     <td>
                                                         <div class="btn-group">
@@ -116,12 +118,11 @@ if ($permission) {
                                                                 ?>
                                                                     <li>
                                                                         <a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
-                                                                            <i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
+                                                                            <i class="fa fa-users"></i> Assign
                                                                         </a>
                                                                     </li>
                                                                 <?php
                                                                 }
-
                                                                 if ($assigned_responsible) {
                                                                 ?>
                                                                     <li>
@@ -250,7 +251,7 @@ if ($permission) {
                             <input type="hidden" name="projid" id="m_projid" value="">
                             <input type="hidden" name="workflow_stage" id="m_workflow_stage" value="<?= $workflow_stage ?>">
                             <input type="hidden" name="sub_stage" id="m_sub_stage" value="">
-                            <input type="hidden" name="assign_mapping_responsible" id="assign_mapping_responsible_data" value="new">
+                            <input type="hidden" name="assign_mapping_responsible" id="assign_mapping_responsible" value="new">
                             <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit-mapping" value="Assign" />
                             <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                         </div>

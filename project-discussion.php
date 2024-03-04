@@ -65,17 +65,15 @@ if ($permission) {
 	<link rel="stylesheet" href="assets/css/style.css">
 	<section class="content">
 		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:-60px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:-60px; padding-top:5px; padding-bottom:5px; padding-left:15px; padding-right:15px; color:#FFF">
 				<h4 class="contentheader" style="color:#FFF">
 					<?= $icon ?>
 					<?= $pageTitle ?>
 					<?= $results ?>
 					<div class="btn-group" style="float:right">
-						<div class="btn-group" style="float:right">
-							<a type="button" id="outputItemModalBtnrow" href="project-collaboration.php?projid=<?= $projid_hashed ?>" class="btn btn-warning pull-right">
-								Exit
-							</a>
-						</div>
+						<a type="button" id="outputItemModalBtnrow" href="project-collaboration.php?projid=<?= $projid_hashed ?>" class="btn btn-warning pull-right" style="margin-top:-5px">
+							Exit Discussion
+						</a>
 					</div>
 				</h4>
 			</div>
@@ -86,7 +84,7 @@ if ($permission) {
 							<div class="row clearfix">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 									<ul class="list-group">
-										<li class="list-group-item "> <strong>Topic Name: <?= $topic ?> </strong></li>
+										<li class="list-group-item "> <strong>Discussion Subject: <u><?= $topic ?> </u></strong></li>
 									</ul>
 								</div>
 							</div>
@@ -95,7 +93,7 @@ if ($permission) {
 							<div class="row">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 									<div class="m-b-0">
-										<div class="chat-main-box right-panel v-scroll">
+										<div class="chat-main-box right-panel v-scroll col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<!-- .chat-right-panel -->
 											<div class="chat-right-aside">
 												<div class="chat-rbox">

@@ -47,7 +47,7 @@ if ($permission) {
 					$last_id = $db->lastInsertId();
 					
 					if (isset($_POST['inddirectBenfType'])) {
-						if (isset($_POST['indcalculation'])) {
+						/* if (isset($_POST['indcalculation'])) {
 							$category = 2;
 							if ($indcalculation == 1) {
 								if (isset($_POST['direct_impact_aggragate'])) {
@@ -75,7 +75,7 @@ if ($permission) {
 									$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $numerator, ":category" => $category,   ":type" => $type));
 								}
 							}
-						}
+						} */
 
 						if (isset($_POST['direct_impact_dissagragation_type']) && !empty($_POST['direct_impact_dissagragation_type'])) {
 							$disaggregated_type = $_POST['direct_impact_dissagragation_type'];
@@ -303,10 +303,10 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="impact_details">
+									<!--<div class="impact_details">
 										<div class="" id="direct_impact_formula">
 										</div>
-									</div>
+									</div>-->
 
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<label class="control-label">Indicator Description/Definition : <font align="left" style="background-color:#eff2f4"> </font></label>

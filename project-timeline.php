@@ -8,6 +8,7 @@ require('includes/head.php');
 include_once('projects-functions.php');
 if ($permission) {
 	try {
+		$back_url = $_SESSION['back_url'];
 		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -45,6 +46,9 @@ if ($permission) {
 				$end_date = $row_rsTender['enddate'];
 			}
 		}
+
+		$project_start_date = $start_date;
+		$project_end_date = $end_date;
 
 
 		function get_task_compliance($state_id, $site_id, $task_id)
@@ -204,7 +208,7 @@ if ($permission) {
 					<?= $icon ?>
 					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -215,7 +219,7 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Timeline</a>
 								<?php if ($projcat == 2 && $projstage > 4) { ?>
@@ -252,6 +256,7 @@ if ($permission) {
 							</div>
 							<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" style="margin-top:15px; margin-bottom:15px">
 								<strong>Project End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?>
+								<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
 							</div>
 						</div>
 						<div class="body">
@@ -261,6 +266,9 @@ if ($permission) {
 								</li>
 								<li>
 									<a data-toggle="tab" href="#menu2"><i class="fa fa-list-alt bg-blue" aria-hidden="true"></i> Gantt Chart &nbsp;<span class="badge bg-blue">|</span></a>
+								</li>
+								<li>
+									<a data-toggle="tab" href="#menu3"><i class="fa fa-list-alt bg-blue" aria-hidden="true"></i> Target Breakdown &nbsp;<span class="badge bg-blue">|</span></a>
 								</li>
 							</ul>
 						</div>
@@ -404,7 +412,7 @@ if ($permission) {
 										}
 									}
 
-									$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+									$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
 									$query_Output->execute(array(":projid" => $projid));
 									$total_Output = $query_Output->rowCount();
 									$outputs = '';
@@ -542,7 +550,6 @@ if ($permission) {
 														?>
 													</select>
 												</div>
-												<input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
 											<?php
 											}
 											?>
@@ -550,6 +557,11 @@ if ($permission) {
 									</div>
 									<div id="container-gantt"></div>
 									<div id="container"></div>
+								</div>
+								<div id="menu3" class="tab-pane fade">
+									<?php
+									include_once('./target-breakdown.php');
+									?>
 								</div>
 							</div>
 						</div>
@@ -583,7 +595,7 @@ function get_output_chart($projid)
 
 		$inner = new stdClass;
 		$inner->name = $projname;
-		$inner->id = $projid;
+		$inner->id = 'p' . $projid;
 		$inner->owner = 'owner';
 
 		array_push($series->data, $inner);
@@ -607,8 +619,8 @@ function get_output_chart($projid)
 
 					$m_outputs = new stdClass;
 					$m_outputs->name = $output;
-					$m_outputs->id = $output_id;
-					$m_outputs->parent = $projid;
+					$m_outputs->id = 'o' . $output_id;
+					$m_outputs->parent = 'p' . $projid;
 					$m_outputs->start = $start_date;
 					$m_outputs->end = $end_date;
 					$m_outputs->dependencies = '';
@@ -627,9 +639,9 @@ function get_output_chart($projid)
 								$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
 								$m_tasks = new stdClass;
-								$m_tasks->id = $milestone_id;
+								$m_tasks->id = 'm' . $milestone_id;
 								$m_tasks->name = $milestone_name;
-								$m_tasks->parent = $output_id;
+								$m_tasks->parent = 'o' . $output_id;
 								$m_tasks->start = $start_date;
 								$m_tasks->end = $end_date;
 
@@ -653,8 +665,8 @@ function get_output_chart($projid)
 											$end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
 											$m_sub_tasks = new stdClass;
 											$m_sub_tasks->name = $task_name;
-											$m_sub_tasks->id = $task_id;
-											$m_sub_tasks->parent = $milestone_id;
+											$m_sub_tasks->id = 't' . $task_id;
+											$m_sub_tasks->parent = "m" . $milestone_id;
 											$m_sub_tasks->dependency = $parent;
 											$m_sub_tasks->start = $start_date;
 											$m_sub_tasks->end = $end_date;
@@ -680,11 +692,25 @@ function get_output_chart($projid)
 $data =  get_output_chart($projid);
 ?>
 <script>
-	const data = <?= json_encode($data) ?>;
+	const start_date = `<?= $project_start_date ?>`;
+	const end_date = `<?= $project_end_date ?>`;
+	const proj_start_date = new Date(start_date);
+	const proj_end_date = new Date(end_date);
+
+
 	var chart;
+	const data = <?= json_encode($data) ?>;
 
 	const gantt_chart = (data) => {
 		var options = {
+			chart: {
+				events: {
+					load() {
+						let chart = this;
+						chart.xAxis[0].setExtremes(Date.UTC(proj_start_date.getFullYear(), proj_start_date.getMonth(), proj_start_date.getDay()), Date.UTC(proj_end_date.getFullYear(), proj_end_date.getMonth(), proj_end_date.getDay()))
+					}
+				}
+			},
 			title: {
 				text: 'Project Gantt Chart'
 			},
@@ -739,7 +765,6 @@ $data =  get_output_chart($projid);
 		return Highcharts.ganttChart('container-gantt', options);
 	}
 
-
 	$(document).ready(function() {
 		chart = gantt_chart(data);
 	});
@@ -747,7 +772,6 @@ $data =  get_output_chart($projid);
 	function get_data() {
 		var site_id = $("#site_id").val();
 		var projid = $("#projid").val();
-
 		if (projid != '' && site_id != '') {
 			$.ajax({
 				type: "get",
@@ -759,16 +783,11 @@ $data =  get_output_chart($projid);
 				},
 				dataType: "json",
 				success: function(response) {
-					console.log(response)
-
 					if (response.success) {
-
-
 						if (chart != null) {
 							chart.destroy();
 							chart = null;
 						}
-
 						var data = response.series;
 						chart = gantt_chart(data);
 					}
@@ -777,4 +796,26 @@ $data =  get_output_chart($projid);
 
 		}
 	}
+
+	$(function() {
+		$('.tasks_id_header').each((index, element) => {
+			var projid = $("#projid").val();
+			$.ajax({
+				type: "get",
+				url: "ajax/programsOfWorks/get-wbs-achieved",
+				data: {
+					projid: projid,
+					site_id: $(element).next().val(),
+					output_id: $(element).next().next().val(),
+					task_id: $(element).val(),
+					get_wbs: 'get_wbs'
+				},
+				dataType: "json",
+				success: function(response) {
+					let tkid = $(element).val();
+					$(`.peter-${tkid}`).html(response.table);
+				}
+			});
+		});
+	})
 </script>

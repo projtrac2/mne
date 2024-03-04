@@ -11,7 +11,7 @@ if ($permission) {
 		$row_rsMyP = $query_rsMyP->fetch();
 		$projcategory = $row_rsMyP["projcategory"];
 		$projname = $row_rsMyP["projname"];
-		$percent2 = calculate_project_progress($projid, $projcategory);
+		$percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
 
 
 		$query_rsPFiles = $db->prepare("SELECT f.*, p.projid, p.projname FROM tbl_projects p INNER JOIN tbl_files f ON p.projid=f.projid WHERE p.projid = '$projid' AND p.deleted = '0'");
@@ -35,7 +35,7 @@ if ($permission) {
 					<?= $icon ?>
 					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Activity Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>

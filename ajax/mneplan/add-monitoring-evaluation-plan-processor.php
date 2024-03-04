@@ -293,7 +293,7 @@ if (isset($_POST['editoutcome'])) {
 
 
 
-//======================================== START Evaluation Questions ============================================
+//======================================== START ADD EVALUATION QUESTIONS ============================================
 
 if (isset($_POST['add_evaluation_questions'])) {
     if (isset($_POST['question']) && !empty($_POST['question'])) {
@@ -331,13 +331,74 @@ if (isset($_POST['add_evaluation_questions'])) {
 		$result1  = $insert_question->execute(array(":projid" => $projid, ":question" => $question, ":parent_question" => $main_question, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answer_label, ":calculation_method" => $calculation_method));
 
         if ($result1) {
-            $msg = 'Project Outcome evaluation data successfully added';
+            $msg = 'Projectevaluation qustion data successfully added';
             echo json_encode(array("success" => true, "msg" => $msg));
         }
     }
 }
 
-//================================== END ADD OUTCOME DETAILS ================================================
+//================================== END ADD EVALUATION QUESTIONS ================================================
+
+
+//======================================== START EDIT EVALUATION QUESTIONS ============================================
+
+if (isset($_POST['edit_evaluation_questions'])) {
+    if (isset($_POST['question']) && !empty($_POST['question'])) {
+		$questionid = $_POST['questionid'];
+        $question = $_POST['question'];		
+        $createdby  = $_POST['user_name'];
+		$questiontype = 1;
+		$main_question = $calculation_method = $answer_label = null;
+		
+		if(isset($_POST['question_type']) && !empty($_POST['question_type'])) {
+			$questiontype = $_POST['question_type'];
+		}
+		
+		if(isset($_POST['main_question']) && !empty($_POST['main_question'])) {
+			$main_question = $_POST['main_question'];
+		}
+		
+        $answertype = $_POST['answertype'];
+		
+		if($answertype == 1){
+			$calculation_method  = $_POST['calculation_method'];
+		} elseif($answertype == 2){
+			$answer_label = $_POST['answer_label'];
+			$calculation_method = $_POST['calculation_method'];
+		} elseif($answertype == 3){
+			$answer_label  = $_POST['answer_label'];
+		} elseif($answertype == 4){
+			$answer_label  = $_POST['answer_label'];
+			$calculation_method  = $_POST['calculation_method'];
+		}
+		
+		$insertSQL1 = $db->prepare("UPDATE tbl_project_evaluation_questions SET question = :question, parent_question = :parent_question, questiontype = :questiontype, answertype = :answertype, answerlabels = :answerlabels, question_calculation_method = :question_calculation_method WHERE id=:questionid");
+		$result1  = $insertSQL1->execute(array(":question" => $question, ":parent_question" => $main_question, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answer_label, ":question_calculation_method" => $calculation_method, ":questionid" => $questionid));
+
+        if ($result1) {
+            $msg = 'Project evaluation qustion data successfully updated';
+            echo json_encode(array("success" => true, "msg" => $msg));
+        }
+    }
+}
+
+//================================== END EDIT EVALUATION QUESTIONS ================================================
+
+
+
+//================================== START DELETE EVALUATION QUESTION ================================================
+
+if (isset($_POST['deleteQuestion']) && $_POST['deleteQuestion'] == 1) {
+	$questionid = $_POST['questionid'];
+	
+	$sql = $db->prepare("DELETE FROM tbl_project_evaluation_questions WHERE id=:questionid");
+	$resulst = $sql->execute(array(':questionid' => $questionid));
+	if ($resulst) {
+		echo json_encode(array("success" => true));
+	}
+}
+
+//================================== END DELETE EVALUATION QUESTION ================================================
 
 
 //================================== START ADD OUTPUT DETAILS ================================================

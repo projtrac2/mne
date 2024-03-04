@@ -6,7 +6,9 @@ $original_projid = $_GET['proj'];
 
 require('includes/head.php');
 if ($permission) {
+	$back_url = $_SESSION['back_url'];
 	try {
+
 		$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
 		$query_rsProjects->execute(array(":projid" => $projid));
 		$row_rsProjects = $query_rsProjects->fetch();
@@ -27,7 +29,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon . "  " . $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -37,7 +39,7 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
 								<?php if ($projcat == 2 && $projstage > 4) { ?>

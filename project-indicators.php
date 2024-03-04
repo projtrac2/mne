@@ -1,7 +1,10 @@
 <?php
-$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
+$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: project-mne-details?proj=".$_GET['proj']);
+$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: project-mne-details?proj=".$_GET['proj']);
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
+$indid_array = explode("indid54321", $decode_indid);
+$indid = $indid_array[1];
 $currentdate = date("Y-m-d");
 
 $original_projid = $_GET['proj'];
@@ -18,16 +21,19 @@ if ($permission) {
 		$projcat = $row_project["projcategory"];
 		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
 
-		$query_proj_inds =  $db->prepare("SELECT indid, indicator_name AS indicator, unit, output FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE projid = :projid GROUP BY i.indid ORDER BY p.indicator ASC");
-		$query_proj_inds->execute(array(":projid" => $projid));
+		$query_proj_inds =  $db->prepare("SELECT indicator_name AS indicator, unit, output FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE projid = :projid AND indid=:indid GROUP BY i.indid ORDER BY p.indicator ASC");
+		$query_proj_inds->execute(array(":projid" => $projid, ":indid" => $indid));
+		$row_proj_inds = $query_proj_inds->fetch();		
+		$proj_indicator = $row_proj_inds["indicator"];
+		$proj_indicator_unit = $row_proj_inds["unit"];
+		$project_indicator = $proj_indicator_unit." of ".$proj_indicator;
 
-		$query_default_proj_ind =  $db->prepare("SELECT p.id AS projopid, p.total_target, indid, indicator_name,indicator_description,duration,unit FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE p.projid = :projid");
-		$query_default_proj_ind->execute(array(":projid" => $projid));
+		$query_default_proj_ind =  $db->prepare("SELECT p.id AS projopid, p.total_target, indicator_name,indicator_description,duration,unit FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit left join tbl_progdetails g on g.indicator=i.indid left join tbl_project_details p on p.outputid=g.id WHERE p.projid = :projid AND indid=:indid");
+		$query_default_proj_ind->execute(array(":projid" => $projid, ":indid" => $indid));
 		$row_default_proj_ind = $query_default_proj_ind->fetch();
 
 		$opid = $row_default_proj_ind["projopid"];
 		$optarget = intval($row_default_proj_ind["total_target"]);
-		$default_proj_indiid = $row_default_proj_ind["indid"];
 		$default_proj_indicator_unit = $row_default_proj_ind["unit"];
 		$default_proj_indicator_description = $row_default_proj_ind["indicator_description"];
 		$default_proj_indicator_duration = $row_default_proj_ind["duration"];
@@ -91,7 +97,9 @@ if ($permission) {
 					<?= $pageTitle ?>
 
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+							Go Back
+						</button>
 					</div>
 				</h4>
 			</div>
@@ -99,21 +107,6 @@ if ($permission) {
 				<div class="block-header">
 					<?= $results; ?>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="header" style="padding-bottom:0px">
-							<div class="" style="margin-top:-15px">
-								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Outputs</a>
-								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
-								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
-									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
-								<?php } ?>
-								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
-								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
-								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
-							</div>
-						</div>
 						<h4>
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
 								Project Name: <font color="white"><?php echo $projname; ?></font>
@@ -141,22 +134,11 @@ if ($permission) {
 										</div>
 										<div class="body bg-success p-2 text-dark bg-opacity-50">
 											<div id="respondent" class="bg-secondary">
-												<label>Select Output Indicator:</label>
+												<label>Output Indicator:</label>
 												<div class="form-line">
-													<select name="indicator" id="indicator" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" false required>
-														<?php
-														$i = 1;
-														while($row_proj_inds = $query_proj_inds->fetch()){
-															$proj_indid = $row_proj_inds["indid"];
-															$proj_indicator = $row_proj_inds["indicator"];
-															$proj_indicator_unit = $row_proj_inds["unit"];
-															$project_indicator = $proj_indicator_unit." of ".$proj_indicator;
-															$selected = $i == 1 ? "selected" : "";
-															echo '<option value="'.$proj_indid.'" '.$selected.'>'.$project_indicator.'</option>';
-															$i++;
-														}
-														?>
-													</select>
+													<div class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px">
+														<?php echo $project_indicator;?>
+													</div>
 												</div>
 											</div>
 											<hr style="border-top: 1px dashed red;">
@@ -216,7 +198,7 @@ if ($permission) {
 													$location = $row_location["state"];
 
 													$query_basevalues =  $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid = :indid AND level3 = :level3");
-													$query_basevalues->execute(array(":indid" => $default_proj_indiid, ":level3" => $projloc));
+													$query_basevalues->execute(array(":indid" => $indid, ":level3" => $projloc));
 													$row_basevalues = $query_basevalues->fetch();
 
 													$query_proj_op_target =  $db->prepare("SELECT d.total_target AS target FROM tbl_output_disaggregation d left join tbl_project_details o on o.id=d.outputid WHERE o.projid = :projid AND o.id = :opid AND d.outputstate = :location");

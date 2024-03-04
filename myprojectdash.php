@@ -111,10 +111,9 @@ if ($permission) {
 
 			$query_other_fin_lines->execute(array(":projid" => $projid));
 			$row_other_fin_lines = $query_other_fin_lines->fetch();
-
 			$planned_amount = !is_null($row_other_fin_lines['planned_amount']) ? $row_other_fin_lines['planned_amount'] : 0;
 
-			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payments_disbursed WHERE  projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE  projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 			$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
@@ -140,7 +139,7 @@ if ($permission) {
 		$durationtoenddate = $timelines_arr['durationtoenddate'];
 		$durationrate = $timelines_arr['durationrate'];
 
-		$progress = calculate_project_progress($projid, $implimentation_method);
+		$progress = number_format(calculate_project_progress($projid, $implimentation_method), 2);
 		$percentage_progress_remaining = 100 - $progress;
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
@@ -163,9 +162,8 @@ if ($permission) {
 				<h4 class="contentheader">
 					<i class="fa fa-columns" aria-hidden="true"></i>
 					<?php echo $pageTitle ?>
-
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Activity Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>

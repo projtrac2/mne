@@ -310,7 +310,7 @@ try {
       if ($total_Output > 0) {
          $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
          $success = true;
-         if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+         if ($indicator_mapping_type == 1 ) {
             $query_Site = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE p.projid = :projid AND outputid=:output_id ");
             $query_Site->execute(array(":projid" => $projid, ":output_id" => $output_id));
             $total_Site = $query_Site->rowCount();
@@ -617,22 +617,15 @@ try {
          while ($row_rsFunder = $query_rsFunder->fetch()) {
             $amountfunding = $row_rsFunder['amountfunding'];
             $financier = $row_rsFunder['financier'];
-            $funder = $row_rsFunder['id'];
+            $financier_id = $row_rsFunder['id'];
 
-            $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE r.projid=:projid AND status=3");
-            $query_rsPayement_requests_financiers->execute(array(":projid" => $projid));
+            $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE r.projid=:projid AND status=3 AND f.financier_id=:financier_id");
+            $query_rsPayement_requests_financiers->execute(array(":projid" => $projid, ":financier_id" => $financier_id));
             $rows_rsPayement_requests_financiers = $query_rsPayement_requests_financiers->fetch();
             $amount_paid = !is_null($rows_rsPayement_requests_financiers['amount']) ? $rows_rsPayement_requests_financiers['amount'] : 0;
-
-            $query_rsPayment =  $db->prepare("SELECT amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE r.projid=:projid AND f.request_id=:request_id");
-            $query_rsPayment->execute(array(":projid" => $projid, ":request_id" => $request_id));
-            $rows_rsPayment = $query_rsPayment->fetch();
-            $totalrows_rsPayment = $query_rsPayment->rowCount();
-            $request_amount = $totalrows_rsPayment > 0 ? $rows_rsPayment['amount'] : 0;
-
-            $total_spent = ($amountfunding - $amount_paid) + $request_amount;
+            $total_spent = $amountfunding - $amount_paid;
             if ($total_spent > 0) {
-               $financiers .= '<option value="' . $funder . '">' . $financier . '</option>';
+               $financiers .= '<option value="' . $financier_id . '">' . $financier . '</option>';
             }
          }
       }
@@ -651,21 +644,15 @@ try {
       $balance = 0;
       if ($total_rsFunder > 0) {
          $amountfunding = $row_rsFunder['amountfunding'];
-         $financier = $row_rsFunder['financier'];
-         $funder = $row_rsFunder['id'];
-
-         $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE financier_id=:financier_id ");
-         $query_rsPayement_requests_financiers->execute(array(":financier_id" => $financier_id));
+         $query_rsPayement_requests_financiers =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE financier_id=:financier_id AND r.projid=:projid");
+         $query_rsPayement_requests_financiers->execute(array(":financier_id" => $financier_id, ":projid" => $projid));
          $rows_rsPayement_requests_financiers = $query_rsPayement_requests_financiers->fetch();
          $amount_paid = !is_null($rows_rsPayement_requests_financiers['amount']) ? $rows_rsPayement_requests_financiers['amount'] : 0;
 
-         $query_rsPayment =  $db->prepare("SELECT amount FROM tbl_payment_request_financiers f INNER JOIN tbl_payments_request r ON r.id = f.request_id WHERE f.projid=:projid AND f.request_id=:request_id");
-         $query_rsPayment->execute(array(":projid" => $projid, ":request_id" => $request_id));
-         $rows_rsPayment = $query_rsPayment->fetch();
-         $totalrows_rsPayment = $query_rsPayment->rowCount();
-         $request_amount = $totalrows_rsPayment > 0 ? $rows_rsPayment['amount'] : 0;
-         $balance = ($amountfunding - $amount_paid) + $request_amount;
+         $balance = $amountfunding - $amount_paid;
+         $balance = $balance > 0 ? $balance : 0;
       }
+
       echo json_encode(array("success" => true, "balance" => $balance));
    }
 } catch (PDOException $ex) {

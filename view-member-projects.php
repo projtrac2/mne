@@ -10,12 +10,135 @@ if ($permission) {
             $mbrid_array = explode("projmbr", $decode_mbrid);
             $mbrid = $mbrid_array[1];
         }
-        $query_rs_sp_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=1 AND m.responsible=:ptid GROUP BY p.projid");
-        $query_rs_sp_projects->execute(array(":ptid" => $mbrid));
+
+
+
+        $query_rsUser = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
+        $query_rsUser->execute(array(":user_id" => $mbrid));
+        $row_rsUser = $query_rsUser->fetch();
+        $count_rsUser = $query_rsUser->rowCount();
+        $designation_id = $department_id = $section_id = $directorate_id = '';
+
+        if ($count_rsUser > 0) {
+            $designation_id = $row_rsUser['designation'];
+            $department_id = $row_rsUser['ministry'];
+            $section_id = $row_rsUser['department'];
+            $directorate_id = $row_rsUser['directorate'];
+            $fullname = $row_rsUser['title'] . ' ' . $row_rsUser['fullname'];
+        }
+
+        function get_department_list($project_type)
+        {
+            global $db, $mbrid, $department_id;
+            $workflow_stage = 10;
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector=:department_id AND g.program_type=:project_type GROUP BY m.projid");
+            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":department_id" => $department_id, ":project_type" => $project_type));
+            $technical_projects = $query_rsNoPrj->rowCount();
+
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id, ":project_type" => $project_type));
+            $department_projects = $query_rsProjects->rowCount();
+            return $technical_projects + $department_projects;
+        }
+
+        function get_section_list($project_type)
+        {
+            global $db, $mbrid, $section_id;
+            $workflow_stage = 10;
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept:section_id AND g.program_type=:project_type GROUP BY m.projid");
+            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":section_id" => $section_id, ":project_type" => $project_type));
+            $technical_projects = $query_rsNoPrj->rowCount();
+
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id, ":project_type" => $project_type));
+            $section_projects = $query_rsProjects->rowCount();
+            return $technical_projects + $section_projects;
+        }
+
+        function get_directorate_list($project_type)
+        {
+            global $db, $mbrid, $directorate_id;
+            $workflow_stage = 10;
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate=:directorate_id AND g.program_type=:project_type GROUP BY m.projid");
+            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
+            $technical_projects = $query_rsNoPrj->rowCount();
+
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id  AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
+            $directorate_projects = $query_rsProjects->rowCount();
+            return $technical_projects + $directorate_projects;
+        }
+
+        function get_project_list($project_type)
+        {
+            global $db, $mbrid;
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type GROUP BY m.projid");
+            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type));
+            $technical_projects = $query_rsNoPrj->rowCount();
+            return $technical_projects;
+        }
+
+
+
+        function get_counter($project_type)
+        {
+            global  $designation_id;
+            $totalRows_rsNoPrj = get_project_list($project_type);
+            if ($designation_id == 7) {
+                $totalRows_rsNoPrj =  get_directorate_list($project_type);
+            } else if ($designation_id == 6) {
+                $totalRows_rsNoPrj = get_section_list($project_type);
+            } else if ($designation_id == 5) {
+                $totalRows_rsNoPrj = get_department_list($project_type);
+            }
+
+            return $totalRows_rsNoPrj;
+        }
+
+
+        function validate_project($projid, $project_department, $project_section, $project_directorate)
+        {
+            global $db, $designation_id, $department_id, $section_id, $directorate_id, $mbrid;
+            $response = false;
+            if ($designation_id == 5) {
+                $response = true;
+                if ($department_id != $project_department) {
+                    $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND m.projid=:projid");
+                    $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":projid" => $projid));
+                    $technical_projects = $query_rsNoPrj->rowCount();
+                    $response = $technical_projects > 0 ? true : false;
+                }
+            } else if ($designation_id == 6) {
+                $response = true;
+                if ($section_id != $project_section) {
+                    $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND m.projid=:projid ");
+                    $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":projid" => $projid));
+                    $technical_projects = $query_rsNoPrj->rowCount();
+                    $response = $technical_projects > 0 ? true : false;
+                }
+            } else if ($designation_id == 7) {
+                $response = true;
+                if ($directorate_id != $project_directorate) {
+                    $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND m.projid=:projid");
+                    $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":projid" => $projid));
+                    $technical_projects = $query_rsNoPrj->rowCount();
+                    $response = $technical_projects > 0 ? true : false;
+                }
+            } else {
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND m.projid=:projid");
+                $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":projid" => $projid));
+                $technical_projects = $query_rsNoPrj->rowCount();
+                $response = $technical_projects > 0 ? true : false;
+            }
+            return $response;
+        }
+
+        $query_rs_sp_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0'  AND g.program_type=1 AND p.projstage =10");
+        $query_rs_sp_projects->execute();
         $total_sp_projects = $query_rs_sp_projects->rowCount();
 
-        $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_projmembers m on m.projid=p.projid WHERE p.deleted = '0'  AND g.program_type=0 AND m.responsible=:ptid GROUP BY p.projid");
-        $query_rs_ind_projects->execute(array(":ptid" => $mbrid));
+        $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0' AND g.program_type=0 AND p.projstage =10");
+        $query_rs_ind_projects->execute();
         $total_ind_projects = $query_rs_ind_projects->rowCount();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -32,8 +155,7 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?= $pageTitle ?>
+                    <?= $icon  . ' ' . $fullname . ' ' . $pageTitle ?> <?= $designation_id ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
@@ -54,13 +176,13 @@ if ($permission) {
                                 <a data-toggle="tab" href="#home">
                                     <i class="fa fa-caret-square-o-down bg-green" aria-hidden="true"></i> Strategic Plan Projects &nbsp;
 
-                                    <span class="badge bg-green"><?= $total_sp_projects ?></span>
+                                    <span class="badge bg-green"><?= get_counter(1) ?></span>
                                 </a>
                             </li>
                             <li>
                                 <a data-toggle="tab" href="#menu1">
                                     <i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Independent Projects &nbsp;
-                                    <span class="badge bg-blue"><?= $total_ind_projects ?></span>
+                                    <span class="badge bg-blue"><?= get_counter(0) ?></span>
                                 </a>
                             </li>
                         </ul>
@@ -86,10 +208,11 @@ if ($permission) {
                                                 <tbody>
                                                     <!-- =========================================== -->
                                                     <?php
+
+
                                                     if ($total_sp_projects > 0) {
                                                         $sn = 0;
                                                         while ($row__sp_projects = $query_rs_sp_projects->fetch()) {
-                                                            $sn++;
                                                             $projid =  $row__sp_projects['projid'];
                                                             $projname =  $row__sp_projects['projname'];
                                                             $progid =  $row__sp_projects['progid'];
@@ -104,6 +227,12 @@ if ($permission) {
                                                             $project_end_date =  $row__sp_projects['projenddate'];
                                                             $projcategory =  $row__sp_projects['projcategory'];
                                                             $percent2 =  $row__sp_projects['progress'];
+
+                                                            $project_department =  $row__sp_projects['projsector'];
+                                                            $project_directorate =  $row__sp_projects['projdept'];
+                                                            $project_section =  $row__sp_projects['directorate'];
+
+
 
 
                                                             $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
@@ -198,46 +327,49 @@ if ($permission) {
 
                                                             $projlastmn = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : '';
 
+                                                            if (validate_project($projid, $project_department, $project_section, $project_directorate)) {
+                                                                $sn++;
                                                     ?>
-                                                            <tr id="rows">
-                                                                <td><?php echo $sn; ?></td>
-                                                                <td style="padding-right:0px; padding-left:0px; padding-top:0px">
-                                                                    <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
-                                                                        <p style="color:#FFF; font-weight:bold"><?= $projname ?> </p>
-                                                                    </div>
-                                                                    <div style="padding:5px; font-size:11px">
-                                                                        <b>Project Code:</b> <?= $projcode ?><br />
-                                                                        <b>Project Cost:</b> Ksh.<?= $projcost; ?><br />
-                                                                        <b>Start Date:</b> <?= $project_start_date; ?><br />
-                                                                        <b>End Date: </b> <?= $project_end_date; ?><br />
-                                                                        <b>Implementer: </b>
-                                                                        <font color="#4CAF50">
-                                                                            <?= $projcontractor; ?>
-                                                                        </font>
-                                                                    </div>
-                                                                </td>
-                                                                <td><?= $sector ?></td>
-                                                                <td style="padding-right:0px; padding-left:0px">
-                                                                    <?= $status  ?>
-                                                                    <br />
-                                                                    <strong>
-                                                                        <?= $project_progress ?>
-                                                                    </strong>
-                                                                    <br />
-                                                                </td>
-                                                                <td align="center">
-                                                                    <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
-                                                                        <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
-                                                                        <font size="5px"><?= $totalRows_rsProjissues ?></font>
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <?= implode(",", $locations); ?>
-                                                                </td>
-                                                                <td><?= $financial_year ?></td>
-                                                                <td><?php echo $projlastmn; ?></td>
-                                                            </tr>
+                                                                <tr id="rows">
+                                                                    <td><?php echo $sn; ?></td>
+                                                                    <td style="padding-right:0px; padding-left:0px; padding-top:0px">
+                                                                        <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
+                                                                            <p style="color:#FFF; font-weight:bold"><?= $projname ?> </p>
+                                                                        </div>
+                                                                        <div style="padding:5px; font-size:11px">
+                                                                            <b>Project Code:</b> <?= $projcode ?><br />
+                                                                            <b>Project Cost:</b> Ksh.<?= $projcost; ?><br />
+                                                                            <b>Start Date:</b> <?= $project_start_date; ?><br />
+                                                                            <b>End Date: </b> <?= $project_end_date; ?><br />
+                                                                            <b>Implementer: </b>
+                                                                            <font color="#4CAF50">
+                                                                                <?= $projcontractor; ?>
+                                                                            </font>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td><?= $sector ?></td>
+                                                                    <td style="padding-right:0px; padding-left:0px">
+                                                                        <?= $status  ?>
+                                                                        <br />
+                                                                        <strong>
+                                                                            <?= $project_progress ?>
+                                                                        </strong>
+                                                                        <br />
+                                                                    </td>
+                                                                    <td align="center">
+                                                                        <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
+                                                                            <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
+                                                                            <font size="5px"><?= $totalRows_rsProjissues ?></font>
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>
+                                                                        <?= implode(",", $locations); ?>
+                                                                    </td>
+                                                                    <td><?= $financial_year ?></td>
+                                                                    <td><?php echo $projlastmn; ?></td>
+                                                                </tr>
                                                     <?php
+                                                            }
                                                         }
                                                     }
                                                     ?>
@@ -268,7 +400,6 @@ if ($permission) {
                                                     if ($total_ind_projects > 0) {
                                                         $sn = 0;
                                                         while ($row__ind_projects = $query_rs_ind_projects->fetch()) {
-                                                            $sn++;
                                                             $projid =  $row__ind_projects['projid'];
                                                             $projname =  $row__ind_projects['projname'];
                                                             $progid =  $row__ind_projects['progid'];
@@ -283,7 +414,9 @@ if ($permission) {
                                                             $project_end_date =  $row__ind_projects['projenddate'];
                                                             $projcategory =  $row__ind_projects['projcategory'];
                                                             $percent2 = $row__ind_projects['progress'];
-
+                                                            $project_department =  $row__ind_projects['projsector'];
+                                                            $project_directorate =  $row__ind_projects['projdept'];
+                                                            $project_section =  $row__ind_projects['directorate'];
 
                                                             $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
                                                             $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
@@ -377,46 +510,51 @@ if ($permission) {
                                                             $totalRows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->rowCount();
 
                                                             $projlastmn = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : '';
+
+                                                            if (validate_project($projid, $project_department, $project_section, $project_directorate)) {
+                                                                $sn++;
+
                                                     ?>
-                                                            <tr id="rows">
-                                                                <td><?php echo $sn; ?></td>
-                                                                <td style="padding-right:0px; padding-left:0px; padding-top:0px">
-                                                                    <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
-                                                                        <p style="color:#FFF; font-weight:bold"><?= $projname ?> </p>
-                                                                    </div>
-                                                                    <div style="padding:5px; font-size:11px">
-                                                                        <b>Project Code:</b> <?= $projcode ?><br />
-                                                                        <b>Project Cost:</b> Ksh.<?= $projcost; ?><br />
-                                                                        <b>Start Date:</b> <?= $project_start_date; ?><br />
-                                                                        <b>End Date: </b> <?= $project_end_date; ?><br />
-                                                                        <b>Implementer: </b>
-                                                                        <font color="#4CAF50">
-                                                                            <?= $projcontractor; ?>
-                                                                        </font>
-                                                                    </div>
-                                                                </td>
-                                                                <td><?= $sector ?></td>
-                                                                <td style="padding-right:0px; padding-left:0px">
-                                                                    <?= $status  ?>
-                                                                    <br />
-                                                                    <strong>
-                                                                        <?= $project_progress ?>
-                                                                    </strong>
-                                                                    <br />
-                                                                </td>
-                                                                <td align="center">
-                                                                    <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
-                                                                        <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
-                                                                        <font size="5px"><?= $totalRows_rsProjissues ?></font>
-                                                                    </a>
-                                                                </td>
-                                                                <td>
-                                                                    <?= implode(",", $locations); ?>
-                                                                </td>
-                                                                <td><?= $financial_year ?></td>
-                                                                <td><?php echo $projlastmn; ?></td>
-                                                            </tr>
+                                                                <tr id="rows">
+                                                                    <td><?php echo $sn; ?></td>
+                                                                    <td style="padding-right:0px; padding-left:0px; padding-top:0px">
+                                                                        <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
+                                                                            <p style="color:#FFF; font-weight:bold"><?= $projname ?> </p>
+                                                                        </div>
+                                                                        <div style="padding:5px; font-size:11px">
+                                                                            <b>Project Code:</b> <?= $projcode ?><br />
+                                                                            <b>Project Cost:</b> Ksh.<?= $projcost; ?><br />
+                                                                            <b>Start Date:</b> <?= $project_start_date; ?><br />
+                                                                            <b>End Date: </b> <?= $project_end_date; ?><br />
+                                                                            <b>Implementer: </b>
+                                                                            <font color="#4CAF50">
+                                                                                <?= $projcontractor; ?>
+                                                                            </font>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td><?= $sector ?></td>
+                                                                    <td style="padding-right:0px; padding-left:0px">
+                                                                        <?= $status  ?>
+                                                                        <br />
+                                                                        <strong>
+                                                                            <?= $project_progress ?>
+                                                                        </strong>
+                                                                        <br />
+                                                                    </td>
+                                                                    <td align="center">
+                                                                        <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
+                                                                            <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
+                                                                            <font size="5px"><?= $totalRows_rsProjissues ?></font>
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>
+                                                                        <?= implode(",", $locations); ?>
+                                                                    </td>
+                                                                    <td><?= $financial_year ?></td>
+                                                                    <td><?php echo $projlastmn; ?></td>
+                                                                </tr>
                                                     <?php
+                                                            }
                                                         }
                                                     }
                                                     ?>

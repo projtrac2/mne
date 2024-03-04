@@ -43,12 +43,12 @@ if ($permission) {
 
         $end_year_moth = date("m", strtotime($projenddate));
         $end_year = date("Y", strtotime($projenddate));
-        $end_year = $end_year_moth >= 7  ? $end_year :  $end_year -1;
+        $end_year = $end_year_moth >= 7  ? $end_year :  $end_year - 1;
 
         $query_rsFscYear =  $db->prepare("SELECT id, yr, year FROM tbl_fiscal_year WHERE id >=:id AND yr <=:yr ORDER BY id");
         $query_rsFscYear->execute(array(":id" => $projfscyear, ":yr" => $end_year));
         $total_rsFscYear = $query_rsFscYear->rowCount();
-        $output_options ='';
+        $output_options = '';
         if ($total_rsFscYear > 0) {
             while ($row_rsFscYear = $query_rsFscYear->fetch()) {
                 $output_options .= '<option value="' . $row_rsFscYear['id'] . '">' . $row_rsFscYear['year'] . '</option>';
@@ -126,6 +126,13 @@ if ($permission) {
                                                         $query_Indicator->execute(array(":indid" => $indicatorID));
                                                         $row = $query_Indicator->fetch();
                                                         $indicator_name = $row ? $row['indicator_name'] : "";
+                                                        $indicator_unit = $row ? $row['indicator_unit'] : "";
+
+                                                        $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id =:indicator_unit");
+                                                        $query_rsIndUnit->execute(array(":indicator_unit" => $indicator_unit));
+                                                        $row_rsIndUnit = $query_rsIndUnit->fetch();
+                                                        $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+                                                        $unit_of_measure = ($totalRows_rsIndUnit > 0) ? $row_rsIndUnit['unit'] : "";
                                                 ?>
                                                         <tr id="row<?= $rowno ?>">
                                                             <td>
@@ -156,7 +163,7 @@ if ($permission) {
                                                                 </select>
                                                             </td>
                                                             <td>
-                                                                <input type="text" name="indicator[]" id="indicatorrow<?= $rowno ?>" placeholder="Enter" value=" <?= $indicator_name ?>" class="form-control" disabled />
+                                                                <input type="text" name="indicator[]" id="indicatorrow<?= $rowno ?>" placeholder="Enter" value=" <?= $unit_of_measure . " of " . $indicator_name ?>" class="form-control" disabled />
                                                             </td>
                                                             <td>
                                                                 <a type="button" data-toggle="modal" data-target="#outputItemModal" onclick='get_output_details("row<?= $rowno ?>")' id="outputItemModalBtnrow<?= $rowno ?>"> Edit Details</a>
@@ -219,17 +226,7 @@ if ($permission) {
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label for="program_target" class="control-label">Project Output Target *:</label>
                                                 <div class="form-input">
-                                                    <input type="number" min="0" name="project_target" id="project_target" onchange="validate_output_target()" onkeyup="validate_output_target()" placeholder="Enter" class="form-control" >
-                                                </div>
-                                            </div>
-                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="unit_type_div">
-                                                <label class="control-label">Unit Type *:</label>
-                                                <div class="form-line">
-                                                    <select name="unit_type" id="unit_type" class="form-control show-tick" onchange="output_target_div([])" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true">
-                                                        <option value="">.... Select Unit Type from list ....</option>
-                                                        <option value="1">One-Point</option>
-                                                        <option value="2">Distributed</option>
-                                                    </select>
+                                                    <input type="number" min="0" name="project_target" id="project_target" onchange="validate_output_target()" onkeyup="validate_output_target()" placeholder="Enter" class="form-control">
                                                 </div>
                                             </div>
                                             <div id="output_distribution_div">
@@ -287,117 +284,4 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
-
-<script>
-    $(document).ready(function() {
-        show_dissaggregation(0);
-    });
-
-    function show_dissaggregation(outpuval) {
-        console.log(outpuval);
-        var html_ = '';
-        if (outpuval == 1) {
-            html_ = `<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <label class="control-label">Output Yearly Distribution</label>
-                <div class="table-responsive" id="output_details">
-                    <table class="table table-bordered table-striped table-hover" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th style="width:70">Dissaggregation</th>
-                                <th style="width:20">Targets</th>
-                                <th width="10%">
-                                    <button type="button" name="addplus" id="addplus" onclick="add_output_dissagggregation();" class="btn btn-success btn-sm">
-                                        <span class="glyphicon glyphicon-plus"></span>
-                                    </button>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="output_dissaggregations">
-                            <tr></tr>
-                            <tr>
-                                <td></td>
-                                <td>
-                                    <input type="text" name="dissaggregation_val[]" id="diss1row0"   placeholder="Enter"  class="form-control" required/>
-                                </td>
-                                <td>
-                                    <input type="number" name="dissaggregation_target[]" id="dissrow0"  onchange="validate_units_diss('row0')" onkeyup="validate_units_diss('row0')"  placeholder="Enter"  class="form-control diss" required/>
-                                </td>
-                                <td>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>`;
-        }
-        $("#output_dissaggregation_div").html(html_);
-        number_diss_table();
-    }
-
-    // function to add financiers
-    function add_output_dissagggregation() {
-        $row = $("#output_dissaggregations tr").length;
-        $row = $row + 1;
-        var randno = Math.floor((Math.random() * 1000) + 1);
-        var $rowno = $row + "" + randno;
-        var locations = $(".output_target").val();
-        $("#output_dissaggregations tr:last").after(`
-            <tr id="testrow${$rowno}">
-                <td></td>
-                <td>
-                    <input type="text" name="dissaggregation_val[]" id="diss1row${$rowno}"   placeholder="Enter"  class="form-control" required/>
-                </td>
-                <td>
-                    <input type="number" name="dissaggregation_target[]" id="dissrow${$rowno}"  onchange="validate_units_diss('row${$rowno}')" onkeyup="validate_units_diss('row${$rowno}')"  placeholder="Enter"  class="form-control diss" required/>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_row_dissaggregation("testrow${$rowno}")>
-                        <span class="glyphicon glyphicon-minus"></span>
-                    </button>
-                </td>
-            </tr>`);
-
-        number_diss_table();
-    }
-
-    // function to delete financiers
-    function delete_row_dissaggregation(rowno) {
-        $("#" + rowno).remove();
-        number_diss_table();
-        var number = $("#output_dissaggregations tr").length;
-        if (number == 1) {
-            $("#output_dissaggregations tr:last").after('<tr id="remove_Diss" class="text-center"><td colspan="4"> Add Dissaggregations</td></tr>');
-        }
-    }
-
-    // auto numbering table rows on delete and add new for financier table
-    function number_diss_table() {
-        $("#output_dissaggregations tr").each(function(idx) {
-            $(this)
-                .children()
-                .first()
-                .html(idx - 1 + 1);
-        });
-    }
-
-    function validate_units_diss(rowno) {
-        var output_target = parseFloat($("#project_target").val());
-        if (output_target > 0) {
-            var units = 0;
-            $(".diss").each(function() {
-                var val = $(this).val();
-                units += val != "" ? parseFloat(val) : 0;
-            });
-
-            if (output_target < units) {
-                $(`#diss${rowno}`).val("");
-                error_alert("Sorry you cannot exceed the output targets limit");
-            }
-        } else {
-            error_alert("Ensure you have output target first");
-        }
-    }
-</script>
 <script src="assets/js/projects/output.js"></script>

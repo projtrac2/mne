@@ -163,11 +163,6 @@ if ($permission) {
                                                 <option value="">Select <?= $level2label ?></option>
                                             </select>
                                         </div>
-
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">
-                                            <input type="hidden" name="get_indicator_markers" value="get_indicator_markers">
-                                            <a href="view-indicator-map-dashboard" type="button" class="btn btn-warning" onclick="" id="btnback">RESET</a>
-                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -189,9 +184,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-?>
-
-<!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
-<!-- <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script> -->
+?> 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script>
 <script src="assets/js/map/output.js"></script>

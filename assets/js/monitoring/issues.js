@@ -27,7 +27,45 @@ $(document).ready(function () {
             }
         });
     });
+	$("#adjust_quality").hide();
     $("#adjust_scope").hide();
+	$("#adjust_schedule").hide();
+	$("#adjust_cost").hide();
+	
+	
+    $("#add_issue_closure").submit(function (e) {
+        e.preventDefault();
+        $("#add_issue_closure-form-submit").prop("disabled", true);
+        var data = $(this)[0];
+        var form = new FormData(data);
+        $.ajax({
+            type: "post",
+            url: ajax_url,
+            data: form,
+            processData: false,
+            contentType: false,
+            cache: false,
+            timeout: 600000,
+            dataType: "json",
+            success: function (response) {
+				$("#add_issue_closure")[0].reset();
+				$("#add_issue_closure-form-submit").prop("disabled", false);
+				$(".modal").each(function () {
+					$(this).modal("hide");
+				});
+				
+                if (response.success) {
+                    success_alert("Data successfully updated");
+                } else {
+                    sweet_alert("Error! Update failed");
+                }
+                $("#tag-form-submit").prop("disabled", false);
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 3000);
+            }
+        });
+    });
 });
 
 function add_project_issues(projid, project_name) {
@@ -178,14 +216,49 @@ function number_table() {
     });
 }
 
-//filter the expected output  cannot be selected twice
+//filter the expected output  cannot be selected twice issue_type
 function adjustscope() {
-	var issue_area = $("#issue_area").val();
-	if ( issue_area == 2 ){
-		$("#adjust_scope").show();
-	} else {
+    var issue_type = $("#issue_area").val();
+    var projid = $("#projid").val();
+    if (projid != '') {
+        $.ajax({
+            type: "POST",
+            url: ajax_url,
+            data: {
+                issue_type: issue_type,
+                projid: projid,
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#issue_type").html(response.issuefileds);
+                }
+            }
+        });
+    }
+	
+	/* var issue_area = $("#issue_area").val();
+	if ( issue_area == 1 ) {
+		$("#adjust_quality").show();
 		$("#adjust_scope").hide();
-	}
+		$("#adjust_schedule").hide();
+		$("#adjust_cost").hide();
+	} else if ( issue_area == 2 ){
+		$("#adjust_scope").show();
+		$("#adjust_quality").hide();
+		$("#adjust_schedule").hide();
+		$("#adjust_cost").hide();
+	} else if ( issue_area == 3 ){
+		$("#adjust_schedule").show();
+		$("#adjust_quality").hide();
+		$("#adjust_scope").hide();
+		$("#adjust_cost").hide();
+	} else if ( issue_area == 4 ){
+		$("#adjust_cost").show();
+		$("#adjust_quality").hide();
+		$("#adjust_schedule").hide();
+		$("#adjust_scope").hide();
+	} */
 };
 
 function adjustedscopes(issueid) {
@@ -200,3 +273,48 @@ function adjustedscopes(issueid) {
 	
 	$('#clicked').val(clicks);
 };
+
+function close_project_issue(issueid, projid) {
+    if (issueid != '') {
+        $("#projid").val(projid);
+        $("#issueid").val(issueid);
+        $.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+                get_project_issue_details: issueid,
+                projid: projid
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#project_name").html(response.projname);
+                    $("#issue_details").html(response.issue_details);
+                } else {
+                    $("#issue_details").html('<h4 class="text-danger">No records found!</h4>');
+                }
+            }
+        });
+    }
+}
+
+function closed_project_issue(issueid) {
+    if (issueid != '') {
+        $.ajax({
+            type: "get",
+            url: ajax_url,
+            data: {
+                get_closed_project_issue_details: issueid
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $("#closed_issue_project_name").html(response.projname);
+                    $("#closed_issue_details").html(response.closed_issue_details);
+                } else {
+                    $("#closed_issue_details").html('<h4 class="text-danger">No records found!</h4>');
+                }
+            }
+        });
+    }
+}

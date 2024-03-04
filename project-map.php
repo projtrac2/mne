@@ -8,6 +8,7 @@ $original_projid = $_GET['proj'];
 
 require('includes/head.php');
 if ($permission) {
+    $back_url = $_SESSION['back_url'];
     try {
         $query_project = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
         $query_project->execute(array(":projid" => $projid));
@@ -45,7 +46,7 @@ if ($permission) {
                     <?= $icon ?>
                     <?= $pageTitle ?>
                     <div class="btn-group" style="float:right; margin-right:10px">
-                        <input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+                        <input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
                     </div>
                 </h4>
             </div>
@@ -55,7 +56,7 @@ if ($permission) {
                         <div class="header" style="padding-bottom:0px">
                             <div class="" style="margin-top:-15px">
                                 <a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-                                <a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+                                <a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
                                 <a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
                                 <a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
                                 <?php if ($projcat == 2 && $projstage > 4) { ?>
@@ -120,6 +121,7 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<script src="assets/js/map/project.js"></script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script> 
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script>
+<script src="assets/js/map/project.js"></script>

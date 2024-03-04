@@ -18,6 +18,31 @@ if ($permission) {
 		$query_rsOutputs->execute(array(":projid" => $projid));
 		$row_rsOutputs = $query_rsOutputs->fetch();
 		$totalRows_rsOutputs = $query_rsOutputs->rowCount();
+
+		function get_consumed($output_id, $site_id)
+		{
+			global $db, $projid;
+			$consumed_amount = 0;
+			$query_consumed =  $db->prepare("SELECT SUM(s.no_of_units * s.unit_cost) as consumed  FROM tbl_payments_request r INNER JOIN tbl_payments_request_details s ON s.request_id=r.id  INNER JOIN tbl_project_direct_cost_plan d ON s.direct_cost_id=d.id   WHERE status=3 AND r.projid = :projid AND outputid=:output_id AND site_id=:site_id");
+			$query_consumed->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
+			$row_consumed = $query_consumed->fetch();
+			$consumed_amount = $row_consumed['consumed'] != null ? $row_consumed['consumed'] : 0;
+			return $consumed_amount;
+		}
+
+
+		function get_planned_amount($output_id, $site_id)
+		{
+			global $db, $projid, $implimentation_type;
+			$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
+			if ($implimentation_type == 2) {
+				$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_tender_details WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
+			}
+			$query_rsDirect_cost_plan->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
+			$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
+			$planed_amount =  !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
+			return $planed_amount;
+		}
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		echo $result;
@@ -32,7 +57,7 @@ if ($permission) {
 					<?= $icon ?>
 					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Activity Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -71,7 +96,7 @@ if ($permission) {
 									<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Finance &nbsp;<span class="badge bg-orange">|</span></a>
 								</li>
 								<li>
-									<a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Progress &nbsp;<span class="badge bg-blue">|</span></a>
+									<a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Work Measured &nbsp;<span class="badge bg-blue">|</span></a>
 								</li>
 							</ul>
 						</div>
@@ -101,7 +126,7 @@ if ($permission) {
 																	<thead>
 																		<tr class="bg-grey">
 																			<th style="width:5%" align="center">#</th>
-																			<th style="width:40%">Site/Location</th>
+																			<th style="width:40%">Site/<?= $level2label ?></th>
 																			<th style="width:20%">Budget</th>
 																			<th style="width:20%">Expense</th>
 																			<th style="width:15%">Spent (%)</th>
@@ -109,7 +134,7 @@ if ($permission) {
 																	</thead>
 																	<tbody>
 																		<?php
-																		if ($indicator_mapping_type == 1) {
+																		if ($indicator_mapping_type == 1 ) {
 																			$query_rsSite_details = $db->prepare("SELECT * FROM tbl_output_disaggregation b INNER JOIN tbl_project_sites s ON s.site_id = b.output_site WHERE outputid = :output_id");
 																			$query_rsSite_details->execute(array(":output_id" => $output_id));
 																			$total_rsSite_details = $query_rsSite_details->rowCount();
@@ -118,19 +143,8 @@ if ($permission) {
 																				while ($rows_rsSite_details = $query_rsSite_details->fetch()) {
 																					$site = $rows_rsSite_details['site'];
 																					$site_id = $rows_rsSite_details['site_id'];
-
-																					$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
-																					if ($implimentation_type == 2) {
-																						$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_tender_details WHERE projid =:projid AND outputid=:output_id AND site_id=:site_id");
-																					}
-																					$query_rsDirect_cost_plan->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id));
-																					$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
-																					$planned_amount = !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
-
-																					$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid");
-																					$query_consumed->execute(array(":projid" => $projid));
-																					$row_consumed = $query_consumed->fetch();
-																					$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
+																					$consumed = get_consumed($output_id, $site_id);
+																					$planned_amount = get_planned_amount($output_id, $site_id);
 																					$rate  = $consumed > 0 && $planned_amount > 0 ? ($consumed / $planned_amount) * 100 : 0;
 																					$mcounter++;
 																		?>
@@ -145,18 +159,9 @@ if ($permission) {
 																				}
 																			}
 																		} else {
-																			$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_direct_cost_plan WHERE projid =:projid AND outputid=:output_id");
-																			if ($implimentation_type == 2) {
-																				$query_rsDirect_cost_plan =  $db->prepare("SELECT SUM(unit_cost * units_no) as amount FROM tbl_project_tender_details WHERE projid =:projid AND outputid=:output_id");
-																			}
-																			$query_rsDirect_cost_plan->execute(array(":projid" => $projid, ":output_id" => $output_id));
-																			$row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
-																			$planned_amount = !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
+																			$consumed = get_consumed($output_id, 0);
+																			$planned_amount = get_planned_amount($output_id, 0);
 
-																			$query_consumed =  $db->prepare("SELECT SUM(amount_requested) AS consumed FROM tbl_payments_request WHERE status=3 AND projid = :projid AND output_id=:output_id");
-																			$query_consumed->execute(array(":projid" => $projid, ":output_id" => $output_id));
-																			$row_consumed = $query_consumed->fetch();
-																			$consumed = !is_null($row_consumed['consumed']) ? $row_consumed["consumed"] : 0;
 																			$rate  = $consumed > 0 && $planned_amount ? ($consumed / $planned_amount) * 100 : 0;
 
 																			$query_Output_states = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE outputid=:output_id ");
@@ -324,11 +329,11 @@ if ($permission) {
 																								<thead>
 																									<tr>
 																										<th style="width:5%">#</th>
-																										<th style="width:35%">Item</th>
+																										<th style="width:30%">Item</th>
 																										<th style="width:15%">Target</th>
 																										<th style="width:20%">Achieved</th>
 																										<th style="width:10%">Status</th>
-																										<th style="width:10%">Progress</th>
+																										<th style="width:15%">%&nbsp;&nbsp;Achieved</th>
 																									</tr>
 																								</thead>
 																								<tbody>
@@ -371,11 +376,11 @@ if ($permission) {
 
 																												if ($progress == 100) {
 																													$subtask_progress = '
-																													<div class="progress" style="height:20px; font-size:10px; color:black">
-																														<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
-																														' . $progress . '%
-																														</div>
-																													</div>';
+																												<div class="progress" style="height:20px; font-size:10px; color:black">
+																													<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+																													' . $progress . '%
+																													</div>
+																												</div>';
 																												}
 
 																												$query_rsProgramOfWorks =  $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");
@@ -429,7 +434,7 @@ if ($permission) {
 												}
 											}
 
-											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
 											$query_Output->execute(array(":projid" => $projid));
 											$total_Output = $query_Output->rowCount();
 											$outputs = '';
@@ -504,7 +509,7 @@ if ($permission) {
 																				<th style="width:15%">Target</th>
 																				<th style="width:20%">Achieved</th>
 																				<th style="width:10%">Status</th>
-																				<th style="width:10%">Progress</th>
+																				<th style="width:10%">%&nbsp;&nbsp;Achieved</th>
 																			</tr>
 																		</thead>
 																		<tbody>

@@ -114,7 +114,7 @@ if ($permission) {
                                                             <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
                                                         </legend>
                                                         <?php
-                                                        if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+                                                        if ($indicator_mapping_type == 1) {
                                                             $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                                                             $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                             $totalsSite = $querysSite->rowCount();
@@ -530,7 +530,7 @@ if ($permission) {
                                                 <input type="hidden" name="cost_type" id="cost_type" value="">
                                                 <input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
                                                 <input type="hidden" name="store" id="store" value="new">
-                                                <input type="hidden" name="project_purpose" id="project_purpose" value="<?= $projid ?>">
+                                                <input type="hidden" name="project_purpose" id="project_purpose" value="">
                                                 <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
                                                     Save
                                                 </button>

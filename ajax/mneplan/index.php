@@ -1,6 +1,22 @@
 <?php
 include '../controller.php';
 
+if (isset($_GET["check_evaluation_questions"]) && $_GET["check_evaluation_questions"] == 1) {
+	$projid = $_GET["projid"];
+	$resultstype = $_GET["resultstype"];
+	$resultstypeid = $_GET["resultstypeid"];
+	
+	$sql = $db->prepare("SELECT * FROM `tbl_project_evaluation_questions` WHERE projid = :projid AND resultstype=:resultstype AND resultstypeid=:resultstypeid ORDER BY `id` ASC");
+	$sql->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
+	$rows_count = $sql->rowCount();
+	
+	$response = false;
+	if ($rows_count > 0) {
+		$response = true;
+	}
+	echo json_encode(array("success" => $response));
+}
+
 if (isset($_GET["myprojid"]) && $_GET["evaluation"] == 1) {
 	$projid = $_GET["myprojid"];
 	$sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
@@ -441,6 +457,158 @@ if (isset($_POST["evalform"])) {
 	echo $body;
 }
 
+if (isset($_POST["evalquestionform"]) && $_POST["evalquestionform"] == 1) {
+	$questionId = $_POST["questionId"];
+
+	$query_question = $db->prepare("SELECT * FROM `tbl_project_evaluation_questions` WHERE id = :questionId");
+	$query_question->execute(array(":questionId" => $questionId));
+	$row_question = $query_question->fetch();
+	$rows_question = $query_question->rowCount();
+
+	if ($rows_question > 0) {
+		$projid = $row_question["projid"];
+		$question = $row_question["question"];
+		$questiontype = $row_question["questiontype"];
+		$resultstype = $row_question["resultstype"];
+		$resultstypeid = $row_question["resultstypeid"];
+		$answertype = $row_question["answertype"];
+		
+		$formtype = $resultstype == 2 ? "Outcome " : "Impact ";
+
+		$questiontype1 = $questiontype2 = $selectedanswertype1 = $selectedanswertype2 = $selectedanswertype3 = $selectedanswertype4 = $selectedanswertype5 = $selectedanswertype6 = "";
+		if ($questiontype == 1) {
+			$questiontype1 = "selected";
+		} elseif ($questiontype == 2) {
+			$questiontype2 = "selected";
+		}
+		
+		if ($answertype == 1) {
+			$selectedanswertype1 = "selected";
+		} elseif ($answertype == 2) {
+			$selectedanswertype2 = "selected";
+		} elseif ($answertype == 3) {
+			$selectedanswertype3 = "selected";
+		} elseif ($answertype == 4) {
+			$selectedanswertype4 = "selected";
+		} elseif ($answertype == 5) {
+			$selectedanswertype5 = "selected";
+		} elseif ($answertype == 6) {
+			$selectedanswertype6 = "selected";
+		}
+		
+		$results_table = $resultstype == 1 ? 'tbl_project_expected_impact_details' : 'tbl_project_expected_outcome_details';
+		$query_results_type_indicator_id = $db->prepare("SELECT indicator_name, unit FROM `$results_table` r left join tbl_indicator i on i.indid=r.indid left join tbl_measurement_units u on u.id=i.indicator_unit WHERE r.id = :resultstypeid");
+		$query_results_type_indicator_id->execute(array(":resultstypeid" => $resultstypeid));
+		$row_results_type_indicator_id = $query_results_type_indicator_id->fetch();
+		$results_type_indicator = $row_results_type_indicator_id["indicator_name"];
+
+		$body = '
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<label class="control-label" style="color:#0b548f; font-size:16px">' . $formtype . ' Indicator: <u>' . $results_type_indicator . '</u></label>
+		</div>';
+		
+		//evaluation main questions
+		$query_survey_questions =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=:resultstype AND resultstypeid=:resultstypeid AND questiontype = 1");
+		$query_survey_questions->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
+		$count_survey_questions = $query_survey_questions->rowCount();
+		if ($count_survey_questions > 1) {
+			$body .= '
+			<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+				<label for="impactName" class="control-label">Question Type *:</label>
+				<div class="form-input">
+					<select data-id="0" name="question_type" id="question_type" onchange="add_question_type()" class="form-control impactquerry" required>';
+						$question_type = '<option value="">... Select ...</option>';
+						$question_type .= '<option value="1" '.$questiontype1.'>Main Question</option>';
+						$question_type .= '<option value="2" '.$questiontype2.'>Follow Question</option>';
+						$body .= $question_type .
+					'</select>
+				</div>
+			</div>												
+			<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12" id="mainquestion">
+				<label for="main_question" class="control-label">Main Question *:</label>
+				<div class="form-input">
+					<select data-id="0" name="main_question" id="main_question" class="form-control impactquerry" required>';
+						
+						$parentquestion = $row_question["parent_question"];
+						$query_main_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=:resultstype AND resultstypeid=:resultstypeid AND questiontype=1");
+						$query_main_questions->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
+						$main_question = '<option value="">... Select ...</option>';
+						while($row_main_questions = $query_main_questions->fetch()){
+							$question_id = $row_main_questions["id"];
+							$mainquestion = $row_main_questions["question"];
+							$selectedparentquestion = $parentquestion == $question_id ? "selected" : "";
+							$main_question .= '<option value="'.$question_id.'" '.$selectedparentquestion.'>'.$mainquestion.'</option>';
+						}
+						$body .= $main_question .'
+					</select>
+				</div>
+			</div>';
+		}
+		//$question = $count_survey_questions["question"];
+		$body .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+			<label for="question" class="control-label">Question Description *:</label>
+			<div class="form-line">
+				<input type="text" name="question" id="question" placeholder="Enter the question" class="form-control" value="'.$question.'" required>
+			</div>
+		</div>
+		
+		<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+			<label for="impactName" class="control-label">Answer Type *:</label>
+			<div class="form-input">
+				<select data-id="0" name="answertype" id="answertype" onchange="add_answer_type()" class="form-control impactquerry" required="required">';
+					$answertypeinput = '<option value="">... Select ...</option>';
+					$answertypeinput .= '<option value="1" '.$selectedanswertype1.'>Number</option>';
+					$answertypeinput .= '<option value="2" '.$selectedanswertype2.'>Mutiple Choice</option>';
+					$answertypeinput .= '<option value="3" '.$selectedanswertype3.'>Checkboxes</option>';
+					$answertypeinput .= '<option value="4" '.$selectedanswertype4.'>Dropdown</option>';
+					$answertypeinput .= '<option value="5" '.$selectedanswertype5.'>Text</option>';
+					$answertypeinput .= '<option value="6" '.$selectedanswertype6.'>File Upload</option>';
+					$body .= $answertypeinput.
+				'</select>
+			</div>
+		</div>';
+		
+		$answerlabels  = $row_question["answerlabels"];
+		$body .= '<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" id="answer_label">
+			<label class="control-label">Answer Label <span id="impunit"></span>*:</label>
+			<div class="form-input">
+				<input type="text" name="answer_label" id="answerlabel" class="form-control" placeholder="Enter answer lable/s seperated by comma" value="'.$answerlabels.'" required="required">
+			</div>
+		</div>';
+		
+		$question_calculation_method = $row_question["question_calculation_method"];
+		$body .= '<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" id="calculation_method">
+			<label for="calc_method" class="control-label">Summarization Technique *:</label>
+			<div class="form-input">
+				<select data-id="0" name="calculation_method" id="calc_method" class="form-control impactquerry" required="required">';
+					$query_calculation_method = $db->prepare("SELECT * FROM tbl_numbers_aggregation_method WHERE active = 1");
+					$query_calculation_method->execute();
+					
+					$calculation_method = '<option value="">... Select ...</option>';
+					while($row_calculation_method = $query_calculation_method->fetch()){
+						$calculation_method_id = $row_calculation_method["id"];
+						$selected_question_calculation_method = $question_calculation_method == $calculation_method_id ? "selected" : "";
+						$calculation_method .= '<option value="'.$calculation_method_id.'" '.$selected_question_calculation_method.'>'.$row_calculation_method["method"].' ['.$row_calculation_method["description"].']</option>';
+					}
+					$body .= $calculation_method.' 						
+				</select>
+			</div>
+		</div>
+		
+		<div class="modal-footer">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+				<input type="hidden" name="edit_evaluation_questions" id="edit_evaluation_questions" value="edit">
+                <input type="hidden" name="question_status" id="question_status" value="1">
+				<input type="hidden" name="questionid" id="questionid" value="' . $questionId . '" />
+				<input type="hidden" name="user_name" id="user_name" value="' . $user_name . '">
+				<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="question-tag-form-submit" value="Save" />
+				<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+			</div>
+		</div>';		
+	}
+	echo $body;
+}
+
 
 function get_expected_returns($projid, $project_impact, $projectevaluation)
 {
@@ -660,4 +828,162 @@ if (isset($_POST['deleteItem'])) {
 	$sql = $db->prepare("DELETE FROM tbl_project_evaluation_questions WHERE resultstypeid=:resultstypeid");
 	$sql->execute(array(':resultstypeid' => $id));
 	echo json_encode(array("success" => true));
+}
+
+
+if (isset($_GET["fetchsurveyquestions"]) && $_GET["fetchsurveyquestions"] == 1) {
+	$projid = $_GET["projid"];
+	$resultstype = $_GET["resultstype"];
+	$resultstypeid = $_GET["resultstypeid"];
+		
+	$formtype = $resultstype == 2 ? "Outcome " : "Impact ";
+	$url3 = "ajax/mneplan/index?fetchsurveyquestions=1&projid=".$projid."&resultstype=".$resultstype."&resultstypeid=".$resultstypeid;
+	
+	//evaluation main questions
+	$query_survey_questions =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=:resultstype AND resultstypeid=:resultstypeid AND questiontype = 1");
+	$query_survey_questions->execute(array(":projid" => $projid, ":resultstype" => $resultstype, ":resultstypeid" => $resultstypeid));
+	$count_survey_questions = $query_survey_questions->rowCount();
+	$sn = 0;
+	$output['data'] = array();
+	if ($count_survey_questions > 0) {
+		while ($row_survey_questions = $query_survey_questions->fetch()) {
+			$questionid = $row_survey_questions['id'];
+			$question = $row_survey_questions['question'];
+			$questiontype = "Main";
+			$parent_question = $row_survey_questions['parent_question'];
+			$answertypeid = $row_survey_questions['answertype'];
+			$calculation_method = $answerlabels = "N/A";
+			
+			if(!is_null($answertypeid)){
+				if($answertypeid == 1){
+					$answertype = "Number";
+					$calculation_method_id = $row_survey_questions['question_calculation_method'];
+					if($calculation_method_id == 1){
+						$calculation_method = "Summation [Addition]";
+					}elseif($calculation_method_id == 2){
+						$calculation_method = "Median [Middle Value]";
+					}elseif($calculation_method_id == 3){
+						$calculation_method = "Mode [Most Common Value]";
+					}elseif($calculation_method_id == 4){
+						$calculation_method = "Mean [Average]";
+					}else{
+						$calculation_method = "Counting [Counting the Occurrences]";
+					}
+				}elseif($answertypeid == 2){
+					$answertype = "Multiple Choice";
+					$answerlabels = $row_survey_questions['answerlabels'];
+					$calculation_method = "Percentage";
+				}elseif($answertypeid == 3){
+					$answertype = "Checkbox Choice";
+					$answerlabels = $row_survey_questions['answerlabels'];
+				}elseif($answertypeid == 4){
+					$answertype = "Dropdown Choice";
+					$answerlabels = $row_survey_questions['answerlabels'];
+					$calculation_method = "Percentage";
+				}elseif($answertypeid == 5){
+					$answertype = "Text";
+				}else{
+					$answertype = "File Attachment";
+				}
+			}		
+			
+			$button = '
+			<div class="btn-group">
+				<button type="button" class="btn btn-danger btn-sm" id="delete" style="margin-right:2px" onclick=\'delete_row_question(' .$questionid  . ',' .$projid . ',' .$resultstype . ',' .$resultstypeid . ')\' title="Delete Question">
+					<span class="glyphicon glyphicon-trash"></span>
+				</button>
+				<button type="button" class="btn btn-warning btn-sm" id="edit" onclick=\'edit_row_question(' . $questionid . ',"' .$formtype . '")\' title="Edit Question" data-toggle="modal" id="addQuestionsModalBtn" data-target="#addQuestionsModal">
+					<span class="glyphicon glyphicon-pencil"></span>
+				</button>
+			</div>';	
+			
+			$sn++;
+
+			$output['data'][] = array(
+				$sn,
+				$question,
+				$questiontype,
+				$answertype,
+				$answerlabels,
+				$calculation_method,
+				$button
+			);
+			
+			if($row_survey_questions['questiontype'] == 1){
+				//evaluation follow-up questions
+				$query_survey_follow_up_questions =  $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE parent_question=:parentquestionid");
+				$query_survey_follow_up_questions->execute(array(":parentquestionid" => $questionid));
+				$count_survey_follow_up_questions = $query_survey_follow_up_questions->rowCount();
+				$followups = 0;
+				if ($count_survey_follow_up_questions > 0) {
+					while ($row_survey_follow_up_questions = $query_survey_follow_up_questions->fetch()) {
+						$followupsquestionid = $row_survey_follow_up_questions['id'];
+						$followupsquestion = $row_survey_follow_up_questions['question'];
+						$followupsquestiontype = "Follow Up";
+						$followupsparent_question = $row_survey_follow_up_questions['parent_question'];
+						$followupsanswertypeid = $row_survey_follow_up_questions['answertype'];
+						$followupscalculation_method = $followupsanswerlabels = "N/A";
+						
+						if(!is_null($followupsanswertypeid)){
+							if($followupsanswertypeid == 1){
+								$followupsanswertype = "Number";
+								$followupscalculation_method_id = $row_survey_follow_up_questions['question_calculation_method'];
+								
+								if($followupscalculation_method_id == 1){
+									$followupscalculation_method = "Summation [Addition]";
+								}elseif($followupscalculation_method_id == 2){
+									$followupscalculation_method = "Median [Middle Value]";
+								}elseif($followupscalculation_method_id == 3){
+									$followupscalculation_method = "Mode [Most Common Value]";
+								}elseif($followupscalculation_method_id == 4){
+									$followupscalculation_method = "Mean [Average]";
+								}else{
+									$followupscalculation_method = "Counting [Counting the Occurrences]";
+								}
+							}elseif($followupsanswertypeid == 2){
+								$followupsanswertype = "Multiple Choice";
+								$followupsanswerlabels = $row_survey_follow_up_questions['answerlabels'];
+								$followupscalculation_method = "Percentage";
+							}elseif($followupsanswertypeid == 3){
+								$followupsanswertype = "Checkbox Choice";
+								$followupsanswerlabels = $row_survey_follow_up_questions['answerlabels'];
+							}elseif($followupsanswertypeid == 4){
+								$followupsanswertype = "Dropdown Choice";
+								$followupsanswerlabels = $row_survey_follow_up_questions['answerlabels'];
+								$followupscalculation_method = "Percentage";
+							}elseif($followupsanswertypeid == 5){
+								$followupsanswertype = "Text";
+							}else{
+								$followupsanswertype = "File Attachment";
+							}
+						}
+						
+						$followupbutton = '
+						<div class="btn-group">
+							<button type="button" class="btn btn-danger btn-sm" id="delete" style="margin-right:2px" onclick=\'delete_row_question(' .$followupsquestionid  . ',' .$projid . ',' .$resultstype . ',' .$resultstypeid . ')\' title="Delete Question">
+								<span class="glyphicon glyphicon-trash"></span>
+							</button>
+							<button type="button" class="btn btn-warning btn-sm" id="edit" onclick=\'edit_row_question(' . $followupsquestionid . ',"' .$formtype . '")\' title="Edit Question" data-toggle="modal" id="addQuestionsModalBtn" data-target="#addQuestionsModal">
+								<span class="glyphicon glyphicon-pencil"></span>
+							</button>
+						</div>';
+						
+						$followups++;
+						$numbering = $sn.".".$followups;
+						
+						$output['data'][] = array(
+							$numbering,
+							$followupsquestion,
+							$followupsquestiontype,
+							$followupsanswertype,
+							$followupsanswerlabels,
+							$followupscalculation_method,
+							$followupbutton
+						);
+					}
+				}
+			}
+		}
+	}
+	echo json_encode($output);
 }

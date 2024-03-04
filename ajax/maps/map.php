@@ -8,7 +8,7 @@ try {
         $mapping_type = $_GET['mapping_type'];
         $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid");
         $query->execute(array(":output_id" => $output_id, ":projid" => $projid));
-        if($mapping_type == 1 || $mapping_type == 3){
+        if($mapping_type == 1 ){
             $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid AND site_id=:site_id");
             $query->execute(array(":output_id" => $output_id, ":projid" => $projid, ":site_id" => $site_id));
         }

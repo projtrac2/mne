@@ -1,40 +1,10 @@
 <?php
 require('includes/head.php');
 if ($permission) {
-
     try {
-        if (isset($_POST["search"])) {
-            $projcode = trim($_POST["srccode"]);
-            $projsector = $_POST["srcsector"];
-            if (!empty(($projcode)) && empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
-                $query_rsProjects->execute(array(":projcode" => $projcode));
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            } elseif (empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE g.projdept = :projsector and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
-                $query_rsProjects->execute(array(":projsector" => $projsector));
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            } elseif (!empty(($projcode)) && !empty($projsector)) {
-                $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.projcode = :projcode and g.projdept = :projsector and p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
-                $query_rsProjects->execute(array(":projcode" => $projcode, ":projsector" => $projsector));
-                $totalRows_rsProjects = $query_rsProjects->rowCount();
-            }
-        } else {
-            $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
-            $query_rsProjects->execute();
-            $totalRows_rsProjects = $query_rsProjects->rowCount();
-        }
-
-        $query_rsTP = $db->prepare("SELECT COUNT(projname) FROM tbl_projects WHERE deleted='0' and projplanstatus='1'");
-        $query_rsTP->execute();
-        $row_rsTP = $query_rsTP->fetch();
-
-        $query_rsTPList = $db->prepare("SELECT projname, COUNT(projname) FROM tbl_projects WHERE deleted='0' and projplanstatus='1' GROUP BY projname");
-        $query_rsTPList->execute();
-        $row_rsTPList = $query_rsTPList->fetch();
-
-        $query_srcSector = $db->prepare("SELECT DISTINCT projdept, g.projsector FROM tbl_programs g inner join tbl_projects p on p.progid=g.progid where projplanstatus='1' ORDER BY g.projsector ASC");
-        $query_srcSector->execute();
+        $query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage > 5 AND (p.projstatus=0 OR p.projstatus=4 OR p.projstatus=3 OR p.projstatus=11)");
+        $query_rsProjects->execute();
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -171,56 +141,22 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Team Members</h4>
                 </div>
                 <div class="modal-body" id="moreinfo">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs" style="font-size:14px">
-                            <li class="active">
-                                <a data-toggle="tab" href="#menu1">TECHNICAL TEAM &nbsp;<span class="badge bg-blue">|</span></a>
-                            </li>
-                            <li>
-                                <a data-toggle="tab" href="#menu2">M&E TEAM &nbsp;<span class="badge bg-green">|</span></a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="tab-content">
-                        <div id="menu1" class="tab-pane fade in active">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                    <thead>
-                                        <tr class="bg-grey">
-                                            <th width="8%"><strong>Photo</strong></th>
-                                            <th width="32%"><strong>Fullname</strong></th>
-                                            <th width="15%"><strong>Designation</strong></th>
-                                            <th width="10%"><strong>Role</strong></th>
-                                            <th width="10%"><strong>Availability</strong></th>
-                                            <th width="15%"><strong>Email</strong></th>
-                                            <th width="10%"><strong>Phone</strong></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="technical_team">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div id="menu2" class="tab-pane fade">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                    <thead>
-                                        <tr class="bg-grey">
-                                            <th width="8%"><strong>Photo</strong></th>
-                                            <th width="32%"><strong>Fullname</strong></th>
-                                            <th width="15%"><strong>Designation</strong></th>
-                                            <th width="10%"><strong>Role</strong></th>
-                                            <th width="10%"><strong>Availability</strong></th>
-                                            <th width="15%"><strong>Email</strong></th>
-                                            <th width="10%"><strong>Phone</strong></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="mne_team">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                            <thead>
+                                <tr class="bg-grey">
+                                    <th width="8%"><strong>Photo</strong></th>
+                                    <th width="32%"><strong>Fullname</strong></th>
+                                    <th width="15%"><strong>Designation</strong></th>
+                                    <th width="10%"><strong>Role</strong></th>
+                                    <th width="10%"><strong>Availability</strong></th>
+                                    <th width="15%"><strong>Email</strong></th>
+                                    <th width="10%"><strong>Phone</strong></th>
+                                </tr>
+                            </thead>
+                            <tbody id="technical_team">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer">

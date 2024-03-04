@@ -175,10 +175,10 @@ if ($permission) {
 									<a data-toggle="tab" href="#menu2"><i class="fa fa-certificate bg-blue" aria-hidden="true"></i> Contract Statutory Guarantees &nbsp;<span class="badge bg-blue">|</span></a>
 								</li>
 								<li>
-									<a data-toggle="tab" href="#menu3"><i class="fa fa-paperclip bg-orange" aria-hidden="true"></i> Other Details &nbsp;<span class="badge bg-orange">|</span></a>
+									<a data-toggle="tab" href="#contract_cost"><i class="fa fa-money bg-orange" aria-hidden="true"></i> Contract Cost &nbsp;<span class="badge bg-orange">|</span></a>
 								</li>
 								<li>
-									<a data-toggle="tab" href="#contract_cost"><i class="fa fa-paperclip bg-orange" aria-hidden="true"></i> Contract Cost &nbsp;<span class="badge bg-orange">|</span></a>
+									<a data-toggle="tab" href="#menu3"><i class="fa fa-paperclip bg-brown" aria-hidden="true"></i> Other Contract Details &nbsp;<span class="badge bg-brown">|</span></a>
 								</li>
 							</ul>
 						</div>
@@ -236,7 +236,7 @@ if ($permission) {
 										</div>
 										<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
 											<label for="Title">Tender Title *:</label>
-											<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tendertitle; ?>
+											<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; height: auto; width:98%"><?= $tendertitle; ?>
 											</div>
 										</div>
 										<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
@@ -346,7 +346,7 @@ if ($permission) {
 											<i class="fa fa-commenting" style="color:#F44336" aria-hidden="true"></i> Comments
 										</legend>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $comments ?></div>
+											<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; height: auto; width:98%"><?= $comments ?></div>
 										</div>
 									</fieldset>
 									<fieldset class="scheduler-border" style="border-radius:3px">
@@ -481,7 +481,7 @@ if ($permission) {
 																									while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
 																										$table_counter++;
 																										$rmkid = $row_rsOther_cost_plan['id'];
-																										$description = $row_rsOther_cost_plan['description']; 
+																										$description = $row_rsOther_cost_plan['description'];
 																										$unit = $row_rsOther_cost_plan['unit'];
 																										$unit_cost = $row_rsOther_cost_plan['unit_cost'];
 																										$units_no = $row_rsOther_cost_plan['units_no'];
@@ -526,7 +526,7 @@ if ($permission) {
 											}
 										}
 
-										$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
+										$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
 										$query_Output->execute(array(":projid" => $projid));
 										$total_Output = $query_Output->rowCount();
 										$outputs = '';

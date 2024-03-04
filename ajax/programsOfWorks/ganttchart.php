@@ -1,20 +1,14 @@
 <?php
 include '../controller.php';
 try {
-
-
-
-
     function timeline_chart($projid, $site_id)
     {
         global $db;
         $series_arr = [];
-
         $query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = :projid ");
         $query_rsMyP->execute(array(":projid" => $projid));
         $row_rsMyP = $query_rsMyP->fetch();
         $projname = $row_rsMyP['projname'];
-
         $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid AND site_id=:site_id");
         $query_rsTask_Start_Dates->execute(array(":projid" => $projid, ":site_id" => $site_id));
         $row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
@@ -25,13 +19,10 @@ try {
 
             $inner = new stdClass;
             $inner->name = $projname;
-            $inner->id = $projid;
+            $inner->id = 'p' . $projid;
             $inner->owner = 'owner';
 
-            array_push(
-                $series->data,
-                $inner
-            );
+            array_push($series->data,$inner);
 
             $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
             $query_Output->execute(array(":projid" => $projid));
@@ -53,8 +44,8 @@ try {
 
                         $m_outputs = new stdClass;
                         $m_outputs->name = $output;
-                        $m_outputs->id = $output_id;
-                        $m_outputs->parent = $projid;
+                        $m_outputs->id = 'o' . $output_id;
+                        $m_outputs->parent = 'p' . $projid;
                         $m_outputs->start = $start_date;
                         $m_outputs->end = $end_date;
                         $m_outputs->dependencies = '';
@@ -72,9 +63,9 @@ try {
                                     $end_date =  strtotime($row_rsTask_Start_Dates['end_date']) * 1000;
 
                                     $m_tasks = new stdClass;
-                                    $m_tasks->id = $milestone_id;
+                                    $m_tasks->id = 'm' . $milestone_id;
                                     $m_tasks->name = $milestone_name;
-                                    $m_tasks->parent = $output_id;
+                                    $m_tasks->parent = 'o' . $output_id;
                                     $m_tasks->start = $start_date;
                                     $m_tasks->end = $end_date;
 
@@ -97,16 +88,13 @@ try {
                                             if ($totalRows_rsTask_Start_Dates > 0) {
                                                 $start_date = strtotime($row_rsTask_Start_Dates['start_date']) * 1000;
                                                 $end_date =  strtotime($row_rsTask_Start_Dates['end_date']) *  1000;
-
-
                                                 $m_sub_tasks = new stdClass;
                                                 $m_sub_tasks->name = $task_name;
-                                                $m_sub_tasks->id = $task_id;
-                                                $m_sub_tasks->parent = $milestone_id;
-                                                $m_sub_tasks->dependency = $parent;
+                                                $m_sub_tasks->id = 't' . $task_id;
+                                                $m_sub_tasks->parent = 'm' . $milestone_id;
+                                                $m_sub_tasks->dependency = 't' . $parent;
                                                 $m_sub_tasks->start = $start_date;
                                                 $m_sub_tasks->end = $end_date;
-
                                                 array_push($series->data, $m_sub_tasks);
                                             }
                                         }

@@ -37,13 +37,13 @@ if ($permission) {
 	$projlocations = explode(",",$proj_locations);
 	$proj_location_count= count($projlocations);
 
-	if($projstage > 5 && $projstatus != 5){
+	if($projstage > 8 && $projstage < 11 && $projstatus != 5){
 		$evaluationtype = "Baseline";
 		$query_concluded_baseline_evaluations = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=:resultstype AND resultstypeid=:resultstypeid AND survey_type=:surveytype");
 		$query_concluded_baseline_evaluations->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":surveytype" => $evaluationtype));
 		$row_concluded_baseline_evaluations = $query_concluded_baseline_evaluations->fetch();
 		$baseline_report_date = $row_concluded_baseline_evaluations["date_created"];
-	}elseif($projstage > 6 && $projstatus == 5){
+	}elseif($projstage > 10 && $projstatus == 5){
 		$evaluationtype = "Endline";
 		$query_concluded_endline_evaluations = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=:resultstype AND resultstypeid=:resultstypeid AND survey_type=:surveytype");
 		$query_concluded_endline_evaluations->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":surveytype" => $evaluationtype));
@@ -60,10 +60,15 @@ if ($permission) {
 	if(!empty($row_indicator)){
 		$indicator = $row_indicator["indicator_name"];
 		$unit = $row_indicator["unit"];
-		$calculation_method = $row_indicator["indicator_calculation_method"];
+		$calculation_method_id = $row_indicator["indicator_calculation_method"];
 		$disaggregated = $row_indicator["indicator_disaggregation"];
 		$expected_change = $unit." of ".$indicator;
 		$count_disaggregations = '';
+		
+		$query_calculation_method = $db->prepare("SELECT * FROM tbl_indicator_calculation_method WHERE id=:calculation_method_id");
+		$query_calculation_method->execute(array(":calculation_method_id" => $calculation_method_id));
+		$row_calculation_method = $query_calculation_method->fetch();
+		$calculation_method = $row_calculation_method["method"];
 
 		if($disaggregated == 1){
 			$variable_category = array();
@@ -149,7 +154,7 @@ if ($permission) {
 												</div>
 											</div>
 											<?php
-											if($projstage > 6 && $projstatus == 5){
+											if($projstage > 10 && $projstatus == 5){
 												$report = $endline_report_date;
 											} else {
 												$report = "Pending";
@@ -160,6 +165,22 @@ if ($permission) {
 												<div class="form-line">
 													<div style="border:#CCC thin solid; border-radius:5px; height:auto; padding:10px; color:#3F51B5">
 														<strong><?php echo $report; ?></strong>
+													</div>
+												</div>
+											</div>
+											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+												<label class="control-label">Data Measurement Unit:</label>
+												<div class="form-line">
+													<div style="border:#CCC thin solid; border-radius:5px; height:auto; padding:10px; color:#3F51B5">
+														<strong><?php echo $unit; ?></strong>
+													</div>
+												</div>
+											</div>
+											<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+												<label class="control-label">Results Calculation Method:</label>
+												<div class="form-line">
+													<div style="border:#CCC thin solid; border-radius:5px; height:auto; padding:10px; color:#3F51B5">
+														<strong><?php echo $calculation_method; ?></strong>
 													</div>
 												</div>
 											</div>
@@ -199,19 +220,19 @@ if ($permission) {
 																<?php
 																foreach($projlocations as $locations){ 
 																	if($projstage ==6){
-																		$query_baseline_survey= $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.numerator, c.denominator, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
+																		$query_baseline_survey= $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
 																		$query_baseline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":location" => $locations));
 																		$count_baseline_survey = $query_baseline_survey->rowCount();	
 																		$rows_baseline_survey = $query_baseline_survey->fetchAll();
 																	}else{
-																		$query_baseline_survey= $db->prepare("SELECT disaggregation, numerator, denominator FROM tbl_survey_conclusion c inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
+																		$query_baseline_survey= $db->prepare("SELECT disaggregation, measurement FROM tbl_survey_conclusion c inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
 																		$query_baseline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":location" => $locations));	
 																		$count_baseline_survey = $query_baseline_survey->rowCount();
 																		$rows_baseline_survey = $query_baseline_survey->fetchAll();
 																	}																			
 					
-																	if($projstage > 6){
-																		$query_endline_survey= $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.numerator, c.denominator, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
+																	if($projstage > 10){
+																		$query_endline_survey= $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
 																		$query_endline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":location" => $locations));
 																		$rows_endline_survey = $query_endline_survey->fetchAll();
 																		$count_endline_surveys = $query_endline_survey->rowCount();
@@ -228,57 +249,45 @@ if ($permission) {
 																		</td>
 																		<?php 
 																		foreach($rows_baseline_survey as $row){
-																			$numerator = $row["numerator"];
-																			$denominator = $row["denominator"];
-																			$baseline = '';
-																			if($calculation_method == 2){
-																				$baseline = number_format(($numerator / $denominator) * 100, 2); 
-																			} else {
-																				$baseline = $numerator;
-																			}
+																			$measurement = $row["measurement"];
+																			
+																			$baseline = number_format($measurement, 2); 
+																			
 																			echo '<td class="bg-lime text-center"><font color="#f7070b">'.$baseline.'</font></td>';																			
 																		}
 																		
-																		if($projstage > 5 && $projstatus != 5 ){
+																		if($projstage > 8 && $projstage < 11 && $projstatus != 5){
 																			for($j=0; $j<$count_baseline_survey; $j++){
 																				echo '<td class="bg-lime text-center"><font color="#f7070b">Pending</font></td><td class="bg-lime text-center"><font color="#f7070b">Pending</font></td>
 																				';
 																			}
 																		}
 																		
-																		if($projstage > 6 && $projstatus==5){
+																		if($projstage > 10 && $projstatus==5){
 																			foreach($rows_endline_survey as $row){
 																				if($count_endline_surveys > 0){					
-																					$endnumerator = $row["numerator"];
-																					$enddenominator = $row["denominator"];
-																					if($calculation_method == 2){
-																						$endline = number_format(($endnumerator / $enddenominator) * 100, 2); 
-																					} else {
-																						$endline = $endnumerator;
-																					}
+																					$endlinemeasurement = $row["measurement"];
+																					$endline = number_format($endlinemeasurement, 2); 
 																				}
 																				echo '<td class="bg-lime text-center"><font color="#f7070b">'.$endline.'</font></td>';
 																			}
 																			
 																			foreach($rows_endline_survey as $rows){
 																				if($count_endline_surveys > 0){					
-																					$endnumerator = $rows["numerator"];
-																					$enddenominator = $rows["denominator"];
+																					$endline_measurement = $rows["measurement"];
 																					$disaggregation = $rows["disaggregation"];
 																					 
-																					$query_baseline= $db->prepare("SELECT numerator, denominator FROM tbl_survey_conclusion WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and disaggregation=:disaggregation");
+																					$query_baseline= $db->prepare("SELECT measurement FROM tbl_survey_conclusion WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and disaggregation=:disaggregation");
 																					$query_baseline->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":disaggregation" => $disaggregation));	
 																					$rows_baseline = $query_baseline->fetch();
-																					$baseline_numerator = $rows_baseline["numerator"];
-																					$baseline_denominator = $rows_baseline["denominator"];
+																					$baseline_measurement = $rows_baseline["measurement"];
 																					
-																					$numeratordifference = $endnumerator - $baseline_numerator;
-																					$denominatordifference = $enddenominator - $baseline_denominator;
+																					$measurement_difference = $endline_measurement - $baseline_measurement;
 																					
-																					if($calculation_method == 2){
-																						$change = number_format(($numeratordifference / $denominatordifference) * 100, 2); 
+																					if($calculation_method_id == 2){
+																						$change = number_format(($measurement_difference / $baseline_measurement) * 100, 2); 
 																					} else {
-																						$change = $numeratordifference;
+																						$change = $measurement_difference;
 																					}
 																					echo '<td class="bg-lime text-center"><font color="#f7070b">'.$change.'</font></td>';
 																				}
@@ -292,7 +301,7 @@ if ($permission) {
 																<tr class="bg-lime">
 																	<td class="bg-green" colspan="2" align="left">Total <?=$indicator?></td>
 																	<?php 
-																	$query_baseline_survey= $db->prepare("SELECT SUM(numerator) as numerator, SUM(denominator) as denominator FROM tbl_survey_conclusion WHERE survey_type='Baseline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
+																	$query_baseline_survey= $db->prepare("SELECT SUM(measurement) as measurement  FROM tbl_survey_conclusion WHERE survey_type='Baseline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
 																	$query_baseline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid));	
 																	$count_baseline_survey = $query_baseline_survey->rowCount();
 																	$rows_baseline_survey = $query_baseline_survey->fetchAll();
@@ -303,68 +312,53 @@ if ($permission) {
 																	
 																	$combined_baseline = 0;
 																	foreach($rows_baseline_survey as $row){
-																		$numerator = $row["numerator"];
-																		$denominator = $row["denominator"];
-																		$baseline = '';
-																		if($calculation_method == 2){
-																			$baseline = number_format(($numerator / $denominator) * 100, 2); 
-																		} else {
-																			$baseline = $numerator;
-																		}
-																		$combined_baseline = $combined_baseline + $baseline;																			
+																		$baseline_measurement = $row["measurement"];
+																		//$combined_baseline = $combined_baseline + $baseline_measurement;
+																		$combined_baseline += $baseline_measurement;																			
 																	}
-																	echo '<td class="bg-green text-center" colspan="'.$colspan.'">'.$combined_baseline.'</td>';
+																	echo '<td class="bg-green text-center" colspan="'.$colspan.'">'.number_format($combined_baseline, 2).'</td>';
 																	
 																		
-																	if($projstage > 5  && $projstatus != 5){
+																	if($projstage > 8 && $projstage < 11 && $projstatus != 5){
 																		echo '<td class="bg-green text-center" colspan="'.$colspan.'">Pending</td><td class="bg-green text-center" colspan="'.$colspan.'">Pending</td>';
 																	}
 																	
-																	if($projstage > 6 && $projstatus == 5){
+																	if($projstage > 10 && $projstatus == 5){
 																		$combined_endline = 0;
 																		$combined_change = 0;
 																		
-																		$query_combined_endline= $db->prepare("SELECT SUM(numerator) as numerator, SUM(denominator) as denominator FROM tbl_survey_conclusion WHERE survey_type='Endline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
+																		$query_combined_endline= $db->prepare("SELECT SUM(measurement) as measurement FROM tbl_survey_conclusion WHERE survey_type='Endline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
 																		$query_combined_endline->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid));
 																		$rows_combined_endline = $query_combined_endline->fetch();
 																		$count_combined_endline = $query_combined_endline->rowCount();
 																		
 																		
 																		if($count_combined_endline > 0){					
-																			$endnumerator = $rows_combined_endline["numerator"];
-																			$enddenominator = $rows_combined_endline["denominator"];
-																			if($calculation_method == 2){
-																				$endline = number_format(($endnumerator / $enddenominator) * 100, 2); 
-																			} else {
-																				$endline = $endnumerator;
-																			}
-																			$combined_endline = $endline;
+																			$endline_measurement = $rows_combined_endline["measurement"];
+																			$combined_endline = number_format($endline_measurement, 2);
 																		}
 																		echo '<td class="bg-green text-center" colspan="'.$colspan.'">'.$combined_endline.'</td>';
 																		
 																		
-																		$query_combined_change= $db->prepare("SELECT SUM(numerator) AS numerator, SUM(denominator) as denominator FROM tbl_survey_conclusion WHERE survey_type='Endline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
+																		$query_combined_change= $db->prepare("SELECT SUM(measurement) AS measurement FROM tbl_survey_conclusion WHERE survey_type='Endline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
 																		$query_combined_change->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid));
 																		$rows_combined_change = $query_combined_change->fetch();
 																		$count_combined_change = $query_combined_change->rowCount();
 																		
 																		if($count_combined_change > 0){					
-																			$endnumerator = $rows_combined_change["numerator"];
-																			$enddenominator = $rows_combined_change["denominator"];
+																			$endline_measurement = $rows_combined_change["measurement"];
 																			 
-																			$query_baseline= $db->prepare("SELECT SUM(numerator) AS numerator, SUM(denominator) as denominator FROM tbl_survey_conclusion WHERE survey_type='Baseline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
+																			$query_baseline= $db->prepare("SELECT SUM(measurement) AS measurement FROM tbl_survey_conclusion WHERE survey_type='Baseline' and resultstype=:resultstype and resultstypeid=:resultstypeid");
 																			$query_baseline->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid));	
 																			$rows_baseline = $query_baseline->fetch();
-																			$baseline_numerator = $rows_baseline["numerator"];
-																			$baseline_denominator = $rows_baseline["denominator"];
+																			$baseline_measurement = $rows_baseline["measurement"];
 																			
-																			$numeratordifference = $endnumerator - $baseline_numerator;
-																			$denominatordifference = $enddenominator - $baseline_denominator;
+																			$measurement_difference = $endline_measurement - $baseline_measurement;
 																			
-																			if($calculation_method == 2){
-																				$change = number_format(($numeratordifference / $denominatordifference) * 100, 2); 
+																			if($calculation_method_id == 2){
+																				$change = number_format(($measurement_difference / $baseline_measurement) * 100, 2); 
 																			} else {
-																				$change = $numeratordifference;
+																				$change = number_format($numeratordifference, 2);
 																			}
 																			
 																			$combined_change = $change;

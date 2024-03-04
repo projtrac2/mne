@@ -37,7 +37,7 @@ if ($permission) {
         {
             global $db;
             $site_name = [];
-            if ($mapping_type == 1 || $mapping_type == 3) {
+            if ($mapping_type == 1 ) {
                 $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
                 $query_Output->execute(array(":output_id" => $output_id));
                 $total_Output = $query_Output->rowCount();

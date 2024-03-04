@@ -2,7 +2,6 @@
 // Finish page
 ////////////////
 var ajax_url = "ajax/projects/index";
-
 $(document).ready(function () {
   show_dissaggregation(0);
   //filter the expected output  cannot be selected twice
@@ -128,12 +127,7 @@ function validate_submit() {
   var target_value = false;
   var mapping_type = $("#mapping_type").val();
   if (mapping_type == "1") {
-    var unit_type = $("#unit_type").val();
-    if (unit_type == "1") {
-      target_value = get_option_one();
-    } else {
-      target_value = unit_type != "" ? true : false;
-    }
+    target_value = get_option_one();
   } else {
     target_value = get_option_one();
   }
@@ -272,9 +266,7 @@ function numbering_output() {
 
 function reset_output_modal() {
   $("#one_point").hide();
-  $("#distributed").hide();
   $("#waypoint").hide();
-  $("#unit_type_div").hide();
   $("#ben_dissegragation").hide();
   $("#output_target_distribution_div").html("");
 
@@ -309,16 +301,10 @@ function get_output_details(rowno) {
       success: function (response) {
         var mapping_type = response.mapping_type;
         $("#mapping_type").val(mapping_type);
-
-        if (mapping_type == 1) {
-          $("#unit_type_div").show();
-        }
-
         $("#program_target").val(response.program_target);
 
         var output_data = response.output_data;
         var output_details = response.output_details;
-        $("#unit_type").val(output_data.unit_type);
         $("#project_target").val(output_data.total_target);
         if (response.dissaggregation_details.length > 0) {
           $("#dissaggregation1").prop("checked", true);
@@ -327,6 +313,8 @@ function get_output_details(rowno) {
           $("#dissaggregation2").prop("checked", true);
           show_dissaggregation(0, []);
         }
+
+
         output_target_div(output_details);
       },
     });
@@ -336,15 +324,10 @@ function get_output_details(rowno) {
 }
 
 function output_target_div(output_details = []) {
-  var unit_type = $("#unit_type").val();
   var mapping_type = $("#mapping_type").val();
   $("#output_target_distribution_div").html("");
   if (mapping_type == "1") {
-    if (unit_type == "1") {
-      combined_target_distribution(output_details);
-    } else if (unit_type == "2") {
-      distributed_target_distribution(output_details);
-    }
+    combined_target_distribution(output_details);
   } else {
     waypoints_target_distribution(output_details, mapping_type);
   }
@@ -447,7 +430,7 @@ function waypoints_target_distribution(output_details = [], mapping_type) {
 
     var output_target_distribution = `
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <label class="control-label">Output Location Distribution</label>
+                <label class="control-label">Output Target Distribution</label>
                 <div class="table-responsive" id="output_details">
                     <table class="table table-bordered table-striped table-hover" style="width:100%">
                         <thead>
@@ -518,7 +501,7 @@ function combined_target_distribution(output_details = []) {
 
     var output_target_distribution = `
       <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <label class="control-label">Output Site Distribution</label>
+          <label class="control-label">Output Site Target Distribution</label>
           <div class="table-responsive" id="output_details">
               <table class="table table-bordered table-striped table-hover" style="width:100%">
                   <thead>
@@ -537,74 +520,6 @@ function combined_target_distribution(output_details = []) {
               </table>
           </div>
       </div>`;
-    $("#output_target_distribution_div").html(output_target_distribution);
-  } else {
-    $("#output_target_distribution_div").html("");
-  }
-}
-
-function distributed_target_distribution(output_details = []) {
-  var table_body = "";
-  var val = $("#project_target").val();
-  var output_target = val != "" ? parseFloat(val) : 0;
-
-  console.log(output_target)
-  if (output_target > 0) {
-    var total_details = output_details.length;
-    if (total_details > 0) {
-      var counter = 0;
-      for (var i = 0; i < total_details; i++) {
-        counter++;
-        var details = output_details[i];
-        var output_site = details["output_site"];
-        table_body += `
-                      <tr>
-                          <td>${counter}</td>
-                          <td>
-                              <select name="site[]" id="site${counter}"  class="form-control output_site_select" required>
-                                  <option value="">Select Site from list</option>
-                              </select>
-                          </td>
-                      </tr>`;
-        get_project_sites(counter, output_site);
-      }
-
-    } else {
-      var counter = 0;
-      for (var i = 0; i < output_target; i++) {
-        counter++;
-        table_body += `
-            <tr>
-                <td>${counter}</td>
-                <td>
-                    <select name="site[]" id="site${counter}"  class="form-control output_site_select" required>
-                        <option value="">Select Sites from list</option>
-                    </select>
-                </td>
-            </tr>`;
-          get_project_sites(counter, "");
-      }
-    }
-
-
-
-    var output_target_distribution = `
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <label class="control-label">Output Site Distribution</label>
-                <div class="table-responsive" id="output_details">
-                    <table class="table table-bordered table-striped table-hover" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th width="5%">#</th>
-                                <th width="95%">Site</th>
-                            </tr>
-                        </thead>
-                        <tbody id="output_share_table_body">
-                            ${table_body}
-                        </tbody>
-                    </table>
-                </div>
-            </div>`;
     $("#output_target_distribution_div").html(output_target_distribution);
   } else {
     $("#output_target_distribution_div").html("");
@@ -757,12 +672,9 @@ function validate_output_target() {
   }
 }
 
-
-
 function show_dissaggregation(outpuval, dissaggregation_details = []) {
   $("#output_dissaggregation_div").html("");
-  console.log(outpuval)
-  if (outpuval == 1  ) {
+  if (outpuval == 1) {
     var body = ' <tr></tr>';
     if (dissaggregation_details.length > 0) {
       var diss_length = dissaggregation_details.length;
@@ -803,7 +715,7 @@ function show_dissaggregation(outpuval, dissaggregation_details = []) {
 
     var html_ = `
       <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <label class="control-label">Output Yearly Distribution</label>
+          <label class="control-label">Output Dissaggregation Distribution</label>
           <div class="table-responsive" id="output_details">
               <table class="table table-bordered table-striped table-hover" style="width:100%">
                   <thead>
@@ -826,7 +738,7 @@ function show_dissaggregation(outpuval, dissaggregation_details = []) {
       </div>`;
     $("#output_dissaggregation_div").html(html_);
     number_diss_table();
-  }else{
+  } else {
     console.log("Sorry Unable to connect to");
   }
 }

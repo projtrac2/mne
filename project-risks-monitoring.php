@@ -23,18 +23,40 @@
             $project_sub_stage = ($totalRows_rsProjects > 0) ? $row_rsProjects['proj_substage'] : "";
             $approve = $project_sub_stage > 1 ? true : false;
 				
-			$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+			$query_proj_risks = $db->prepare("SELECT *, r.id AS riskid FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE projid=:projid GROUP BY r.id");
 			$query_proj_risks->execute(array(":projid" => $projid));
 			$totalRows_proj_risks = $query_proj_risks->rowCount();
 				
-			$query_risks_more_details = $db->prepare("SELECT fullname,tt.title, f.frequency FROM tbl_project_risk_details d left join users u on u.userid=d.responsible left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_datacollectionfreq f on f.fqid=d.frequency left join tbl_titles tt on tt.id=t.title WHERE projid=:projid");
+			$query_risks_more_details = $db->prepare("SELECT fullname,tt.title, f.frequency, f.days, d.responsible FROM tbl_project_risk_details d left join users u on u.userid=d.responsible left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_datacollectionfreq f on f.fqid=d.frequency left join tbl_titles tt on tt.id=t.title WHERE projid=:projid");
 			$query_risks_more_details->execute(array(":projid" => $projid));
             $row_risks_more_details = $query_risks_more_details->fetch();
 			$totalRows_risks_more_details = $query_risks_more_details->rowCount();
-			$frequency = $responsible = "";
+			$responsibleid = $frequency = $responsible = "";
+			$frequency_days = "1 days";
 			if($row_risks_more_details){
+				$responsibleid = $row_risks_more_details["responsible"];
 				$frequency = $row_risks_more_details["frequency"];
+				$frequency_days = $row_risks_more_details["days"];
 				$responsible = $row_risks_more_details["title"].".".$row_risks_more_details["fullname"];
+			}
+			
+			$query_date_monitored = $db->prepare("SELECT MAX(date_created) AS date_monitored FROM tbl_project_risk_monitoring WHERE projid=:projid");
+			$query_date_monitored->execute(array(":projid" => $projid));
+            $row_date_monitored = $query_date_monitored->fetch();
+			$next_monitoring_date = "Any Time";
+			$next_monitoring_status = "Pending";
+			$txtcolor = "text-primary";
+			if($row_date_monitored){
+				$date_monitored = $row_date_monitored["date_monitored"];
+				$next_monitoring_date_orig = date('Y-m-d', strtotime($date_monitored . "+".$frequency_days));
+				$next_monitoring_date = date('d M Y', strtotime($date_monitored . "+".$frequency_days));
+				if($next_monitoring_date_orig > date('Y-m-d')){
+					$next_monitoring_status = "Pending";
+					$txtcolor = "text-primary";
+				}elseif($next_monitoring_date_orig < date('Y-m-d')){
+					$next_monitoring_status = "Overdue";
+					$txtcolor = "text-danger";
+				}
 			}
 			
 			function string_length($x, $length)
@@ -83,28 +105,40 @@
 								  <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
 									<label class="control-label">Project Code:</label>
 									<div class="form-line">
-									  <input type="text" class="form-control" value=" <?= $projcode ?>" readonly>
+									  <div class="form-control"> <?= $projcode ?></div>
 									</div>
 								  </div>
 								  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
 									<label class="control-label">Project Name:</label>
 									<div class="form-line">
-									  <input type="text" class="form-control" value=" <?= $projname ?>" readonly>
+									  <div class="form-control"> <?= $projname ?></div>
 									</div>
 								  </div>
 								  <?php 
 								  if($totalRows_risks_more_details > 0){
 									  ?>
-									  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-										<label class="control-label">Risks Monitoring Frequency:</label>
+									  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+										<label class="control-label">Monitoring Responsible:</label>
 										<div class="form-line">
-										  <input type="text" class="form-control" value=" <?= $frequency ?>" readonly>
+										  <div class="form-control"> <?= $responsible ?></div>
 										</div>
 									  </div>
-									  <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-										<label class="control-label">Risks Monitoring Responsible:</label>
+									  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+										<label class="control-label">Monitoring Frequency:</label>
 										<div class="form-line">
-										  <input type="text" class="form-control" value=" <?= $responsible ?>" readonly>
+										  <div class="form-control"> <?= $frequency ?></div>
+										</div>
+									  </div>
+									  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+										<label class="control-label">Next Monitoring:</label>
+										<div class="form-line">
+										  <div class="form-control"> <?= $next_monitoring_date ?></div>
+										</div>
+									  </div>
+									  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+										<label class="control-label">Monitoring Status:</label>
+										<div class="form-line">
+										  <div class="form-control <?=$txtcolor?>"> <?= $next_monitoring_status ?></div>
 										</div>
 									  </div>
 									  <?php
@@ -135,7 +169,7 @@
 																$counter = 0;
 																while ($row_proj_risks = $query_proj_risks->fetch()) {
 																	$counter++;
-																	$rskid = $row_proj_risks['id'];
+																	$rskid = $row_proj_risks['riskid'];
 																	$category = $row_proj_risks['category'];
 																	$risk = $row_proj_risks['risk_description'];
 																	$riskleveldigit = $row_proj_risks['risk_level'];
@@ -170,11 +204,13 @@
 																					Options <span class="caret"></span>
 																				</button>
 																				<ul class="dropdown-menu">
-																					<li>
-																						<a type="button" data-toggle="modal" data-target="#riskMonitoringModal" id="riskMonitoringModalBtn" onclick="riskmonitor(<?= $rskid ?>)">
-																							<i class="fa fa-list-ol"></i> Monitor
-																						</a>
-																					</li>
+																					<?php if($responsibleid == $user_name || $user_designation == 1){ ?>
+																						<li>
+																							<a type="button" data-toggle="modal" data-target="#riskMonitoringModal" id="riskMonitoringModalBtn" onclick="riskmonitor(<?= $rskid ?>)">
+																								<i class="fa fa-list-ol"></i> Monitor
+																							</a>
+																						</li>
+																					<?php } ?>
 																					<li>
 																						<a type="button" data-toggle="modal" data-target="#riskInfoModal" id="riskInfoModalBtn" onclick="risk_info(<?= $rskid ?>)">
 																							<i class="fa fa-info"></i> More Info
@@ -307,16 +343,10 @@
 									$query_risk_responsible = $db->prepare("SELECT *, tt.title AS user_title FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title where t.disabled=0");
 									$query_risk_responsible->execute();
 									?>
-									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
-										<div class="form-inline">
-											<label for="">Risk Description</label>
-											<input name="risk" type="text" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" placeholder="Describe the risk" required>
-										</div>
-									</div>
-									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+									<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 										<div class="form-inline">
 											<label for="">Risk Category</label>
-											<select name="risk_category" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+											<select name="risk_category" id="risk_category" class="form-control require" onchange="category_risks();" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
 												<option value="">.... Select Category ....</option>
 												<?php
 												while ($row_risk_categories = $query_risk_categories->fetch()) {
@@ -330,7 +360,15 @@
 											</select>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+										<div class="form-inline">
+											<label for="">Risk Description</label>
+											<select name="risk_id" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" id="risk_id" required>
+												<option value="">.... First Select Risk Category ....</option>
+											</select>
+										</div>
+									</div>
+									<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 										<div class="form-inline">
 											<label for="">Risk Likelihood</label>
 											<select name="likelihood" id="likelihood" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
@@ -347,7 +385,7 @@
 											</select>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+									<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 										<div class="form-inline">
 											<label for="">Risk Impact</label>
 											<select name="impact" id="impact" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
@@ -364,7 +402,7 @@
 											</select>
 										</div>
 									</div>
-									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+									<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 										<div class="form-inline">
 											<label for="">Risk Level</label>
 											<input name="risk_level" type="hidden" id="severity" required>
@@ -375,7 +413,7 @@
                             </fieldset>
                             <fieldset class="scheduler-border">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Risk Strategic Measures </legend>
-                                <div class="col-md-12" id="projRiskTable">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="projRiskTable">
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-striped table-hover" id="tasks_table" style="width:100%">
                                             <thead>
@@ -405,6 +443,7 @@
                         <div class="modal-footer">
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                 <input type="hidden" name="store_risk" id="store_risk" value="addrisk">
+								<input type="hidden" name="riskid" id="riskid">
                                 <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                 <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                 <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
@@ -435,7 +474,7 @@
 							</fieldset>
 							<fieldset class="scheduler-border">
 								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Strategic Measures </legend>
-								<div class="col-md-12">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 									<div class="table-responsive">
 										<table class="table table-bordered table-striped table-hover" id="tasks_table" style="width:100%">
 											<thead>
@@ -483,35 +522,13 @@
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle" style="color:orange"></i> Risk More Info</h4>
                     </div>
-					<div class="modal-body">
-						<fieldset class="scheduler-border" id="milestone_div">
-							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Details </legend>
-							<div class="row" id="risk_more_info">
-								
-							</div>
-						</fieldset>
-						<fieldset class="scheduler-border">
-							<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Strategic Measures </legend>
-							<div class="col-md-12">
-								<div class="table-responsive">
-									<table class="table table-bordered table-striped table-hover" id="measures_table" style="width:100%">
-										<thead>
-											<tr>
-												<th width="5%">#</th>
-												<th width="95%">Measure</th>
-											</tr>
-										</thead>
-										<tbody id="risk_measures">
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</fieldset>
+					<div class="modal-body" id="risk_more_info">
+										
 					</div>
 
 					<div class="modal-footer">
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+							<button type="button" class="btn btn-info waves-effect waves-light" data-dismiss="modal"> Close</button>
 						</div>
 					</div>
                 </div><!-- /.modal-content -->

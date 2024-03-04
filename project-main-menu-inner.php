@@ -184,14 +184,6 @@
                                         ?>
                                  </select>
                              </div>
-                         </div> 
-                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                             <label for="status"> Status:</label>
-                             <select name="status" id="status" class="form-control show-tick" data-live-search="false" required>
-                                 <option value="" class="selection">Select Status</option>
-                                 <option value="1">Enable</option>
-                                 <option value="0">Disable</option>
-                             </select>
                          </div>
                      </fieldset>
                      <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
@@ -313,35 +305,4 @@
      </div> <!-- /modal-dailog -->
  </div>
  <!-- End add item -->
-
-
- <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
- <script>
-     // sweet alert notifications
-     function success_alert(msg) {
-         return swal({
-             title: "Success",
-             text: msg,
-             type: "Success",
-             icon: 'success',
-             dangerMode: true,
-             timer: 15000,
-             showConfirmButton: false
-         });
-     }
-
-
-     // sweet alert notifications
-     function error_alert(msg) {
-         return swal({
-             title: "Error !!!",
-             text: msg,
-             type: "Error",
-             icon: 'warning',
-             dangerMode: true,
-             timer: 15000,
-             showConfirmButton: false
-         });
-     }
- </script>
  <script src="assets/js/settings/page.js"></script>

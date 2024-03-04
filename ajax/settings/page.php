@@ -48,12 +48,12 @@ function get_page_sectors($page_id)
 
 function get_children($id)
 {
-    global $db; 
+    global $db;
     $stmt = $db->prepare("SELECT * FROM tbl_pages WHERE id=:id");
     $stmt->execute(array(":id" => $id));
     $row_stmt = $stmt->fetch();
-    $parent = $row_stmt['parent']; 
-    $parent_id = $parent==0 ? $id : $row_stmt['parent'];
+    $parent = $row_stmt['parent'];
+    $parent_id = $parent == 0 ? $id : $row_stmt['parent'];
 
 
     $drl = $db->prepare("SELECT * FROM tbl_pages WHERE parent=:parent");
@@ -94,6 +94,7 @@ if (isset($_GET['page'])) {
     $page_sectors = get_page_sectors($id);
     $page_designations = get_page_designations($id);
     $page_permissions = get_page_permissions($id);
+    
     echo json_encode(array("success" => $result, "page" => $row, "page_sectors" => $page_sectors, "page_designations" => $page_designations, "page_permissions" => $page_permissions, "children" => $children));
 }
 
@@ -104,7 +105,7 @@ if (isset($_GET['get_children'])) {
     echo json_encode(array("success" => true, "children" => $children));
 }
 
-// get department 
+// get department
 if (isset($_GET['get_sections'])) {
     $department_id = $_GET['department_id'];
     $sql = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent=:parent");
@@ -145,9 +146,11 @@ if (isset($_POST['store'])) {
     $child = isset($_POST['child']) && !empty($_POST['child']) ? $_POST['child'] : 0;
     $parent = $child != 0 ? $child : $parent_id;
     $result = false;
+
+
     if ($store == "edit") {
         $sql = $db->prepare("UPDATE tbl_pages SET name=:name,icon=:icon,url=:url,parent=:parent,priority=:priority,workflow_stage=:workflow_stage, allow_read=:allow_read,status=:status, updated_by=:updated_by,updated_at=:updated_at  WHERE id =:id");
-        $result  = $sql->execute(array(":name" => $name, ":icon" => $icons, ":url" => $url, ":parent" => $parent, ":priority" => $priority, ":workflow_stage"=>$workflow_stage,":allow_read" => $allow_read, ":status" => $status, ":updated_by" => $created_by, ":updated_at" => $created_at, ":id" => $page_id));
+        $result  = $sql->execute(array(":name" => $name, ":icon" => $icons, ":url" => $url, ":parent" => $parent, ":priority" => $priority, ":workflow_stage" => $workflow_stage, ":allow_read" => $allow_read, ":status" => $status, ":updated_by" => $created_by, ":updated_at" => $created_at, ":id" => $page_id));
 
         $sql = $db->prepare("DELETE FROM tbl_page_permissions WHERE page_id=:page_id");
         $result1 = $sql->execute(array(':page_id' => $page_id));
@@ -159,7 +162,7 @@ if (isset($_POST['store'])) {
         $result1 = $sql->execute(array(':page_id' => $page_id));
     } else {
         $sql = $db->prepare("INSERT INTO tbl_pages (name,icon,url,parent,priority,workflow_stage,allow_read,status,created_by,created_at) VALUES(:name,:icon,:url,:parent,:priority,:workflow_stage,:status,:allow_read,:created_by,:created_by)");
-        $result  = $sql->execute(array(":name" => $name, ":icon" => $icons, ":url" => $url, ":parent" => $parent, ":priority" => $priority,":workflow_stage"=>$workflow_stage, ":allow_read" => $allow_read, ":status" => $status, ":created_by" => $created_by, ":created_at" => $created_at));
+        $result  = $sql->execute(array(":name" => $name, ":icon" => $icons, ":url" => $url, ":parent" => $parent, ":priority" => $priority, ":workflow_stage" => $workflow_stage, ":allow_read" => $allow_read, ":status" => $status, ":created_by" => $created_by, ":created_at" => $created_at));
         $page_id = $db->lastInsertId();
     }
 
@@ -192,7 +195,6 @@ if (isset($_POST['store'])) {
     }
     echo json_encode(array("page_id" => $page_id, "success" => true));
 }
-
 
 if (isset($_DELETE['destroy'])) {
     $id = $_GET['id'];

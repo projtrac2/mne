@@ -303,22 +303,18 @@ function unapprove_project(projid) {
 
 function distribute_project_cost(id) {
     var project_cost = $("#project_cost").val();
-    var direct_budget = $("#direct_budget").val();
-    var mne_budget = $("#mne_budget").val();
+    var direct_budget = $("#direct_budget").val(); 
     var administrative_budget = $("#administrative_budget").val();
     var msg = false;
     project_cost = project_cost != "" ? parseFloat(project_cost) : 0;
     direct_budget = direct_budget != "" ? parseFloat(direct_budget) : 0;
-    mne_budget = mne_budget != "" ? parseFloat(mne_budget) : 0;
     administrative_budget = administrative_budget != "" ? parseFloat(administrative_budget) : 0;
 
     if (project_cost > 0) {
-        var distributed_budget = direct_budget + mne_budget + administrative_budget;
+        var distributed_budget = direct_budget + administrative_budget;
         if (distributed_budget > project_cost) {
             if (id == 1) {
                 $("#direct_budget").val('');
-            } else if (id == 2) {
-                $("#mne_budget").val('');
             } else if (id == 3) {
                 $("#administrative_budget").val('');
             }

@@ -21,7 +21,7 @@ if ($permission) {
 		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
 		$projcategory = $totalRows_rsProjects > 0 ? $row_rsProjects['projcategory'] : "";
 		$percent2 = $totalRows_rsProjects > 0 ? number_format($row_rsProjects['progress'], 2) : "";
-		$percent2 = calculate_project_progress($projid, $projcategory);
+		$percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
 
 		function get_roles($role)
 		{
@@ -94,7 +94,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon . "  " . $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -128,175 +128,79 @@ if ($permission) {
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="card">
 						<div class="body">
-							<ul class="nav nav-tabs" style="font-size:14px">
-								<li class="active">
-									<a data-toggle="tab" href="#menu1">TECHNICAL TEAM &nbsp;<span class="badge bg-blue">|</span></a>
-								</li>
-								<li>
-									<a data-toggle="tab" href="#menu2">M&E TEAM &nbsp;<span class="badge bg-green">|</span></a>
-								</li>
-							</ul>
-						</div>
-						<div class="body">
-							<div class="tab-content">
-								<div id="menu1" class="tab-pane fade in active">
-									<div class="table-responsive">
-										<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-											<thead>
-												<tr class="bg-grey">
-													<th width="8%"><strong>Photo</strong></th>
-													<th width="32%"><strong>Fullname</strong></th>
-													<th width="15%"><strong>Designation</strong></th>
-													<th width="10%"><strong>Role</strong></th>
-													<th width="10%"><strong>Availability</strong></th>
-													<th width="15%"><strong>Email</strong></th>
-													<th width="10%"><strong>Phone</strong></th>
-												</tr>
-											</thead>
-											<tbody>
-												<?php
-												$query_rsMembers = $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND team_type=4 GROUP BY responsible");
-												$query_rsMembers->execute(array(":projid" => $projid));
-												$total_rsMembers = $query_rsMembers->rowCount();
-												if ($total_rsMembers > 0) {
-													$rowno = 0;
-													while ($row_rsMembers = $query_rsMembers->fetch()) {
-														$rowno++;
-														$role_id = $row_rsMembers['role'];
-														$ptid = $row_rsMembers['responsible'];
-														$query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
-														$query_rsPMbrs->execute(array(":user_id" => $ptid));
-														$row_rsPMbrs = $query_rsPMbrs->fetch();
-														$count_row_rsPMbrs = $query_rsPMbrs->rowCount();
-														if ($count_row_rsPMbrs > 0) {
-															$mbrministry = $row_rsPMbrs['ministry'];
-															$mbrdept = $row_rsPMbrs['department'];
-															$mbrdesg = $row_rsPMbrs['designation'];
-															$userid = $row_rsPMbrs['userid'];
-															$availability = $row_rsPMbrs['availability'];
-															$file_path = $row_rsPMbrs['floc'];
-															$email = $row_rsPMbrs['email'];
-															$phone = $row_rsPMbrs['phone'];
-															$fullname = $row_rsPMbrs['ttitle'] . " " . $row_rsPMbrs['fullname'];
-															$user_role = get_roles($role_id);
-															$count_assignedissues = get_issues($projid, $userid);
-															$designation = get_designation($mbrdesg);
-															$ministries = get_sector($mbrministry);
-															$sections = get_sector($mbrdept);
-															$directorates = get_sector($mbrministry);
+							<div class="table-responsive">
+								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+									<thead>
+										<tr class="bg-grey">
+											<th width="8%"><strong>Photo</strong></th>
+											<th width="32%"><strong>Fullname</strong></th>
+											<th width="15%"><strong>Designation</strong></th>
+											<th width="10%"><strong>Role</strong></th>
+											<th width="10%"><strong>Availability</strong></th>
+											<th width="15%"><strong>Email</strong></th>
+											<th width="10%"><strong>Phone</strong></th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php
+										$query_rsMembers = $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND team_type=4 GROUP BY responsible");
+										$query_rsMembers->execute(array(":projid" => $projid));
+										$total_rsMembers = $query_rsMembers->rowCount();
+										if ($total_rsMembers > 0) {
+											$rowno = 0;
+											while ($row_rsMembers = $query_rsMembers->fetch()) {
+												$rowno++;
+												$role_id = $row_rsMembers['role'];
+												$ptid = $row_rsMembers['responsible'];
+												$query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
+												$query_rsPMbrs->execute(array(":user_id" => $ptid));
+												$row_rsPMbrs = $query_rsPMbrs->fetch();
+												$count_row_rsPMbrs = $query_rsPMbrs->rowCount();
+												if ($count_row_rsPMbrs > 0) {
+													$mbrministry = $row_rsPMbrs['ministry'];
+													$mbrdept = $row_rsPMbrs['department'];
+													$mbrdesg = $row_rsPMbrs['designation'];
+													$userid = $row_rsPMbrs['userid'];
+													$availability = $row_rsPMbrs['availability'];
+													$file_path = $row_rsPMbrs['floc'];
+													$email = $row_rsPMbrs['email'];
+													$phone = $row_rsPMbrs['phone'];
+													$fullname = $row_rsPMbrs['ttitle'] . " " . $row_rsPMbrs['fullname'];
+													$user_role = get_roles($role_id);
+													$count_assignedissues = get_issues($projid, $userid);
+													$designation = get_designation($mbrdesg);
+													$ministries = get_sector($mbrministry);
+													$sections = get_sector($mbrdept);
+													$directorates = get_sector($mbrministry);
 
-															$ministry = $ministries != '' ? $ministries : "All " . $ministrylabelplural;
-															$section = $sections != '' ? $sections : "All " . $departmentlabelplural;
-															$directorate = $directorates != '' ? $directorates : "All " . $ministrylabelplural;
+													$ministry = $ministries != '' ? $ministries : "All " . $ministrylabelplural;
+													$section = $sections != '' ? $sections : "All " . $departmentlabelplural;
+													$directorate = $directorates != '' ? $directorates : "All " . $ministrylabelplural;
 
-															$p_availability = "<p>Yes</p>";
-															if ($availability == 0) {
-																$caretaker =	get_caretaker($projid, $ptid, $workflow_stage, $technical_substage, 1);
-																$p_availability = '<p  data-toggle="tooltip" data-placement="bottom" title="' . $caretaker . '">No</p>';
-															}
-												?>
-															<tr>
-																<td>
-																	<img src="<?= $file_path; ?>" style="width:30px; height:30px; margin-bottom:0px" />
-																</td>
-																<td><?= $fullname; ?></td>
-																<td><?= $designation; ?></td>
-																<td><?= $user_role; ?></td>
-																<td><?= $p_availability ?></td>
-																<td><?= $email; ?></td>
-																<td><?= $phone; ?></td>
-															</tr>
-												<?php
-														}
+													$p_availability = "<p>Yes</p>";
+													if ($availability == 0) {
+														$caretaker =	get_caretaker($projid, $ptid, $workflow_stage, $technical_substage, 1);
+														$p_availability = '<p  data-toggle="tooltip" data-placement="bottom" title="' . $caretaker . '">No</p>';
 													}
+										?>
+													<tr>
+														<td>
+															<img src="<?= $file_path; ?>" style="width:30px; height:30px; margin-bottom:0px" />
+														</td>
+														<td><?= $fullname; ?></td>
+														<td><?= $designation; ?></td>
+														<td><?= $user_role; ?></td>
+														<td><?= $p_availability ?></td>
+														<td><?= $email; ?></td>
+														<td><?= $phone; ?></td>
+													</tr>
+										<?php
 												}
-												?>
-											</tbody>
-										</table>
-									</div>
-								</div>
-								<div id="menu2" class="tab-pane fade">
-									<div class="table-responsive">
-										<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-											<thead>
-												<tr class="bg-grey">
-													<th width="8%"><strong>Photo</strong></th>
-													<th width="32%"><strong>Fullname</strong></th>
-													<th width="15%"><strong>Designation</strong></th>
-													<th width="10%"><strong>Role</strong></th>
-													<th width="10%"><strong>Availability</strong></th>
-													<th width="15%"><strong>Email</strong></th>
-													<th width="10%"><strong>Phone</strong></th>
-												</tr>
-											</thead>
-											<tbody>
-												<?php
-												$query_rsMembers = $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid  AND (team_type=1 OR team_type=2 OR team_type=3) GROUP BY responsible");
-												$query_rsMembers->execute(array(":projid" => $projid));
-												$total_rsMembers = $query_rsMembers->rowCount();
-												if ($total_rsMembers > 0) {
-													$rowno = 0;
-													while ($row_rsMembers = $query_rsMembers->fetch()) {
-														$rowno++;
-														$role_id = $row_rsMembers['team_type'];
-														if ($role_id == 1) {
-															$user_role = "Output Monitor";
-														} elseif ($role_id == 2) {
-															$user_role = "Outcome Evaluator";
-														} elseif ($role_id == 3) {
-															$user_role = "Impact Evaluator";
-														}
-														$ptid = $row_rsMembers['responsible'];
-														$query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
-														$query_rsPMbrs->execute(array(":user_id" => $ptid));
-														$row_rsPMbrs = $query_rsPMbrs->fetch();
-														$count_row_rsPMbrs = $query_rsPMbrs->rowCount();
-														if ($count_row_rsPMbrs > 0) {
-															$mbrministry = $row_rsPMbrs['ministry'];
-															$mbrdept = $row_rsPMbrs['department'];
-															$mbrdesg = $row_rsPMbrs['designation'];
-															$userid = $row_rsPMbrs['userid'];
-															$availability = $row_rsPMbrs['availability'];
-															$file_path = $row_rsPMbrs['floc'];
-															$email = $row_rsPMbrs['email'];
-															$phone = $row_rsPMbrs['phone'];
-															$fullname = $row_rsPMbrs['ttitle'] . " " . $row_rsPMbrs['fullname'];
-															$count_assignedissues = get_issues($projid, $userid);
-															$designation = get_designation($mbrdesg);
-															$ministries = get_sector($mbrministry);
-															$sections = get_sector($mbrdept);
-															$directorates = get_sector($mbrministry);
-
-															$ministry = $ministries != '' ? $ministries : "All " . $ministrylabelplural;
-															$section = $sections != '' ? $sections : "All " . $departmentlabelplural;
-															$directorate = $directorates != '' ? $directorates : "All " . $ministrylabelplural;
-
-															$p_availability = "<p>Yes</p>";
-															if ($availability == 0) {
-																$caretaker =	get_caretaker($projid, $ptid, $workflow_stage, $technical_substage, 1);
-																$p_availability = '<p  data-toggle="tooltip" data-placement="bottom" title="' . $caretaker . '">No</p>';
-															}
-												?>
-															<tr>
-																<td>
-																	<img src="<?= $file_path; ?>" style="width:30px; height:30px; margin-bottom:0px" />
-																</td>
-																<td><?= $fullname; ?></td>
-																<td><?= $designation; ?></td>
-																<td><?= $user_role; ?></td>
-																<td><?= $p_availability ?></td>
-																<td><?= $email; ?></td>
-																<td><?= $phone; ?></td>
-															</tr>
-												<?php
-														}
-													}
-												}
-												?>
-											</tbody>
-										</table>
-									</div>
-								</div>
+											}
+										}
+										?>
+									</tbody>
+								</table>
 							</div>
 						</div>
 					</div>

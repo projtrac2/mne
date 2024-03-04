@@ -7,6 +7,7 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 if ($permission) {
 	try {
+		$back_url = $_SESSION['back_url'];
 		$workflow_stage = 8;
 		$general_substage = 1;
 		$technical_substage = 2;
@@ -19,10 +20,10 @@ if ($permission) {
 		$query_rsProjects->execute(array(":projid" => $projid));
 		$row_rsProjects = $query_rsProjects->fetch();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
-		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : ""; 
+		$projname = $totalRows_rsProjects > 0 ? $row_rsProjects['projname'] : "";
 		$projstage = $row_rsProjects["projstage"];
 		$projcat = $row_rsProjects["projcategory"];
-		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
+		$percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
 
 		function get_roles($role)
 		{
@@ -95,7 +96,7 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon . "  " . $pageTitle ?>
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -106,10 +107,10 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
+								<?php if ($projcat == 2 && $projstage > 4) { ?>
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Team</a>
@@ -201,7 +202,7 @@ if ($permission) {
 																$caretaker =	get_caretaker($projid, $ptid, $workflow_stage, $technical_substage, 1);
 																$p_availability = '<p  data-toggle="tooltip" data-placement="bottom" title="' . $caretaker . '">No</p>';
 															}
-															?>
+												?>
 															<tr>
 																<td>
 																	<img src="<?= $file_path; ?>" style="width:30px; height:30px; margin-bottom:0px" />
@@ -213,7 +214,7 @@ if ($permission) {
 																<td><?= $email; ?></td>
 																<td><?= $phone; ?></td>
 															</tr>
-															<?php
+												<?php
 														}
 													}
 												}
@@ -246,11 +247,11 @@ if ($permission) {
 													while ($row_rsMembers = $query_rsMembers->fetch()) {
 														$rowno++;
 														$role_id = $row_rsMembers['team_type'];
-														if($role_id == 1){
+														if ($role_id == 1) {
 															$user_role = "Output Monitor";
-														}elseif($role_id == 2){
+														} elseif ($role_id == 2) {
 															$user_role = "Outcome Evaluator";
-														}elseif($role_id == 3){
+														} elseif ($role_id == 3) {
 															$user_role = "Impact Evaluator";
 														}
 														$ptid = $row_rsMembers['responsible'];
@@ -283,7 +284,7 @@ if ($permission) {
 																$caretaker =	get_caretaker($projid, $ptid, $workflow_stage, $technical_substage, 1);
 																$p_availability = '<p  data-toggle="tooltip" data-placement="bottom" title="' . $caretaker . '">No</p>';
 															}
-															?>
+												?>
 															<tr>
 																<td>
 																	<img src="<?= $file_path; ?>" style="width:30px; height:30px; margin-bottom:0px" />
@@ -295,7 +296,7 @@ if ($permission) {
 																<td><?= $email; ?></td>
 																<td><?= $phone; ?></td>
 															</tr>
-															<?php
+												<?php
 														}
 													}
 												}

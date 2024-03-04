@@ -4,10 +4,6 @@ if ($permission) {
     try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-
-        /* $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND (p.projstage > 0 AND p.projstage < 10) ORDER BY p.projid DESC");
-        $query_rsProjects->execute(); */
-        //$row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -72,17 +68,22 @@ if ($permission) {
 
                                                 if ($filter_department) {
                                                     $counter++;
-                                                    $activity_status = $activity = '';
-                                                    $activity = $totalRows_proj_risks == 0 ? "Add" : "Edit";
-                                                    $assigned = false;
-                                                    if ($sub_stage == 0) {
-                                                        $activity_status = "Pending";
-                                                    } else if ($sub_stage == 3 || $sub_stage == 1) {
-                                                        $activity_status = "Assigned";
-                                                        $assigned = true;
-                                                    } else if ($sub_stage > 1) {
+                                                    $today = date('Y-m-d');
+                                                    $assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
+                                                    $activity = "Add";
+                                                    if ($totalRows_proj_risks > 0) {
+                                                        $activity = $sub_stage > 1 ? "Approve"  : "Edit";
+                                                    }
+
+                                                    $due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
+                                                    $activity_status = "Pending";
+                                                    if ($sub_stage > 1) {
                                                         $activity_status = "Pending Approval";
-                                                        $activity = "Approve";
+                                                    } else if ($sub_stage < 2) {
+                                                        $activity_status = $sub_stage == 1 ?  "Assigned" : "Pending";
+                                                        if ($today > $due_date) {
+                                                            $activity_status = "Behind Schedule";
+                                                        }
                                                     }
 
                                                     $edit =  $assigned ? "edit" : "new";
@@ -102,7 +103,7 @@ if ($permission) {
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?= $projcode ?></td>
                                                         <td><?= $projname ?></td>
-                                                        <td><?= date('Y M d') ?></td>
+                                                        <td><?= date('Y M d', strtotime($due_date))  ?></td>
                                                         <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                         <td>
                                                             <div class="btn-group">

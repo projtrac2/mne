@@ -158,7 +158,7 @@ if (isset($_GET['fyid'])) {
                 $basevalue = $row_indbaseline["baseline"] > 0 ?  $row_indbaseline["baseline"] : 0;
 
                 $enddate = $fscyear . "-06-30";
-                $query_indBaselineBase =  $db->prepare("SELECT SUM(actualoutput) as achieved FROM tbl_monitoringoutput m INNER JOIN tbl_project_details d ON d.id =  m.opid INNER JOIN tbl_progdetails g ON g.id =  d.outputid WHERE date_created <= '" . $enddate . "' AND g.indicator='$indid'");
+                $query_indBaselineBase =  $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput m INNER JOIN tbl_project_details d ON d.id =  m.output_id INNER JOIN tbl_progdetails g ON g.id =  d.outputid WHERE date_created <= '" . $enddate . "' AND g.indicator='$indid'");
                 $query_indBaselineBase->execute();
                 $row_indBaselineBase = $query_indBaselineBase->fetch();
                 $achived_output_base = !is_null($row_indBaselineBase["achieved"])  ?  $row_indBaselineBase["achieved"] : 0;
@@ -167,7 +167,7 @@ if (isset($_GET['fyid'])) {
                 $achievedstartdate = $fscyear . "-07-01";
                 $achievedenddate = $fscend . "-06-30";
 
-                $query_indachieved =  $db->prepare("SELECT SUM(actualoutput) as achieved FROM tbl_monitoringoutput m INNER JOIN tbl_project_details d ON d.id =  m.opid INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE g.indicator='$indid' AND (date_created >= '" . $achievedstartdate . "' AND  date_created <= '" . $achievedenddate . "')");
+                $query_indachieved =  $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput m INNER JOIN tbl_project_details d ON d.id =  m.output_id INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE g.indicator='$indid' AND (date_created >= '" . $achievedstartdate . "' AND  date_created <= '" . $achievedenddate . "')");
                 $query_indachieved->execute();
                 $row_indachieved = $query_indachieved->fetch();
                 $achived_output = $row_indachieved["achieved"] > 0 ?  $row_indachieved["achieved"] : 0;

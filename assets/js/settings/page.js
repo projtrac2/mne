@@ -107,7 +107,13 @@ function get_edit_details(id) {
                 if (response.success) {
                     let page = response.page;
                     $("#name").val(page.name);
-                    $("#parent").val(page.parent);
+
+                    var parent_id = page.parent;
+                    var id = parent_id != 0 ? page.parent : page.id;
+
+                    parent_id != 0 ? $("#child_div").show() : $("#child_div").hide();
+
+                    $("#parent").val(id);
                     $("#icon").val(page.icon);
                     $("#url").val(page.url);
                     $("#priority").val(page.priority);
@@ -119,6 +125,7 @@ function get_edit_details(id) {
                     var page_permissions = response.page_permissions;
                     var page_sectors = response.page_sectors;
                     $("#child").html(response.children);
+
 
                     let checked = page_sectors['checked'];
                     $("#read_access").hide();

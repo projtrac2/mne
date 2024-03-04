@@ -15,42 +15,39 @@ if ($permission) {
 		$projname = $row_projdetails['projname'];
 		$projstage = $row_projdetails["projstage"];
 		$projcat = $row_projdetails["projcategory"];
-		$percent2 = number_format(calculate_project_progress($projid, $projcat),2);
-			
+		$percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
+
 		$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
 		$query_proj_risks->execute(array(":projid" => $projid));
 		$totalRows_proj_risks = $query_proj_risks->rowCount();
-			
+
 		$query_risks_more_details = $db->prepare("SELECT fullname,tt.title, f.frequency FROM tbl_project_risk_details d left join users u on u.userid=d.responsible left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_datacollectionfreq f on f.fqid=d.frequency left join tbl_titles tt on tt.id=t.title WHERE projid=:projid");
 		$query_risks_more_details->execute(array(":projid" => $projid));
 		$row_risks_more_details = $query_risks_more_details->fetch();
 		$totalRows_risks_more_details = $query_risks_more_details->rowCount();
 		$frequency = $responsible = "";
-		if($row_risks_more_details){
+		if ($row_risks_more_details) {
 			$frequency = $row_risks_more_details["frequency"];
-			$responsible = $row_risks_more_details["title"].".".$row_risks_more_details["fullname"];
+			$responsible = $row_risks_more_details["title"] . "." . $row_risks_more_details["fullname"];
 		}
-		
+
 		function string_length($x, $length)
 		{
 			$y = "";
-			if(strlen($x)<=$length)
-			{
+			if (strlen($x) <= $length) {
 				$y = $x;
 				return $y;
-			}
-			else
-			{
-				$y=substr($x,0,$length) . ' <span class="text-danger"><strong>...</strong></span>';
+			} else {
+				$y = substr($x, 0, $length) . ' <span class="text-danger"><strong>...</strong></span>';
 				return $y;
 			}
 		}
-		
+
 		$query_last_monitoring = $db->prepare("SELECT date_created FROM tbl_project_risk_monitoring WHERE projid=:projid ORDER BY id DESC Limit 1");
-		$query_last_monitoring->execute(array(":projid" =>$projid));
+		$query_last_monitoring->execute(array(":projid" => $projid));
 		$row_last_monitoring = $query_last_monitoring->fetch();
 		$last_monitoring = "Not Monitored";
-		if($row_last_monitoring){
+		if ($row_last_monitoring) {
 			$last_monitoring = date("d M Y", strtotime($row_last_monitoring["date_created"]));
 		}
 
@@ -87,9 +84,9 @@ if ($permission) {
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?php echo $pageTitle ?>
-
+					
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='view-dashboard-projects?prjstatus=all&'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -100,10 +97,10 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="project-dashboard.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if($projcat == 2 && $projstage > 4){ ?>
+								<?php if ($projcat == 2 && $projstage > 4) { ?>
 									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
 								<?php } ?>
 								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
@@ -142,40 +139,40 @@ if ($permission) {
 							<div class="tab-content">
 								<div id="menu1" class="tab-pane fade in active">
 									<div class="row clearfix">
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">											
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<div class="header">
 												<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
-												  <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-list-alt" style="color:green" aria-hidden="true"></i> Project Details</legend>
-												  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-													<label class="control-label">Project Code:</label>
-													<div class="form-line">
-													  <input type="text" class="form-control" value=" <?= $projcode ?>" readonly>
+													<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-list-alt" style="color:green" aria-hidden="true"></i> Project Details</legend>
+													<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+														<label class="control-label">Project Code:</label>
+														<div class="form-line">
+															<input type="text" class="form-control" value=" <?= $projcode ?>" readonly>
+														</div>
 													</div>
-												  </div>
-													<?php 
-													if($totalRows_risks_more_details > 0){
-													  ?>
-													  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-														<label class="control-label">Monitoring Frequency:</label>
-														<div class="form-line">
-														  <input type="text" class="form-control" value=" <?= $frequency ?>" readonly>
+													<?php
+													if ($totalRows_risks_more_details > 0) {
+													?>
+														<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+															<label class="control-label">Monitoring Frequency:</label>
+															<div class="form-line">
+																<input type="text" class="form-control" value=" <?= $frequency ?>" readonly>
+															</div>
 														</div>
-													  </div>
-													  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-														<label class="control-label">Monitoring Responsible:</label>
-														<div class="form-line">
-														  <input type="text" class="form-control" value=" <?= $responsible ?>" readonly>
+														<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+															<label class="control-label">Monitoring Responsible:</label>
+															<div class="form-line">
+																<input type="text" class="form-control" value=" <?= $responsible ?>" readonly>
+															</div>
 														</div>
-													  </div>
-													  <?php
+													<?php
 													}
 													?>
-													  <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+													<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
 														<label class="control-label">Last Monitoring:</label>
 														<div class="form-line">
-														  <input type="text" class="form-control" value=" <?= $last_monitoring ?>" readonly>
+															<input type="text" class="form-control" value=" <?= $last_monitoring ?>" readonly>
 														</div>
-													  </div>
+													</div>
 												</fieldset>
 											</div>
 											<div class="body">
@@ -205,31 +202,31 @@ if ($permission) {
 																					$category = $row_proj_risks['category'];
 																					$risk = $row_proj_risks['risk_description'];
 																					$riskleveldigit = $row_proj_risks['risk_level'];
-																					
+
 																					$query_risk_level = $db->prepare("SELECT * FROM tbl_risk_severity WHERE digit=:riskleveldigit");
 																					$query_risk_level->execute(array(":riskleveldigit" => $riskleveldigit));
 																					$row_risk_level = $query_risk_level->fetch();
 																					$risklevel = $row_risk_level['description'];
 																					$levelcolor = $row_risk_level['color'];
-						
+
 																					$query_risk_monitored = $db->prepare("SELECT * FROM tbl_project_risk_monitoring m left join tbl_risk_severity s on s.digit=m.risk_level WHERE m.riskid=:riskid ORDER BY m.id DESC Limit 1");
-																					$query_risk_monitored->execute(array(":riskid" =>$rskid));
+																					$query_risk_monitored->execute(array(":riskid" => $rskid));
 																					$row_risk_monitored = $query_risk_monitored->fetch();
 																					$total_risk_monitored = $query_risk_monitored->rowCount();
-							
-																					if($total_risk_monitored > 0){
+
+																					if ($total_risk_monitored > 0) {
 																						$risklevel = $row_risk_monitored["description"];
-																						$levelcolor = $row_risk_monitored["color"];				
+																						$levelcolor = $row_risk_monitored["color"];
 																					}
-																														
+
 																					$risk = string_length($risk, 100);
 
-																					?>
+																			?>
 																					<tr style="background-color:#FFFFFF">
 																						<td align="center"><?= $counter ?></td>
 																						<td><?= $risk ?></td>
 																						<td><?= $category ?></td>
-																						<td align="center" class="<?=$levelcolor?>"><?= $risklevel ?></td>
+																						<td align="center" class="<?= $levelcolor ?>"><?= $risklevel ?></td>
 																						<td>
 																							<div class="btn-group">
 																								<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -237,7 +234,7 @@ if ($permission) {
 																								</button>
 																								<ul class="dropdown-menu">
 																									<li>
-																										<a type="button" data-toggle="modal" data-target="#riskperformanceModal" id="riskperformanceModalBtn" onclick="risk_performance(<?= $rskid ?>)">
+																										<a type="button" data-toggle="modal" data-target="#riskInfoModal" id="riskInfoModalBtn" onclick="risk_info(<?= $rskid ?>)">
 																											<i class="fa fa-info"></i> More Info
 																										</a>
 																									</li>
@@ -245,7 +242,7 @@ if ($permission) {
 																							</div>
 																						</td>
 																					</tr>
-																				<?php
+																			<?php
 																				}
 																			}
 																			?>
@@ -262,19 +259,19 @@ if ($permission) {
 								</div>
 								<div id="menu2" class="tab-pane fade">
 									<div class="row clearfix">
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">								
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<div class="table-responsive">
 												<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 													<thead>
 														<tr class="bg-red">
 															<th style="width:4%">#</th>
 															<th style="width:36%">Issue</th>
-															<th style="width:10%">Category</th>
+															<th style="width:10%">Issue Area</th>
 															<th style="width:10%">Impact</th>
 															<th style="width:10%">Priority</th>
-															<th style="width:10%">Status</th>
-															<th style="width:10%">Date Recorded</th>
 															<th style="width:10%">Action</th>
+															<th style="width:10%">Date Recorded</th>
+															<th style="width:10%">More Details</th>
 														</tr>
 													</thead>
 													<tbody>
@@ -290,32 +287,30 @@ if ($permission) {
 																$issue = $row_issues["issue_description"];
 																$impactid = $row_issues["issue_impact"];
 																$priorityid = $row_issues["issue_priority"];
-																$status_id = $row_issues["status"];
+																$issuestatusis = $row_issues["status"];
 																$issuedate = $row_issues["date_created"];
 
 																$query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE id=:impactid");
 																$query_risk_impact->execute(array(":impactid" => $impactid));
 																$row_risk_impact = $query_risk_impact->fetch();
 																$impact = $row_risk_impact["description"];
-																
-																if($priorityid == 1){
+
+																if ($priorityid == 1) {
 																	$priority = "High";
 																	$priorityclass = 'bg-red';
-																}elseif($priorityid == 2){
+																} elseif ($priorityid == 2) {
 																	$priority = "Medium";
 																	$priorityclass = 'bg-blue';
-																}else{
+																} else {
 																	$priority = "Low";
 																	$priorityclass = 'bg-green';
 																}
-																
-																if($issueareaid == 1){
-																	$issue_area = "Quality";
-																}elseif($issueareaid == 2){
+
+																if ($issueareaid == 2) {
 																	$issue_area = "Scope";
-																}elseif($issueareaid == 3){
+																} elseif ($issueareaid == 3) {
 																	$issue_area = "Schedule";
-																}else{
+																} else {
 																	$issue_area = "Cost";
 																}
 
@@ -333,32 +328,41 @@ if ($permission) {
 																$current_date = date("Y-m-d");
 																$actduedate = date("Y-m-d", $duedate);
 
-																$styled = 'style="color:blue"';
-																
-																if($status_id == 0){
-																	if ($actduedate >= $current_date) {
-																		$actionstatus = $stgstatus;
-																		$styled = 'style="color:blue"';
-																	} elseif ($actduedate < $current_date) {
-																		$actionstatus = "Behind Schedule";
-																		$styled = 'style="color:red"';
-																	}
-																}else{
-																	$query_issue_status = $db->prepare("SELECT status FROM tbl_issue_status WHERE statuskey=:statuskey");
-																	$query_issue_status->execute(array(":statuskey" => $status_id));
-																	$row_issue_status = $query_issue_status->fetch();
-																	
-																	$actionstatus = $row_issue_status["status"];
-																	$styled = 'style="color:green"';														
+
+																if ($actduedate >= $current_date) {
+																	$actionstatus = $stgstatus;
+																	$styled = 'style="color:blue"';
+																} elseif ($actduedate < $current_date) {
+																	$actionstatus = "Behind Schedule";
+																	$styled = 'style="color:red"';
 																}
-															?>
+												
+																if ($issuestatusis == 0) {
+																	$issuestatus = "Pending Action";
+																} elseif ($issuestatusis == 1) {
+																	$issuestatus = "Ignore the Issue and Continue";
+																} elseif ($issuestatusis == 2) {
+																	$issuestatus = "Project Put On Hold";
+																} elseif ($issuestatusis == 3) {
+																	$issuestatus = "Project Restored";
+																} elseif ($issuestatusis == 4) {
+																	$issuestatus = "Request Approved";
+																} elseif ($issuestatusis == 5) {
+																	$issuestatus = "Project Restored & Request Approved";
+																} elseif ($issuestatusis == 2) {
+																	$issuestatus = "Project Cancelled";
+																}elseif ($issuestatusis == 7) {
+																	$issuestatus = "Issue Closed";
+																	$styled = 'style="color:green"';
+																}
+																?>
 																<tr style="background-color:#fff">
 																	<td width="4%" align="center"><?php echo $nm; ?></td>
 																	<td width="36%"><?php echo $issue; ?></td>
-																	<td width="10%"><?php echo $category; ?></td>
+																	<td width="10%"><?php echo $issue_area; ?></td>
 																	<td width="10%"><?php echo $impact; ?></td>
 																	<td width="10%"><span class="badge <?= $priorityclass; ?>"><?php echo $priority; ?></span></td>
-																	<td width="10%" <?= $styled ?>><?php echo $actionstatus; ?></td>
+																	<td width="10%" <?= $styled ?>><?php echo $issuestatus; ?></td>
 																	<td width="10%"><?php echo date("d M Y", strtotime($issuedate)); ?></td>
 																	<td width="10%">
 																		<div align="center" class="btn-group">
@@ -386,53 +390,20 @@ if ($permission) {
 	<!-- end body  -->
 				
 	<!-- Start Risk More -->
-	<div class="modal fade" tabindex="-1" role="dialog" id="riskperformanceModal">
+	<div class="modal fade" tabindex="-1" role="dialog" id="riskInfoModal">
 		<div class="modal-dialog  modal-lg">
 			<div class="modal-content">
 				<div class="modal-header" style="background-color:#03A9F4">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle" style="color:orange"></i> Risk Monitoring Performance</h4>
+					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle" style="color:orange"></i> Risk More Info</h4>
 				</div>
-				<div class="modal-body">
-					<fieldset class="scheduler-border" id="milestone_div">
-						<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Details </legend>
-						<div class="row" id="risk_more_info">
-							
-						</div>
-					</fieldset>
-					<fieldset class="scheduler-border" id="milestone_div">
-						<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Level Performance</legend>
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">								
-							<div class="table-responsive">
-								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-									<thead>
-										<tr class="bg-grey">
-											<th style="width:25%">Date</th>
-											<th style="width:25%">Likeliwood</th>
-											<th style="width:25%">Impact</th>
-											<th style="width:25%">Risk Level</th>
-										</tr>
-									</thead>
-									<tbody id="risk_level_performance_table">
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</fieldset>
-					<fieldset class="scheduler-border">
-						<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Strategic Measures Performance</legend>
-						<div class="col-md-12">
-							<div class="table-responsive">
-								<table class="table table-bordered table-striped table-hover" id="measures_performance_table" style="width:100%">
-								</table>
-							</div>
-						</div>
-					</fieldset>
+				<div class="modal-body" id="risk_more_info">
+									
 				</div>
 
 				<div class="modal-footer">
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+						<button type="button" class="btn btn-info waves-effect waves-light" data-dismiss="modal"> Close</button>
 					</div>
 				</div>
 			</div><!-- /.modal-content -->

@@ -21,6 +21,7 @@ try {
 
     if (isset($_GET['get_project_markers'])) {
         $projid = $_GET['projid'];
+
         $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid ");
         $query_Output->execute(array(":projid" => $projid));
         $total_Output = $query_Output->rowCount();
@@ -30,21 +31,40 @@ try {
             while ($row_rsOutput = $query_Output->fetch()) {
                 $output_id = $row_rsOutput['id'];
                 $mapping_type = $row_rsOutput['indicator_mapping_type'];
-                $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid");
-                $query->execute(array(":output_id" => $output_id, ":projid" => $projid));
 
-                if ($mapping_type == 1 || $mapping_type == 3) {
-                    $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid INNER JOIN tbl_project_sites s ON m.site_id=s.site_id  INNER JOIN tbl_state w ON s.state_id=w.id  WHERE d.id = :output_id AND d.projid=:projid");
+                $marker = [];
+                if ($mapping_type == 1 ) {
+                    $sql = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
+                    $sql->execute(array(":output_id" => $output_id));
+                    $total_sites = $sql->rowCount();
+                    if ($total_sites > 0) {
+                        while ($row_rsMaps = $sql->fetch()) {
+                            $site_name = $row_rsMaps['site'];
+                            $site_id = $row_rsMaps['site_id'];
+                            $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid AND m.site_id=:site_id");
+                            $query->execute(array(":output_id" => $output_id, ":projid" => $projid, ":site_id" => $site_id));
+                            $row = $query->fetchAll();
+                            $rows = $query->rowCount();
+                            $marker[] = array("site" => $site_name, "markers" => $row);
+                        }
+                    }
+                } else {
+                    $query = $db->prepare("SELECT * FROM tbl_markers m INNER JOIN tbl_project_details d ON d.id = m.opid WHERE d.id = :output_id AND d.projid=:projid");
                     $query->execute(array(":output_id" => $output_id, ":projid" => $projid));
+                    $row = $query->fetchAll();
+                    $rows = $query->rowCount();
+                    $marker[] = array("site" => "", "markers" => $row);
                 }
-                $row = $query->fetchAll();
-                $rows = $query->rowCount();
 
-                $markers[] = array("indicator_details" => $row_rsOutput, "markers" => $row, "locations" => get_wards($output_id));
+                $markers[] = array("indicator_details" => $row_rsOutput, "markers" => $marker, "locations" => get_wards($output_id));
             }
         }
 
-        echo json_encode(array("success" => $rows > 0 ? true : false, "markers" => $markers));
+
+        $query = $db->prepare("SELECT * FROM tbl_markers WHERE projid=:projid");
+        $query->execute(array(":projid" => $projid));
+        $project_rows = $query->rowCount();
+        echo json_encode(array("success" => $project_rows > 0 ? true : false, "markers" => $markers));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

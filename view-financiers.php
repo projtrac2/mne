@@ -135,7 +135,7 @@ if ($permission) {
 																			<a type="button" href="view-financier-info.php?fn=<?php echo $hashfnid; ?>"><i class="fa fa-plus-square"></i> More Info</a>
 																		</li>
 																		<li>
-																			<a type="button" onclick="update_financier_status(<?= $fnid ?>, '<?= $status_text ?>', '<?= $success ?>', <?= $update_status ?>)"><i class="fa fa-plus-square"></i> Manage</a>
+																			<a type="button" onclick="update_financier_status(<?= $fnid ?>, '<?= $status_text ?>', '<?= $success ?>', <?= $update_status ?>)"><i class="fa fa-plus-square"></i> <?= $finstatus == 0 ? "Activate" : "Deactivate" ?></a>
 																		</li>
 																		<?php
 																		if (in_array("create", $page_actions) && $finstatus) {
@@ -156,7 +156,7 @@ if ($permission) {
 																		}
 																		?>
 																		<li>
-																			<a type="button" href="funding-report.php?fn=<?= $hashfnid ?>" target="_blank">
+																			<a type="button" href="funding-report.php?fn=<?= $hashfnid ?>">
 																				<i class="fa fa-info"></i> Report</a>
 																		</li>
 																	</ul>
@@ -255,6 +255,7 @@ if ($permission) {
 																		<a href="view-financier-projects.php?fndid=<?php echo base64_encode($fnid); ?>" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">
 																			<?php echo $row_financierprojs; ?>
 																		</a>
+																	</span>
 																</td>
 																<td><?php echo number_format($tdn, 2); ?></td>
 																<td align="center"><?= $active ?></td>

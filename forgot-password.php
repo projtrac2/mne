@@ -9,32 +9,33 @@ $company_details = new Company();
 $company_settings = $company_details->get_company_details();
 session_start();
 if (isset($_POST['forgotpassword']) && $_POST['forgotpassword'] == "Forgot Password") {
-    $email = $_POST['email'];
-    $user_auth = new Auth();
-    $user = $user_auth->get_user($email);
-    if ($user) {
-        $forgot = $user_auth->forgot_password($email);
-        $_SESSION["errorMessage"] =  "Reset link has been sent to your email please use it to reset you password.";
-        $_SESSION['type'] = "success";
-        header("location:forgot-password.php");
-        return;
-    } else {
-      $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong email address.";
-      $_SESSION['type'] = "error";
-      header("location:forgot-password.php");
-      return;
-    }
+  $email = $_POST['email'];
+  $user_auth = new Auth();
+  $user = $user_auth->get_user($email);
+  if ($user) {
+    $forgot = $user_auth->forgot_password($email);
+    $_SESSION["errorMessage"] =  "Reset link has been sent to your email please use it to reset you password.";
+    $_SESSION['type'] = "success";
+    header("location:forgot-password.php");
+    return;
+  } else {
+    $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong email address.";
+    $_SESSION['type'] = "error";
+    header("location:forgot-password.php");
+    return;
+  }
 }
 ?>
- <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<meta http-equiv="Pragma" content="no-cache">
-	<meta http-equiv="no-cache">
-	<meta http-equiv="Expires" content="-1">
-	<meta http-equiv="Cache-Control" content="no-cache">
-	<title>Result-Based Monitoring &amp; Evaluation System</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <meta http-equiv="Cache-Control" content="no-cache">
+  <title>Result-Based Monitoring &amp; Evaluation System</title>
   <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css" />
   <style media="screen">
     body {
@@ -206,66 +207,68 @@ if (isset($_POST['forgotpassword']) && $_POST['forgotpassword'] == "Forgot Passw
       padding-right: 5px;
     }
   </style>
-	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.css" />
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<script type="text/javascript" src="bootstrap/js/bootstrap.js"></script>
+  <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script type="text/javascript" src="bootstrap/js/bootstrap.js"></script>
 </head>
+
 <body>
-	<p>&nbsp;</p>
-	<div class="container-fluid">
-		<div class="row-fluid">
-			<div class="span12">
-				<div align="center">
-					<div class="container-fluid1" id="content_area_cell">
-						<h3 align="center" class="contenttitles">ProjTrac Monitoring, Evaluation, And Reporting System</h3>
-						<p>&nbsp;</p>
-						<form action="" method="POST" class="form-signin" style="margin-bottom:10px" id="loginusers">
-							<div style="width:100%; height:auto; background-color:#036">
-								<p><img src="<?= $company_settings->floc; ?>" style="height:100px; width:230px; margin-top:10px" class="imgdim" /></p>
-							</div>
-							<br />
+  <p>&nbsp;</p>
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span12">
+        <div align="center">
+          <div class="container-fluid1" id="content_area_cell">
+            <h3 align="center" class="contenttitles">ProjTrac Monitoring, Evaluation, And Reporting System</h3>
+            <p>&nbsp;</p>
+            <form action="" method="POST" class="form-signin" style="margin-bottom:10px" id="loginusers">
+              <div style="width:100%; height:auto; background-color:#036">
+                <p><img src="<?= $company_settings->floc; ?>" style="height:100px; width:230px; margin-top:10px" class="imgdim" /></p>
+              </div>
+              <br />
               <?php
-              if(isset($_SESSION["errorMessage"])) {
+              if (isset($_SESSION["errorMessage"])) {
                 $type = $_SESSION['type'];
-                if($type == "error"){
-                  ?>
+                if ($type == "error") {
+              ?>
                   <div class='alert alert-error'>
                     <p class="errormsg">
                       <img src="images/error.png" alt="success_msg" />
-                      <?=$_SESSION["errorMessage"]?>
+                      <?= $_SESSION["errorMessage"] ?>
                     </p>
                   </div>
-                  <?php
-                }else{
-                  ?>
+                <?php
+                } else {
+                ?>
                   <div class='alert alert-success'>
                     <p class="success_msg">
                       <img src="assets/images/apply.gif" alt="success" />
-                      <?=$_SESSION["errorMessage"]?>
+                      <?= $_SESSION["errorMessage"] ?>
                     </p>
                   </div>
-                  <?php
+              <?php
                 }
-               }
-               unset($_SESSION["errorMessage"]);
-             ?>
-							<p>
-								<input name="email" type="email" class="input-block-level" id="username" placeholder="Enter your email address" required />
-							</p>
-							<p>
-								<input name="forgotpassword" type="submit" class="loginbutton" id="submit" value="Forgot Password" />
-							</p>
+              }
+              unset($_SESSION["errorMessage"]);
+              ?>
+              <p>
+                <input name="email" type="email" class="input-block-level" id="username" placeholder="Enter your email address" required />
+              </p>
+              <p>
+                <input name="forgotpassword" type="submit" class="loginbutton" id="submit" value="Forgot Password" />
+              </p>
               <a href="index.php">Go to login</a>
-						</form>
-						<p>&nbsp;</p>
-					</div>
-				</div>
-				<p>&nbsp;</p>
-			</div>
-		</div>
-	</div>
-	<?php
-	include_once "includes/login-footer.php";
-	?>
+            </form>
+            <p>&nbsp;</p>
+          </div>
+        </div>
+        <p>&nbsp;</p>
+      </div>
+    </div>
+  </div>
+  <?php
+  include_once "includes/login-footer.php";
+  ?>
 </body>
+
 </html>

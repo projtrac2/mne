@@ -16,7 +16,6 @@ function submitForm(form) {
             } else {
                 sweet_alert("Error!");
             }
-            $("#tag-form-submit").prop("disabled", false);
             setTimeout(() => {
                 window.location.reload(true);
             }, 3000);
@@ -32,6 +31,7 @@ $(document).ready(function () {
         var form = new FormData(data);
         $("#tag-form-submit").prop("disabled", true);
         $("#tag-form-submit1").prop("disabled", true);
+
         if ($(this).attr("value") == "button2") {
             swal({
                 title: "Are you sure?",
@@ -52,8 +52,6 @@ $(document).ready(function () {
             form.append("button", "0");
             submitForm(form);
         }
-        $("#tag-form-submit").prop("disabled", false);
-        $("#tag-form-submit1").prop("disabled", false);
     });
     hide_milestone_divs(false);
     $("#tag-form-submit1").hide();
@@ -77,10 +75,10 @@ function get_project_outputs(projid, record_type) {
         $.ajax({
             type: "get",
             url: ajax_url,
-            record_type: record_type,
             data: {
                 get_project_outputs: "get_project_outputs",
                 projid: projid,
+                record_type: record_type,
             },
             dataType: "json",
             success: function (response) {
@@ -124,6 +122,8 @@ function get_sites() {
                     $("#cummulative").val(output_details.output_cummulative_record);
                     $("#previous").val(output_details.previous);
                     $("#completed").val(output_details.output_completed);
+                    console.log(output_details)
+
                     if (output_details.output_completed == 2) {
                         $("#tag-form-submit1").show();
                     }
@@ -230,6 +230,7 @@ function get_output_details() {
                         $("#target").val(milestone_details.milestone_target);
                         $("#cummulative").val(milestone_details.milestone_cummulative_record);
                         $("#previous").val(milestone_details.milestone_previous_record);
+
                         $("#completed").val(milestone_details.milestone_completed);
                     }
 
@@ -238,7 +239,6 @@ function get_output_details() {
 
                     $("#previous_comments").html(response.comments);
                     $("#attachments_table1").html(response.files);
-
                 } else {
                     error_alert("Sorrry could not find milestone outputs");
                 }
@@ -320,14 +320,9 @@ const validateCeiling = () => {
             return;
         }
 
-        if (completed == '1' && output_project_type == '1') {
-            $("#current_measure").val("");
-            error_alert("Please select ensure you have completed activity monitoring");
-            return;
-        }
-
         var total_site = site_achieved + measure;
         var total_milestone = cummulative + measure;
+
         if (total_site > site_target) {
             $("#current_measure").val("");
             error_alert(`The cummulative units should not exceed ${site_target} ward/site target`);
@@ -337,6 +332,12 @@ const validateCeiling = () => {
                 $("#current_measure").val("");
                 error_alert(`The cummulative units should not exceed ${target} ward/site target`);
                 return;
+            } else {
+                if (completed == '1' && (total_milestone == target)) {
+                    $("#current_measure").val("");
+                    error_alert("Please select ensure you have completed activity monitoring");
+                    return;
+                }
             }
         }
     }

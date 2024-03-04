@@ -46,7 +46,7 @@ if ($permission) {
 
 		$states = [];
 		$site = "N/A";
-		if ($mapping_type == 1 || $mapping_type == 3) {
+		if ($mapping_type == 1 ) {
 			$querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_state s ON s.id = d.state_id WHERE site_id = :id ");
 			$querysSite->execute(array(":id" => $d_site_id));
 			$totalsSite = $querysSite->rowCount();
@@ -85,7 +85,7 @@ if ($permission) {
 				while ($row_rsOutput = $query_Output->fetch()) {
 					$output_id = $row_rsOutput['id'];
 					$mapping_type = $row_rsOutput['indicator_mapping_type'];
-					if ($mapping_type == 1 || $mapping_type == 3) {
+					if ($mapping_type == 1 ) {
 						$querysSite = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid = :projid ");
 						$querysSite->execute(array(":projid" => $projid));
 						$totalsSite = $querysSite->rowCount();

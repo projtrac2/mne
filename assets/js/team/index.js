@@ -3,7 +3,7 @@ $(document).ready(function () {
     $("#add_output").submit(function (e) {
         e.preventDefault();
         var form_data = $(this).serialize();
-        // $("#tag-form-submit").prop("disabled", true);
+        $("#tag-form-submit").prop("disabled", true);
         $.ajax({
             type: "post",
             url: ajax_url,

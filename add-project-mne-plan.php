@@ -35,8 +35,7 @@ if ($permission) {
             global  $projevaluation, $project_impact;
             $selected = $role_id == 1 ? "selected" : '';
             $role_input = '
-            <option value="">Select Result Level</option>
-            <option value="1" ' . $selected . ' >Output</option>';
+            <option value="">Select Result Level</option> ';
             if ($projevaluation != 0) {
                 $selected = $role_id == 2 ? "selected" : '';
                 $role_input .= '<option value="2" ' . $selected . '>Outcome</option>';
@@ -45,6 +44,7 @@ if ($permission) {
                     $role_input .= '<option value="3" ' . $selected . '>Impact</option>';
                 }
             }
+
             return $role_input;
         }
 
@@ -77,6 +77,7 @@ if ($permission) {
         $deptid = $row_rsProjects['projdept'];
         $projduration = $row_rsProjects['projduration'];
         $monitoring_frequency = $row_rsProjects['monitoring_frequency'];
+        $activity_monitoring_frequency = $row_rsProjects['activity_monitoring_frequency'];
         $projfscyear = $row_rsProjects['projfscyear'];
         $mne_budget = $row_rsProjects['mne_budget'];
         $project_sub_stage = $row_rsProjects['proj_substage'];
@@ -169,12 +170,13 @@ if ($permission) {
         if (isset($_POST['store_project_details'])) {
             $projid = $_POST['projid'];
             $monitoring_frequency = $_POST['monitoring_frequency'];
+            $activity_monitoring_frequency = $_POST['activity_monitoring_frequency'];
             $datecreated = date("Y-m-d");
             $createdby = $_POST['user_name'];
             $mnecode = "AB123" . $projid;
 
-            $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency WHERE projid=:projid ");
-            $result = $sql->execute(array(':monitoring_frequency' => $monitoring_frequency, ":projid" => $projid));
+            $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency WHERE projid=:projid ");
+            $result = $sql->execute(array(':monitoring_frequency' => $monitoring_frequency, ":activity_monitoring_frequency" => $activity_monitoring_frequency, ":projid" => $projid));
 
             $hash = base64_encode("projid04{$projid}");
             $redirect_url = "add-project-mne-plan.php?proj=$hash";
@@ -236,41 +238,27 @@ if ($permission) {
 
         function validate_mne()
         {
-            global $db, $projid, $projevaluation, $mappingactivite, $mne_budget, $project_impact, $monitoring_frequency, $implimentation_stage;
-
-            $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=4 ");
-            $query_rs_output_cost_plan->execute(array(":projid" => $projid));
-            $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-            $result[] = $totalRows_rs_output_cost_plan > 0 ? true : false;
-
-            $query_rsTeam =  $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type <= 3 ");
-            $query_rsTeam->execute(array(":projid" => $projid, ":stage" => $implimentation_stage));
-            $totalRows_rsTeam = $query_rsTeam->rowCount();
-            $result[] = $totalRows_rsTeam > 0 ? true : false;
-
-            if ($mappingactivite) {
-                $query_rs_Mapping =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=3 ");
-                $query_rs_Mapping->execute(array(":projid" => $projid));
-                $totalRows_rs_Mapping = $query_rs_Mapping->rowCount();
-                $result[] = $totalRows_rs_Mapping > 0 ? true : false;
-            }
-
+            global $db, $projid, $projevaluation, $mne_budget, $project_impact, $monitoring_frequency;
             if ($projevaluation != 0) {
                 $query_outcome_details = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE projid=:projid");
                 $query_outcome_details->execute(array(":projid" => $projid));
                 $totalRows_outcome_details = $query_outcome_details->rowCount();
                 $result[] = $totalRows_outcome_details > 0 ? true : false;
-
-                $query_rs_Evaluation =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type =5 ");
-                $query_rs_Evaluation->execute(array(":projid" => $projid));
-                $totalRows_rs_Evaluation = $query_rs_Evaluation->rowCount();
-                $result[] = $totalRows_rs_Evaluation > 0 ? true : false;
+                $query_rsTeam =  $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 2 ");
+                $query_rsTeam->execute(array(":projid" => $projid));
+                $totalRows_rsTeam = $query_rsTeam->rowCount();
+                $result[] = $totalRows_rsTeam > 0 ? true : false;
 
                 if ($project_impact != 0) {
                     $query_impact_details = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE projid=:projid");
                     $query_impact_details->execute(array(":projid" => $projid));
                     $totalRows_impact_details = $query_impact_details->rowCount();
                     $result[] = $totalRows_impact_details > 0 ? true : false;
+
+                    $query_rsTeam =  $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND team_type = 3 ");
+                    $query_rsTeam->execute(array(":projid" => $projid));
+                    $totalRows_rsTeam = $query_rsTeam->rowCount();
+                    $result[] = $totalRows_rsTeam > 0 ? true : false;
                 }
             }
 
@@ -278,6 +266,7 @@ if ($permission) {
             $query_rsTask_direct->execute(array(':projid' => $projid));
             $row_rsTask_direct = $query_rsTask_direct->fetch();
             $sum_cost = $row_rsTask_direct['total_cost'] != null ? $row_rsTask_direct['total_cost'] : "0";
+
             $result[] = $mne_budget == $sum_cost ? true : false;
             $result[] = $monitoring_frequency != '' ? true : false;
             return !in_array(false, $result) ? true : false;
@@ -383,6 +372,27 @@ if ($permission) {
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                         <form class="form-horizontal" id="outputform" action="" method="POST">
                                                             <br />
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                                <label class="control-label">Activity Target breakdown Frequency *: </label>
+                                                                <div class="form-line">
+                                                                    <select name="activity_monitoring_frequency" id="" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                        <option value="">.... Select from list ....</option>
+                                                                        <?php
+                                                                        $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");
+                                                                        $query_frequency->execute();
+                                                                        $totalRows_frequency = $query_frequency->rowCount();
+                                                                        $input = '';
+                                                                        if ($totalRows_frequency > 0) {
+                                                                            while ($row_frequency = $query_frequency->fetch()) {
+                                                                                $selected =  $row_frequency['fqid'] == $activity_monitoring_frequency ? 'selected' : '';
+                                                                                $input .= '<option value="' . $row_frequency['fqid'] . '" ' . $selected . ' >' . $row_frequency['frequency'] . ' </option>';
+                                                                            }
+                                                                        }
+                                                                        echo $input;
+                                                                        ?>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
                                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                 <label class="control-label">Monitoring Frequency *: </label>
                                                                 <div class="form-line">

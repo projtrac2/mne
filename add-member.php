@@ -1,12 +1,14 @@
 <?php
 require('includes/head.php');
+include_once("Models/Email.php");
+
 if ($permission) {
-	if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
-		$encoded_userid = $_GET["ptid"];
-		$decode_userid = base64_decode($encoded_userid);
-		$userid_array = explode("projmbr", $decode_userid);
-		$userid = $userid_array[1];
-	}
+    if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
+        $encoded_userid = $_GET["ptid"];
+        $decode_userid = base64_decode($encoded_userid);
+        $userid_array = explode("projmbr", $decode_userid);
+        $userid = $userid_array[1];
+    }
 
     function create_password($str_length)
     {
@@ -21,32 +23,33 @@ if ($permission) {
     }
 
 
-    function sendMail($fullname, $email, $password)
+    function sendMail($user_id, $fullname, $email, $password)
     {
         global $db;
-        $query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-        $query_url->execute();
-        $row_url = $query_url->fetch();
-        $url = $row_url["main_url"];
-        $org = $row_url["company_name"];
-        $org_email = $row_url["email_address"];
-        $receipient = $email;
 
-        $detailslink = '<a href="' . $url . 'index.php" class="btn bg-light-blue waves-effect" style="margin-top:10px">Click here to log in</a>';
-        $mainmessage = ' Dear ' . $fullname . ',
-            <p>Use the following details to login in to the system:</p>
-            <p>Email:' . $email . '<br>
-                Password: ' . $password . '<br>';
-
-        $subject = "Login";
-        $receipientName = $fullname;
-        $title = "";
-		$target = "user-registration";
-
-        include("assets/processor/email-body.php");
-        require 'PHPMailer/PHPMailerAutoload.php';
-        include("email-conf-settings.php");
+        $mail = new Email();
+        $notification_group_id = 1;
+        $notification_type_id = 7;
+        $priority = 1;
+        $page_url = "index.php";
+        $token = $mail->get_auth_token($fullname, $email, $password);
+        $notification = $mail->get_notifications($priority, $notification_group_id);
+        $notification_id = $notification->id;
+        return $mail->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
     }
+
+
+    function get_title($title_id)
+    {
+        global $db;
+        $query_rsTitle = $db->prepare("SELECT * FROM tbl_titles WHERE id=:title_id");
+        $query_rsTitle->execute(array(":title_id" => $title_id));
+        $row_rsTitle = $query_rsTitle->fetch();
+        $totalRows_rsTitle = $query_rsTitle->rowCount();
+        return $totalRows_rsTitle > 0 ? $row_rsTitle['title'] : '';
+    }
+
+
 
     function alert_message($title, $msg, $type, $icon)
     {
@@ -169,19 +172,22 @@ if ($permission) {
                     $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
                     // $createdby = $_POST['user_id'];
 
-					$designation = $_POST['designation'];
-					$role_group = 3;
+                    $designation = $_POST['designation'];
+                    $role_group = 3;
 
-					if($designation > 4){
-						$query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
-						$query_role_group->execute();
-						$row_role_group = $query_role_group->fetch();
+                    if ($designation > 4) {
+                        $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
+                        $query_role_group->execute();
+                        $row_role_group = $query_role_group->fetch();
 
-						$role_group = $row_role_group["role_id"];
-					}
+                        $role_group = $row_role_group["role_id"];
+                    }
+
+
 
                     $insertSQL = $db->prepare("INSERT INTO tbl_projteam2 (fullname, firstname, middlename, lastname, title, designation,ministry, department, directorate,role_group, levelA, levelB, levelC, floc, filename, ftype, email, phone, createdby, datecreated)  VALUES( :fullname, :firstname, :middlename, :lastname, :title, :designation,:ministry,:department,:directorate, :role_group, :level1, :level2, :level3,:floc, :filename, :ftype, :email, :phone, :createdby, :datecreated)");
                     $Rest = $insertSQL->execute(array(":fullname" => $fullname, ":firstname" => $_POST['firstname'], ":middlename" => $_POST['middlename'], ":lastname" => $_POST['lastname'], ":title" => $_POST['title'], ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":role_group" => $role_group,  ":level1" => $level1, ":level2" => $level2, ":level3" => $level3, ":floc" => $floc, ":filename" => $newname, ":ftype" => $ftype, ":email" => $_POST['email'], ":phone" => $_POST['phone'], ":createdby" => $user_name, ":datecreated" => date('Y-m-d')));
+
 
                     if ($Rest) {
                         $last_id = $db->lastInsertId();
@@ -190,16 +196,17 @@ if ($permission) {
                         $hash_pass = password_hash($password, PASSWORD_DEFAULT);
                         $email = $_POST['email'];
 
-                        $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type) VALUES( :ptid,:email, :password, :type)");
-                        $insertSQL->execute(array(":ptid" => $last_id,  ":email" => $email, ":password" => $hash_pass, ":type" => $type));
-                        sendMail($fullname, $email, $password);
+                        $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type, last_update_password_date) VALUES( :ptid,:email, :password, :type, :today)");
+                        $insertSQL->execute(array(":ptid" => $last_id,  ":email" => $email, ":password" => $hash_pass, ":type" => $type, ":today" => date('Y-m-d')));
+                        $user_id = $db->lastInsertId();
+                        sendMail($user_id, get_title($_POST['title']) . ' ' . $fullname, $email, $password);
 
-						$query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
-						$query_designate->execute();
-						$row_designate = $query_designate->fetch();
-						$designate = $row_designate["designation"];
+                        $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
+                        $query_designate->execute();
+                        $row_designate = $query_designate->fetch();
+                        $designate = $row_designate["designation"];
 
-                        $msg = 'You have successfully added ' . $fullname . ' as '.$designate.'.';
+                        $msg = 'You have successfully added ' . $fullname . ' as ' . $designate . '.';
                         $results = alert_message('Success', $msg, 'Success', 'success');
                     } else {
                         $msg = 'Can not add administrator, please review your info and try again.';
@@ -213,11 +220,11 @@ if ($permission) {
         } elseif (isset($_POST["submit"]) && $_POST["MM_update"] == "editmemberfrm") {
             //Check that we have a file
             $myphoto = $ftype = $filename = $level = '';
-			$query_rsPhoto = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid='$userid'");
-			$query_rsPhoto->execute();
-			$row_rsPhoto = $query_rsPhoto->fetch();
-			$totalRows_rsPhoto = $query_rsPhoto->rowCount();
-			$ptid = $row_rsPhoto['ptid'];
+            $query_rsPhoto = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid='$userid'");
+            $query_rsPhoto->execute();
+            $row_rsPhoto = $query_rsPhoto->fetch();
+            $totalRows_rsPhoto = $query_rsPhoto->rowCount();
+            $ptid = $row_rsPhoto['ptid'];
 
             if ($_FILES['photofile']['size'] != 0) {
                 if ($_FILES['photofile']['size'] >= 1048576 * 500) {
@@ -267,21 +274,21 @@ if ($permission) {
             $email = $_POST['email'];
             $phone = $_POST['phone'];
 
-			$department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
-			$ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
-			$directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
+            $department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
+            $ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
+            $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
 
-			$role_group = 3;
+            $role_group = 3;
 
-			if($designation > 4){
-				$query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
-				$query_role_group->execute();
-				$row_role_group = $query_role_group->fetch();
+            if ($designation > 4) {
+                $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
+                $query_role_group->execute();
+                $row_role_group = $query_role_group->fetch();
 
-				$role_group = $row_role_group["role_id"];
-			} elseif($designation == 1){
-				$role_group = 4;
-			}
+                $role_group = $row_role_group["role_id"];
+            } elseif ($designation == 1) {
+                $role_group = 4;
+            }
 
             $queryupdate = $db->prepare("UPDATE tbl_projteam2 SET fullname=:fullname, firstname=:firstname, middlename=:middlename, lastname=:lastname, title=:title, designation=:designation,ministry=:ministry, department=:department, directorate=:directorate, role_group=:rolegroup, floc=:floc, filename=:filename, ftype=:ftype, email=:email, phone=:phone WHERE ptid=:ptid");
             $retval = $queryupdate->execute(array(":fullname" => $fullname, ":firstname" => $firstname, ":middlename" => $middlename, ":lastname" => $lastname, ":title" => $title, ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":rolegroup" => $role_group, ":floc" => $floc, ":filename" => $filename, ":ftype" => $ftype, ":email" => $email, ":phone" => $phone, ":ptid" => $ptid));
@@ -295,22 +302,24 @@ if ($permission) {
                     $queryupdate = $db->prepare("UPDATE users SET email=:email WHERE userid=:userid");
                     $queryupdate->execute(array(":email" => $email, ":userid" => $userid));
                 } else {
-					$type = 1;
-					$last_id = $db->lastInsertId();
-					$password = create_password(8);
-					$hash_pass = password_hash($password, PASSWORD_DEFAULT);
+                    $type = 1;
+                    $last_id = $db->lastInsertId();
+                    $password = create_password(8);
+                    $hash_pass = password_hash($password, PASSWORD_DEFAULT);
 
-					$insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type) VALUES( :ptid,:email, :password, :type)");
-					$insertSQL->execute(array(":ptid" => $ptid,  ":email" => $email, ":password" => $hash_pass, ":type" => $type));
-					sendMail($fullname, $email, $password);
+                    $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type) VALUES( :ptid,:email, :password, :type)");
+                    $insertSQL->execute(array(":ptid" => $ptid,  ":email" => $email, ":password" => $hash_pass, ":type" => $type));
+                    $user_id = $db->lastInsertId();
+
+                    sendMail($user_id, get_title($title_id) . ' ' . $fullname, $email, $password);
                 }
 
-				$query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
-				$query_designate->execute();
-				$row_designate = $query_designate->fetch();
-				$designate = $row_designate["designation"];
+                $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
+                $query_designate->execute();
+                $row_designate = $query_designate->fetch();
+                $designate = $row_designate["designation"];
 
-				$msg = 'You have successfully updated ' . $designate.' '.$fullname . ' details!';
+                $msg = 'You have successfully updated ' . $designate . ' ' . $fullname . ' details!';
                 $results = alert_message("Success", $msg, "Success", "success");
             } else {
                 $msg = 'User details was not updated. Please confirm the information provided';
@@ -319,11 +328,11 @@ if ($permission) {
         }
         $where = '';
 
-		if($designation == 6){
-			$where = " WHERE position > 6";
-		} elseif ($designation == 1){
-			$where = " WHERE position > 1";
-		}
+        if ($designation == 6) {
+            $where = " WHERE position > 6";
+        } elseif ($designation == 1) {
+            $where = " WHERE position > 1";
+        }
 
         $query_rsPMDesignation =  $db->prepare("SELECT * FROM tbl_pmdesignation $where ORDER BY moid ASC");
         $query_rsPMDesignation->execute();
@@ -336,18 +345,18 @@ if ($permission) {
         $query_country =  $db->prepare("SELECT id,country FROM countries");
         $query_country->execute();
 
-		if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
-			$query_rsPTeam = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid = '$userid'");
-			$query_rsPTeam->execute();
-			$row_rsPTeam = $query_rsPTeam->fetch();
-			$totalRows_rsPTeam = $query_rsPTeam->rowCount();
+        if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
+            $query_rsPTeam = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid = '$userid'");
+            $query_rsPTeam->execute();
+            $row_rsPTeam = $query_rsPTeam->fetch();
+            $totalRows_rsPTeam = $query_rsPTeam->rowCount();
 
 
-			$query_rsUser = $db->prepare("SELECT * FROM tbl_users WHERE userid = '$userid'");
-			$query_rsUser->execute();
-			$row_rsUser = $query_rsUser->fetch();
-			$totalRows_rsUser = $query_rsUser->rowCount();
-		}
+            $query_rsUser = $db->prepare("SELECT * FROM tbl_users WHERE userid = '$userid'");
+            $query_rsUser->execute();
+            $row_rsUser = $query_rsUser->fetch();
+            $totalRows_rsUser = $query_rsUser->rowCount();
+        }
 
         $query_rsPMLevel = $db->prepare("SELECT * FROM tbl_level ORDER BY level_id ASC");
         $query_rsPMLevel->execute();
@@ -377,13 +386,11 @@ if ($permission) {
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; margin-bottom:0px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
                     <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
-                        <div class="btn-group" style="float:right">
-                        </div>
                     </div>
                 </h4>
             </div>
@@ -394,11 +401,11 @@ if ($permission) {
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
                         <div class="body">
+                            <div class="alert alert-warning" style="height:35px; padding-bottom:10px" align="center"><strong>Please NOTE THAT email must be unique!</strong></div>
                             <?php
                             if (!isset($_GET["ptid"])) {
                             ?>
                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                    <div class="alert alert-warning" align="center"><strong>Please NOTE THAT email must be unique!</strong></div>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MEMBER DETAILS</legend>
                                         <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
@@ -469,104 +476,104 @@ if ($permission) {
                                             </div>
                                         </div>
 
-										<?php
-										if($designation == 1){
-										?>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
-													<tr>
-														<th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
-														<th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
-														<th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
-													</tr>
-													<tr>
-														<td class="showministry">
-															<select name="ministry" id="ministry" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																<option value="">.... Select <?= $ministrylabel ?> ....</option>
-																<?php
-																do {
-																?>
-																	<option value="<?php echo $row_rsSector['stid'] ?>"><?php echo $row_rsSector['sector'] ?></option>
-																<?php
-																} while ($row_rsSector = $query_rsSector->fetch());
-																?>
-															</select>
-														</td>
-														<td class="showdepartment">
-															<div class="form-line">
-																<select name="department" id="department" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<option value="">....Select <?= $ministrylabel ?> First....</option>
-																</select>
-															</div>
-														</td>
-														<td class="showdirectorate">
-															<div class="form-line">
-																<select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<option value="">....Select <?= $ministrylabel ?> First....</option>
-																</select>
-															</div>
-														</td>
-													</tr>
-												</table>
-											</div>
+                                        <?php
+                                        if ($designation == 1) {
+                                        ?>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
+                                                    <tr>
+                                                        <th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
+                                                        <th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
+                                                        <th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="showministry">
+                                                            <select name="ministry" id="ministry" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                <option value="">.... Select <?= $ministrylabel ?> ....</option>
+                                                                <?php
+                                                                do {
+                                                                ?>
+                                                                    <option value="<?php echo $row_rsSector['stid'] ?>"><?php echo $row_rsSector['sector'] ?></option>
+                                                                <?php
+                                                                } while ($row_rsSector = $query_rsSector->fetch());
+                                                                ?>
+                                                            </select>
+                                                        </td>
+                                                        <td class="showdepartment">
+                                                            <div class="form-line">
+                                                                <select name="department" id="department" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <option value="">....Select <?= $ministrylabel ?> First....</option>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdirectorate">
+                                                            <div class="form-line">
+                                                                <select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <option value="">....Select <?= $ministrylabel ?> First....</option>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
 
-										<?php
-										} elseif($designation == 6){
-											$query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
-											$query_ministry->execute();
-											$row_ministry = $query_ministry->fetch();
-											$mnstry = $row_ministry["sector"];
+                                        <?php
+                                        } elseif ($designation == 6) {
+                                            $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
+                                            $query_ministry->execute();
+                                            $row_ministry = $query_ministry->fetch();
+                                            $mnstry = $row_ministry["sector"];
 
-											$query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
-											$query_section->execute();
-											$row_section = $query_section->fetch();
-											$section = $row_section["sector"];
+                                            $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
+                                            $query_section->execute();
+                                            $row_section = $query_section->fetch();
+                                            $section = $row_section["sector"];
 
-											$query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
-											$query_directorates->execute();
+                                            $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                            $query_directorates->execute();
 
-											?>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
-													<tr>
-														<th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
-														<th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
-														<th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
-													</tr>
-													<tr>
-														<td class="showministry">
-															<div class="form-line">
-																<?=$mnstry?>
-																<input name="ministry" type="hidden" value="<?=$ministry?>" />
-															</div>
-														</td>
-														<td class="showdepartment">
-															<div class="form-line">
-																<?=$section?>
-																<input name="department" type="hidden" value="<?=$sector?>" />
-															</div>
-														</td>
-														<td class="showdirectorate">
-															<div class="form-line">
-																<select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<option value="">.... Select <?= "Directorate" ?> ....</option>
-																	<?php
-																	while ($row_directorates = $query_directorates->fetch()) {
-																	?>
-																		<option value="<?php echo $row_directorates['stid'] ?>"><?php echo $row_directorates['sector'] ?></option>
-																	<?php
-																	}
-																	?>
-																</select>
-															</div>
-														</td>
-													</tr>
-												</table>
-											</div>
+                                        ?>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
+                                                    <tr>
+                                                        <th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
+                                                        <th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
+                                                        <th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="showministry">
+                                                            <div class="form-line">
+                                                                <?= $mnstry ?>
+                                                                <input name="ministry" type="hidden" value="<?= $ministry ?>" />
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdepartment">
+                                                            <div class="form-line">
+                                                                <?= $section ?>
+                                                                <input name="department" type="hidden" value="<?= $sector ?>" />
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdirectorate">
+                                                            <div class="form-line">
+                                                                <select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <option value="">.... Select <?= "Directorate" ?> ....</option>
+                                                                    <?php
+                                                                    while ($row_directorates = $query_directorates->fetch()) {
+                                                                    ?>
+                                                                        <option value="<?php echo $row_directorates['stid'] ?>"><?php echo $row_directorates['sector'] ?></option>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
 
-											<?php
-										}
-										?>
+                                        <?php
+                                        }
+                                        ?>
                                     </fieldset>
 
                                     <fieldset class="scheduler-border">
@@ -575,6 +582,7 @@ if ($permission) {
                                                 <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
                                                 <input name="user_id" type="hidden" id="user_id" value="<?php echo $row_rsAdm['adm_id']; ?>" />
                                                 <input name="submit" type="submit" class="btn btn-success" id="submit" value="<?php echo $mbraction . " Member"; ?>" />
+                                                <a href="view-members" type="button" class="btn btn-warning" >Cancel</a>
                                                 <input type="hidden" name="<?php echo $formname ?>" value="<?php echo $formvalue; ?>" />
                                             </div>
                                         </div>
@@ -583,9 +591,7 @@ if ($permission) {
                             <?php
                             } elseif (isset($_GET["ptid"]) && (!empty($_GET["ptid"]) || $_GET["ptid"] != '')) {
                             ?>
-
                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                    <div class="alert alert-warning" align="center"><strong>Please NOTE THAT email must be unique!</strong></div>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MEMBER DETAILS</legend>
                                         <div class="row">
@@ -608,14 +614,14 @@ if ($permission) {
                                                     <option value="">... Select Title ...</option>
                                                     <?php
                                                     do {
-														if($row_rsPTeam['title'] == $row_rsTitle['id']){
-															$selected = "selected";
-														} else {
-															$selected = "";
-														}
-														?>
-                                                        <option value="<?php echo $row_rsTitle['id'] ?>" <?php echo $selected;?>><?php echo $row_rsTitle['title'] ?></option>
-														<?php
+                                                        if ($row_rsPTeam['title'] == $row_rsTitle['id']) {
+                                                            $selected = "selected";
+                                                        } else {
+                                                            $selected = "";
+                                                        }
+                                                    ?>
+                                                        <option value="<?php echo $row_rsTitle['id'] ?>" <?php echo $selected; ?>><?php echo $row_rsTitle['title'] ?></option>
+                                                    <?php
                                                     } while ($row_rsTitle = $query_rsTitle->fetch());
                                                     ?>
                                                 </select>
@@ -659,8 +665,10 @@ if ($permission) {
                                                     <option value="">.... Select Designation ....</option>
                                                     <?php
                                                     do {
-														?>
-                                                        <option value="<?php echo $row_rsPMDesignation['moid'] ?>" <?php if (!(strcmp($row_rsPTeam['designation'], $row_rsPMDesignation['moid']))) { echo "selected=\"selected\""; } ?>><?php echo $row_rsPMDesignation['designation'] ?></option>
+                                                    ?>
+                                                        <option value="<?php echo $row_rsPMDesignation['moid'] ?>" <?php if (!(strcmp($row_rsPTeam['designation'], $row_rsPMDesignation['moid']))) {
+                                                                                                                        echo "selected=\"selected\"";
+                                                                                                                    } ?>><?php echo $row_rsPMDesignation['designation'] ?></option>
                                                     <?php
                                                     } while ($row_rsPMDesignation = $query_rsPMDesignation->fetch());
                                                     ?>
@@ -668,145 +676,153 @@ if ($permission) {
                                             </div>
                                         </div>
 
-										<?php
-										if($designation == 1){
-											?>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
-													<tr>
-														<th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
-														<th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
-														<th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
-													</tr>
-													<tr>
-														<td class="showministry">
-															<select name="ministry" id="ministry" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																<option value="">.... Select <?= $ministrylabel ?> ....</option>
-																<?php
-																do {
-																	?>
-																	<option value="<?php echo $row_rsSector['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["ministry"], $row_rsSector['stid']))) { echo "selected=\"selected\""; } ?>><?php echo $row_rsSector['sector'] ?></option>
-																	<?php
-																} while ($row_rsSector = $query_rsSector->fetch());
-																?>
-															</select>
-														</td>
-														<td class="showdepartment">
-															<div class="form-line">
-																<select name="department" id="department" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<?php
-																	$stid = $row_rsPTeam['ministry'];
-																	if (!empty($stid)) {
-																		$query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='0'");
-																		$query_rsDepartment->execute();
-																		$row_rsDepartment = $query_rsDepartment->fetch();
-																		?>
-																		<option value="">....Select..<?php echo $departmentlabel; ?></option>
-																		<?php
-																		do {
-																			?>
-																			<option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["department"], $row_rsDepartment['stid']))) { echo "selected=\"selected\""; } ?>><?php echo $row_rsDepartment['sector'] ?></option>
-																			<?php
-																		} while ($row_rsDepartment = $query_rsDepartment->fetch());
-																	} else {
-																		?>
-																		<option value="">....Select<?= $ministrylabel ?> First....<?php echo $department; ?></option>
-																		<?php
-																	}
-																	?>
-																</select>
-															</div>
-														</td>
-														<td class="showdirectorate">
-															<div class="form-line">
-																<select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<?php
-																	$stid = $row_rsPTeam['department'];
-																	if (!empty($stid)) {
-																		$query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='0'");
-																		$query_rsDepartment->execute();
-																		$row_rsDepartment = $query_rsDepartment->fetch();
-																	?>
-																		<option value="">....Select..<?php echo "Directorate"; ?></option>
-																		<?php
-																		do {
-																			?>
-																			<option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["directorate"], $row_rsDepartment['stid']))) { echo "selected=\"selected\""; } ?>><?php echo $row_rsDepartment['sector'] ?></option>
-																			<?php
-																		} while ($row_rsDepartment = $query_rsDepartment->fetch());
-																	} else {
-																		?>
-																		<option value="">....Select<?= "Directorate" ?> First....<?php echo $department; ?></option>
-																		<?php
-																	}
-																	?>
-																</select>
-															</div>
-														</td>
-													</tr>
-												</table>
-											</div>
+                                        <?php
+                                        if ($designation == 1) {
+                                        ?>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
+                                                    <tr>
+                                                        <th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
+                                                        <th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
+                                                        <th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="showministry">
+                                                            <select name="ministry" id="ministry" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                <option value="">.... Select <?= $ministrylabel ?> ....</option>
+                                                                <?php
+                                                                do {
+                                                                ?>
+                                                                    <option value="<?php echo $row_rsSector['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["ministry"], $row_rsSector['stid']))) {
+                                                                                                                            echo "selected=\"selected\"";
+                                                                                                                        } ?>><?php echo $row_rsSector['sector'] ?></option>
+                                                                <?php
+                                                                } while ($row_rsSector = $query_rsSector->fetch());
+                                                                ?>
+                                                            </select>
+                                                        </td>
+                                                        <td class="showdepartment">
+                                                            <div class="form-line">
+                                                                <select name="department" id="department" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <?php
+                                                                    $stid = $row_rsPTeam['ministry'];
+                                                                    if (!empty($stid)) {
+                                                                        $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='0'");
+                                                                        $query_rsDepartment->execute();
+                                                                        $row_rsDepartment = $query_rsDepartment->fetch();
+                                                                    ?>
+                                                                        <option value="">....Select..<?php echo $departmentlabel; ?></option>
+                                                                        <?php
+                                                                        do {
+                                                                        ?>
+                                                                            <option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["department"], $row_rsDepartment['stid']))) {
+                                                                                                                                        echo "selected=\"selected\"";
+                                                                                                                                    } ?>><?php echo $row_rsDepartment['sector'] ?></option>
+                                                                        <?php
+                                                                        } while ($row_rsDepartment = $query_rsDepartment->fetch());
+                                                                    } else {
+                                                                        ?>
+                                                                        <option value="">....Select<?= $ministrylabel ?> First....<?php echo $department; ?></option>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdirectorate">
+                                                            <div class="form-line">
+                                                                <select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <?php
+                                                                    $stid = $row_rsPTeam['department'];
+                                                                    if (!empty($stid)) {
+                                                                        $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='0'");
+                                                                        $query_rsDepartment->execute();
+                                                                        $row_rsDepartment = $query_rsDepartment->fetch();
+                                                                    ?>
+                                                                        <option value="">....Select..<?php echo "Directorate"; ?></option>
+                                                                        <?php
+                                                                        do {
+                                                                        ?>
+                                                                            <option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["directorate"], $row_rsDepartment['stid']))) {
+                                                                                                                                        echo "selected=\"selected\"";
+                                                                                                                                    } ?>><?php echo $row_rsDepartment['sector'] ?></option>
+                                                                        <?php
+                                                                        } while ($row_rsDepartment = $query_rsDepartment->fetch());
+                                                                    } else {
+                                                                        ?>
+                                                                        <option value="">....Select<?= "Directorate" ?> First....<?php echo $department; ?></option>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
 
-										<?php
-										} elseif($designation == 6){
-											$query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
-											$query_ministry->execute();
-											$row_ministry = $query_ministry->fetch();
-											$mnstry = $row_ministry["sector"];
+                                        <?php
+                                        } elseif ($designation == 6) {
+                                            $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
+                                            $query_ministry->execute();
+                                            $row_ministry = $query_ministry->fetch();
+                                            $mnstry = $row_ministry["sector"];
 
-											$query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
-											$query_section->execute();
-											$row_section = $query_section->fetch();
-											$section = $row_section["sector"];
+                                            $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
+                                            $query_section->execute();
+                                            $row_section = $query_section->fetch();
+                                            $section = $row_section["sector"];
 
-											$query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
-											$query_directorates->execute();
+                                            $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                            $query_directorates->execute();
 
-											?>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
-													<tr>
-														<th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
-														<th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
-														<th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
-													</tr>
-													<tr>
-														<td class="showministry">
-															<div class="form-line">
-																<?=$mnstry?>
-																<input name="ministry" type="hidden" value="<?=$ministry?>" />
-															</div>
-														</td>
-														<td class="showdepartment">
-															<div class="form-line">
-																<?=$section?>
-																<input name="department" type="hidden" value="<?=$sector?>" />
-															</div>
-														</td>
-														<td class="showdirectorate">
-															<div class="form-line">
-																<select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
-																	<?php
-																	$stid = $row_rsPTeam['directorate'];
-																	$query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
-																	$query_rsDepartment->execute();
-																	?>
-																	<option value="">....Select..<?php echo "Directorate"; ?></option>
-																	<?php
-																	while ($row_rsDepartment = $query_rsDepartment->fetch()) {
-																		?>
-																		<option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["directorate"], $row_rsDepartment['stid']))) { echo "selected=\"selected\""; } ?>>
-																			<?php echo $row_rsDepartment['sector'] ?></option>
-																		<?php
-																	}
-																	?>
-																</select>
-															</div>
-														</td>
-													</tr>
-												</table>
-											</div>
-										<?php } ?>
+                                        ?>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <table class="table table-bordered table-striped table-hover table-responsive" id="" style="width:100%">
+                                                    <tr>
+                                                        <th style="width:35%" class="showministry"><?= $ministrylabel ?></th>
+                                                        <th style="width:35%" class="showdepartment"><?= $departmentlabel ?></th>
+                                                        <th style="width:30%" class="showdirectorate"><?= "Directorate" ?></th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="showministry">
+                                                            <div class="form-line">
+                                                                <?= $mnstry ?>
+                                                                <input name="ministry" type="hidden" value="<?= $ministry ?>" />
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdepartment">
+                                                            <div class="form-line">
+                                                                <?= $section ?>
+                                                                <input name="department" type="hidden" value="<?= $sector ?>" />
+                                                            </div>
+                                                        </td>
+                                                        <td class="showdirectorate">
+                                                            <div class="form-line">
+                                                                <select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
+                                                                    <?php
+                                                                    $stid = $row_rsPTeam['directorate'];
+                                                                    $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                                                    $query_rsDepartment->execute();
+                                                                    ?>
+                                                                    <option value="">....Select..<?php echo "Directorate"; ?></option>
+                                                                    <?php
+                                                                    while ($row_rsDepartment = $query_rsDepartment->fetch()) {
+                                                                    ?>
+                                                                        <option value="<?php echo $row_rsDepartment['stid'] ?>" <?php if (!(strcmp($row_rsPTeam["directorate"], $row_rsDepartment['stid']))) {
+                                                                                                                                    echo "selected=\"selected\"";
+                                                                                                                                } ?>>
+                                                                            <?php echo $row_rsDepartment['sector'] ?></option>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        <?php } ?>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <label for="Title">Attach Passport Photo *:</label>
                                             <div class="form-line">
@@ -819,6 +835,7 @@ if ($permission) {
                                             <div class="form-line" align="center" style="padding-top:15px">
                                                 <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
                                                 <input name="submit" type="submit" class="btn btn-success" id="submit" value="<?php echo $mbraction . " Member"; ?>" />
+                                                <a href="view-members" type="button" class="btn btn-warning" >Cancel</a>
                                                 <input type="hidden" name="<?php echo $formname ?>" value="<?php echo $formvalue; ?>" />
                                             </div>
                                         </div>

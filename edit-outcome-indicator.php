@@ -78,8 +78,8 @@ if ($permission) {
 					$results = $deleteQuery->execute(array(':indicatorid' => $indid));
 
 					// delete from tbl_indicator_measurement_variables
-					$deleteQuery = $db->prepare("DELETE FROM `tbl_indicator_measurement_variables` WHERE indicatorid=:indicatorid");
-					$results = $deleteQuery->execute(array(':indicatorid' => $indid));
+					/* $deleteQuery = $db->prepare("DELETE FROM `tbl_indicator_measurement_variables` WHERE indicatorid=:indicatorid");
+					$results = $deleteQuery->execute(array(':indicatorid' => $indid)); */
 
 					// delete from tbl_indicator_disaggregations
 					$deleteQuery = $db->prepare("DELETE FROM `tbl_indicator_disaggregations` WHERE indicatorid=:indicatorid");
@@ -89,7 +89,7 @@ if ($permission) {
 
 					if (isset($_POST['inddirectBenfType'])) {
 						$result2 = false;
-						if (isset($_POST['indcalculation'])) {
+						/* if (isset($_POST['indcalculation'])) {
 							$indcalculation = $_POST['indcalculation'];
 							$category = 2;
 							if ($indcalculation == 1) {
@@ -119,9 +119,9 @@ if ($permission) {
 									$result2  = $insertBeneficiary->execute(array(":indicatorid" => $indid, ":measurement_variable" => $numerator, ":category" => $category,  ":type" => $type));
 								}
 							}
-						}
+						} */
 
-						$$result2 = false;
+						//$$result2 = false;
 						if ($disaggregated == 1) {
 							if (isset($_POST['direct_outcome_dissagragation_type']) && !empty($_POST['direct_outcome_dissagragation_type'])) {
 								$disaggregated_type = $_POST['direct_outcome_dissagragation_type'];
@@ -447,9 +447,9 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="" id="direct_outcome_formula">
+									<!--<div class="" id="direct_outcome_formula">
 										<?php
-										$prefix = "direct_outcome_";
+										/* $prefix = "direct_outcome_";
 										$measurement_variable = "Outcome Measurement Variable";
 										$data = '';
 										$query_measurement_variables = $db->prepare("SELECT * FROM  tbl_indicator_measurement_variables WHERE indicatorid = '$ind' AND category='2'");
@@ -498,9 +498,9 @@ if ($permission) {
 												</div>
 											</div>';
 										}
-										echo $data;
+										echo $data; */
 										?>
-									</div>
+									</div>-->
 
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<label class="control-label">Indicator Description : <font align="left" style="background-color:#eff2f4"> </font></label>

@@ -49,7 +49,7 @@ if ($permission) {
                 while ($row_rsOutput = $query_Output->fetch()) {
                     $output_id = $row_rsOutput['id'];
                     $mapping_type = $row_rsOutput['indicator_mapping_type'];
-                    if ($mapping_type == 1 || $mapping_type == 3) {
+                    if ($mapping_type == 1) {
                         $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                         $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                         $totalsSite = $querysSite->rowCount();
@@ -149,7 +149,7 @@ if ($permission) {
                                                 $query_rsMapType->execute(array(":map" => $mapping_type));
                                                 $row_rsMapType = $query_rsMapType->fetch();
                                                 $totalRows_rsMapType = $query_rsMapType->rowCount();
-                                                $map = $row_rsMapType['type'];
+                                                $map = $totalRows_rsMapType > 0 ? $row_rsMapType['type'] : '';
 
                                                 $query_rsMapping_Date = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND output_id=:output_id");
                                                 $query_rsMapping_Date->execute(array(":projid" => $projid, ":output_id" => $output_id));
@@ -159,7 +159,7 @@ if ($permission) {
                                                 $responsible =    check_if_map_responsible($projid, $workflow_stage, $sub_stage, 1);
 
                                                 if ($responsible['member']) {
-                                                    if ($mapping_type == 1 || $mapping_type == 3) {
+                                                    if ($mapping_type == 1) {
                                                         $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                                                         $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                         $totalsSite = $querysSite->rowCount();
@@ -189,6 +189,8 @@ if ($permission) {
                                                                 }
 
                                         ?>
+
+                                        
                                                                 <tr>
                                                                     <td align="center"><?= $counter ?></td>
                                                                     <td><?= $output_name ?></td>

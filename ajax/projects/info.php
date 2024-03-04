@@ -27,7 +27,6 @@ function get_state($state_arr)
     return implode(', ', $states);
 }
 
-
 function get_dates($projid, $project_start_date, $project_duration, $projcategory)
 {
     global $db;
@@ -75,41 +74,12 @@ function get_project_status($projstatus)
     return $status;
 }
 
-function get_files_table($projid)
-{
-    global $db;
-    $query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE projid=:projid");
-    $query_rsFile->execute(array(":projid" => $projid));
-    $totalRows_rsFile = $query_rsFile->rowCount();
-    $table_body = '';
-
-    if ($totalRows_rsFile > 0) {
-        $counter = 0;
-        while ($row_rsFile = $query_rsFile->fetch()) {
-            $counter++;
-            $pdfname = $row_rsFile['filename'];
-            $filecategory = $row_rsFile['fcategory'];
-            $ext = $row_rsFile['ftype'];
-            $filepath = $row_rsFile['floc'];
-            $fid = $row_rsFile['fid'];
-            $attachmentPurpose = $row_rsFile['reason'];
-            $projstage = $row_rsFile['projstage'];
-            $query_projstage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE priority=:projstage");
-            $query_projstage->execute(array(":projstage" => $projstage));
-            $row_projstage = $query_projstage->fetch();
-            $project_stage = $row_projstage ? $row_projstage['stage'] : '';
-            $table_body .= '<tr><td>' . $counter . '</td><td>' . $pdfname . '</td><td>' . $attachmentPurpose . '</td><td>' . $project_stage . '</td></tr>';
-        }
-    }
-
-    return $table_body;
-}
-
 function get_sites($projid, $state_arr)
 {
     global $db, $level2labelplural;
     $sites = '';
     $total_states = count($state_arr);
+
     for ($i = 0; $i < $total_states; $i++) {
         $state_id = $state_arr[$i];
         $query_rsSites =  $db->prepare("SELECT * FROM tbl_project_sites WHERE projid =:projid AND state_id=:state_id");
@@ -127,11 +97,20 @@ function get_sites($projid, $state_arr)
         $query_rslga->execute(array(":state_id" => $state_id));
         $row_rslga = $query_rslga->fetch();
         $level3 = $row_rslga ? $row_rslga['state'] : '';
-        $sites  .= '<li class="list-group-item"><strong> ' . $level2labelplural . ' ' . $level3 . ' Sites: </strong>'  . implode(", ",$site) . ' </li>';
+        $sites  .= '<li class="list-group-item"><strong>  ' . $level3 . ' Sites: </strong>'  . implode(", ", $site) . ' </li>';
     }
-    return $sites;
-}
 
+    if ($sites != '') {
+        return
+            '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-action active">Sites </li>
+                ' . $sites . '
+            </ul>
+        </div>';
+    }
+    return;
+}
 
 function get_output_details($projid)
 {
@@ -147,36 +126,17 @@ function get_output_details($projid)
             $output_id = $row_rsOutput['id'];
             $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
             $indicator_name = $row_rsOutput['indicator_name'];
+            $unit_of_measure = $row_rsOutput['indicator_unit'];
             $o_target = $row_rsOutput['total_target'];
-            $o_budget = $row_rsOutput['budget'];
-            $duration = $row_rsOutput['duration'];
-            $projfscyear = $row_rsOutput['output_start_year'];
-            $status = $row_rsOutput['status'];
-            $progress = $row_rsOutput['progress'];
 
-            $query_OutputSites = $db->prepare("SELECT * FROM tbl_project_output_details WHERE outputid = :output_id ORDER BY year");
-            $query_OutputSites->execute(array(":output_id" => $output_id));
-            $total_OutputSites = $query_OutputSites->rowCount();
-            $year_table = '';
-            if ($total_OutputSites > 0) {
-                $counter_p = 0;
-                while ($row_rsOutputSites = $query_OutputSites->fetch()) {
-                    $counter_p++;
-                    $budget  = $row_rsOutputSites['budget'];
-                    $target  = $row_rsOutputSites['target'];
-                    $year  = $row_rsOutputSites['year'];
-                    $year_table .= '
-                    <tr >
-                        <td align="center">' . $counter_p . '</td>
-                        <td>' . $year . '</td>
-                        <td>' . $budget . '</td>
-                        <td>' . $target . '</td>
-                    </tr>';
-                }
-            }
+            $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+            $query_rsIndUnit->execute(array(":unit_id" => $unit_of_measure));
+            $row_rsIndUnit = $query_rsIndUnit->fetch();
+            $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+            $measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 
             $site_location_table = '';
-            if ($indicator_mapping_type == 2 || $indicator_mapping_type == 3) {
+            if ($indicator_mapping_type == 2 || $indicator_mapping_type == 0) {
                 $query_Sites = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE outputid = :output_id ORDER BY sequence ASC");
                 $query_Sites->execute(array(":output_id" => $output_id));
                 $total_Sites = $query_Sites->rowCount();
@@ -191,7 +151,7 @@ function get_output_details($projid)
                             <td align="center">' . $counter_p . '</td>
                             <td>' . $state . '</td>
                             <td>N/A</td>
-                            <td>' . $target . '</td>
+                            <td>' . $target . ' ' . $measure . '</td>
                         </tr>';
                     }
                 }
@@ -211,60 +171,21 @@ function get_output_details($projid)
                             <td align="center">' . $counter_p . '</td>
                             <td>' . $state . '</td>
                             <td>' . $site_name . '</td>
-                            <td>' . $target . '</td>
+                            <td>' . $target . ' ' . $measure . '</td>
                         </tr>';
                     }
                 }
             }
 
-            $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = :projfscyear");
-            $query_rsYear->execute(array(":projfscyear" => $projfscyear));
-            $row_rsYear = $query_rsYear->fetch();
-
-
-            $start_date = $end_date = '';
-            if ($row_rsYear) {
-                $start_year = $row_rsYear['yr'];
-                $start_date = date("Y-d-m", strtotime($start_year . "-07-01"));
-                $end_date = date('Y-m-d', strtotime($start_date . ' + ' . $duration . ' days'));
-            }
-
-
-            $status = get_project_status($status);
             $output_table .= '
             <fieldset class="scheduler-border row setup-content" id="step-2">
                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ':  ' . $indicator_name . ' </legend>
                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                     <ul class="list-group">
-                        <li class="list-group-item"><strong>Start Date: </strong>' . $start_date . '</li>
-                        <li class="list-group-item"><strong>Duration: </strong>' . $duration . ' Days </li>
-                        <li class="list-group-item"><strong>End Date: </strong>' . $end_date . ' </li>
-                    </ul>
-                </div>
-                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                    <ul class="list-group">
-                        <li class="list-group-item"><strong>Budget (Ksh.): </strong>' . $o_budget . ' </li>
-                        <li class="list-group-item"><strong>Target (Ksh.): </strong>' . $o_target . ' </li>
-                        <li class="list-group-item"><strong style="width:30%">Status: </strong>' . $status . ' </li>
-                        <li class="list-group-item"><strong>Progress: </strong>' . $progress . ' </li>
+                        <li class="list-group-item"><strong>Target : </strong>' . $o_target . ' ' . $measure . ' </li>
                     </ul>
                 </div>
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover">
-                            <thead>
-                                <tr style="background-color:#0b548f; color:#FFF">
-                                    <th style="width:10%" align="center">#</th>
-                                    <th style="width:30%">Year</th>
-                                    <th style="width:30%">Budget</th>
-                                    <th style="width:30%">Target</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            ' . $year_table . '
-                            </tbody>
-                        </table>
-                    </div>
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover">
                             <thead>
@@ -288,41 +209,55 @@ function get_output_details($projid)
     return  $output_table;
 }
 
-function get_key_stake_holders($projid)
+function get_key_stake_holders($projid, $contractor_id)
 {
     global $db;
     $financial_partners_table_body = $other_partners_table_body = "";
-    $query_rsFunding =  $db->prepare("SELECT jf.amountfunding as totalAmount, jf.sourcecategory, gf.type FROM tbl_projfunding jf INNER JOIN  tbl_funding_type gf ON gf.id = jf.sourcecategory WHERE jf.projid =:projid");
+    $query_rsFunding =  $db->prepare("SELECT m.amountfunding, f.financier, t.type FROM tbl_myprojfunding m INNER JOIN tbl_financiers f ON f.id = m.financier INNER JOIN tbl_financier_type t ON t.id = f.type WHERE m.projid=:projid");
     $query_rsFunding->execute(array(":projid" => $projid));
     $totalRows_rsFunding = $query_rsFunding->rowCount();
 
     $Acounter = 0;
-    if($totalRows_rsFunding > 0){
-        $Acounter++;
-        while($row_rsFunding = $query_rsFunding->fetch()){
-            $source_category = $row_rsFunding['sourcecategory'];
-            $amountfunding = $row_rsFunding['totalAmount'];
-            $type = $row_rsFunding['type'];
-
-            $query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE type=:sourcecategory");
-            $query_rsFunder->execute(array(":sourcecategory" => $source_category));
-            $row_rsFunder = $query_rsFunder->fetch();
-            $totalRows_rsFunder = $query_rsFunder->rowCount();
-            $sourceCategory = $totalRows_rsFunder > 0 ? $row_rsFunder['financier'] : "";
-
+    if ($totalRows_rsFunding > 0) {
+        while ($row_rsFunding = $query_rsFunding->fetch()) {
+            $Acounter++;
+            $financier = $row_rsFunding['financier'];
             $financial_partners_table_body .= '
             <tr>
                 <td>' . $Acounter . '</td>
-                <td>' . $sourceCategory . '</td>
-                <td>' . $type . '</td>
-                <td>' . number_format($amountfunding, 2) . '</td>
+                <td>' . $financier . '</td>
+                <td>Financier</td>
             </tr>';
         }
     }
 
+    $query_partnerprojs = $db->prepare("SELECT p.* FROM tbl_partners p inner join tbl_myprojpartner m on m.projid=m.partner_id WHERE m.projid = :projid");
+    $query_partnerprojs->execute(array(":projid" => $projid));
+    $row_partnerprojs = $query_partnerprojs->rowCount();
+
+    if ($row_partnerprojs > 0) {
+        while ($row_partnerproj = $query_partnerprojs->fetch()) {
+            $Acounter++;
+            $partner = $row_partnerproj['partner'];
+            $financial_partners_table_body .= '
+            <tr>
+                <td>' . $Acounter . '</td>
+                <td>' . $partner . '</td>
+                <td>Development</td>
+            </tr>';
+        }
+    }
+
+    $query_contractor = $db->prepare("SELECT * FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid AND contrid=:contractor_id");
+    $query_contractor->execute(array(":projid" => $projid, ":contractor_id" => $contractor_id));
+    $row_contractor = $query_contractor->fetch();
+    $totalRows_contractor = $query_contractor->rowCount(); 
+    $Acounter += 1;
+    $financial_partners_table_body .= ($totalRows_contractor > 0) ? '<tr><td>' . $Acounter . '</td><td>' . $row_contractor['contractor_name'] . '</td><td>Contractor</td></tr>' : '';
+
     $key_stake_holder = '
     <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Financial Partners</legend>
+        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Partners</legend>
         <div class="row clearfix" id="">
             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                 <div class="table-responsive">
@@ -330,42 +265,18 @@ function get_key_stake_holders($projid)
                         <thead>
                             <tr>
                                 <th width="5%">#</th>
-                                <th width="40%">Source Category</th>
-                                <th width="40%">Financier</th>
-                                <th width="15%">Amount (Ksh)</th>
+                                <th width="40%">Partner</th>
+                                <th width="40%">Type</th>
                             </tr>
                         </thead>
                         <tbody id="">
-                           ' . $financial_partners_table_body . '
+                            ' . $financial_partners_table_body . '
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-    </fieldset>
-    <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Other Partners</legend>
-        <div class="row clearfix" id="">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover" id="approve_partners_table" style="width:100%">
-                    <thead>
-                    <tr>
-                        <th width="5%">#</th>
-                        <th width="25%">Partner</th>
-                        <th width="20%">Role of Partner</th>
-                        <th width="50%">Description</th>
-                    </tr>
-                    </thead>
-                    <tbody id="">
-                    ' . $other_partners_table_body . '
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        </div>
-    </fieldset> ';
-
+    </fieldset>';
     return $key_stake_holder;
 }
 
@@ -384,6 +295,7 @@ if (isset($_GET['project_info'])) {
         $sector_id = $row_rsProjects['projdept'];
         $directorate = $row_rsProjects['directorate'];
         $mne_budget = $row_rsProjects['mne_budget'];
+        $contractor_id = $row_rsProjects['projcontractor'];
         $program_department = get_sections($department_id);
         $program_section = get_sections($sector_id);
         $program_directorate = get_sections($directorate);
@@ -413,7 +325,16 @@ if (isset($_GET['project_info'])) {
         $row_projstage = $query_projstage->fetch();
         $project_stage = $row_projstage ? $row_projstage['stage'] : '';
 
+
+        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
+        $query_Output->execute(array(":projid" => $projid));
+        $total_Output = $query_Output->rowCount();
+
         $project_status = get_project_status($projstatus);
+        if ($projstatus == 0) {
+            $status_name = $total_Output > 0 ? "Pending Approval" : "Pending Outputs";
+            $status = '<span type="button" class="btn btn-warning" style="width:70%">' . $status_name . '</span>';
+        }
 
         $projtype = $row_rsProjects['projtype'];
         $projcost = $row_rsProjects['projcost'];
@@ -436,22 +357,28 @@ if (isset($_GET['project_info'])) {
 
 
 
+
+
         $input =  '
         <div class="card">
             <div class="card-header">
                 <ul class="nav nav-tabs txt-cyan" role="tablist">
                     <li class="active">
                         <a href="#1" role="tab" data-toggle="tab"><div style="color:#673AB7">Project Details</div></a>
-                    </li>
-                    <li>
-                        <a href="#2" role="tab" data-toggle="tab"><div style="color:#673AB7">Output Plan</div></a>
-                    </li>
-                    <li>
-                        <a href="#3" data-toggle="tab"><div style="color:#673AB7">Key Stakeholders</div></a>
-                    </li>
-                    <li>
-                        <a href="#4" data-toggle="tab"><div style="color:#673AB7">Files</div></a>
-                    </li>
+                    </li> ';
+        if ($total_Output > 0) {
+            $input .=  '
+            <li>
+                <a href="#2" role="tab" data-toggle="tab"><div style="color:#673AB7">Output Plan</div></a>
+            </li>';
+        }
+        if ($projstage > 1) {
+            $input .=  '
+            <li>
+                <a href="#3" data-toggle="tab"><div style="color:#673AB7">Key Stakeholders</div></a>
+            </li>';
+        }
+        $input .=  '
                 </ul>
             </div>
             <div class="card-body tab-content">
@@ -467,31 +394,41 @@ if (isset($_GET['project_info'])) {
                                         <li class="list-group-item list-group-item-action"><strong>Description </strong>: ' . $description . ' </li>
                                     </ul>
                                 </div>
-                                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
                                     <ul class="list-group">
-                                        <li class="list-group-item"><strong>Start Date</strong>' . $project_start_date . '</li>
-                                        <li class="list-group-item"><strong>Duration: </strong>' . $project_duration . ' Days </li>
-                                        <li class="list-group-item"><strong>End Date</strong>' . $project_end_date . ' </li>
-                                        <li class="list-group-item"><strong>Budget (Ksh.): </strong>' . $projcost . ' </li>
-                                        <li class="list-group-item"><strong>Budget (Ksh.): </strong>' . $mne_budget . ' </li>
-                                        <li class="list-group-item list-group-item-action"><strong>' . $ministrylabel . '</strong> : ' . $program_department . ' </li>
+                                        <li class="list-group-item list-group-item-action">
+                                            <strong>Program Name </strong>: <strong>' . $ministrylabel . '</strong> : ' . $program_department . '
+                                        </li>
                                         <li class="list-group-item list-group-item-action"><strong>' . $departmentlabel . '</strong> : ' . $program_section . ' </li>
                                         <li class="list-group-item list-group-item-action"><strong>' . $directoratelabel . '</strong> : ' . $program_directorate . ' </li>
-                                        <li class="list-group-item list-group-item-action"><strong>Outcome </strong>: ' . $outcome . ' </li>
+                                        <li class="list-group-item list-group-item-action"><strong>Outcome </strong>: ' . $outcome . '</li>
                                         <li class="list-group-item list-group-item-action"><strong>Impact </strong>: ' . $impact . ' </li>
+                                        <li class="list-group-item"><strong>Stage: </strong>' . $project_stage . ' </li>
+                                        <li class="list-group-item"><strong style="width:30%">Status: </strong>' . $project_status . ' </li>
+                                    </ul>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                    <ul class="list-group">
+                                        <li class="list-group-item list-group-item-action"> <strong> Start Date: </strong>' . $project_start_date . ' </li>
+                                        <li class="list-group-item list-group-item-action"><strong> Duration: </strong>' . $project_duration . ' Days </li>
+                                        <li class="list-group-item list-group-item-action"><strong> End Date: </strong>' . $project_end_date . ' </li>
+                                        <li class="list-group-item list-group-item-action"><strong>Implementation Method: </strong>' . $projimplementationMethod . ' </li>
+                                        <li class="list-group-item"><strong>Budget (Ksh.): </strong>' . number_format($projcost, 2) . ' </li>
+                                    </ul>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                </div>
+                                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                    <ul class="list-group">
+                                        <li class="list-group-item"><strong>' . $level1labelplural . ' : </strong>' . $level1 . ' </li>
                                     </ul>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                     <ul class="list-group">
-                                        <li class="list-group-item"><strong>Stage: </strong>' . $project_stage . ' </li>
-                                        <li class="list-group-item"><strong style="width:30%">Status: </strong>' . $project_status . ' </li>
-                                        <li class="list-group-item"><strong>Implementation Method: </strong>' . $projimplementationMethod . ' </li>
-                                        <li class="list-group-item"><strong>' . $level1labelplural . ' : </strong>' . $level1 . ' </li>
                                         <li class="list-group-item"><strong>' . $level2labelplural . ' : </strong>' . $level2 . ' </li>
-                                        <li class="list-group-item list-group-item-action active">Sites </li>
-                                        ' . get_sites($projid, $projlga) . '
                                     </ul>
                                 </div>
+                                ' . get_sites($projid, $projlga) . '
                             </div>
                         </div>
                     </div>
@@ -500,30 +437,7 @@ if (isset($_GET['project_info'])) {
                     ' . get_output_details($projid) . '
                 </div>
                 <div class="tab-pane" id="3">
-                    ' . get_key_stake_holders($projid) . '
-                </div>
-                <div class="tab-pane" id="4">
-                    <div class="row clearfix">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                            <div class="body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped table-hover" id="funding_table">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th style="width:68%">Purpose</th>
-                                                <th style="width:28%">Attachment</th>
-                                                <th style="width:28%">Project Stage</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="output_table" >
-                                            ' . get_files_table($projid) . '
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    ' . get_key_stake_holders($projid, $contractor_id) . '
                 </div>
             </div>
         </div>';

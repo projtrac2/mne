@@ -95,7 +95,7 @@ const add_request_details = () => {
         $("#project_commets_div").show();
         $("#comment").attr("required", "required");
         $("#cost_type").val(purpose);
-        
+
         if (purpose == '1') {
             $("#project_commets_div").hide();
             $("#budgetline_div").hide();
@@ -139,7 +139,7 @@ function get_sites() {
             success: function (response) {
                 if (response.success) {
                     var mapping_type = response.mapping_type;
-                    if (mapping_type == 1 || mapping_type == 3) {
+                    if (mapping_type == 1 ) {
                         $("#site_div").show();
                         $("#site_id").html(response.sites);
                     } else {

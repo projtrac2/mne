@@ -55,19 +55,17 @@ if ($permission) {
     <link rel="stylesheet" href="assets/css/discussion.css">
     <section class="content">
         <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; padding-right:15px; color:#FFF">
                 <h4 class="contentheader">
                     <?= $icon . ' ' . $pageTitle ?>
-                    <div class="btn-group" style="float:right">
-                        <div class="btn-group" style="float:right">
-                            <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                <span class="glyphicon glyphicon-plus"></span> Add Subject
-                            </button>
-                            <a type="button" id="outputItemModalBtnrow" href="project-output-monitoring-checklist.php" class="btn btn-warning pull-right" style="margin-right:10px;">
-                                Go Back
-                            </a>
-                        </div>
-                    </div>
+					<div class="btn-group" style="float:right">
+						<button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+							<span class="glyphicon glyphicon-plus"></span> Add Subject
+						</button>
+						<a type="button" id="outputItemModalBtnrow" href="project-output-monitoring-checklist.php" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
+							Go Back
+						</a>
+					</div>
                 </h4>
             </div>
             <div class="row clearfix">
@@ -82,10 +80,11 @@ if ($permission) {
                                     <table style="width: 100%;">
                                         <thead>
                                             <tr>
-                                                <th scope="col" class="sticky-col">Author&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Subject</th>
-                                                <th scope="col" class="sticky-col">Contributors</th>
-                                                <th scope="col">Label</th>
-                                                <th scope="col" class="sticky-col"></th>
+                                                <th width="10%" scope="col" class="sticky-col">Author</th>
+                                                <th width="60%" scope="col" class="sticky-col">Subject</th>
+                                                <th width="10%" scope="col" class="sticky-col">Contributors</th>
+                                                <th width="10%" scope="col">Comments</th>
+                                                <th width="10%" scope="col" class="sticky-col">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -108,6 +107,9 @@ if ($permission) {
                                                     $totalRows_issuediscussions = $query_discussions->rowCount();
                                             ?>
                                                     <tr>
+                                                        <td>
+                                                            <img class="user__photo" src="<?= $avatar ?>" alt="">
+                                                        </td>
                                                         <td class="sticky-col" scope="row" data-label="Customer">
                                                             <a href="project-discussion.php?topic=<?= $topic_id_hashed ?>" class="user__info">
                                                                 <label>
@@ -117,17 +119,16 @@ if ($permission) {
                                                                         </svg>
                                                                     </span>
                                                                 </label>
-                                                                <img class="user__photo" src="<?= $avatar ?>" alt="">
                                                                 <div>
                                                                     <div class="user__name"><?= $subject ?></div>
                                                                     <div class="user__email"><?= $created_at ?></div>
                                                                 </div>
                                                             </a>
                                                         </td>
-                                                        <td data-label="Enrolled">
+                                                        <td data-label="Enrolled" align="center">
                                                             <i class="fa fa-users" aria-hidden="true"></i> <?= $totalRows_rsUsers ?>
                                                         </td>
-                                                        <td data-label="Enrolled">
+                                                        <td data-label="Enrolled" align="center">
                                                             <i class="fa fa-comments-o" aria-hidden="true"></i> <?= $totalRows_issuediscussions ?>
                                                         </td>
                                                         <td data-label="Enrolled">
@@ -152,32 +153,27 @@ if ($permission) {
     <!-- end body  -->
     <!-- add item -->
     <div class="modal fade" id="addFormModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
                     <div class="modal-header" style="background-color:#03A9F4">
-                        <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add New Subject</span></h4>
+                        <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add New Discussion Subject</span></h4>
                     </div>
                     <div class="modal-body">
                         <div class="card">
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="body" id="add_modal_form">
-                                        <fieldset class="scheduler-border">
-                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                <i class="fa fa-calendar" aria-hidden="true"></i> New Subject
-                                            </legend>
-                                            <div id="budget_line">
-                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <label for="projduration">Project Subject *:</label>
-                                                        <div class="form-input">
-                                                            <input type="text" name="subject" min="0" value="" id="subject" placeholder="Enter subject" class="form-control" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </fieldset>
+										<div id="budget_line">
+											<div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<label for="projduration">Subject *:</label>
+													<div class="form-input">
+														<input type="text" name="subject" min="0" value="" id="subject" placeholder="Enter your subject" class="form-control" required>
+													</div>
+												</div>
+											</div>
+										</div>
                                     </div>
                                 </div>
                             </div>

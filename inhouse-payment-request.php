@@ -106,7 +106,7 @@ if ($permission) {
                                                         <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
                                                     </legend>
                                                     <?php
-                                                    if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+                                                    if ($indicator_mapping_type == 1 ) {
                                                         $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                                                         $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                         $totalsSite = $querysSite->rowCount();
@@ -253,7 +253,13 @@ if ($permission) {
                                                 <div class="form-line">
                                                     <select name="purpose" id="purpose" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
                                                         <option value="">.... Select from list ....</option>
-                                                        <option value="1">Direct Cost</option>
+                                                        <?php
+                                                        if ($implimentation_type == 1) {
+                                                        ?>
+                                                            <option value="1">Direct Cost</option>
+                                                        <?php
+                                                        }
+                                                        ?>
                                                         <option value="2">Administrative/Operational Cost</option>
                                                         <option value="4">Monitoring</option>
                                                         <option value="5">Endline Baseline</option>
@@ -636,7 +642,7 @@ require('includes/footer.php');
                 success: function(response) {
                     if (response.success) {
                         var mapping_type = response.mapping_type;
-                        if (mapping_type == 1 || mapping_type == 3) {
+                        if (mapping_type == 1 ) {
                             $("#site_div").show();
                             $("#site_id").html(response.sites);
                         } else {
@@ -874,7 +880,7 @@ require('includes/footer.php');
             console.log("Please select the description please");
         }
     }
- 
+
     function calculate_total_cost(rowno) {
         var unit_cost = $(`#unit_cost${rowno}`).val();
         var no_units = $(`#no_units${rowno}`).val();

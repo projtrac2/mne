@@ -1,6 +1,36 @@
 <?php
 include '../controller.php';
 try {
+
+    if (isset($_POST['store_project_frequency'])) {
+        $monitoring_frequency = $_POST['monitoring_frequency'];
+        $activity_monitoring_frequency = $_POST['activity_monitoring_frequency'];
+        $projid = $_POST['projid'];
+
+        $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency WHERE projid=:projid ");
+        $result = $sql->execute(array(':monitoring_frequency' => $monitoring_frequency, ":activity_monitoring_frequency" => $activity_monitoring_frequency, ":projid" => $projid));
+        echo json_encode(array("success" => $result));
+    }
+
+    if (isset($_GET['get_monitoring_frequency'])) {
+        $projid = $_GET['projid'];
+        $frequency = $_GET['frequency'];
+        $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 AND fqid < :frequency ");
+        if ($frequency == 1) {
+            $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 AND fqid = :frequency ");
+        }
+
+        $query_frequency->execute(array(":frequency" => $frequency));
+        $totalRows_frequency = $query_frequency->rowCount();
+        $input = '<option value="">.... Select from list ....</option>';
+        if ($totalRows_frequency > 0) {
+            while ($row_frequency = $query_frequency->fetch()) {
+                $input .= '<option value="' . $row_frequency['fqid'] . '" >' . $row_frequency['frequency'] . ' </option>';
+            }
+        }
+        echo json_encode(array("success" => true, "frequency" => $input));
+    }
+
     if (isset($_GET['get_tasks'])) {
         $site_id = $_GET['site_id'];
         $projid = $_GET['projid'];

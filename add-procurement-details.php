@@ -109,10 +109,11 @@ if ($permission) {
         $technicalscore = $_POST['technicalscore'];
         $comments = $_POST['comments'];
         $projcontractor = $_POST['projcontractor'];
+        $cost_variation = $_POST['cost_variation'];
         $date_created = date("Y-m-d");
 
-        $insertSQL = $db->prepare("INSERT INTO `tbl_tenderdetails` (`projid`, `contractrefno`, `tenderno`, `tendertitle`,`tendertype`, `tendercat`, `tenderamount`, `procurementmethod`, `evaluationdate`, `awarddate`, `notificationdate`, `signaturedate`, `startdate`, `enddate`, `financialscore`, `technicalscore`, `contractor`, `comments`, `created_by`,`date_created`) VALUES( :projid, :contractrefno, :tenderno, :tendertitle, :tendertype, :tendercat, :tenderamount, :procurementmethod, :evaluationdate, :awarddate, :notificationdate, :signaturedate, :startdate, :enddate, :financialscore, :technicalscore, :contractor, :comments, :created_by, :date_created)");
-        $insertSQL->execute(array(":projid" => $projid, ":contractrefno" => $contractrefno, ":tenderno" => $_POST['tenderno'], ":tendertitle" => $tendertitle, ":tendertype" => $tendertype, ":tendercat" => $tendercat, ":tenderamount" => $tenderamount, ":procurementmethod" => $procurementmethod, ":evaluationdate" => $evaluation, ":awarddate" => $award, ":notificationdate" => date('Y-m-d', strtotime($_POST['tendernotificationdate'])), ":signaturedate" => date('Y-m-d', strtotime($_POST['tendersignaturedate'])), ":startdate" => date('Y-m-d', strtotime($_POST['tenderstartdate'])), ":enddate" => date('Y-m-d', strtotime($_POST['tenderenddate'])), ":financialscore" => $financialscore, ":technicalscore" => $technicalscore, ":contractor" => $projcontractor, ":comments" => $comments, ":created_by" => $user_name, ":date_created" => $date_created));
+        $insertSQL = $db->prepare("INSERT INTO `tbl_tenderdetails` (`projid`, `contractrefno`, `tenderno`, `tendertitle`,`tendertype`, `tendercat`, `tenderamount`, `procurementmethod`, `evaluationdate`, `awarddate`, `notificationdate`, `signaturedate`, `startdate`, `enddate`, `financialscore`, `technicalscore`, `contractor`, `comments`,`cost_variation`, `created_by`,`date_created`) VALUES( :projid, :contractrefno, :tenderno, :tendertitle, :tendertype, :tendercat, :tenderamount, :procurementmethod, :evaluationdate, :awarddate, :notificationdate, :signaturedate, :startdate, :enddate, :financialscore, :technicalscore, :contractor, :comments,:cost_variation, :created_by, :date_created)");
+        $insertSQL->execute(array(":projid" => $projid, ":contractrefno" => $contractrefno, ":tenderno" => $_POST['tenderno'], ":tendertitle" => $tendertitle, ":tendertype" => $tendertype, ":tendercat" => $tendercat, ":tenderamount" => $tenderamount, ":procurementmethod" => $procurementmethod, ":evaluationdate" => $evaluation, ":awarddate" => $award, ":notificationdate" => date('Y-m-d', strtotime($_POST['tendernotificationdate'])), ":signaturedate" => date('Y-m-d', strtotime($_POST['tendersignaturedate'])), ":startdate" => date('Y-m-d', strtotime($_POST['tenderstartdate'])), ":enddate" => date('Y-m-d', strtotime($_POST['tenderenddate'])), ":financialscore" => $financialscore, ":technicalscore" => $technicalscore, ":contractor" => $projcontractor, ":comments" => $comments, ":cost_variation" => $cost_variation, ":created_by" => $user_name, ":date_created" => $date_created));
         $last_id = $db->lastInsertId();
         //--------------------------------------------------------------------------
         // 1)Update project and add tender info
@@ -246,7 +247,7 @@ if ($permission) {
     $contractrefno = $tenderno  =  $tendertitle = $tendertype = $tendercat = $procurementmethod = "";
     $tenderevaluationdate = $tenderawarddate = $tendernotificationdate = $tendersignaturedate = "";
     $tenderstartdate = $tenderenddate = $financialscore = $technicalscore = $comments = $contractor_id = "";
-    $pinnumber = $bizregno = $biztype = "";
+    $pinnumber = $bizregno = $biztype = $cost_variation = "";
 
     if ($totalRows_rsTender > 0) {
       $contractrefno = $row_rsTender['contractrefno'];
@@ -266,6 +267,7 @@ if ($permission) {
       $technicalscore = $row_rsTender['technicalscore'];
       $comments = $row_rsTender['comments'];
       $contractor_id = $row_rsTender['contractor'];
+      $cost_variation = $row_rsTender['cost_variation'];
 
       $query_cont = $db->prepare("SELECT pinno, busregno, type  FROM tbl_contractor left join tbl_contractorbusinesstype on tbl_contractor.businesstype=tbl_contractorbusinesstype.id WHERE contrid='$contractor_id'");
       $query_cont->execute();
@@ -518,6 +520,10 @@ if ($permission) {
                           <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
                             <label for="">Tender Notification Date *</label>
                             <input name="tendernotificationdate" type="date" id="tendernotificationdate" value="<?= $tendernotificationdate ?>" class="form-control" placeholder="Enter Notification Date" required />
+                          </div>
+                          <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                            <label for="">Cost Variation (%)*</label>
+                            <input name="cost_variation" type="number" step="0.01" id="cost_variation" value="<?= $cost_variation ?>" class="form-control" placeholder="Enter % cost variation" required />
                           </div>
                         </fieldset>
                         <fieldset class="scheduler-border" style="border-radius:3px">
@@ -804,7 +810,7 @@ if ($permission) {
                           ?>
 
                           <?php
-                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
                           $query_Output->execute(array(":projid" => $projid));
                           $total_Output = $query_Output->rowCount();
                           $outputs = '';
@@ -1010,7 +1016,7 @@ if ($permission) {
                                 <input type="hidden" name="projid" id="m_projid" value="<?= $projid ?>">
                                 <input type="hidden" name="total_milestones" id="total_milestones" value="<?= $totalRows_rsMilestones ?>">
                                 <input type="hidden" name="user_name" value="<?= $user_name ?>">
-                                <input name="save_payment_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="<?= $payment_plan == '' ? "Save" : "Edit"?> Payment Details" />
+                                <input name="save_payment_details" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="<?= $payment_plan == '' ? "Save" : "Edit" ?> Payment Details" />
                               </div>
                               <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center">
                               </div>

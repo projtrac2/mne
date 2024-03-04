@@ -419,7 +419,7 @@ if ($permission) {
 										echo '
 										<tr>
 										  <td style="width:3%">' . $sn . '</td>
-										  <td style="width:20%">' . $impactindicator . '</td>
+										  <td style="width:20%">' . $outcomeindicator . '</td>
 										  <td style="width:35%">' . $projname . '</td>
 										  <td style="width:15%">' . $resultstagetype . '</td>
 										  <td style="width:10%">' . $due_date . '</td>
@@ -430,7 +430,7 @@ if ($permission) {
 												Options <span class="caret"></span>
 											  </button>
 											  <ul class="dropdown-menu">
-												' . $impact_link . '
+												' . $outcome_link . '
 											  </ul>
 											</div>
 										  </td>

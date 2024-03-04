@@ -44,7 +44,7 @@ if ($permission) {
             $mapping_type = $totalRows_rsIndicator > 0 ? $row_rsIndicator['indicator_mapping_type'] : "";
             $projid = $total_Output > 0 ?  $row_rsOutput['projid'] : "";
 
-            if ($mapping_type == 1 || $mapping_type == 3) {
+            if ($mapping_type == 1 ) {
                 $querysSite = $db->prepare("SELECT * FROM tbl_project_sites WHERE site_id = :id ");
                 $querysSite->execute(array(":id" => $d_site_id));
                 $totalsSite = $querysSite->rowCount();
@@ -103,7 +103,7 @@ if ($permission) {
                                         <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $project_name ?> </li>
                                         <li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
                                         <li class="list-group-item"><strong>Design/Plan: </strong> <?= $design_name ?> </li>
-                                        <li class="list-group-item"><strong><?= $mapping_type == 1 || $mapping_type == 3 ? "Site" : "Location" ?>: </strong> <?= $site_name ?> </li>
+                                        <li class="list-group-item"><strong><?= $mapping_type == 1 ? "Site" : "Location" ?>: </strong> <?= $site_name ?> </li>
                                         <li class="list-group-item"><strong>Task : </strong> <?= $task ?> </li>
                                         <li class="list-group-item"><strong>Task Parameters: </strong> <?= $parameter ?> </li>
                                         <li class="list-group-item"><strong>Unit of Measure: </strong> <?= $unit_of_measure ?> </li>
@@ -157,7 +157,7 @@ if ($permission) {
                                                                 $inspect = $compliance == 2 && $totalRows_rsIssues > 0  ? 2 : 1;
                                                             }
                                                             $details = "
-                                                            {  
+                                                            {
                                                                 specification_id: '$specification_id',
                                                                 specification: '$specification',
                                                                 non_compliant: $inspect,

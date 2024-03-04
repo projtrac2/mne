@@ -3,11 +3,35 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+function get_current_url_tests()
+{
+    $path = $_SERVER['REQUEST_URI'];
+    $paths = explode("/", $path);
+    $url_path = isset($paths[2]) ? explode(".", $paths[2]) : explode(".", $paths[1]);
+    return $url_path[0];
+}
+
 session_start();
+
+// Set the inactivity time of 60 minutes (3600 seconds)
+$inactivity_time = 15 * 60;
+
+if (isset($_SESSION['last_timestamp']) && (time() - $_SESSION['last_timestamp']) > $inactivity_time) {
+    session_unset();
+    session_destroy();
+    $current_page_url = get_current_url_tests();
+    //Redirect user to login page
+    header("Location: index.php?action=$current_page_url");
+    exit();
+} else {
+    // Regenerate new session id and delete old one to prevent session fixation attack
+    session_regenerate_id(true);
+    // Update the last timestamp
+    $_SESSION['last_timestamp'] = time();
+}
+
 (!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
 $_SESSION['last_accessed_url'] = $_SERVER['REQUEST_URI'];
-
-
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -18,8 +42,6 @@ include "Models/Auth.php";
 include "Models/Company.php";
 include "Models/Permission.php";
 require 'Models/Connection.php';
-
-
 
 $user_name = $_SESSION['MM_Username'];
 $designation_id = $_SESSION['designation'];
@@ -37,6 +59,21 @@ $user_department = $department_id;
 $user_section = $section_id;
 $user_directorate = $directorate_id;
 $user_designation = $designation_id;
+
+$query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
+$query_company->execute();
+$row_company = $query_company->fetch();
+$total_company = $query_company->rowCount();
+
+$company_latitude = $company_longitude = $company_main_url = $company_logo = $company_email_address = $company_name = '';
+if ($total_company > 0) {
+    $company_latitude = $row_company['latitude'];
+    $company_longitude = $row_company['longitude'];
+    $company_main_url = $row_company['main_url'];
+    $company_logo = $row_company['logo'];
+    $company_email_address = $row_company['email_address'];
+    $company_name = $row_company["company_name"];
+}
 
 function get_current_url()
 {
@@ -225,6 +262,7 @@ $page_detials = get_page_details();
 $pageTitle = $icon = $allow_read_records = $workflow_stage = $Id = $subId = '';
 
 if ($page_detials) {
+    $_SESSION['page_id'] = $page_detials['id'];
     $pageTitle = $page_detials['name'];
     $icon = $page_detials['icon'];
     $allow_read_records = $page_detials['allow_read'];
@@ -381,7 +419,7 @@ function check_if_assigned($projid, $workflow_stage, $sub_stage, $activity)
     if ($user_designation <= 8) {
         $output_responsible = true;
     } else {
-    $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage =:sub_stage AND responsible=:responsible");
+        $query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage =:sub_stage AND responsible=:responsible");
         $query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":sub_stage" => $sub_stage, ":responsible" => $user_name));
         $total_rsOutput = $query_rsOutput->rowCount();
         $output_responsible = $total_rsOutput > 0 ? true : false;
@@ -637,9 +675,6 @@ function restriction()
 	</script>";
 }
 
-
-
-
 function calculate_project_progress($projid, $implimentation_type)
 {
     global $db;
@@ -701,7 +736,6 @@ function calculate_project_progress($projid, $implimentation_type)
 
     return $progress;
 }
-
 
 function calculate_output_progress($output_id, $implimentation_type)
 {
@@ -786,7 +820,6 @@ function calculate_subtask_progress($subtask_id)
     return $progress >= 100 && !$complete ? 99 : $progress;
 }
 
-
 function calculate_output_site_progress($output_id, $implimentation_type, $site_id)
 {
     global $db;
@@ -868,7 +901,6 @@ function calculate_subtask_site_progress($subtask_id, $site_id)
     $query_rsTask_Start_Dates->execute(array(':subtask_id' => $subtask_id, ':site_id' => $site_id));
     $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
     $complete = $totalRows_rsTask_Start_Dates > 1 ? true : false;
-
     return $progress >= 100 && !$complete ? 99 : $progress;
 }
 
@@ -909,81 +941,127 @@ function calculate_site_progress($implimentation_type, $site_id)
 }
 
 
-function update_projects_status()
+function get_target($site_id, $task_id, $subtask_id, $end_date)
 {
     global $db;
-    $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = 10  and (p.projstatus=3  OR p.projstatus=4 OR p.projstatus=11) ORDER BY p.projid DESC");
+    $stmt = $db->prepare('SELECT SUM(target) as target FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id AND end_date =:end_date');
+    $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id, ":end_date" => $end_date));
+    $result = $stmt->fetch();
+    $target = !is_null($result['target'])  ? $result['target'] : 0;
+    return $target;
+}
+
+function get_achieved($site_id, $task_id, $subtask_id, $end_date)
+{
+    global $db;
+    $stmt = $db->prepare('SELECT SUM(achieved) as achieved FROM tbl_project_monitoring_checklist_score WHERE site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id AND created_at <=:end_date');
+    $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id, ":end_date" => $end_date));
+    $result = $stmt->fetch();
+    $target = !is_null($result['achieved'])  ? $result['achieved'] : 0;
+    return $target;
+}
+
+function set_project_status()
+{
+    global $db;
+    $today = date('Y-m-d');
+    $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = 9  and (p.projstatus=3  OR p.projstatus=4 OR p.projstatus=11) AND proj_substage = 0  ORDER BY p.projid DESC");
     $query_rsProjects->execute();
     $totalRows_rsProjects = $query_rsProjects->rowCount();
-
     if ($totalRows_rsProjects > 0) {
         while ($row_rsProjects = $query_rsProjects->fetch()) {
             $projid = $row_rsProjects['projid'];
-            $projstatus = $row_rsProjects['projstatus'];
-            $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
+            $project_status = $row_rsProjects['projstatus'];
+            $implementation_type = $row_rsProjects['projcategory'];
+            $status = array();
+            $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id, task_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
             $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
             $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
 
             if ($totalRows_rsTask_Start_Dates > 0) {
-                $status = array();
                 while ($row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch()) {
                     $start_date = $row_rsTask_Start_Dates['start_date'];
                     $end_date = $row_rsTask_Start_Dates['end_date'];
-                    $id = $row_rsTask_Start_Dates['id'];
                     $subtask_id = $row_rsTask_Start_Dates['subtask_id'];
+                    $task_id = $row_rsTask_Start_Dates['task_id'];
                     $site_id = $row_rsTask_Start_Dates['site_id'];
-                    $today = date('Y-m-d');
-                    $query_rsMilestone_cummulative =  $db->prepare("SELECT SUM(achieved) AS cummulative FROM tbl_project_monitoring_checklist_score WHERE subtask_id=:subtask_id AND site_id=:site_id ");
-                    $query_rsMilestone_cummulative->execute(array(":subtask_id" => $subtask_id, ':site_id' => $site_id));
-                    $row_rsMilestone_cummulative = $query_rsMilestone_cummulative->fetch();
-                    $achieved =  $row_rsMilestone_cummulative['cummulative'] != null ? $row_rsMilestone_cummulative['cummulative'] : 0;
-
-                    $subtask_status = 3;
-                    if ($start_date > $today && $achieved > 0) {
+                    $id = $row_rsTask_Start_Dates['id'];
+                    $achieved = get_achieved($site_id, $task_id, $subtask_id, $today);
+                    $subtask_status = $achieved ? 4 : 3;
+                    if ($today >= $start_date) {
                         $subtask_status = 4;
-                    } else if ($today > $start_date) {
-                        $subtask_status = 4;
-                        if ($today < $end_date) {
-                            $subtask_status = 4;
-                            if ($achieved == 0) {
+                        if ($today > $end_date) {
+                            $subtask_status = 11;
+                        } else {
+                            $frequency_end_date = date('Y-m-d', strtotime($today . '- 1 days'));
+                            $target = get_target($site_id, $task_id, $subtask_id, $frequency_end_date);
+                            if ($achieved <  $target) {
                                 $subtask_status = 11;
                             }
-                        } else if ($today > $end_date) {
-                            $subtask_status = 11;
                         }
-                    } else if ($today == $start_date) {
-                        $subtask_status = 4;
                     }
 
                     $status[] = $subtask_status;
                     $sql = $db->prepare("UPDATE tbl_program_of_works SET status=:status WHERE  id=:id");
                     $sql->execute(array(":status" => $subtask_status, ":id" => $id));
                 }
-
-                $projstatus = 3;
-                if (in_array(11, $status)) {
-                    $projstatus = 11;
-                } else if (in_array(4, $status)) {
-                    $projstatus = 4;
-                }
-            } else {
-                $query_rsTask_Start_Dates = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
-                $query_rsTask_Start_Dates->execute(array(":projid" => $projid));
-                $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-
-                $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid AND complete =0");
-                $query_Output->execute(array(":projid" => $projid));
-                $total_Output = $query_Output->rowCount();
-
-                $query_rsIssues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status <> 7");
-                $query_rsIssues->execute(array(":projid" => $projid));
-                $total_rsIssues = $query_rsIssues->rowCount();
-                $projstatus = ($totalRows_rsTask_Start_Dates == 0 && $total_rsIssues == 0 && $total_Output  == 0) ? 5 : $projstatus;
             }
 
-            $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
-            $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
+            $query_rsActivity_Monitoring = $db->prepare("SELECT start_date, end_date, id,subtask_id,site_id FROM tbl_program_of_works WHERE projid=:projid AND complete=0");
+            $query_rsActivity_Monitoring->execute(array(":projid" => $projid));
+            $totalRows_rsActivity_Monitoring = $query_rsActivity_Monitoring->rowCount();
+            $activity_monitoring = $totalRows_rsActivity_Monitoring > 0 ? false : true;
+
+            $query_Output_Monitoring = $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid AND complete =0");
+            $query_Output_Monitoring->execute(array(":projid" => $projid));
+            $total_Output_Monitoring = $query_Output_Monitoring->rowCount();
+            $output_monitoring = $total_Output_Monitoring > 0 ? false : true;
+
+            $query_rsIssues = $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status <> 7");
+            $query_rsIssues->execute(array(":projid" => $projid));
+            $total_rsIssues = $query_rsIssues->rowCount();
+            $issues = $total_rsIssues > 0 ? false : true;
+
+            $complete = $activity_monitoring && $output_monitoring && $issues ? true : false;
+            $substage_id = 0;
+            if (!$complete) {
+                if (in_array(11, $status)) {
+                    $project_status = 11;
+                } else if (in_array(4, $status)) {
+                    $project_status = 4;
+                }
+            } else {
+                $project_status = 5;
+                $substage_id = $implementation_type == 2 ? 1 : 2;
+            }
+
+            $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus, proj_substage=:substage_id WHERE  projid=:projid");
+            $result  = $sql->execute(array(":projstatus" => $project_status, ":substage_id" => $substage_id, ":projid" => $projid));
         }
     }
 }
-update_projects_status();
+
+set_project_status();
+
+
+function get_master_data_due_date($projid, $stage_id, $substage_id)
+{
+    global $db;
+    $sql = $db->prepare("SELECT * FROM tbl_project_stage_actions WHERE projid=:projid AND stage=:stage_id AND sub_stage=0");
+    $sql->execute(array(":projid" => $projid, ":stage_id" => $stage_id));
+    $totalRows = $sql->rowCount();
+    $Rows = $sql->fetch();
+    $due_date = $status = '';
+    if ($totalRows > 0) {
+        $date = $Rows['created_at'];
+        $stmt =  $db->prepare("SELECT * FROM tbl_notifications WHERE stage_id=:stage_id");
+        $stmt->execute(array(":stage_id" => $stage_id));
+        $notification = $stmt->fetch();
+        $count = $stmt->rowCount();
+        if ($count > 0) {
+            $duration = ($substage_id == 0 || $substage_id == 1) ? $notification['data_entry'] : $notification['approval'];
+            $due_date = date('Y-m-d', strtotime($date . ' + ' . $duration . ' days'));
+        }
+    }
+    return $due_date;
+}

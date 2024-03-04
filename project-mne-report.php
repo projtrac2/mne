@@ -19,13 +19,13 @@ if ($permission) {
 	$projlocations = explode(",", $proj_locations);
 	$proj_location_count = count($projlocations);
 
-	$tab1 = $projstage > 6 && $projstatus != 3 ? "home" : "";
-	$class1 = $projstage > 6 && $projstatus != 3 ? "active" : "";
-	$inactive1 = $projstage > 6 && $projstatus != 3 ? "in active" : "";
+	$tab1 = $projstage > 9 && $projstatus != 3 ? "home" : "";
+	$class1 = $projstage > 9 && $projstatus != 3 ? "active" : "";
+	$inactive1 = $projstage > 9 && $projstatus != 3 ? "in active" : "";
 
-	$tab2 = $projstage == 6 || ($projstage > 6 && $projstatus == 3) ? "home" : "menu2";
-	$class2 = $projstage == 6 || ($projstage > 6 && $projstatus == 3) ? "active" : "";
-	$inactive2 = $projstage == 6 || ($projstage > 6 && $projstatus == 3) ? "in active" : "";
+	$tab2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "home" : "menu2";
+	$class2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "active" : "";
+	$inactive2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "in active" : "";
 
 	function get_checklist_score($mapping_type, $task_id, $site_id)
 	{
@@ -42,7 +42,7 @@ if ($permission) {
 
 				$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE checklist_id=:checklist_id AND task_id=:task_id AND site_id=:site_id ORDER BY id DESC LIMIT 1");
 				$query_rsMonitoring_Achieved->execute(array(":checklist_id" => $checklist_id, ":task_id" => $task_id, ":site_id" => $site_id));
-				if ($mapping_type == 2 || $mapping_type == 3) {
+				if ($mapping_type != 1 ) {
 					$query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE checklist_id=:checklist_id AND task_id=:task_id ORDER BY id DESC LIMIT 1");
 					$query_rsMonitoring_Achieved->execute(array(":checklist_id" => $checklist_id, ":task_id" => $task_id));
 				}
@@ -90,7 +90,7 @@ if ($permission) {
 								<div class="header">
 									<ul class="nav nav-tabs" style="font-size:14px">
 										<?php
-										if ($projstage > 6) {
+										if ($projstage > 9) {
 										?>
 											<li class="<?= $class1 ?>">
 												<a data-toggle="tab" href="#<?= $tab1 ?>"><i class="fa fa-file-text-o bg-orange" aria-hidden="true"></i> Activities Monitoring &nbsp;<span class="badge bg-orange"></span></a>
@@ -105,6 +105,10 @@ if ($permission) {
 											<li class="<?= $class2 ?>">
 												<a data-toggle="tab" href="#<?= $tab2 ?>"><i class="fa fa-file-text-o bg-light-green" aria-hidden="true"></i> Outcome Evaluation &nbsp;<span class="badge bg-light-green"></span></a>
 											</li>
+										<?php
+										}
+										if ($projimpact == 1) {
+										?>
 											<li>
 												<a data-toggle="tab" href="#menu3"><i class="fa fa-file-text-o bg-green" aria-hidden="true"></i> Impact Evaluation &nbsp;<span class="badge bg-green"></span></a>
 											</li>
@@ -114,7 +118,7 @@ if ($permission) {
 								<div class="row clearfix">
 									<div class="table-responsive">
 										<div class="tab-content">
-											<?php if ($projstage > 6) { ?>
+											<?php if ($projstage > 9) { ?>
 												<div id="<?= $tab1 ?>" class="tab-pane fade <?= $inactive1 ?>">
 													<div class="body">
 														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -135,13 +139,13 @@ if ($permission) {
 																			$indicator_name = $row_rsOutput['indicator_name'];
 																			$target = $row_rsOutput['total_target'];
 																			$indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
-																	?>
+																			?>
 																			<fieldset class="scheduler-border">
 																				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 																					<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $indicator_name ?>
 																				</legend>
 																				<?php
-																				if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+																				if ($indicator_mapping_type == 1 ) {
 																					$query_OutputSites = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
 																					$query_OutputSites->execute(array(":output_id" => $output_id));
 																					$total_OutputSites = $query_Output->rowCount();
@@ -229,7 +233,7 @@ if ($permission) {
 																																	$achieved = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['achieved'] : 0;
 																																	$record_date = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : "";
 																																	$rate = $units_no > 0 && $achieved > 0 ? $achieved / $units_no * 100 : 0;
-																															?>
+																																	?>
 																																	<tr id="row<?= $tcounter ?>">
 																																		<td style="width:5%"><?= $tcounter ?></td>
 																																		<td style="width:40%"><?= $task_name ?></td>
@@ -239,7 +243,7 @@ if ($permission) {
 																																		<td style="width:10%"><?= number_format($achieved, 2) ?></td>
 																																		<td style="width:10%"><?= number_format($rate, 2) ?></td>
 																																	</tr>
-																															<?php
+																																	<?php
 																																}
 																															}
 																															?>
@@ -248,7 +252,7 @@ if ($permission) {
 																												</div>
 																											</div>
 																										</div>
-																								<?php
+																										<?php
 																									}
 																								}
 																								?>
@@ -266,7 +270,7 @@ if ($permission) {
 																						while ($row_rsMilestone = $query_rsMilestone->fetch()) {
 																							$milestone = $row_rsMilestone['milestone'];
 																							$msid = $row_rsMilestone['msid'];
-																						?>
+																							?>
 																							<div class="row clearfix">
 																								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																									<div class="card-header">
@@ -331,7 +335,7 @@ if ($permission) {
 																														$achieved = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['achieved'] : 0;
 																														$record_date = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : "";
 																														$rate = $units_no > 0 && $achieved > 0 ? $achieved / $units_no * 100 : 0;
-																												?>
+																														?>
 																														<tr id="row<?= $tcounter ?>">
 																															<td style="width:5%"><?= $tcounter ?></td>
 																															<td style="width:40%"><?= $task_name ?></td>
@@ -341,7 +345,7 @@ if ($permission) {
 																															<td style="width:10%"><?= number_format($achieved, 2) ?></td>
 																															<td style="width:10%"><?= number_format($rate, 2) ?></td>
 																														</tr>
-																												<?php
+																														<?php
 																													}
 																												}
 																												?>
@@ -350,7 +354,7 @@ if ($permission) {
 																									</div>
 																								</div>
 																							</div>
-																				<?php
+																							<?php
 																						}
 																					}
 																				}
@@ -410,7 +414,7 @@ if ($permission) {
 																						$row_indicator_unit = $query_indicator_unit->fetch();
 																						$indicatorunit = $row_indicator_unit['unit'];
 
-																						if ($indicator_mapping_type == 1 || $indicator_mapping_type == 3) {
+																						if ($indicator_mapping_type == 1 ) {
 																							$query_rsSite_details = $db->prepare("SELECT * FROM tbl_output_disaggregation b INNER JOIN tbl_project_sites p ON p.site_id = b.output_site INNER JOIN tbl_state s ON s.id = p.state_id WHERE outputid = :outputid");
 																							$query_rsSite_details->execute(array(":outputid" => $output_id));
 																							$total_rsSite_details = $query_rsSite_details->rowCount();
@@ -427,8 +431,7 @@ if ($permission) {
 																									$rows_rsSite_cummulative = $query_rsSite_cummulative->fetch();
 																									$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;
 																									$rate = $target > 0 && $cummulative > 0 ? ($cummulative / $target) * 100 : 0;
-
-																				?>
+																									?>
 																									<tr>
 																										<td><?= $counter ?></td>
 																										<td><?= $indicator_name ?></td>
@@ -459,7 +462,7 @@ if ($permission) {
 																									$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;
 																									$rate = $target > 0 && $cummulative > 0 ? ($cummulative / $target) * 100 : 0;
 																									$counter++;
-																								?>
+																									?>
 																									<tr>
 																										<td><?= $counter ?></td>
 																										<td><?= $indicator_name ?></td>
@@ -469,7 +472,7 @@ if ($permission) {
 																										<td><?php echo number_format($cummulative, 2) . ' ' . $indicatorunit ?></td>
 																										<td><?= number_format($rate, 2) ?></td>
 																									</tr>
-																				<?php
+																									<?php
 																								}
 																							}
 																						}
@@ -564,7 +567,7 @@ if ($permission) {
 																					</tr>
 																					<?php
 																					foreach ($projlocations as $locations) {
-																						$query_result = $db->prepare("SELECT c.numerator, c.denominator FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
+																						$query_result = $db->prepare("SELECT c.measurement FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
 																						$query_result->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
 
 																						$query_location =  $db->prepare("SELECT * FROM tbl_state WHERE id='$locations'");
@@ -572,62 +575,57 @@ if ($permission) {
 																						$row_location = $query_location->fetch();
 																						$location = $row_location["state"];
 
-																						$total_baseline_numerator = 0;
-																						$total_baseline_denominator = 0;
+																						$total_baseline_measurement = 0;
 
 																						while ($rows_result = $query_result->fetch()) {
-																							$numerator = $rows_result["numerator"];
-																							$denominator = $rows_result["denominator"];
-																							$total_baseline_numerator += $numerator;
-																							$total_baseline_denominator += $denominator;
+																							$measurement = $rows_result["measurement"];
+																							$total_baseline_measurement += $measurement;
 																						}
 																						//$baseline = '';
-																						if ($calculation_method == 2) {
-																							$baseline = number_format(($total_baseline_numerator / $total_baseline_denominator) * 100, 2);
-																						} else {
-																							$baseline = $total_baseline_numerator;
-																						}
+																						$baseline = number_format($total_baseline_measurement, 2);
 
-																						$query_endline_survey = $db->prepare("SELECT c.numerator, c.denominator, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
+																						$query_endline_survey = $db->prepare("SELECT c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
 																						$query_endline_survey->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
 																						$count_endline_surveys = $query_endline_survey->rowCount();
 
 																						if ($count_endline_surveys == 0) {
 																							$endline = 'Pending';
-																							$difference = 'Pending';
+																							$change = 'Pending';
 																						} else {
-																							$total_endline_numerator = 0;
-																							$total_endline_denominator = 0;
+																							$total_endline_measurement = 0;
 																							while ($rows_endline_survey = $query_endline_survey->fetch()) {
-																								$endnumerator = $rows_endline_survey["numerator"];
-																								$enddenominator = $rows_endline_survey["denominator"];
-
-																								$total_endline_numerator += $endnumerator;
-																								$total_endline_denominator += $enddenominator;
+																								$endline_measurement = $rows_endline_survey["measurement"];
+																								$total_endline_measurement += $endline_measurement;
 																							}
+																							$endline = number_format($total_endline_measurement, 2);
 																							if ($calculation_method == 2) {
-																								$endline = number_format(($total_endline_numerator / $total_endline_denominator) * 100, 2);
+																								$change = number_format((($endline - $baseline) / $baseline) * 100, 2);
 																							} else {
-																								$endline = $total_endline_numerator;
+																								$change = ($endline - $baseline);
 																							}
-																							$difference = ($endline - $baseline);
 																						}
 
 																						$query_report_remarks = $db->prepare("SELECT comments FROM tbl_survey_conclusion WHERE projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
 																						$query_report_remarks->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
-																						$unit = $calculation_method == 2 ? "%" : $unit;
-																					?>
+																						//$unit = $calculation_method == 2 ? "%" : $unit;
+																						?>
 																						<tr class="bg-lime">
 																							<td><?php echo $location; ?></td>
 																							<td><?php echo $baseline . " " . $unit; ?></td>
 																							<td><?php echo $endline;
 																								if ($count_endline_surveys > 0) {
 																									echo $unit;
-																								} ?></td>
-																							<td><?php echo $difference;
+																								} ?>
+																							</td>
+																							<td><?php echo $change;
 																								if ($count_endline_surveys > 0) {
-																									echo $unit;
-																								} ?></td>
+																									if ($calculation_method == 2) {
+																										echo '%';
+																									}else{
+																										echo $unit;
+																									}
+																								} ?>
+																							</td>
 																							<td>
 																								<?php
 																								while ($row_report_remarks = $query_report_remarks->fetch()) {
@@ -636,7 +634,7 @@ if ($permission) {
 																								?>
 																							</td>
 																						</tr>
-																				<?php
+																						<?php
 																					}
 																				}
 																				?>
@@ -648,168 +646,164 @@ if ($permission) {
 														</div>
 													</div>
 												</div>
-												<?php if ($projimpact == 1) {
-													$query_results = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE p.projid=:projid");
-													$query_results->execute(array(":projid" => $projid));
-													$results_count = $query_results->rowCount();
-													if ($results_count > 0) {
+											<?php
+											}
+											if ($projimpact == 1) {
+												$query_results = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE p.projid=:projid");
+												$query_results->execute(array(":projid" => $projid));
+												$results_count = $query_results->rowCount();
+												if ($results_count > 0) {
 												?>
-														<div id="menu3" class="tab-pane fade">
-															<div class="body">
-																<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-																	<fieldset class="scheduler-border">
-																		<legend class="scheduler-border bg-green" style="border-radius:3px">
-																			<i class="fa fa-list-ol" aria-hidden="true"></i> <strong> Project Impact Results</strong>
-																		</legend>
-																		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-																			<div class="table-responsive">
-																				<table class="table table-bordered" id="direct_table<?= $outputid ?>">
-																					<thead>
-																						<tr class="bg-green">
-																							<th style="width:3%"># </th>
-																							<th style="width:18%">Impact</th>
-																							<th style="width:19%">Indicator</th>
-																							<th style="width:10%">Disaggregated</th>
-																							<th style="width:10%">Location</th>
-																							<th style="width:10%">Baseline</th>
-																							<th style="width:10%">Endline</th>
-																							<th style="width:10%">Change</th>
-																							<th style="width:10%">Remarks</th>
-																						</tr>
-																					</thead>
-																					<tbody>
-																						<?php
-																						$nmb = 0;
-																						while ($row_results = $query_results->fetch()) {
-																							$nmb++;
-																							$impact = $row_results["impact"];
-																							$indid = $row_results["indid"];
-																							$resultstypeid = $row_results["id"];
+													<div id="menu3" class="tab-pane fade">
+														<div class="body">
+															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																<fieldset class="scheduler-border">
+																	<legend class="scheduler-border bg-green" style="border-radius:3px">
+																		<i class="fa fa-list-ol" aria-hidden="true"></i> <strong> Project Impact Results</strong>
+																	</legend>
+																	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+																		<div class="table-responsive">
+																			<table class="table table-bordered" id="direct_table<?= $outputid ?>">
+																				<thead>
+																					<tr class="bg-green">
+																						<th style="width:3%"># </th>
+																						<th style="width:18%">Impact</th>
+																						<th style="width:19%">Indicator</th>
+																						<th style="width:10%">Disaggregated</th>
+																						<th style="width:10%">Location</th>
+																						<th style="width:10%">Baseline</th>
+																						<th style="width:10%">Endline</th>
+																						<th style="width:10%">Change</th>
+																						<th style="width:10%">Remarks</th>
+																					</tr>
+																				</thead>
+																				<tbody>
+																					<?php
+																					$nmb = 0;
+																					while ($row_results = $query_results->fetch()) {
+																						$nmb++;
+																						$impact = $row_results["impact"];
+																						$indid = $row_results["indid"];
+																						$resultstypeid = $row_results["id"];
 
-																							$query_indicator = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
-																							$query_indicator->execute(array(":indid" => $indid));
-																							$row_indicator = $query_indicator->fetch();
+																						$query_indicator = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
+																						$query_indicator->execute(array(":indid" => $indid));
+																						$row_indicator = $query_indicator->fetch();
 
-																							$indicator = $row_indicator["indicator_name"];
-																							$unit = $row_indicator["unit"];
-																							$calculation_method = $row_indicator["indicator_calculation_method"];
-																							$disaggregated = $row_indicator["indicator_disaggregation"];
-																							$indicator_disaggregated = $disaggregated == 1 ? "Yes" : "No";
+																						$indicator = $row_indicator["indicator_name"];
+																						$unit = $row_indicator["unit"];
+																						$calculation_method = $row_indicator["indicator_calculation_method"];
+																						$disaggregated = $row_indicator["indicator_disaggregation"];
+																						$indicator_disaggregated = $disaggregated == 1 ? "Yes" : "No";
 																						?>
 
+																						<tr class="bg-lime">
+																							<td rowspan="<?php echo $proj_location_count + 1; ?>">
+																								<?php echo $nmb ?>
+																							</td>
+																							<td rowspan="<?php echo $proj_location_count + 1; ?>">
+																								<?php echo $impact ?>
+																							</td>
+																							<td rowspan="<?php echo $proj_location_count + 1; ?>">
+																								<?php
+																								if ($disaggregated == 0) {
+																									echo $indicator;
+																								} else {
+																									$resultsid = base64_encode("resultsid{$resultstypeid}");
+																									$resulttype = base64_encode("resultstype1");
+																									echo '<a href="project-mne-disaggregation-report?results=' . $resultsid . '&resultstype=' . $resulttype . '">' . $indicator . '</a>';
+																								}
+																								?>
+																							</td>
+																							<td rowspan="<?php echo $proj_location_count + 1; ?>">
+																								<?php echo $indicator_disaggregated ?>
+																							</td>
+																						</tr>
+																						<?php
+																						foreach ($projlocations as $locations) {
+																							$query_result = $db->prepare("SELECT c.measurement FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
+																							$query_result->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
+
+
+																							$query_location =  $db->prepare("SELECT * FROM tbl_state WHERE id='$locations'");
+																							$query_location->execute();
+																							$row_location = $query_location->fetch();
+																							$location = $row_location["state"];
+
+																							$total_baseline_measurement = 0;
+
+																							while ($rows_result = $query_result->fetch()) {
+																								$baseline_measurement = $rows_result["measurement"];
+																								$total_baseline_measurement += $baseline_measurement;
+																							}
+																							//$baseline = '';
+																							$baseline = $total_baseline_measurement;
+
+																							$query_endline_survey = $db->prepare("SELECT c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
+																							$query_endline_survey->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
+																							$count_endline_surveys = $query_endline_survey->rowCount();
+
+																							if ($count_endline_surveys == 0) {
+																								$endline = 'Pending';
+																								$difference = 'Pending';
+																							} else {
+																								$total_endline_measurement = 0;
+																								while ($rows_endline_survey = $query_endline_survey->fetch()) {
+																									$endline_measurement = $rows_endline_survey["measurement"];
+
+																									$total_endline_measurement += $endline_measurement;
+																								}
+																								$endline = $total_endline_measurement;
+
+																								if ($calculation_method == 2) {
+																									$difference = number_format((($endline - $baseline) / $baseline) * 100, 2);
+																								} else {
+																									$difference = ($endline - $baseline);
+																								}
+																							}
+
+																							$query_report_remarks = $db->prepare("SELECT comments FROM tbl_survey_conclusion WHERE projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
+																							$query_report_remarks->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
+																							//$unit = $calculation_method == 2 ? "%" : $unit;
+																						?>
 																							<tr class="bg-lime">
-																								<td rowspan="<?php echo $proj_location_count + 1; ?>">
-																									<?php echo $nmb ?>
-																								</td>
-																								<td rowspan="<?php echo $proj_location_count + 1; ?>">
-																									<?php echo $impact ?>
-																								</td>
-																								<td rowspan="<?php echo $proj_location_count + 1; ?>">
+																								<td><?php echo $location; ?></td>
+																								<td><?php echo $baseline . " " . $unit; ?></td>
+																								<td><?php echo $endline;
+																									if ($count_endline_surveys > 0) {
+																										echo $unit;
+																									} ?></td>
+																								<td><?php echo $difference;
+																									if ($count_endline_surveys > 0) {
+																										if ($calculation_method == 2) {
+																											echo "%";
+																										} else {
+																											echo $unit;
+																										}
+																									} ?></td>
+																								<td>
 																									<?php
-																									if ($disaggregated == 0) {
-																										echo $indicator;
-																									} else {
-																										$resultsid = base64_encode("resultsid{$resultstypeid}");
-																										$resulttype = base64_encode("resultstype1");
-																										echo '<a href="project-mne-disaggregation-report?results=' . $resultsid . '&resultstype=' . $resulttype . '">' . $indicator . '</a>';
+																									while ($row_report_remarks = $query_report_remarks->fetch()) {
+																										echo $row_report_remarks["comments"];
 																									}
 																									?>
 																								</td>
-																								<td rowspan="<?php echo $proj_location_count + 1; ?>">
-																									<?php echo $indicator_disaggregated ?>
-																								</td>
 																							</tr>
-																							<?php
-																							foreach ($projlocations as $locations) {
-																								$query_result = $db->prepare("SELECT c.numerator, c.denominator FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
-																								$query_result->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
-
-
-																								$query_location =  $db->prepare("SELECT * FROM tbl_state WHERE id='$locations'");
-																								$query_location->execute();
-																								$row_location = $query_location->fetch();
-																								$location = $row_location["state"];
-
-																								$total_baseline_numerator = 0;
-																								$total_baseline_denominator = 0;
-
-																								while ($rows_result = $query_result->fetch()) {
-																									$numerator = $rows_result["numerator"];
-																									$denominator = $rows_result["denominator"];
-																									$total_baseline_numerator += $numerator;
-																									$total_baseline_denominator += $denominator;
-																								}
-																								//$baseline = '';
-																								if ($calculation_method == 2) {
-																									$baseline = $total_baseline_numerator > 0 && $total_baseline_denominator > 0 ? number_format(($total_baseline_numerator / $total_baseline_denominator) * 100, 2) : 0;
-																								} else {
-																									$baseline = $total_baseline_numerator;
-																								}
-
-																								$query_endline_survey = $db->prepare("SELECT c.numerator, c.denominator, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
-																								$query_endline_survey->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
-																								$count_endline_surveys = $query_endline_survey->rowCount();
-
-																								if ($count_endline_surveys == 0) {
-																									$endline = 'Pending';
-																									$difference = 'Pending';
-																								} else {
-																									$total_endline_numerator = 0;
-																									$total_endline_denominator = 0;
-																									while ($rows_endline_survey = $query_endline_survey->fetch()) {
-																										$endnumerator = $rows_endline_survey["numerator"];
-																										$enddenominator = $rows_endline_survey["denominator"];
-
-																										$total_endline_numerator += $endnumerator;
-																										$total_endline_denominator += $enddenominator;
-																									}
-																									if ($calculation_method == 2) {
-																										$endline = number_format(($total_endline_numerator / $total_endline_denominator) * 100, 2);
-																									} else {
-																										$endline = $total_endline_numerator;
-																									}
-																									$difference = ($endline - $baseline);
-																								}
-
-																								$query_report_remarks = $db->prepare("SELECT comments FROM tbl_survey_conclusion WHERE projid=:projid and resultstype=1 and resultstypeid=:resultstypeid and level3=:location");
-																								$query_report_remarks->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
-																								$unit = $calculation_method == 2 ? "%" : $unit;
-																							?>
-																								<tr class="bg-lime">
-																									<td><?php echo $location; ?></td>
-																									<td><?php echo $baseline . " " . $unit; ?></td>
-																									<td><?php echo $endline;
-																										if ($count_endline_surveys > 0) {
-																											echo $unit;
-																										} ?></td>
-																									<td><?php echo $difference;
-																										if ($count_endline_surveys > 0) {
-																											echo $unit;
-																										} ?></td>
-																									<td>
-																										<?php
-																										while ($row_report_remarks = $query_report_remarks->fetch()) {
-																											echo $row_report_remarks["comments"];
-																										}
-																										?>
-																									</td>
-																								</tr>
-																						<?php
-																							}
+																					<?php
 																						}
-																						?>
-																					</tbody>
-																				</table>
-																			</div>
+																					}
+																					?>
+																				</tbody>
+																			</table>
 																		</div>
-																	</fieldset>
-																</div>
+																	</div>
+																</fieldset>
 															</div>
 														</div>
-											<?php
-													}
+													</div>
+												<?php
 												}
-											} ?>
+											}?>
 										</div>
 									</div>
 								</div>

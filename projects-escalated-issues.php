@@ -159,7 +159,7 @@ if ($permission) {
 																												
 															$issuedescription = string_length($issue_description, 100);
 															
-															$issueid = base64_encode("issueid254{$issueid}");
+															$issueid_encrypted = base64_encode("issueid254{$issueid}");
 															?>
 															<tr style="background-color:#eff9ca">
 																<td align="center"><?php echo $nm; ?></td>
@@ -172,11 +172,11 @@ if ($permission) {
 																	<?php
 																	if ($escalationstage_count > 0) {
 																		?>
-																		<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
+																		<a href="project-escalated-issue.php?issue=<?=$issueid_encrypted?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue assessment report ready"></i></a>
 																		<?php
 																	} else {
 																	?>
-																		<a href="project-escalated-issue.php?issue=<?=$issueid?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue requiring your ACTION!!"></i></a>
+																		<a href="project-escalated-issue.php?issue=<?=$issueid_encrypted?>"><i class="fa fa-gavel fa-2x text-primary" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="Issue requiring your ACTION!!"></i></a>
 																	<?php
 																	}
 																	?>

@@ -114,18 +114,6 @@ if ($permission) {
 				if ($result) {
 					$last_id = $db->lastInsertId();
 
-					if (isset($_POST['cost'])) {
-						$total_amount_funding = count($_POST['cost']);
-						for ($q = 0; $q < $total_amount_funding; $q++) {
-							$projid = $_POST['projid'][$q];
-							$amount = $_POST['cost'][$q];
-							if ($amount != '') {
-								$sql = $db->prepare("INSERT INTO tbl_financier_projects (financier_id,fund_id,projid,financial_year,amount) VALUES (:financier_id,:fund_id,:projid,:financial_year,:amount)");
-								$result  = $sql->execute(array(":financier_id" => $financier_id, ":fund_id" => $last_id, ":projid" => $projid, ":financial_year" => $financial_year,  ":amount" => $amount));
-							}
-						}
-					}
-
 					$filecategory = "Funding";
 					$catid = $last_id;
 					$myUser = $_POST['user_name'];
@@ -181,20 +169,6 @@ if ($permission) {
 
 				if ($result) {
 
-					$sql = $db->prepare("DELETE FROM `tbl_financier_projects` WHERE fund_id=:fund_id ");
-					$results = $sql->execute(array(':fund_id' => $funderid));
-
-					if (isset($_POST['cost'])) {
-						$total_amount_funding = count($_POST['cost']);
-						for ($q = 0; $q < $total_amount_funding; $q++) {
-							$projid = $_POST['projid'][$q];
-							$amount = $_POST['cost'][$q];
-							if (!empty($amount)) {
-								$sql = $db->prepare("INSERT INTO tbl_financier_projects (financier_id,fund_id,projid,financial_year,amount) VALUES (:financier_id,:fund_id,:projid,:amount)");
-								$result  = $sql->execute(array(":financier_id" => $financier_id, ":fund_id" => $last_id, ":projid" => $projid,  ":amount" => $amount));
-							}
-						}
-					}
 					$filecategory = "Funding";
 					$catid = $funderid;
 					$myUser = $_POST['user_name'];
@@ -355,14 +329,14 @@ if ($permission) {
 											</select>
 										</div>
 									</div>
-									<!-- <script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
+									<script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
 									<script type="text/javascript">
 										webshims.setOptions('forms-ext', {
 											replaceUI: 'auto',
 											types: 'number'
 										});
 										webshims.polyfill('forms forms-ext');
-									</script> -->
+									</script>
 									<div class="col-md-4">
 										<label>Funding Amount *:</label>
 										<div class="form-line">
@@ -442,58 +416,6 @@ if ($permission) {
 												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
 											</div>
 										</div>
-									</div>
-								</fieldset>
-								<fieldset class="scheduler-border">
-									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FUND ATTACHMENTS</legend>
-									<div class="table-responsive">
-										<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-											<thead>
-												<tr>
-													<th style="width:5%">#</th>
-													<th style="width:35%">Project</th>
-													<th style="width:20%">Budget</th>
-													<th style="width:20%">Remaining</th>
-													<th style="width:20%">Allocated</th>
-													<th style="width:20%">Cost</th>
-												</tr>
-											</thead>
-											<tbody>
-												<?php
-												$query_plannedfunds =  $db->prepare("SELECT * FROM tbl_myprojfunding f inner join tbl_projects p on p.projid=f.projid WHERE f.financier=:fnd");
-												$query_plannedfunds->execute(array(":fnd" => $fnd));
-												$rows_plannedfunds = $query_plannedfunds->rowCount();
-												if ($rows_plannedfunds > 0) {
-													$counter = 0;
-													while ($row_plannedfunds = $query_plannedfunds->fetch()) {
-														$counter++;
-														$project_name = $row_plannedfunds['projname'];
-														$projid = $row_plannedfunds['projid'];
-														$budget = $row_plannedfunds['amountfunding'];
-
-														$query_funds =  $db->prepare("SELECT * FROM tbl_financier_projects WHERE fund_id=:fund_id AND  projid=:projid");
-														$query_funds->execute(array(":fund_id" => $fnd, ":projid" => $projid));
-														$row_funds = $query_funds->fetch();
-														$rows_funds = $query_funds->rowCount();
-														$amount = $rows_funds > 0 ? $row_funds['amount'] : 0;
-												?>
-														<tr>
-															<td style="width:5%"><?= $counter ?></td>
-															<td style="width:35%"><?= $project_name ?></td>
-															<td style="width:10%"><?= number_format($budget, 2) ?></td>
-															<td style="width:10%"><?= number_format($remaining, 2) ?></td>
-															<td style="width:10%"><?= number_format($allocated, 2) ?></td>
-															<td style="width:20%">
-																<input type="number" name="cost[]" id="cost<?= $projid ?>" class="form-control sub_total_cost" value="<?= $amount ?>">
-																<input type="hidden" name="projid[]" value="<?= $projid ?>">
-															</td>
-														</tr>
-												<?php
-													}
-												}
-												?>
-											</tbody>
-										</table>
 									</div>
 								</fieldset>
 								<fieldset class="scheduler-border">

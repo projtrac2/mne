@@ -56,11 +56,11 @@ if ($permission) {
 										<tr id="colrow">
 											<th style="width:4%">#</th>
 											<th style="width:40%">Issue</th>
-											<th style="width:10%">Category</th>
+											<th style="width:10%">Issue Area</th>
 											<th style="width:10%">Priority</th>
 											<th style="width:13%">Date Recorded</th>
-											<th style="width:11%">Status</th>
-											<th style="width:12%">Action</th>
+											<th style="width:11%">Resolution</th>
+											<th style="width:12%">Other Details</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -96,9 +96,7 @@ if ($permission) {
 													$priority = "Low";
 												}
 																														
-												if($issue_areaid == 1){
-													$issue_area = "Quality";
-												}elseif($issue_areaid == 2){
+												if($issue_areaid == 2){
 													$issue_area = "Scope";
 												}elseif($issue_areaid == 3){
 													$issue_area = "Schedule";
@@ -117,15 +115,15 @@ if ($permission) {
 												if ($issuestatusis == 0) {
 													$issuestatus = "Pending Action";
 												} elseif ($issuestatusis == 1) {
-													$issuestatus = "Authorised to Close the Issue and Continue";
+													$issuestatus = "Ignore the Issue and Continue";
 												} elseif ($issuestatusis == 2) {
 													$issuestatus = "Project Put On Hold";
 												} elseif ($issuestatusis == 3) {
-													$issuestatus = "Project Restored, and Authorised to Close the Issue";
+													$issuestatus = "Project Restored";
 												} elseif ($issuestatusis == 4) {
-													$issuestatus = "Authorised to Adjust Project Parameters";
+													$issuestatus = "Request Approved";
 												} elseif ($issuestatusis == 5) {
-													$issuestatus = "Project Restored & Authorised to Adjust Project Parameters";
+													$issuestatus = "Project Restored & Request Approved";
 												} elseif ($issuestatusis == 2) {
 													$issuestatus = "Project Cancelled";
 												}elseif ($issuestatusis == 7) {
@@ -142,7 +140,7 @@ if ($permission) {
 												<tr style="background-color:#fff">
 													<td align="center"><?php echo $nm; ?></td>
 													<td><?php echo $issue_description; ?></td>
-													<td><?php echo $risk_category; ?></td>
+													<td><?php echo $issue_area; ?></td>
 													<td><?php echo $priority; ?></td>
 													<td class="text-primary"><span data-toggle="tooltip" data-placement="bottom" title="Recorded By: <?= $monitor ?>"><?php echo date("d M Y", strtotime($issuedate)); ?></span></td>
 													<td <?= $styled ?>><?= $issuestatus ?></td>

@@ -111,18 +111,18 @@ if ($permission) {
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add New Indicator</legend>
 
-									<div class="col-md-3">
+									<div class="col-lg-3 col-md-6 col-sm12 col-xs-12">
 										<label>Indicator Code *:</label>
 										<div class="form-line">
 											<input type="text" class="form-control" name="indcode" placeholder="Enter indicator code" id="indcode" style="border:#CCC thin solid; border-radius: 5px" required onBlur="checkAvailability()">
 										</div>
 									</div>
 
-									<div class="col-md-7" id="code-availability-status">
+									<div class="col-lg-7 col-md-12 col-sm12 col-xs-12" id="code-availability-status">
 										<p><img src="assets/images/LoaderIcon.gif" id="loaderIcon" style="display:none" /></p>
 									</div>
-									<div class="col-md-12 row">
-										<div class="col-md-4">
+									<div class="col-lg-12 col-md-12 col-sm12 col-xs-12 row">
+										<div class="col-lg-3 col-md-6 col-sm12 col-xs-12">
 											<label>Unit of Measure
 												<a type="button" data-toggle="modal" data-target="#adddetailsModal" onclick='adddetails("unit")' id="outputItemModalBtnrow"> (Add new)</a>
 												*:
@@ -143,14 +143,14 @@ if ($permission) {
 											</div>
 										</div>
 
-										<div class="col-md-8">
+										<div class="col-lg-9 col-md-12 col-sm12 col-xs-12">
 											<label>Result to be measured *:</label>
 											<div>
 												<input name="indname" type="text" class="form-control" placeholder="Enter result to be measured" id="indname" style="border:#CCC thin solid; border-radius: 5px" required />
 											</div>
 										</div>
 									</div>
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
 										<label>Indicator <?= $ministrylabel ?>*:</label>
 										<div class="form-line">
 											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
@@ -170,7 +170,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
 										<label>Indicator <?= $departmentlabel ?>*:</label>
 										<div class="form-line" id="inddeparment">
 											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
@@ -179,7 +179,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
 										<label>Indicator Data Level *:</label>
 										<div class="form-line">
 											<select name="baselinelevel" id="baselinelevel" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
@@ -190,7 +190,7 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="col-md-6">
+									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
 										<label>Mapping Type *:</label>
 										<div class="form-line">
 											<select name="mapping_type" id="mapping_type" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
@@ -210,7 +210,7 @@ if ($permission) {
 											</select>
 										</div>
 									</div>
-									<div class="col-md-12">
+									<div class="col-lg-12 col-md-12 col-sm12 col-xs-12">
 										<label class="control-label">Indicator Description/Definition : <font align="left" style="background-color:#eff2f4"> </font></label>
 										<p align="left">
 											<textarea name="inddesc" cols="45" rows="4" class="txtboxes" id="inddesc" style="height:50px; width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
@@ -255,7 +255,7 @@ if ($permission) {
 										</p>
 									</div>
 									<div class="row clearfix">
-										<div class="col-lg-12 col-md-12 col-sm-2 col-xs-2" align="center">
+										<div class="col-lg-12 col-md-12 col-sm12 col-xs-12" align="center">
 											<input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
 											<div class="btn-group">
 												<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Submit" />
@@ -289,23 +289,23 @@ if ($permission) {
 										<form class="form-horizontal" id="addform" action="" method="POST">
 											<br />
 											<div id="unitsof_measure">
-												<div class="col-md-12" id="indirectbeneficiary">
+												<div class="col-lg-12 col-md-12 col-sm12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Measurement Unit *:</label>
 													<div class="form-input">
 														<input type="text" name="unit" id="unit" placeholder="Enter" class="form-control">
 													</div>
 												</div>
-												<div class="col-md-12" id="indirectbeneficiary">
+												<div class="col-lg-12 col-md-12 col-sm12 col-xs-12" id="indirectbeneficiary">
 													<label for="diss_type_name" class="control-label">Measurement Unit Description *:</label>
 													<div class="form-input">
 														<textarea name="unitdescription" id="unitdescription" cols="" rows="" class="form-control"></textarea>
 													</div>
 												</div>
 											</div>
-											<div id="diss_type">
+											<div id="diss_type"> 
 											</div>
 											<div class="modal-footer">
-												<div class="col-md-12 text-center" id="">
+												<div class="col-lg-12 col-md-12 col-sm12 col-xs-12 text-center" id="">
 													<input type="hidden" name="addnew" id="addnew" value="addnew">
 													<input type="hidden" name="type_diss" id="type_diss" value="">
 													<input type="hidden" name="dissegration_category" id="dissegration_category" value="">

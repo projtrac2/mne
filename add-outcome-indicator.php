@@ -49,7 +49,7 @@ if ($permission) {
 						if (isset($_POST['inddirectBenfType'])) {
 							if (isset($_POST['indcalculation'])) {
 								$category = 2;
-								if ($indcalculation == 1) {
+								/* if ($indcalculation == 1) {
 									if (isset($_POST['direct_outcome_aggragate'])) {
 										$aggragate = $_POST['direct_outcome_aggragate'];
 										$type = "n";
@@ -74,7 +74,7 @@ if ($permission) {
 										$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 										$result2  = $insertBeneficiary->execute(array(":indicatorid" => $last_id, ":measurement_variable" => $numerator, ":category" => $category,   ":type" => $type));
 									}
-								}
+								} */
 							}
 
 							if (isset($_POST['direct_outcome_dissagragation_type']) && !empty($_POST['direct_outcome_dissagragation_type'])) {
@@ -306,10 +306,10 @@ if ($permission) {
 										</div>
 									</div>
 
-									<div class="outcome_details">
+									<!--<div class="outcome_details">
 										<div class="" id="direct_outcome_formula">
 										</div>
-									</div>
+									</div>-->
 
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<label class="control-label">Indicator Description/Definition : <font align="left" style="background-color:#eff2f4"> </font></label>

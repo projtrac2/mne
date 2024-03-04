@@ -105,26 +105,20 @@ if (isset($_POST["approveProj"]) && $_POST["approveProj"] == "approveProj") {
       $budget_name = $program_type == 1 ? $budget_name : "";
 
       $project_budget = '
-      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
          <label for="projduration">Project Cost *:</label>
          <div class="form-line">
             <input type="text"  name="project_cost1" id="project_cost1" placeholder="" class="form-control" value="' . number_format($project_cost, 2) . '" class="form-control"  disabled/>
             <input type="hidden"  name="project_cost" id="project_cost" placeholder="" class="form-control" value="' . $project_cost . '" class="form-control" />
          </div>
       </div>
-      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
          <label for="projduration">Direct Cost Budget *:</label>
          <div class="form-line">
             <input type="number"  name="direct_budget" id="direct_budget" onchange="distribute_project_cost(1)" onkeyup="distribute_project_cost(1)" min="1" max="' . $project_cost . '" placeholder="Enter Direct Cost budget" class="form-control" value="" class="form-control" required/>
          </div>
       </div>
-      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-         <label for="projduration">M&E Budget *:</label>
-         <div class="form-line">
-            <input type="number"  name="mne_budget" id="mne_budget" min="0" onchange="distribute_project_cost(2)" onkeyup="distribute_project_cost(2)" max="' . $project_cost . '" placeholder="Enter M&E budget" class="form-control" value="" class="form-control" required/>
-         </div>
-      </div>
-      <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
          <label for="projduration">Administrative Budget *:</label>
          <div class="form-line">
             <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
@@ -298,11 +292,13 @@ if (isset($_POST["approveitem"])) {
    $query_rsProjects->execute();
    $row_rsProjects = $query_rsProjects->fetch();
    $totalRows_rsProjects = $query_rsProjects->rowCount();
+   $project = $row_rsProjects['projname'];
    $projplanstatus = $row_rsProjects['projplanstatus'];
    $projcategory = $row_rsProjects['projcategory'];
    $projcost = $row_rsProjects['projcost'];
    $progid = $row_rsProjects['progid'];
    $project_status = $projcategory == 1 ? 3 : 1;
+
 
    //fetch program details
    $query_item = $db->prepare("SELECT * FROM tbl_programs WHERE tbl_programs.progid = '$progid'");
@@ -371,27 +367,26 @@ if (isset($_POST["approveitem"])) {
       $projbudget = isset($_POST['projapprovedbudget']) ? $_POST['projapprovedbudget'] : $projcost;
       $stage = 1;
       $status = 1;
-      $mne_budget = $_POST['mne_budget'];
       $direct_cost = $_POST['direct_budget'];
       $administrative_cost = $_POST['administrative_budget'];
 
       $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created) VALUES(:projid, :year,:amount, :created_by, :date_created)");
       $result1  = $insertSQL1->execute(array(":projid" => $projid, ":year" => $year, ":amount" => $projbudget, ":created_by" => $user_name, ":date_created" => $date));
 
-      $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, mne_budget=:mne_budget, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-      $approveItemQuery->execute(array(":project_status" => $project_status, ":mne_budget" => $mne_budget, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
+      $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+      $approveItemQuery->execute(array(":project_status" => $project_status, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
 
       if ($program_type == 1) {
          $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:approved_date WHERE projid=:projid");
          $approved = $approveQuery->execute(array(':status' => $status, ":approved_by" => $user_name, ":approved_date" => $date, ':projid' => $projid));
       }
 
-
-      $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
-      $result = $sql->execute(array(":projid" => $projid, ':stage' => 0, ':sub_stage' => 3, ':created_by' => $user_name, ':created_at' => $date));
-
       if ($approved) {
-         $valid['success'] = true;
+         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+         $result = $sql->execute(array(":projid" => $projid, ':stage' => 1, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
+         $mail = new Email();
+         $response =  $mail->send_master_data_email($projid, 6, '');
+         $valid['success'] = $response;
          $valid['messages'] = "Successfully Approved Project";
       } else {
          $valid['success'] = false;
@@ -424,6 +419,7 @@ if (isset($_POST['unapproveitem'])) {
    $approved = $approveItemQuery->execute(array(":approved" => 0, ":stage" => 0, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
 
    if ($approved) {
+
       $valid['success'] = true;
       $valid['messages'] = "Successfully unapproved Project";
    } else {
@@ -436,7 +432,7 @@ if (isset($_POST['unapproveitem'])) {
 
 if (isset($_GET['get_finacier'])) {
    $source_category = $_GET['source_category'];
-   $query_rsFunder = $db->prepare("SELECT f.id, f.financier FROM tbl_financiers f INNER JOIN tbl_funding_type t ON t.category = f.id WHERE t.id=:source_category");
+   $query_rsFunder = $db->prepare("SELECT f.id, f.financier FROM tbl_financiers f INNER JOIN tbl_funding_type t ON t.id = f.type WHERE active=1 AND  t.id=:source_category ");
    $query_rsFunder->execute(array(":source_category" => $source_category));
    $totalRows_rsFunder = $query_rsFunder->rowCount();
 

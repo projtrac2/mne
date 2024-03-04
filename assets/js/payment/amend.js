@@ -109,7 +109,7 @@ function get_sites() {
             success: function (response) {
                 if (response.success) {
                     var mapping_type = response.mapping_type;
-                    if (mapping_type == 1 || mapping_type == 3) {
+                    if (mapping_type == 1 ) {
                         $("#site_div").show();
                         $("#site_id").html(response.sites);
                     } else {

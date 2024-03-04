@@ -2,13 +2,13 @@
 require('includes/head.php');
 
 if ($permission) {
-    try {
-        if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
+	try {
+		if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
 			$encoded_userid = $_GET["ptid"];
 			$decode_userid = base64_decode($encoded_userid);
 			$userid_array = explode("projmbr", $decode_userid);
 			$userid = $userid_array[1];
-            if (isset($_GET["action"]) && !empty($_GET["action"])) {
+			if (isset($_GET["action"]) && !empty($_GET["action"])) {
 				$query_user = $db->prepare("SELECT pt_id FROM users WHERE userid='$userid'");
 				$query_user->execute();
 				$row_user = $query_user->fetch();
@@ -19,11 +19,11 @@ if ($permission) {
 					$query_user_projects->execute();
 					$total_user_projects_count = $query_user_projects->rowCount();
 
-					if($total_user_projects_count == 0){
+					if ($total_user_projects_count == 0) {
 						$disable_user = $db->prepare("UPDATE tbl_projteam2 SET disabled = 1 WHERE ptid='$ptid'");
 						$disabled = $disable_user->execute();
 
-						if($disabled){
+						if ($disabled) {
 							$msg = 'You have successfully disabled the user!';
 							$results =
 								"<script type=\"text/javascript\">
@@ -39,7 +39,7 @@ if ($permission) {
 								}, 2000);
 							</script>";
 						}
-					}else{
+					} else {
 						$msg = 'Sorry you cannot disable this user, has assigned projects!';
 						$results =
 							"<script type=\"text/javascript\">
@@ -51,13 +51,12 @@ if ($permission) {
 								'icon':'warning',
 								showConfirmButton: false });
 						</script>";
-
 					}
 				} else {
 					$activate_user = $db->prepare("UPDATE tbl_projteam2 SET disabled = 0 WHERE ptid='$ptid'");
 					$activate = $activate_user->execute();
 
-					if($activate){
+					if ($activate) {
 						$msg = 'You have successfully activated the user!';
 						$results =
 							"<script type=\"text/javascript\">
@@ -72,7 +71,7 @@ if ($permission) {
 								window.location.href = 'view-members.php';
 							}, 2000);
 						</script>";
-					}else{
+					} else {
 						$msg = 'Sorry you cannot activate this user, error occured!!';
 						$results =
 							"<script type=\"text/javascript\">
@@ -84,46 +83,45 @@ if ($permission) {
 								'icon':'warning',
 								showConfirmButton: false });
 						</script>";
-
 					}
 				}
-            }
-        }
-
-		if($designation == 6){
-			$where =" WHERE ministry = $department_id AND department=$section_id";
-		} elseif ($designation == 7){
-			$where =" WHERE ministry = $department_id AND department=$section_id AND directorate=$directorate_id";
-		} elseif ($designation == 1){
-			$where ="";
+			}
 		}
 
-        $query_rsPTeam = $db->prepare("SELECT *, t.designation AS designation FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id inner join tbl_pmdesignation d on d.moid=t.designation $where ORDER BY position ASC");
-        $query_rsPTeam->execute();
-        $totalRows_rsPTeam = $query_rsPTeam->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    } ?>
+		if ($designation == 6) {
+			$where = " WHERE ministry = $department_id AND department=$section_id";
+		} elseif ($designation == 7) {
+			$where = " WHERE ministry = $department_id AND department=$section_id AND directorate=$directorate_id";
+		} elseif ($designation == 1) {
+			$where = "";
+		}
 
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?= $pageTitle ?>
-                    <div class="btn-group" style="float:right">
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
-                </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- start body -->
+		$query_rsPTeam = $db->prepare("SELECT *, t.designation AS designation FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id inner join tbl_pmdesignation d on d.moid=t.designation $where ORDER BY position ASC");
+		$query_rsPTeam->execute();
+		$totalRows_rsPTeam = $query_rsPTeam->rowCount();
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	} ?>
+
+	<!-- start body  -->
+	<section class="content">
+		<div class="container-fluid">
+			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+				<h4 class="contentheader">
+					<?= $icon ?>
+					<?= $pageTitle ?>
+					<div class="btn-group" style="float:right">
+					</div>
+				</h4>
+			</div>
+			<div class="row clearfix">
+				<div class="block-header">
+					<?= $results; ?>
+				</div>
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<div class="card">
+						<div class="body">
+							<!-- start body -->
 							<div class="table-responsive">
 								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
 									<thead>
@@ -144,6 +142,51 @@ if ($permission) {
 									<tbody>
 										<!-- =========================================== -->
 										<?php
+										function get_department_list($user_id, $department_id)
+										{
+											global $db;
+											$workflow_stage = 10;
+											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector<>:department_id GROUP BY m.projid");
+											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":department_id" => $department_id));
+											$technical_projects = $query_rsNoPrj->rowCount();
+
+											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id ORDER BY p.projid DESC");
+											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id));
+											$department_projects = $query_rsProjects->rowCount();
+
+											return $technical_projects + $department_projects;
+										}
+
+										function get_section_list($user_id, $section_id)
+										{
+											global $db;
+											$workflow_stage = 10;
+											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept<>:section_id GROUP BY m.projid");
+											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":section_id" => $section_id));
+											$technical_projects = $query_rsNoPrj->rowCount();
+
+											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id ORDER BY p.projid DESC");
+											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id));
+											$section_projects = $query_rsProjects->rowCount();
+											return $technical_projects + $section_projects;
+										}
+
+										function get_directorate_list($user_id, $directorate_id)
+										{
+											global $db;
+											$workflow_stage = 10;
+											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate<>:directorate_id GROUP BY m.projid");
+											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":directorate_id" => $directorate_id));
+											$technical_projects = $query_rsNoPrj->rowCount();
+
+											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id ORDER BY p.projid DESC");
+											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id));
+											$directorate_projects = $query_rsProjects->rowCount();
+											return $technical_projects + $directorate_projects;
+										}
+
+
+
 										while ($row_rsPTeam = $query_rsPTeam->fetch()) {
 											$mbrid = $row_rsPTeam['userid'];
 											$titleid = $row_rsPTeam['title'];
@@ -154,10 +197,19 @@ if ($permission) {
 											$avail = $row_rsPTeam["availability"];
 											$disabled = $row_rsPTeam["disabled"];
 
-											$query_rsNoPrj = $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible='$mbrid' GROUP BY projid");
-											$query_rsNoPrj->execute();
+
+											$query_rsNoPrj = $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible=:responsible AND team_type=4 GROUP BY projid");
+											$query_rsNoPrj->execute(array(":responsible" => $mbrid));
 											$row_num = $query_rsNoPrj->fetch();
 											$totalRows_rsNoPrj = $query_rsNoPrj->rowCount();
+
+											if ($desig == 7) {
+												$totalRows_rsNoPrj =  get_directorate_list($mbrid, $directorateid);
+											} else if ($desig == 6) {
+												$totalRows_rsNoPrj = get_section_list($mbrid, $dept);
+											} else if ($desig == 5) {
+												$totalRows_rsNoPrj = get_department_list($mbrid, $mnst);
+											}
 
 											$query_title = $db->prepare("SELECT title FROM tbl_titles WHERE id='$titleid'");
 											$query_title->execute();
@@ -170,7 +222,7 @@ if ($permission) {
 											$projtmid = base64_encode("projmbr{$mbrid}");
 
 
-											$numberofprojects = '<a href="view-member-projects.php?mbrid='.$projtmid.'" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">'.$totalRows_rsNoPrj.'</a>';
+											$numberofprojects = '<a href="view-member-projects.php?mbrid=' . $projtmid . '" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">' . $totalRows_rsNoPrj . '</a>';
 
 											if ($mnst == 0) {
 												$ministry = "All " . $ministrylabelplural;
@@ -204,10 +256,10 @@ if ($permission) {
 											}
 
 
-											if($disabled == 1){
+											if ($disabled == 1) {
 												$disabledstyle = ';background-color:orange; color:white';
 												$availability = "<font color='#FF5722'>Unavailable</font>";
-											} else{
+											} else {
 												$disabledstyle = "";
 												if ($avail == 0) {
 													$availability = "<font color='#FF5722'>Unavailable</font>";
@@ -216,16 +268,16 @@ if ($permission) {
 												}
 											}
 
-											?>
-											<tr style="border-bottom:thin solid #EEE <?=$disabledstyle?>">
+										?>
+											<tr style="border-bottom:thin solid #EEE <?= $disabledstyle ?>">
 												<td align="center"><img src="<?php echo $row_rsPTeam['floc']; ?>" alt="" style="width:30px; height:30px; margin-bottom:0px" /></td>
-												<td><?php echo $row_title['title'].'.'.$row_rsPTeam['fullname'] ?></td>
+												<td><?php echo $row_title['title'] . '.' . $row_rsPTeam['fullname'] ?></td>
 												<td><?php echo ($totalRows_rsPMDesignation > 0) ? $row_rsPMDesignation['designation'] : ""; ?></td>
 												<td><?php echo $availability; ?></td>
-												<td><?php echo $ministry; ?></td>
+												<td><?php echo $ministry . $mnst ; ?></td>
 												<td><?php echo $department; ?></td>
 												<td><?php echo $directorate; ?></td>
-												<td align="center"><span class="badge bg-purple"><?=$numberofprojects?></span></td>
+												<td align="center"><span class="badge bg-purple"><?= $numberofprojects ?></span></td>
 												<td align="center">
 													<div class="btn-group">
 														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
@@ -233,29 +285,29 @@ if ($permission) {
 														</button>
 														<ul class="dropdown-menu">
 															<li>
-																<a type="button" href="view-member-info.php?staff=<?=$projtmid?>"><i class="fa fa-plus-square"></i> Manage</a>
+																<a type="button" href="view-member-info.php?staff=<?= $projtmid ?>"><i class="fa fa-plus-square"></i> Manage</a>
 															</li>
 															<?php
 															if (in_array("update", $page_actions)) {
 															?>
 																<li>
-																	<a type="button" href="add-member.php?action=1&ptid=<?=$projtmid?>"><i class="glyphicon glyphicon-edit"></i> Edit </a>
+																	<a type="button" href="add-member.php?action=1&ptid=<?= $projtmid ?>"><i class="glyphicon glyphicon-edit"></i> Edit </a>
 																</li>
-															<?php
+																<?php
 															}
 															if (in_array("delete", $page_actions)) {
-																if ($disabled == 1){
-																	?>
+																if ($disabled == 1) {
+																?>
 																	<li>
-																		<a type="button" href="view-members.php?action=1&ptid=<?=$projtmid?>" onclick="return confirm('Are you sure you want to activate this user?')"><i class="glyphicon glyphicon-trash"></i> Activate </a>
-																	</li>
-																	<?php
-																} else {
-																	?>
-																	<li>
-																		<a type="button" href="view-members.php?action=2&ptid=<?=$projtmid?>" onclick="return confirm('Are you sure you want to deactivate this user?')"><i class="glyphicon glyphicon-trash"></i> Deactivate </a>
+																		<a type="button" href="view-members.php?action=1&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to activate this user?')"><i class="glyphicon glyphicon-trash"></i> Activate </a>
 																	</li>
 																<?php
+																} else {
+																?>
+																	<li>
+																		<a type="button" href="view-members.php?action=2&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to deactivate this user?')"><i class="glyphicon glyphicon-trash"></i> Deactivate </a>
+																	</li>
+															<?php
 																}
 															}
 															?>
@@ -263,22 +315,22 @@ if ($permission) {
 													</div>
 												</td>
 											</tr>
-											<?php
+										<?php
 										} ?>
 									</tbody>
 								</table>
 							</div>
-                            <!-- end body -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-    </section>
-    <!-- end body  -->
+							<!-- end body -->
+						</div>
+					</div>
+				</div>
+			</div>
+	</section>
+	<!-- end body  -->
 <?php
 } else {
-    $results =  restriction();
-    echo $results;
+	$results =  restriction();
+	echo $results;
 }
 require('includes/footer.php');
 ?>

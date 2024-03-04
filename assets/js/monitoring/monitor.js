@@ -99,7 +99,7 @@ function get_milestones() {
 
                     var mapping_type = output_details.indicator_mapping_type;
                     var output_type = 1;
-                    if (mapping_type == 1 || mapping_type == 3) {
+                    if (mapping_type == 1) {
                         var sites = response.sites;
                         $("#site_div").show();
                         $("#site").html(sites);

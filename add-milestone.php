@@ -36,59 +36,73 @@ if ($permission) {
             $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid ");
             $query_rsMilestone->execute(array(":projid" => $projid));
             $totalRows_rsMilestone = $query_rsMilestone->rowCount();
-            $condition = $test = [];
+            $condition  = [];
             if ($totalRows_rsMilestone > 0) {
                 while ($row_rsMilestone = $query_rsMilestone->fetch()) {
                     $milestone_id = $row_rsMilestone['id'];
-                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_milestone_outputs WHERE milestone_id=:milestone_id");
-                    $query_rsOutput->execute(array(":milestone_id" => $milestone_id));
-                    $totalRows_rsOutput = $query_rsOutput->rowCount();
-                    if ($totalRows_rsOutput > 0) {
-                        while ($row_rsOutput = $query_rsOutput->fetch()) {
-                            $output_id = $row_rsOutput['output_id'];
-                            $query_rsMl =  $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE output_id =:output_id AND milestone_id=:milestone_id");
-                            $query_rsMl->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
+                    $milestone_type = $row_rsMilestone['milestone_type'];
+                    if ($milestone_type == 1) {
+                        $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_milestone_outputs WHERE milestone_id=:milestone_id");
+                        $query_rsOutput->execute(array(":milestone_id" => $milestone_id));
+                        $totalRows_rsOutput = $query_rsOutput->rowCount();
+                        if ($totalRows_rsOutput > 0) {
+                            while ($row_rsOutput = $query_rsOutput->fetch()) {
+                                $output_id = $row_rsOutput['output_id'];
+                                $query_rsMl =  $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE output_id =:output_id AND milestone_id=:milestone_id");
+                                $query_rsMl->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
+                                $Rows_rsMl = $query_rsMl->rowCount();
+                                $condition[] = $Rows_rsMl > 0 ? true : false;
+                            }
+                        } else {
+                            $condition[] = false;
+                        }
+                    } else {
+                        $query_Output =  $db->prepare("SELECT total_target, id FROM tbl_project_details WHERE projid =:projid");
+                        $query_Output->execute(array(":projid" => $projid));
+                        $total_Output = $query_Output->rowCount();
+
+                        if ($total_Output > 0) {
+                            while ($row_rsOutput = $query_Output->fetch()) {
+                                $output_target = $row_rsOutput['total_target'];
+                                $output_id = $row_rsOutput['id'];
+                                $query_rsMl =  $db->prepare("SELECT SUM(target) as target FROM tbl_project_milestone_outputs WHERE output_id =:output_id");
+                                $query_rsMl->execute(array(":output_id" => $output_id));
+                                $Rows_rsMl = $query_rsMl->fetch();
+                                $target_used = !is_null($Rows_rsMl['target'])  ? $Rows_rsMl['target'] : 0;
+                                $condition[] = $output_target == $target_used ? true : false;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            $query_Output =  $db->prepare("SELECT total_target, id FROM tbl_project_details WHERE projid =:projid");
+            $query_Output->execute(array(":projid" => $projid));
+            $total_Output = $query_Output->rowCount();
+
+            if ($total_Output > 0) {
+                while ($row_rsOutput = $query_Output->fetch()) {
+                    $output_target = $row_rsOutput['total_target'];
+                    $output_id = $row_rsOutput['id'];
+                    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                    $query_rsTasks->execute(array(":output_id" => $output_id));
+                    $totalRows_rsTasks = $query_rsTasks->rowCount();
+
+                    if ($totalRows_rsTasks > 0) {
+                        while ($row = $query_rsTasks->fetch()) {
+                            $subtask_id = $row['tkid'];
+                            $query_rsMl =  $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE subtask_id =:subtask_id");
+                            $query_rsMl->execute(array(":subtask_id" => $subtask_id));
                             $Rows_rsMl = $query_rsMl->rowCount();
                             $condition[] = $Rows_rsMl > 0 ? true : false;
                         }
-                    } else {
-                        $condition[] = false;
                     }
                 }
             }
 
 
-
-            $max_target = [];
-            $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid AND milestone_type = 2");
-            $query_rsMilestone->execute(array(":projid" => $projid));
-            $totalRows_rsMilestone = $query_rsMilestone->rowCount();
-
-            if ($totalRows_rsMilestone > 0) {
-                $query_Output =  $db->prepare("SELECT total_target, id FROM tbl_project_details WHERE projid =:projid");
-                $query_Output->execute(array(":projid" => $projid));
-                $total_Output = $query_Output->rowCount();
-
-                if ($total_Output > 0) {
-                    while ($row_rsOutput = $query_Output->fetch()) {
-                        $output_target = $row_rsOutput['total_target'];
-                        $output_id = $row_rsOutput['id'];
-                        $query_rsMl =  $db->prepare("SELECT SUM(target) as target FROM tbl_project_milestone_outputs WHERE output_id =:output_id");
-                        $query_rsMl->execute(array(":output_id" => $output_id));
-                        $Rows_rsMl = $query_rsMl->fetch();
-                        $target_used = !is_null($Rows_rsMl['target'])  ? $Rows_rsMl['target'] : 0;
-                        $max_target[] = $output_target == $target_used ? true : false;
-                    }
-                }
-            }
-
-            $query_rsMilestone1 = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid AND (milestone_type = 2 OR milestone_type =1)");
-            $query_rsMilestone1->execute(array(":projid" => $projid));
-            $totalRows_rsMilestone1 = $query_rsMilestone1->rowCount();
-
-            $condition2 = !in_array(false, $condition) ? true : false;
-            $condition1 = !in_array(false, $max_target) ? true : false;
-            return ($condition2 && $condition1)  && $totalRows_rsMilestone1 > 0 ? true : false;
+            return  !in_array(false, $condition) ? true : false;
         }
 
         $approve = $project_sub_stage > 1 ? true : false;

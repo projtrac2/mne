@@ -73,7 +73,7 @@ if ($permission) {
                                  </thead>
                                  <tbody>
                                     <?php
-                                    $query_rsprojects =  $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage > 7 AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) ");
+                                    $query_rsprojects =  $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage > 7 AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11 OR projstatus=5) ");
                                     $query_rsprojects->execute();
                                     $total_rsprojects = $query_rsprojects->rowCount();
                                     if ($total_rsprojects > 0) {

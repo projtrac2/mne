@@ -2,7 +2,9 @@
 $page = "view";
 require('includes/head.php');
 include_once("Models/User.php");
+include_once("Models/Email.php");
 $user = new User();
+
 if (isset($_POST["availability"]) && $_POST["availability"] == 0) {
 	$reason = $_POST['reason'];
 	$duration = $_POST['duration'];
@@ -23,6 +25,7 @@ if (isset($_POST["availability"]) && $_POST["availability"] == 0) {
 			$queryreassign->execute(array(":rdate" => $current_date, ":ptid" => $roleowner, ":projid" => $projid));
 		}
 	}
+
 	if ($duration > 0) {
 		$msg = 'Role successfully transferred!';
 		$results = "<script type=\"text/javascript\">
@@ -123,10 +126,10 @@ if (isset($_POST['change_password']) && !empty($_POST['change_password'])) {
 
 	if ($confirm_password == $new_password) {
 		$auth = new Auth();
+		$user_details = $user->get_user($user_name);
 		$hashed_password = $user_details->password;
 		if (password_verify($old_password, $hashed_password)) {
 			$change_pass = $auth->change_password($user_name, $new_password);
-
 			if ($change_pass) {
 				$results = alert_message("Success", "Successfully changed password", "success", "logout.php");
 			} else {
@@ -156,6 +159,7 @@ function get_sector($dept)
 		return false;
 	}
 }
+
 $user_details = $user->get_user($user_name);
 $sector_id = $user_details->ministry;
 $department_id = $user_details->department;

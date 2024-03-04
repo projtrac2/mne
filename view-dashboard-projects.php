@@ -77,16 +77,16 @@ if ($permission) {
             } else {
                 if ($level1 != null) {
                     if ($level2 != null) {
-                        if ($level3 != null){
+                        if ($level3 != null) {
                             // select for only level 1, 2 and 3
-                            $widget_array = widgets($sql = null, $level1, $level2, $level3, $prjstatus, $accesslevel,$program_type);
+                            $widget_array = widgets($sql = null, $level1, $level2, $level3, $prjstatus, $accesslevel, $program_type);
                         } else {
                             // select for only level 1 and 2
-                            $widget_array =  widgets($sql = null, $level1, $level2, $level3 = null, $prjstatus, $accesslevel,$program_type);
+                            $widget_array =  widgets($sql = null, $level1, $level2, $level3 = null, $prjstatus, $accesslevel, $program_type);
                         }
                     } else {
                         // select for only level 1
-                        $widget_array = widgets($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus, $accesslevel,$program_type);
+                        $widget_array = widgets($sql = null, $level1, $level2 = null, $level3 = null, $prjstatus, $accesslevel, $program_type);
                     }
                 }
             }
@@ -120,10 +120,9 @@ if ($permission) {
 
                     if ($level1 != null) {
                         if ($level2 != null) {
-                                if (in_array($level2, $projlga)) {
-                                    $projids_array[] = $projid;
-                                }
-
+                            if (in_array($level2, $projlga)) {
+                                $projids_array[] = $projid;
+                            }
                         } else {
                             if (in_array($level1, $projcommunity)) {
                                 $projids_array[] = $projid;
@@ -174,6 +173,8 @@ if ($permission) {
             $widget_data_indipendent = widgets($query = NULL, $prjsc = NULL, $prjward = NULL, $prjloc = NULL, $prjstatus, $accesslevel, 0);
             $ind_projects = (count($widget_data_indipendent) > 0) ?  array_unique($widget_data_indipendent) : array();
         }
+
+        $_SESSION['back_url'] = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -187,7 +188,7 @@ if ($permission) {
                     <?= $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
-                            <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
+                            <button onclick="location.href='dashboard.php'" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
                                 Go Back
                             </button>
                         </div>
@@ -227,7 +228,7 @@ if ($permission) {
                                                         <th width="8%"><strong>Start Date</strong></th>
                                                         <th width="8%"><strong>End Date</strong></th>
                                                         <th width="10%"><strong>Status & Progress(%)</strong></th>
-                                                        <th width="9%"><strong>Location</strong></th>
+                                                        <th width="9%"><strong> <?= $level2label ?></strong></th>
                                                         <th width="7%"><strong>Issues</strong></th>
                                                         <th width="9%"><strong>Implementer</strong></th>
                                                     </tr>
@@ -253,30 +254,30 @@ if ($permission) {
                                                             $fscyear = $detail['projfscyear'];
                                                             $row_progid = $detail['progid'];
                                                             $projcategory =  $detail['projcategory'];
-                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory),2);
-															$projectid = base64_encode("projid54321{$projid}");
-															$project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
-															$project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
+                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
+                                                            $projectid = base64_encode("projid54321{$projid}");
+                                                            $project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
+                                                            $project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
 
-															if ($projcategory == 2 && $projstage > 4) {
-																$query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
-																$query_tender_details->execute(array(":projid" => $projid));
-																$rows_tender_details = $query_tender_details->fetch();
+                                                            if ($projcategory == 2 && $projstage > 4) {
+                                                                $query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
+                                                                $query_tender_details->execute(array(":projid" => $projid));
+                                                                $rows_tender_details = $query_tender_details->fetch();
                                                                 $total_tender_details = $query_tender_details->rowCount();
                                                                 if ($total_tender_details > 0) {
-																	$project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
-																	$project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
-																}
-															} elseif ($projcategory == 1 && $projstage > 8) {
-																$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
-																$query_rsTask_Start_Dates->execute(array(':projid' => $projid));
-																$rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+                                                                    $project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
+                                                                    $project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
+                                                                }
+                                                            } elseif ($projcategory == 1 && $projstage > 8) {
+                                                                $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
+                                                                $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+                                                                $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
                                                                 $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                                 if ($total_rsTask_Start_Dates > 0) {
-																	$project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
-																	$project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
-																}
-															}
+                                                                    $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
+                                                                    $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
+                                                                }
+                                                            }
 
                                                             $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
                                                             $query_rsSect->execute(array(":progid" => $progid));
@@ -297,19 +298,19 @@ if ($permission) {
 
                                                             $projcontractor = "In House";
 
-															if($projcategory == 2){
-																$query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
-																$query_contractor->execute(array(":projid" => $projid));
-																$row_contractor = $query_contractor->fetch();
-																$totalRows_contractor = $query_contractor->rowCount();
+                                                            if ($projcategory == 2) {
+                                                                $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
+                                                                $query_contractor->execute(array(":projid" => $projid));
+                                                                $row_contractor = $query_contractor->fetch();
+                                                                $totalRows_contractor = $query_contractor->rowCount();
 
-																if ($totalRows_contractor > 0) {
-																	$contractor = $row_contractor['contractor_name'];
-																	$projcontractor_id = $row_contractor['contrid'];
-																	$projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
-																	$projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
-																}
-															}
+                                                                if ($totalRows_contractor > 0) {
+                                                                    $contractor = $row_contractor['contractor_name'];
+                                                                    $projcontractor_id = $row_contractor['contrid'];
+                                                                    $projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
+                                                                    $projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
+                                                                }
+                                                            }
 
 
                                                             $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
@@ -354,17 +355,17 @@ if ($permission) {
 
                                                             $projlastmn = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : '';
 
-															?>
+                                                    ?>
                                                             <tr id="rows">
                                                                 <td width="4%"><?php echo $sn; ?></td>
                                                                 <td width="25%" style="padding-right:0px; padding-left:0px; padding-top:0px">
                                                                     <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
                                                                         <b>Code:</b> <?= $projcode ?><br />
-																		<b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
+                                                                        <b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
                                                                     </div>
                                                                 </td>
                                                                 <td width="12%"><?= $sector ?></td>
-                                                                <td width="8%"><?= number_format($projcost, 2)?></td>
+                                                                <td width="8%"><?= number_format($projcost, 2) ?></td>
                                                                 <td width="8%"><?= $project_start_date; ?></td>
                                                                 <td width="8%"><?= $project_end_date; ?></td>
                                                                 <td width="10%" style="padding-right:0px; padding-left:0px">
@@ -408,7 +409,7 @@ if ($permission) {
                                                         <th width="8%"><strong>Start Date</strong></th>
                                                         <th width="8%"><strong>End Date</strong></th>
                                                         <th width="10%"><strong>Status & Progress(%)</strong></th>
-                                                        <th width="9%"><strong>Location</strong></th>
+                                                        <th width="9%"><strong> <?= $level2label ?></strong></th>
                                                         <th width="7%"><strong>Issues</strong></th>
                                                         <th width="9%"><strong>Implementer</strong></th>
                                                     </tr>
@@ -435,30 +436,30 @@ if ($permission) {
                                                             $fscyear = $detail['projfscyear'];
                                                             $row_progid = $detail['progid'];
                                                             $projcategory =  $detail['projcategory'];
-                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory),2);
-															$projectid = base64_encode("projid54321{$projid}");
-															$project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
-															$project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
+                                                            $percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
+                                                            $projectid = base64_encode("projid54321{$projid}");
+                                                            $project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
+                                                            $project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
 
-															if ($projcategory == 2 && $projstage > 4) {
-																$query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
-																$query_tender_details->execute(array(":projid" => $projid));
-																$rows_tender_details = $query_tender_details->fetch();
+                                                            if ($projcategory == 2 && $projstage > 4) {
+                                                                $query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
+                                                                $query_tender_details->execute(array(":projid" => $projid));
+                                                                $rows_tender_details = $query_tender_details->fetch();
                                                                 $total_tender_details = $query_tender_details->rowCount();
                                                                 if ($total_tender_details > 0) {
-																	$project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
-																	$project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
-																}
-															} elseif ($projcategory == 1 && $projstage > 8) {
-																$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
-																$query_rsTask_Start_Dates->execute(array(':projid' => $projid));
-																$rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+                                                                    $project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
+                                                                    $project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
+                                                                }
+                                                            } elseif ($projcategory == 1 && $projstage > 8) {
+                                                                $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
+                                                                $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+                                                                $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
                                                                 $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                                 if ($total_rsTask_Start_Dates > 0) {
-																	$project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
-																	$project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
-																}
-															}
+                                                                    $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
+                                                                    $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
+                                                                }
+                                                            }
 
                                                             $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
                                                             $query_rsSect->execute(array(":progid" => $progid));
@@ -479,19 +480,19 @@ if ($permission) {
 
                                                             $projcontractor = "In House";
 
-															if($projcategory == 2){
-																$query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
-																$query_contractor->execute(array(":projid" => $projid));
-																$row_contractor = $query_contractor->fetch();
-																$totalRows_contractor = $query_contractor->rowCount();
+                                                            if ($projcategory == 2) {
+                                                                $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
+                                                                $query_contractor->execute(array(":projid" => $projid));
+                                                                $row_contractor = $query_contractor->fetch();
+                                                                $totalRows_contractor = $query_contractor->rowCount();
 
-																if ($totalRows_contractor > 0) {
-																	$contractor = $row_contractor['contractor_name'];
-																	$projcontractor_id = $row_contractor['contrid'];
-																	$projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
-																	$projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
-																}
-															}
+                                                                if ($totalRows_contractor > 0) {
+                                                                    $contractor = $row_contractor['contractor_name'];
+                                                                    $projcontractor_id = $row_contractor['contrid'];
+                                                                    $projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
+                                                                    $projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
+                                                                }
+                                                            }
 
                                                             $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
                                                             $query_Projstatus->execute(array(":projstatus" => $projstatus));
@@ -542,7 +543,7 @@ if ($permission) {
                                                                 <td width="25%" style="padding-right:0px; padding-left:0px; padding-top:0px">
                                                                     <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
                                                                         <b>Code:</b> <?= $projcode ?><br />
-																		<b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
+                                                                        <b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
                                                                     </div>
                                                                 </td>
                                                                 <td width="12%"><?= $sector ?></td>
@@ -568,7 +569,7 @@ if ($permission) {
                                                                 </td>
                                                                 <td width="9%"><?php echo $projcontractor; ?></td>
                                                             </tr>
-															<?php
+                                                    <?php
                                                         }
                                                     }
                                                     ?>

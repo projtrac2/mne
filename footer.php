@@ -1,74 +1,26 @@
-                  </div>
- 				</div>
- 			</div>
- 		</div>
- 	</section>
+<?php
 
-	<!-- bootstrap js  -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
-	<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+include_once 'projtrac-dashboard/resource/Database.php';
+include_once 'projtrac-dashboard/resource/utilities.php';
+include_once("includes/system-labels.php");
 
-	<!-- Bootstrap Core Js -->
-	<!-- <script src="projtrac-dashboard/plugins/bootstrap/js/bootstrap.js"></script> -->
 
-	<!-- Select Plugin Js -->
-	<!-- <script src="projtrac-dashboard/plugins/bootstrap-select/js/bootstrap-select.js"></script> -->
+$query_all_projects = $db->prepare("SELECT * FROM tbl_projects WHERE EXTRACT(YEAR FROM projenddate) = 1970 ");
+$query_all_projects->execute();
+$total_all_projects_count = $query_all_projects->rowCount();
 
-	<!-- Multi Select Plugin Js -->
-	<script src="projtrac-dashboard/plugins/multi-select/js/jquery.multi-select.js"></script>
+if ($total_all_projects_count > 0) {
+	while ($row_all_projects = $query_all_projects->fetch()) {
+		$projstartdate = $row_all_projects['projstartdate'];
+		$projduration = $row_all_projects['projduration'];
+		$projid = $row_all_projects['projid'];
+		$projenddate = date('Y-m-d', strtotime($projstartdate . ' + ' . $projduration . ' days'));
 
-	<!-- Slimscroll Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
-
-	<!-- Waves Effect Plugin Js -->
-	<script src="projtrac-dashboard/plugins/node-waves/waves.js"></script>
-
-	<!-- Sweet Alert Plugin Js -->
-	<script src="projtrac-dashboard/plugins/sweetalert/sweetalert.min.js"></script>
-
-	<!-- Sparkline Chart Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-sparkline/jquery.sparkline.js"></script>
-
-	<!-- Bootstrap Colorpicker Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.js"></script>
-
-	<!-- Input Mask Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-inputmask/jquery.inputmask.bundle.js"></script>
-
-	<!-- Jquery Spinner Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-spinner/js/jquery.spinner.js"></script>
-
-	<!-- Bootstrap Tags Input Plugin Js -->
-	<script src="projtrac-dashboard/plugins/bootstrap-tagsinput/bootstrap-tagsinput.js"></script>
-
-	<!-- noUISlider Plugin Js -->
-	<script src="projtrac-dashboard/plugins/nouislider/nouislider.js"></script>
-
-	<!-- Jquery Knob Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-knob/jquery.knob.min.js"></script>
-
-	<!-- Jquery DataTable Plugin Js -->
-	<script src="projtrac-dashboard/plugins/jquery-datatable/jquery.dataTables.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.flash.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/jszip.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/pdfmake.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/vfs_fonts.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.html5.min.js"></script>
-	<script src="projtrac-dashboard/plugins/jquery-datatable/extensions/export/buttons.print.min.js"></script>
-
-	<!-- Custom Js -->
-	<script src="projtrac-dashboard/js/pages/tables/jquery-datatable.js"></script>
-	<script src="projtrac-dashboard/js/admin.js"></script>
-	<script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
-	<script src="projtrac-dashboard/js/pages/charts/jquery-knob.js"></script>
-
-	<!-- Demo Js -->
-	<script src="projtrac-dashboard/js/demo.js"></script>
-	<!-- Lighgallery -->
-
-</body>
-
-</html>
+		$sql = $db->prepare("UPDATE tbl_projects SET projenddate=:projenddate WHERE projid=:projid");
+		$results = $sql->execute(array(':projenddate' => $projenddate, ":projid" => $projid));
+	}
+}

@@ -240,10 +240,10 @@ if ($permission) {
                                                         </tr>
                                                         <tr>
                                                             <td>
-                                                                <input type="file" name="partnerattachment[]" multiple id="partnerattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
+                                                                <input type="file" name="partnerattachment[]" multiple id="partnerattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
                                                             </td>
                                                             <td>
-                                                                <input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control" placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
+                                                                <input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control" placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
                                                             </td>
                                                             <td></td>
                                                         </tr>

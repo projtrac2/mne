@@ -1,10 +1,8 @@
 const master_ajax_url = "ajax/master/index";
 $(document).ready(function () {
-
-    console.log(redirect_url);
     $("#assign_responsible").submit(function (e) {
         e.preventDefault();
-        $("#tag-form-submit").prop("disabled", true);
+        // $("#tag-form-submit").prop("disabled", true);
         $.ajax({
             type: "post",
             url: master_ajax_url,
@@ -17,7 +15,7 @@ $(document).ready(function () {
                     error_alert("Sorry record could not be saved");
                 }
                 $(".modal").each(function () {
-                    $(this).modal("hide");
+                    $(this).modal("hide"); 
                 });
                 setTimeout(() => {
                     window.location.reload(true);
@@ -25,7 +23,6 @@ $(document).ready(function () {
             }
         });
     });
-
 
     $("#submit_assign_form").submit(function (e) {
         e.preventDefault();
@@ -44,7 +41,6 @@ $(document).ready(function () {
                 $(".modal").each(function () {
                     $(this).modal("hide");
                 });
-                // manageItemTable.ajax.reload(null, true);
                 setTimeout(() => {
                     window.location.reload(true);
                 }, 3000);

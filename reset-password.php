@@ -1,4 +1,8 @@
 <?php
+
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 $token = (isset($_GET['token']) && !empty($_GET['token'])) ? $_GET['token'] : header("location:index.php");
 require 'vendor/autoload.php';
 require 'Models/Connection.php';
@@ -20,28 +24,30 @@ if (isset($_POST['resetpassword']) && $_POST['resetpassword'] == "Reset Password
   $user = $user_auth->get_user($email);
 
 
-  if ($user && $confirm_password === $password) {
 
+  if ($user && $confirm_password === $password) {
     $verify = $user_auth->verify_token($token);
+
     if ($verify) {
-      var_dump($verify);
       $reset = $user_auth->reset_password($email, $token, $password);
+      var_dump($reset);
+      return;
       if ($reset) {
-        $_SESSION["success"] =  "Successfully reset password";
-        header("location:index.php");
+        // $_SESSION["success"] =  "Successfully reset password";
+        // header("location:index.php");
       } else {
         $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong email address.";
-        header("location:reset-password.php?token=$token");
+        // header("location:reset-password.php?token=$token");
         return;
       }
     } else {
       $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong email address.";
-      header("location:reset-password.php?token=$token");
+      // header("location:reset-password.php?token=$token");
       return;
     }
   } else {
     $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong email address.";
-    header("location:reset-password.php?token=$token");
+    // header("location:reset-password.php?token=$token");
     return;
   }
 }
@@ -240,7 +246,7 @@ if (isset($_POST['resetpassword']) && $_POST['resetpassword'] == "Reset Password
                   <div class='alert alert-danger'>
                     <p class="errormsg">
                       <img src="images/error.png" alt="errormsg" />
-                      Your login attempt failed. You may have entered a wrong username or wrong password.
+                      <?= $_SESSION["errorMessage"] ?>
                     </p>
                   </div>
                 <?php

@@ -66,7 +66,7 @@ if ($permission && isset($_GET['projid'])) {
                             <?= $icon ?>
                             <?php echo $pageTitle ?>
                             <div class="btn-group" style="float:right">
-                                <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                                <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
                                     Go Back
                                 </a>
                             </div>

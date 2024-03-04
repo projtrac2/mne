@@ -159,7 +159,7 @@ try {
                 $query_rsMilestone_Outputs->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
                 $totalRows_rsMilestone_Outputs = $query_rsMilestone_Outputs->rowCount();
 
-                $query_rsSubtasks = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE milestone_id=:milestone_id ");
+                $query_rsSubtasks = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE milestone_id=:milestone_id  AND complete=0");
                 $query_rsSubtasks->execute(array(":milestone_id" => $milestone_id));
                 $totalRows_rsSubtasks = $query_rsSubtasks->rowCount();
 
@@ -236,7 +236,7 @@ try {
         $sites =  $milestones = $subtasks = '';
         if ($totalRows_rsOutputs > 0) {
             $milestones = get_output_milestones($projid, $output_id);
-            if ($mapping_type == 1 || $mapping_type == 3) {
+            if ($mapping_type == 1) {
                 $sites = get_sites($output_id);
             } else {
                 $subtasks = $milestones['project_type'] == 1  ? get_output_subtasks($output_id) : '';
@@ -334,6 +334,7 @@ try {
         $query_rsPlan->execute(array(":output_id" => $output_id, ':site_id' => $site_id));
         $totalRows_plan = $query_rsPlan->rowCount();
         $subtasks = '';
+
         if ($totalRows_plan > 0) {
             $count = 0;
             while ($Rows_plan = $query_rsPlan->fetch()) {

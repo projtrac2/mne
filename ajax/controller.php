@@ -6,8 +6,14 @@ error_reporting(E_ALL);
 include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 include_once("../../includes/system-labels.php");
+
+require '../../vendor/autoload.php';
+require '../../Models/Connection.php';
+require '../../Models/Email.php';
+
 $currentdate = date("Y-m-d");
 session_start();
+
 (!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
 
 $user_name = $_SESSION['MM_Username'];
@@ -26,35 +32,8 @@ $user_section = $section_id;
 $user_directorate = $directorate_id;
 $user_designation = $designation_id;
 
-
-// function update_project_stage($projid, $workflow_stage, $sub_stage)
-// {
-
-//     global $db, $today, $user_name;
-//     $sql = $db->prepare("UPDATE tbl_projects SET projstage=:projstage, proj_substage=:proj_substage WHERE  projid=:projid");
-//     $result  = $sql->execute(array(":projstage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
-
-//     if ($result) {
-//         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
-//         $result = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':created_by' => $user_name, ':created_at' => $today));
-//     }
-//     return $result;
-// }
-
-// function update_stage($projid, $workflow_stage)
-// {
-//     global $db;
-//     $sql = $db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority > :priority ORDER BY priority LIMIT 1");
-//     $sql->execute(array(":priority" => $workflow_stage));
-//     $row = $sql->fetch();
-//     $rows = $sql->rowCount();
-
-//     if ($rows > 0) {
-//         $workflow_stage = $rows > 0 ? $row['priority'] : $workflow_stage;
-//     }
-//     update_project_stage($projid, $workflow_stage, 0);
-// }
-
+$page_id = $_SESSION['page_id'];
+$mail = new Email();
 
 function get_page_details($designation_id, $path)
 {
@@ -65,8 +44,6 @@ function get_page_details($designation_id, $path)
     $rows_stmt = $stmt->rowCount();
     return $rows_stmt > 0 ? $row_stmt : false;
 }
-
-
 
 function view_record($department, $section, $directorate, $allow_read_records)
 {

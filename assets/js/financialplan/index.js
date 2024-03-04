@@ -75,8 +75,8 @@ function get_task_parameters(task_details) {
 }
 
 function add_budgetline(details) {
-$("#budget_lines_values_table").html(
-   `<tr>
+   $("#budget_lines_values_table").html(
+      `<tr>
       <td>
          <input type="text" name="order[]"  class="form-control sequence" id="order1">
       </td>
@@ -188,7 +188,7 @@ function calculate_total_cost(rowno) {
    total_cost = no_units * unit_cost;
    $(`#subtotal_cost${rowno}`).html(commaSeparateNumber(total_cost));
    $(`#subtotal_amount${rowno}`).val(total_cost);
-   
+
    var total_budget_line_cost = 0;
    $(`.subamount`).each(function () {
       total_budget_line_cost += ($(this).val() != "") ? parseFloat($(this).val()) : 0;
@@ -222,6 +222,7 @@ function calculate_subtotal(cost) {
          total_amount = total_amount + parseFloat($(this).val());
       }
    });
+
    var percentage = (total_amount / cost) * 100;
    $(`#psub_total_amount3`).val(commaSeparateNumber(total_amount));
    $(`#psub_total_percentage3`).val(percentage.toFixed(2));
@@ -269,7 +270,17 @@ function add_budget_costline() {
 // function to delete financiers row
 function delete_budget_costline(rowno) {
    $("#" + rowno).remove();
-   calculate_subtotal(rowno);
+   var cost_type = $("#cost_type").val();
+   var direct_cost = parseFloat($("#direct_cost").val());
+   if (cost_type == '1' || cost_type == '6') {
+      calculate_subtotal(parseFloat(direct_cost));
+   } else if (cost_type == '2') {
+      var administrative_cost = $("#administrative_cost").val();
+      if (administrative_cost != '') {
+         administrative_cost = parseFloat(administrative_cost);
+         calculate_subtotal(administrative_cost);
+      }
+   } 
 }
 
 function get_unit_of_measure(rowno) {

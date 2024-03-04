@@ -27,7 +27,7 @@ $(document).ready(function () {
     });
     $("#add_responsible").submit(function (e) {
         e.preventDefault();
-        $("#tag-form-submit").prop("disabled", true);
+        $("#responsible-form-submit").prop("disabled", true);
         $.ajax({
             type: "post",
             url: ajax_url,
@@ -39,7 +39,7 @@ $(document).ready(function () {
                 } else {
                     error_alert(response.message);
                 }
-                $("#tag-form-submit").prop("disabled", false);
+                $("#responsible-form-submit").prop("disabled", false);
                 setTimeout(() => {
                     location.reload(true);
                 }, 1000);
@@ -161,7 +161,6 @@ function risk_info(riskid) {
             dataType: "json",
             success: function (response) {
 				$('#risk_more_info').html(response.risk_more_info_body);
-				$('#measures_table').html(response.risk_measures);
             }
         });
 	}
@@ -228,6 +227,7 @@ function editrisk(riskid) {
             success: function (response) {
 				$('#risk_details').html(response.risk_more_info_body);
 				$('#tasks_table_body').html(response.risk_measures);
+				$('#riskid').val(response.riskid);
 				$('#store_risk').val("editrisk");
             }
         });
@@ -235,6 +235,10 @@ function editrisk(riskid) {
 };
 
 function delete_row_Items(rowno) {
+	/* const rowid = document.getElementById(rowno);
+	console.log("rowid:" + rowid);
+	rowid.remove(); */
+	
     $("#" + rowno).remove();
     number_table_items();
     if ($("#tasks_table_body tr").length == 1) {
@@ -267,8 +271,7 @@ function destroy_task(id) {
                         url: ajax_url,
                         data: {
                             destroy_item: "destroy_item",
-                            id: id,
-                            table: table
+                            id: id
                         },
                         dataType: "json",
                         success: function (response) {

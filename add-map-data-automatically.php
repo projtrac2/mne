@@ -54,7 +54,7 @@ if ($permission) {
         $state = [];
         $previous_lat = $previous_lng  = "";
         $action = '';
-        if ($mapping_type == 1 || $mapping_type == 3) {
+        if ($mapping_type == 1) {
             $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_state s ON s.id = d.state_id WHERE site_id = :id ");
             $querysSite->execute(array(":id" => $d_site_id));
             $totalsSite = $querysSite->rowCount();
@@ -177,15 +177,6 @@ if ($permission) {
                                         <li class="list-group-item"><strong>Site: </strong> <?= $site ?> </li>
                                         <li class="list-group-item"><strong>Mapping Type: </strong> <?= $map ?> </li>
                                     </ul>
-                                </div>
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="sbutton">
-                                    <?php
-                                    if ($mapping_type == 2 || $mapping_type == 3) {
-                                    ?>
-                                        <button class="btn btn-sm btn-sucess" onclick="pin_coordinates()">Pin</button>
-                                    <?php
-                                    }
-                                    ?>
                                 </div>
                             </div>
                         </div>

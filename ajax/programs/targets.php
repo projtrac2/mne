@@ -21,13 +21,14 @@ try {
                 $currentYear = date('Y');
             }
 
-            $thead_1 = $thead_2 = '';
+            $thead_1 = $thead_2 = $thead_3 = '';
             $table_body = "";
             $program_start_year  = $start_year;
             for ($j = 0; $j < $duration; $j++) {
                 $program_end_year  = $program_start_year + 1;
                 $thead_1  .= '<th colspan="4" class="text-center">' . $program_start_year . '/' . $program_end_year . '</th> <input type="hidden" name="progyear[]" value="' . $program_start_year . '" />';
                 $thead_2 .= '<th colspan="4" class="text-center">Target</th>';
+				$thead_3 .= '<th class="text-center">Q1</th><th class="text-center">Q2</th><th class="text-center">Q3</th><th class="text-center">Q4</th>';
                 $program_start_year++;
             }
 
@@ -74,10 +75,10 @@ try {
 
                         $table_body  .= '
                         <input type="hidden" name="program_start_year' . $outputid . '[]" value="' . $program_start_year . '">
-                        <td><input type="number" min="0" id="optarget" value="' . $targetQ1 . '" class="form-control" name="optargetq1' . $outputid . '[]" placeholder="Enter Q1 Target"></td>
-                        <td><input type="number" min="0" id="optarget" value="' . $targetQ2 . '" class="form-control" name="optargetq2' . $outputid . '[]" placeholder="Enter Q2 Target"></td>
-                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ3 . '" class="form-control" name="optargetq3' . $outputid . '[]" placeholder="Enter Q3 Target"></td>
-                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ4 . '" class="form-control" name="optargetq4' . $outputid . '[]" placeholder="Enter Q4 Target"></td>';
+                        <td><input type="number" min="0" id="optarget" value="' . $targetQ1 . '" class="form-control" name="optargetq1' . $outputid . '[]" size="40"></td>
+                        <td><input type="number" min="0" id="optarget" value="' . $targetQ2 . '" class="form-control" name="optargetq2' . $outputid . '[]" size="10"></td>
+                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ3 . '" class="form-control" name="optargetq3' . $outputid . '[]" size="30"></td>
+                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ4 . '" class="form-control" name="optargetq4' . $outputid . '[]" size="100"></td>';
                         $program_start_year++;
                     }
 
@@ -87,8 +88,7 @@ try {
             }
 
             $optable  = '
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
+					<div class="card clearfix">
 						<div class="header">
 							<div class="col-md-12" style="margin-top:5px; margin-bottom:5px">
 								<h5>
@@ -98,15 +98,18 @@ try {
 							</div>
 						</div>
 						<div class="body">
-							<div class=" class="col-md-12" table-responsive">
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 table-responsive">
 								<table class="table table-bordered table-striped table-hover" style="width:100%">
 									<thead>
                                         <tr>
-                                            <th rowspan="2">Output &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                            <th rowspan="3" width="20%">Output &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                                             ' . $thead_1 . '
                                         </tr>
                                         <tr>
                                         ' . $thead_2 . '
+                                        </tr>
+                                        <tr>
+                                        ' . $thead_3 . '
                                         </tr>
 									</thead>
 									<tbody>
@@ -115,8 +118,7 @@ try {
                                 </table>
                             </div>
 						</div>
-					</div>
-			</div>';
+					</div>';
         }
 
         echo $optable;

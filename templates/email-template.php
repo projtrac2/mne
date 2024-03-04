@@ -336,7 +336,7 @@ table[class=body] .img-responsive {
  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
 <tr>
  <td>';
-$body = $body . $content . ' 
+$body = $body . $content . '
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary">
  <tbody>
 <tr>

@@ -8,11 +8,13 @@ require('includes/head.php');
 
 if ($permission) {
 	try {
+		$back_url = $_SESSION['back_url'];
 		$query_rsMyP = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
 		$count_rsMyP = $query_rsMyP->rowCount();
 		$projstage = 0;
+		$projcat = 0;
 		if ($row_rsMyP) {
 			$projstatusid = $row_rsMyP["projstatus"];
 			$projcat = $row_rsMyP["projcategory"];
@@ -39,14 +41,6 @@ if ($permission) {
 			$row_rslga = $query_rslga->fetch();
 			$level2[] = $row_rslga['state'];
 		}
-
-		/* $level3  = [];
-		for ($i = 0; $i < count($projstate); $i++) {
-			$query_rslga = $db->prepare("SELECT * FROM tbl_state WHERE id ='$projstate[$i]'");
-			$query_rslga->execute();
-			$row_rslga = $query_rslga->fetch();
-			$level3[] = $row_rslga['state'];
-		} */
 
 		$query_prog = $db->prepare("SELECT progname FROM tbl_programs g inner join tbl_projects p on p.progid=g.progid WHERE p.projid = :projid");
 		$query_prog->execute(array(":projid" => $projid));
@@ -95,7 +89,7 @@ if ($permission) {
 			}
 
 			$consumed = 0;
-			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payments_disbursed WHERE projid = :projid");
+			$query_consumed =  $db->prepare("SELECT SUM(amount) AS consumed FROM tbl_payment_request_financiers WHERE projid = :projid");
 			$query_consumed->execute(array(":projid" => $projid));
 			$row_consumed = $query_consumed->fetch();
 
@@ -215,43 +209,139 @@ if ($permission) {
 			$durationtoenddate = 0;
 		}
 
-		// $query_rsMlsProg =  $db->prepare("SELECT COUNT(*) as nmb, SUM(progress) AS mlprogress FROM tbl_milestone WHERE projid = '$projid'");
-		// $query_rsMlsProg->execute();
-		// $row_rsMlsProg = $query_rsMlsProg->fetch();
-
-		// $prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
-
 		$percent = calculate_project_progress($projid, $projcat);
 		$percent2 = number_format($percent, 2);
 		$percentage_progress_remaining = 100 - $percent;
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
 		$rate_balance = 100 - $rate;
+
+		function get_budget_chart()
+		{
+			global $db, $projcat, $projid;
+			$query_rsSubtasks = $db->prepare("SELECT * FROM tbl_program_of_works w INNER JOIN tbl_task t ON t.tkid = w.subtask_id WHERE t.projid=:projid AND complete=1 ");
+			$query_rsSubtasks->execute(array(":projid" => $projid));
+			$total_rsSubtasks = $query_rsSubtasks->rowCount();
+			$subtasks = $spline_data = [];
+			$series_data = [];
+			$chart_series = "[{data: [";
+
+			$spline = 0;
+			if ($total_rsSubtasks > 0) {
+				$counter = 0;
+				while ($row_rsSubtasks = $query_rsSubtasks->fetch()) {
+					$subtask_id = $row_rsSubtasks['tkid'];
+					$site_id = $row_rsSubtasks['site_id'];
+					$subtask = $row_rsSubtasks['task'];
+					$site = '';
+
+					if ($site_id != 0) {
+						$query_Output = $db->prepare("SELECT * FROM tbl_project_sites  WHERE site_id = :site_id ");
+						$query_Output->execute(array(":site_id" => $site_id));
+						$row_rsOutput = $query_Output->fetch();
+						$total_Output = $query_Output->rowCount();
+						$site = ($total_Output > 0) ? $row_rsOutput['site'] : '';
+					}
+
+					$subtask_name  = $site != '' ? $subtask . '(' . $site . ')' : $subtask;
+					$sum_cost = 0;
+					$unit_cost = 0;
+					if ($projcat == 1) {
+						$query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND subtask_id=:subtask_id AND site_id=:site_id ");
+						$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":subtask_id" => $subtask_id, ":site_id" => $site_id));
+						$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+						$sum_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+
+
+						$query_rsCost =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND subtask_id=:subtask_id AND site_id=:site_id ");
+						$query_rsCost->execute(array(":projid" => $projid, ":subtask_id" => $subtask_id, ":site_id" => $site_id));
+						$row_rsCost = $query_rsCost->fetch();
+						$unit_cost = $row_rsCost ? $row_rsCost['unit_cost'] : 0;
+					} else {
+						$query_rsProcurement =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_tender_details WHERE projid =:projid AND subtask_id=:subtask_id AND site_id=:site_id ");
+						$query_rsProcurement->execute(array(":projid" => $projid, ":subtask_id" => $subtask_id, ":site_id" => $site_id));
+						$row_rsProcurement = $query_rsProcurement->fetch();
+						$sum_cost = $row_rsProcurement['sum_cost'] != null ? $row_rsProcurement['sum_cost'] : 0;
+
+						$query_rsCost =  $db->prepare("SELECT * FROM tbl_project_tender_details WHERE projid =:projid AND subtask_id=:subtask_id AND site_id=:site_id ");
+						$query_rsCost->execute(array(":projid" => $projid, ":subtask_id" => $subtask_id, ":site_id" => $site_id));
+						$row_rsCost = $query_rsCost->fetch();
+						$unit_cost = $row_rsCost ? $row_rsCost['unit_cost'] : 0;
+
+						$query_rsOther =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND subtask_id=:subtask_id AND site_id=:site_id  AND cost_type <> 1");
+						$query_rsOther->execute(array(":projid" => $projid, ":subtask_id" => $subtask_id, ":site_id" => $site_id));
+						$row_rsOther = $query_rsOther->fetch();
+						$sum_cost += $row_rsOther['sum_cost'] != null ? $row_rsOther['sum_cost'] : 0;
+					}
+
+					$query_rsMilestone_cummulative =  $db->prepare("SELECT SUM(achieved) AS cummulative FROM tbl_project_monitoring_checklist_score WHERE subtask_id=:subtask_id AND site_id=:site_id ");
+					$query_rsMilestone_cummulative->execute(array(":subtask_id" => $subtask_id, ':site_id' => $site_id));
+					$row_rsMilestone_cummulative = $query_rsMilestone_cummulative->fetch();
+					$cummulative = $row_rsMilestone_cummulative['cummulative'] != null ? $row_rsMilestone_cummulative['cummulative'] : 0;
+					$subtask_cost = $unit_cost * $cummulative;
+					$difference = $sum_cost - $subtask_cost;
+					if ($difference !=  0) {
+						$counter++;
+						$spline += $difference;
+						$subtasks[] = $subtask_name;
+						$spline_data[] = round($spline / 1000000, 2);
+						$series_data[] = $difference;
+						$difference = round($difference / 1000000, 2);
+
+						if ($difference > 0) {
+							$chart_series .= '{
+								name: "' . $subtask_name . '",
+								x:' . $counter . ',
+								y: ' . $difference . ',
+								color: "blue"
+							},';
+						} else {
+							$chart_series .= '{
+								x:' . $counter . ',
+								name: "' . $subtask_name . '",
+								y: ' . $difference . ',
+								color: "red"
+							},';
+						}
+					}
+				}
+			}
+
+			$spline_data  = json_encode($spline_data);
+			$series_data  = json_encode($series_data);
+
+			$chart_series .=
+				"]},{
+					type: 'spline',
+					name: 'Average',
+					data: $spline_data,
+					marker: {
+						lineWidth: 2,
+						lineColor: Highcharts.getOptions().colors[3],
+						fillColor: 'white'
+					}
+				},]";
+
+
+			return array("subtasks_data" => json_encode($subtasks), "series_data" => $chart_series);
+		}
+
+		$chart_data = get_budget_chart();
+		$series_chart = $chart_data['series_data'];
+		$subtasks_data = $chart_data['subtasks_data'];
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 		echo $result;
 	}
 ?>
-	<!-- JQuery Nestable Css -->
-	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
-	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
-	<link rel="stylesheet" href="css/highcharts.css">
-	<script src="https://code.highcharts.com/highcharts.js"></script>
-	<script src="https://code.highcharts.com/highcharts-3d.js"></script>
-	<script src="https://code.highcharts.com/modules/exporting.js"></script>
-	<script src="https://code.highcharts.com/modules/export-data.js"></script>
-	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-
-	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
 					<?= $icon ?>
 					<?php echo $pageTitle ?>
-
 					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='projects.php'" id="btnback">
+						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 					</div>
 				</h4>
 			</div>
@@ -262,7 +352,7 @@ if ($permission) {
 						<div class="header" style="padding-bottom:0px">
 							<div class="" style="margin-top:-15px">
 								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-indicators.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Outputs</a>
+								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
 								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
 								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
 								<?php if ($projcat == 2 && $projstage > 4) { ?>
@@ -345,7 +435,7 @@ if ($permission) {
 											<!--<div>
 												<strong><? //= $level3label
 														?>:</strong> <?php //echo implode(",", $level3);
-																						?>
+																		?>
 											</div>-->
 										</li>
 									</div>
@@ -386,6 +476,11 @@ if ($permission) {
 										</li>
 									</div>
 								</div>
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<figure class="highcharts-figure">
+										<div id="container_project_cost" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
+									</figure>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -393,6 +488,13 @@ if ($permission) {
 			</div>
 		</div>
 	</section>
+
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/highcharts-3d.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/modules/export-data.js"></script>
+	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+	<script src="https://code.highcharts.com/modules/series-label.js"></script>
 	<script>
 		Highcharts.chart('highcharts-progress', {
 			chart: {
@@ -545,6 +647,26 @@ if ($permission) {
 				]
 			}]
 		});
+
+		$(function() {
+			var chart = new Highcharts.Chart({
+				chart: {
+					renderTo: 'container_project_cost',
+					type: 'column'
+				},
+				xAxis: {
+					categories: <?= $subtasks_data ?>
+				},
+				plotOptions: {
+					series: {
+						dataLabels: {
+							enabled: false
+						}
+					}
+				},
+				series: <?= $series_chart ?>,
+			});
+		});
 	</script>
 	<!-- end body  -->
 <?php
@@ -555,7 +677,3 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
-<!-- Jquery Nestable -->
-<script src="assets/projtrac-dashboard/plugins/nestable/jquery.nestable.js"></script>
-<script src="assets/projtrac-dashboard/js/pages/ui/sortable-nestable.js"></script>

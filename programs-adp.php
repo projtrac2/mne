@@ -5,6 +5,10 @@ if ($permission) {
 		//get financial years 
 		$year = date("Y");
 		$month = date("m");
+		
+		if($month >= 1 && $month <= 6){
+			$year = $year - 1;
+		}
 		$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year where yr='$year'");
 		$query_rsYear->execute();
 		$row_rsYear = $query_rsYear->fetch();
@@ -70,7 +74,7 @@ if ($permission) {
 											$classstatusin = "";
 										}
 										?>
-										<li <?php if ($adpyr == $year && ($month >= 7 && $month <= 12)) { ?>class="active" <?php } ?>>
+										<li class="<?=$classstatus?>">
 											<a data-toggle="tab" href="#<?= $link ?>"><i class="fa fa-caret-square-o<?= $linkclass ?>" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge <?= $linkclassbadge ?>">||</span></a>
 										</li>
 										<?php
@@ -138,7 +142,7 @@ if ($permission) {
 														$rows_count = $query_gadps->rowCount();
 
 														if ($rows_count > 0) {
-															$month = 8;
+															//$month = 8;
 															$sn = 0;
 															while ($row = $query_gadps->fetch()) {
 																$progid = $row['progid'];

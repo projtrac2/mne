@@ -2,7 +2,7 @@
 require('includes/head.php');
 if ($permission) {
     try {
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) AND proj_substage=3  ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) AND proj_substage = 0  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 
@@ -81,7 +81,6 @@ if ($permission) {
                     $complete[] = $output_cummulative_record == $target ? true : false;
                 }
             }
-
             return !in_array(false, $complete) ? true : false;
         }
     } catch (PDOException $ex) {
@@ -92,7 +91,7 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <?= $icon . ' ' . $pageTitle ?>
+                    <?= $icon . ' ' . $pageTitle  ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>

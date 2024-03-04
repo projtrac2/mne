@@ -28,26 +28,54 @@ try {
         $impact = $_POST['impact'];
         $risk_level = $_POST['risk_level'];
         $username = $_POST['user_name'];
+		$riskid =  $_POST['riskid'];
 		
-		$insert_risk = $db->prepare("INSERT INTO tbl_project_risks (projid, risk_description, risk_category, likelihood, impact, risk_level, created_by, date_created) VALUES (:projid, :risk_description, :risk_category, :likelihood, :impact, :risk_level, :user_name, :date_entered)");
-		$risk_results = $insert_risk->execute(array(':projid' => $projid, ":risk_description" => $risk_description, ':risk_category' => $risk_category, ':likelihood' => $likelihood, ':impact' => $impact, ':risk_level' => $risk_level, ':user_name' => $username, ':date_entered' => $current_date));
-		
-		$success_status = false;
-		$message = "Failed to create the risk!!";
+		if(!empty($riskid) || $riskid !=""){
+			$riskid =  $_POST['riskid'];
+			$update_risk = $db->prepare("UPDATE tbl_project_risks SET risk_description=:risk_description, risk_category=:risk_category, likelihood=:likelihood, impact=:impact, risk_level=:risk_level, updated_by=:user_name, date_updated=:date_entered WHERE id=:riskid");
+			$risk_results = $update_risk->execute(array(":risk_description" => $risk_description, ':risk_category' => $risk_category, ':likelihood' => $likelihood, ':impact' => $impact, ':risk_level' => $risk_level, ':user_name' => $username, ':date_entered' => $current_date, ':riskid' => $riskid));
+			
+			$success_status = false;
+			$message = "Failed to create the risk!!";
 
-        if ($risk_results) {
-			$riskid = $db->lastInsertId();
-            $measures = $_POST['strategic_measure'];
-            $total_measures = count($measures);
-            for ($i = 0; $i < $total_measures; $i++) {
-                $strategic_measure = $measures[$i];
-                
-                $insert_strategic_measures = $db->prepare("INSERT INTO tbl_project_risk_strategic_measures (projid, riskid, strategic_measure) VALUES (:projid,:riskid,:strategic_measure)");
-                $insert_strategic_measures->execute(array(':projid' => $projid, ":riskid" => $riskid, ':strategic_measure' => $strategic_measure));
-            }
-			$success_status = true;
-			$message = "Risk created successfully";
-        }
+			if ($risk_results) {
+				$measures = $_POST['strategic_measure'];
+				$total_measures = count($measures);
+				if($total_measures > 0){
+					$delete_strategic_measures = $db->prepare("DELETE from tbl_project_risk_strategic_measures WHERE riskid=:riskid");
+					$delete_strategic_measures->execute(array(':riskid' => $riskid));					
+
+					for ($i = 0; $i < $total_measures; $i++) {
+						$strategic_measure = $measures[$i];
+						
+						$update_strategic_measures = $db->prepare("INSERT INTO tbl_project_risk_strategic_measures (projid, riskid, strategic_measure) VALUES (:projid,:riskid,:strategic_measure)");
+						$update_strategic_measures->execute(array(':projid' => $projid, ":riskid" => $riskid, ':strategic_measure' => $strategic_measure));
+					}
+				}
+				$success_status = true;
+				$message = "Risk successfully updated!";
+			}
+		} else {
+			$insert_risk = $db->prepare("INSERT INTO tbl_project_risks (projid, risk_description, risk_category, likelihood, impact, risk_level, created_by, date_created) VALUES (:projid, :risk_description, :risk_category, :likelihood, :impact, :risk_level, :user_name, :date_entered)");
+			$risk_results = $insert_risk->execute(array(':projid' => $projid, ":risk_description" => $risk_description, ':risk_category' => $risk_category, ':likelihood' => $likelihood, ':impact' => $impact, ':risk_level' => $risk_level, ':user_name' => $username, ':date_entered' => $current_date));
+			
+			$success_status = false;
+			$message = "Failed to create the risk!!";
+
+			if ($risk_results) {
+				$riskid = $db->lastInsertId();
+				$measures = $_POST['strategic_measure'];
+				$total_measures = count($measures);
+				for ($i = 0; $i < $total_measures; $i++) {
+					$strategic_measure = $measures[$i];
+					
+					$insert_strategic_measures = $db->prepare("INSERT INTO tbl_project_risk_strategic_measures (projid, riskid, strategic_measure) VALUES (:projid,:riskid,:strategic_measure)");
+					$insert_strategic_measures->execute(array(':projid' => $projid, ":riskid" => $riskid, ':strategic_measure' => $strategic_measure));
+				}
+				$success_status = true;
+				$message = "Risk created successfully";
+			}
+		}
         echo json_encode(array("success" => $success_status, "message" => $message));
     }
 
@@ -213,7 +241,7 @@ try {
 				$measuresCount++;
 				$measure = $row_risk_measures["strategic_measure"];
 				$measures .='
-				<tr>
+				<tr id="m_row'.$measuresCount.'">
 					<td>'.$measuresCount.'</td>
 					<td>
 						<input type="text" name="strategic_measure[]" id="taskrow'.$measuresCount.'" placeholder="Describe the Strategic Measure" class="form-control parameter" value="'.$measure.'" required/>
@@ -227,7 +255,7 @@ try {
 			}
 			$risk_measures = $measures;
 		}
-        echo json_encode(["risk_more_info_body" => $risk_details, "risk_measures" => $risk_measures]);
+        echo json_encode(["risk_more_info_body" => $risk_details, "risk_measures" => $risk_measures, "riskid" => $riskid]);
 	}
 	
 	if(isset($_GET['risk_more_info'])){
@@ -237,16 +265,12 @@ try {
 		$row_risk_details = $query_risk_details->fetch();
         $total_risk_details = $query_risk_details->rowCount();
 		
-		$query_risk_monitored = $db->prepare("SELECT * FROM tbl_project_risk_monitoring m left join tbl_risk_severity s on s.digit=m.risk_level WHERE m.riskid=:riskid ORDER BY m.id DESC Limit 1");
+		$query_risk_monitored = $db->prepare("SELECT *, m.id AS mid FROM tbl_project_risk_monitoring m left join tbl_risk_severity s on s.digit=m.risk_level WHERE m.riskid=:riskid ORDER BY m.id DESC");
 		$query_risk_monitored->execute(array(":riskid" =>$riskid));
-		$row_risk_monitored = $query_risk_monitored->fetch();
 		$total_risk_monitored = $query_risk_monitored->rowCount();
 		
-		$query_risk_measures = $db->prepare("SELECT * FROM tbl_project_risk_strategic_measures WHERE riskid=:riskid");
-		$query_risk_measures->execute(array(":riskid" =>$riskid));
-		$total_risk_measures = $query_risk_measures->rowCount();
 		
-		$risk_measures = $risk_more_info = '';
+		$risk_more_info = '';
 		if($total_risk_details > 0){
 			$risk = $row_risk_details["risk"];
 			$category = $row_risk_details["cat"];
@@ -255,11 +279,57 @@ try {
 			$risk_level = $row_risk_details["level"];
 			$risk_color = $row_risk_details["color"];
 			
-			if($total_risk_monitored > 0){
+			$risk_more_info = '
+			<fieldset class="scheduler-border" id="milestone_div">
+				<legend class="scheduler-border bg-primary" style="border-radius:3px">Risk Main Details</legend>
+				<div class="row">
+					<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+						<div class="form-inline">
+							<label for="">Category</label>
+							<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$category.'</div>
+						</div>
+					</div>
+					<div class="col-lg-9 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+						<div class="form-inline">
+							<label for="">Description</label>
+							<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$risk.'</div>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+			<fieldset class="scheduler-border" id="milestone_div">
+				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Inherent Risk</legend>
+				<div class="row">
+					<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+						<div class="form-inline">
+							<label for="">Likelihood</label>
+							<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$likelihood.'</div>
+						</div>
+					</div>
+					<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+						<div class="form-inline">
+							<label for="">Impact</label>
+							<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$impact.'</div>
+						</div>
+					</div>
+					<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+						<div class="form-inline">
+							<label for="">Level</label>
+							<div id="severityname" class="require '.$risk_color.'" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$risk_level.'</div>
+						</div>
+					</div>						
+				</div>
+			</fieldset>';
+		}
+		
+		if($total_risk_monitored > 0){
+			while($row_risk_monitored = $query_risk_monitored->fetch()){
+				$risk_monitoring_id = $row_risk_monitored["mid"];
 				$impactid = $row_risk_monitored["risk_impact"];
 				$likelihoodid = $row_risk_monitored["risk_likelihood"];
 				$risk_level = $row_risk_monitored["description"];
-				$risk_color = $row_risk_monitored["color"];		
+				$risk_color = $row_risk_monitored["color"];	
+				$residual_date = $row_risk_monitored["date_created"];		
 						
 				$query_likelihood = $db->prepare("SELECT description FROM tbl_risk_probability WHERE id=:likelihoodid");
 				$query_likelihood->execute(array(":likelihoodid" =>$likelihoodid));
@@ -271,86 +341,83 @@ try {
 				
 				$impact = $row_impact["description"];
 				$likelihood = $row_likelihood["description"];
-			}
 			
-			$risk_more_info = '
-			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
-				<div class="form-inline">
-					<label for="">Risk Description</label>
-					<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$risk.'</div>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
-				<div class="form-inline">
-					<label for="">Risk Category</label>
-					<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$category.'</div>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
-				<div class="form-inline">
-					<label for="">Risk Likelihood</label>
-					<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$likelihood.'</div>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
-				<div class="form-inline">
-					<label for="">Risk Impact</label>
-					<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$impact.'</div>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
-				<div class="form-inline">
-					<label for="">Risk Level</label>
-					<div id="severityname" class="require '.$risk_color.'" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$risk_level.'</div>
-				</div>
-			</div>';
-		}
-		
-		if($total_risk_measures > 0){
-			$measuresCount = 0;
-			$measures = '
-			<thead>';
-				if($total_risk_monitored > 0){
-					$measures .='<tr>
-						<th width="5%">#</th>
-						<th width="75%">Measure</th>
-						<th width="20%">Compliance</th>
-					</tr>';
-				} else {
-					$measures .='<tr>
-						<th width="5%">#</th>
-						<th width="95%">Measure</th>
-					</tr>';
-				}
-			$measures .='</thead>
-			<tbody id="risk_measures">';
-			while($row_risk_measures = $query_risk_measures->fetch()){
-				$measuresCount++;
-				$measureid = $row_risk_measures["id"];
-				$measure = $row_risk_measures["strategic_measure"];
-				
-				if($total_risk_monitored > 0){
-					$query_risk_measures_compliance = $db->prepare("SELECT * FROM tbl_project_risk_strategic_measure_monitoring WHERE strategic_measure_id=:measureid");
-					$query_risk_measures_compliance->execute(array(":measureid" =>$measureid));
-					$row_risk_measures_compliance = $query_risk_measures_compliance->fetch();
-					$measure_complianceid = $row_risk_measures_compliance["strategic_measure_compliance"];
-					$measure_compliance = $measure_complianceid == 1 ? "Compliant" : "Non-Compliant";
-				}
+				$risk_more_info .= '
+				<fieldset class="scheduler-border" id="milestone_div">
+					<legend class="scheduler-border bg-brown" style="border-radius:3px">Residual Risk for Date: '.$residual_date.'</legend>
+					<div class="row">
+						<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+							<div class="form-inline">
+								<label for="">Likelihood</label>
+								<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$likelihood.'</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+							<div class="form-inline">
+								<label for="">Impact</label>
+								<div id="severityname" class="require" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$impact.'</div>
+							</div>
+						</div>
+						<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+							<div class="form-inline">
+								<label for="">Level</label>
+								<div id="severityname" class="require '.$risk_color.'" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$risk_level.'</div>
+							</div>
+						</div>						
+					</div>';
 					
-				$measures .='
-				<tr>
-					<td align="center">'.$measuresCount.'</td>
-					<td>'.$measure.'</td>';
-					if($total_risk_monitored > 0){
-						$measures .='<td>'.$measure_compliance.'</td>';
-					}
-				$measures .='</tr>';
+					$risk_more_info .= '
+							<div class="table-responsive">
+								<table class="table table-bordered table-striped table-hover" id="measures_table" style="width:100%">
+									<thead>
+										<tr>
+											<th width="5%">#</th>
+											<th width="75%">Strategic Measure</th>
+											<th width="20%">Status</th>
+										</tr>
+									</thead>
+									<tbody>';
+										$measuresCount = 0;
+										$risk_measures = "";
+										$query_risk_measures_compliance = $db->prepare("SELECT * FROM tbl_project_risk_strategic_measure_monitoring mm left join tbl_project_risk_strategic_measures m on m.id=mm.strategic_measure_id WHERE risk_monitoring_id=:risk_monitoring_id");
+										$query_risk_measures_compliance->execute(array(":risk_monitoring_id" =>$risk_monitoring_id));
+										while($row_risk_measures_compliance = $query_risk_measures_compliance->fetch()){
+											$measuresCount++;
+											$measure_complianceid = $row_risk_measures_compliance["strategic_measure_compliance"];
+											$measure_compliance = $measure_complianceid == 1 ? "Compliant" : "Non-Compliant";
+											$measure = $row_risk_measures_compliance["strategic_measure"];
+												
+											$risk_measures .='
+											<tr>
+												<td align="center">'.$measuresCount.'</td>
+												<td>'.$measure.'</td>
+												<td>'.$measure_compliance.'</td>
+											</tr>';												
+										}
+									$risk_more_info .= $risk_measures.'</tbody>
+								</table>
+							</div>
+				</fieldset>';
 			}
-			$measures .='</tbody>';
-			$risk_measures = $measures;
 		}
-        echo json_encode(["risk_more_info_body" => $risk_more_info, "risk_measures" => $risk_measures]);
+        echo json_encode(["risk_more_info_body" => $risk_more_info]);
 	}
+	
+
+    if (isset($_POST['destroy_item'])) {	
+		$success_status = false;	
+		if(!empty($_POST['id']) || $_POST['id'] !=""){
+			$riskid =  $_POST['id'];
+			
+			$delete_risk = $db->prepare("DELETE from tbl_project_risks WHERE id=:riskid");
+			$delete_risk->execute(array(':riskid' => $riskid));
+			
+			$delete_strategic_measures = $db->prepare("DELETE from tbl_project_risk_strategic_measures WHERE riskid=:riskid");
+			$delete_strategic_measures->execute(array(':riskid' => $riskid));
+			$success_status = true;
+		} 
+        echo json_encode(array("success" => $success_status));
+    }
 	
 	
 	if(isset($_GET['risk_performance'])){

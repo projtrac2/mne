@@ -323,7 +323,7 @@ if ($permission) {
                                              }
                                           }
 
-                                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
+                                          $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
                                           $query_Output->execute(array(":projid" => $projid));
                                           $total_Output = $query_Output->rowCount();
                                           $outputs = '';
@@ -684,7 +684,7 @@ if ($permission) {
                                                                $query_rsTask_parameters = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id AND site_id=:site_id");
                                                                $query_rsTask_parameters->execute(array(":subtask_id" => $task_id, ':site_id' => $site_id));
                                                                $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
-                                                               $outputs[] = $totalRows_rsTask_parameters > 0 ? true : false;
+                                                               $outputs[] = $totalRows_rsTask_parameters > 0 ? true : false . ' ' . $task_id;
                                                                $tasks[] = $task . " status => "  .  $totalRows_rsTask_parameters;
                                                             }
                                                          }
@@ -693,7 +693,7 @@ if ($permission) {
                                                 }
                                              }
 
-                                             $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 || indicator_mapping_type=0) AND projid = :projid");
+                                             $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
                                              $query_Output->execute(array(":projid" => $projid));
                                              $total_Output = $query_Output->rowCount();
                                              if ($total_Output > 0) {
@@ -709,7 +709,7 @@ if ($permission) {
                                                          $query_rsTask_parameters = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE subtask_id=:subtask_id AND site_id=:site_id");
                                                          $query_rsTask_parameters->execute(array(":subtask_id" => $task_id, ':site_id' => $site_id));
                                                          $totalRows_rsTask_parameters = $query_rsTask_parameters->rowCount();
-                                                         $outputs[] = $totalRows_rsTask_parameters > 0 ? true : false;
+                                                         $outputs[] = $totalRows_rsTask_parameters > 0 ? true  : false;
                                                       }
                                                    }
                                                 }

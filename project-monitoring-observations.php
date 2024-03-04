@@ -97,7 +97,7 @@ if ($permission) {
                     <?php echo $pageTitle ?>
                     <?= $results; ?>
                     <div class="btn-group" style="float:right">
-                        <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                        <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
                             Go Back
                         </a>
                     </div>
@@ -115,18 +115,18 @@ if ($permission) {
                                     </ul>
                                 </div>
 
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="padding-right:30px; padding-left:30px">
                                     <ul class="nav nav-tabs" style="font-size:14px">
                                         <li class="active">
                                             <a data-toggle="tab" href="#current">
-                                                <i class="fa fa-caret-square-o-up bg-deep-purple" aria-hidden="true"></i>
-                                                Current &nbsp;&nbsp;<span class="badge bg-orange" id="total-programs">|</span>
+                                                <i class="fa fa-caret-square-o-down bg-green" aria-hidden="true"></i>
+                                                Current &nbsp;&nbsp;<span class="badge bg-green" id="total-programs">|</span>
                                             </a>
                                         </li>
                                         <li>
                                             <a data-toggle="tab" href="#previous">
-                                                <i class="fa fa-caret-square-o-right bg-indigo" aria-hidden="true"></i>
-                                                Previous &nbsp;<span class="badge bg-indigo">|</span>
+                                                <i class="fa fa-caret-square-o-left bg-blue" aria-hidden="true"></i>
+                                                Previous &nbsp;<span class="badge bg-blue">|</span>
                                             </a>
                                         </li>
                                     </ul>
@@ -261,7 +261,7 @@ if ($permission) {
                                             }
 
 
-                                            $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0)  AND projid = :projid");
+                                            $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1  AND projid = :projid");
                                             $query_Output->execute(array(":projid" => $projid));
                                             $total_Output = $query_Output->rowCount();
                                             $outputs = '';
@@ -372,7 +372,6 @@ if ($permission) {
                                                         <i class="fa fa-comment" aria-hidden="true"></i> Remarks
                                                     </legend>
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <label class="control-label">Remarks *:</label>
                                                         <div class="form-line">
                                                             <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Observations" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
                                                         </div>
@@ -431,14 +430,14 @@ if ($permission) {
                                             <ul class="nav nav-tabs" style="font-size:14px">
                                                 <li class="active">
                                                     <a data-toggle="tab" href="#menu1">
-                                                        <i class="fa fa-caret-square-o-up bg-deep-purple" aria-hidden="true"></i>
-                                                        Observations &nbsp;&nbsp;<span class="badge bg-orange" id="total-programs">|</span>
+                                                        <i class="fa fa-align-left bg-deep-purple" aria-hidden="true"></i>
+                                                        Observations &nbsp;&nbsp;<span class="badge bg-deep-purple" id="total-programs">|</span>
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a data-toggle="tab" href="#menu2">
-                                                        <i class="fa fa-caret-square-o-right bg-indigo" aria-hidden="true"></i>
-                                                        Media &nbsp;<span class="badge bg-indigo">|</span>
+                                                        <i class="fa fa-camera-retro bg-blue-grey" aria-hidden="true"></i>
+                                                        Media &nbsp;<span class="badge bg-blue-grey">|</span>
                                                     </a>
                                                 </li>
                                             </ul>
@@ -446,14 +445,14 @@ if ($permission) {
                                     </div>
                                     <div class="body">
                                         <div class="row clearfix">
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Observations</legend>
-                                                    <!-- ============================================================== -->
-                                                    <!-- Start Page Content -->
-                                                    <!-- ============================================================== -->
-                                                    <div class="tab-content">
-                                                        <div id="menu1" class="tab-pane fade in active">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px">
+												<!-- ============================================================== -->
+												<!-- Start Page Content -->
+												<!-- ============================================================== -->
+												<div class="tab-content">
+													<div id="menu1" class="tab-pane fade in active">
+														<fieldset class="scheduler-border row setup-content">
+															<legend class="scheduler-border bg-deep-purple" style="border-radius:3px">Observations <i class="fa fa-align-left bg-deep-purple" aria-hidden="true"></i></legend>
                                                             <div class="table-responsive">
                                                                 <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                                                                     <thead>
@@ -487,19 +486,22 @@ if ($permission) {
                                                                     </tbody>
                                                                 </table>
                                                             </div>
-                                                        </div>
-                                                        <div id="menu2" class="tab-pane">
+														</fieldset>
+													</div>
+													<div id="menu2" class="tab-pane">
+														<fieldset class="scheduler-border row setup-content">
+															<legend class="scheduler-border bg-blue-grey" style="border-radius:3px">Media <i class="fa fa-camera-retro bg-blue-grey" aria-hidden="true"></i></legend>
                                                             <div class="card">
                                                                 <div class="card-header">
                                                                     <ul class="nav nav-tabs" style="font-size:14px">
                                                                         <li class="active">
-                                                                            <a data-toggle="tab" href="#menu6"><i class="fa fa-file-text-o bg-green" aria-hidden="true"></i> Documents &nbsp;<span class="badge bg-green">|</span></a>
+                                                                            <a data-toggle="tab" href="#menu6"><i class="fa fa-file-text-o bg-blue-grey" aria-hidden="true"></i> Documents &nbsp;<span class="badge bg-blue-grey">|</span></a>
                                                                         </li>
                                                                         <li>
-                                                                            <a data-toggle="tab" href="#menu7"><i class="fa fa-file-image-o bg-blue" aria-hidden="true"></i> Photos &nbsp;<span class="badge bg-blue">|</span></a>
+                                                                            <a data-toggle="tab" href="#menu7"><i class="fa fa-file-image-o bg-blue-grey" aria-hidden="true"></i> Photos &nbsp;<span class="badge bg-blue-grey">|</span></a>
                                                                         </li>
                                                                         <li>
-                                                                            <a data-toggle="tab" href="#menu8"><i class="fa fa-file-video-o bg-orange" aria-hidden="true"></i> Videos &nbsp;<span class="badge bg-orange">|</span></a>
+                                                                            <a data-toggle="tab" href="#menu8"><i class="fa fa-file-video-o bg-blue-grey" aria-hidden="true"></i> Videos &nbsp;<span class="badge bg-blue-grey">|</span></a>
                                                                         </li>
                                                                     </ul>
                                                                 </div>
@@ -677,12 +679,12 @@ if ($permission) {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
+														</fieldset>
                                                     </div>
-                                                    <!-- ============================================================== -->
-                                                    <!-- End PAge Content -->
-                                                    <!-- ============================================================== -->
-                                                </fieldset>
+												</div>
+												<!-- ============================================================== -->
+												<!-- End PAge Content -->
+												<!-- ============================================================== -->
                                             </div>
                                         </div>
                                     </div>

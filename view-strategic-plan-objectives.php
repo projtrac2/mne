@@ -20,10 +20,132 @@ if ($permission) {
         $datecreated = $strategicPlan["date_created"];
         $spstatus  = $strategicPlan['current_plan'];
         $strategic_plan_objectives = get_strategic_plan_objectives($stplan);
+		
+		$query_active_strategic_plan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");	
+		$query_active_strategic_plan->execute();   
+		$rows_active_strategic_plan = $query_active_strategic_plan->fetch();
+		$spid = $rows_active_strategic_plan["id"];
+		$duration = $rows_active_strategic_plan["years"];
+		$start_year = $rows_active_strategic_plan["starting_year"];
+		
+		$query_outcome_indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND active='1'");	
+		$query_outcome_indicator->execute();   
+		
+		
+		if (isset($_POST["kpi"])) {
+			$kpi = $_POST["kpi"];
+			$kpi_description = $_POST["kpi_description"];
+			$objid = $_POST['objid'];
+			$indid = $_POST['indicator'];
+			$current_date = date("Y-m-d");
+			
+			if($kpi == "addkpi"){
+				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(kpi_description, strategic_objective_id, outcome_indicator_id, created_by, date_created) VALUES (:kpi, :objid, :indid, :user, :dates)");
+				$query_insert_kpi->execute(array(":kpi" => $kpi_description, ":objid" => $objid, ":indid" => $indid, ":user" => $user_name, ":dates" => $current_date));
+				$kpi_id = $db->lastInsertId();
+				
+				for($i=0; $i<$duration; $i++){
+					$year = $start_year + $i;
+					$target = $_POST[$year.'target'];
+					
+					$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_targets(kpi_id, year, target) VALUES (:kpi_id, :year, :target)");
+					$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":year" => $year, ":target" => $target));
+					$target_id = $db->lastInsertId();
+					
+					for($j=0; $j<4; $j++){
+						$threshold = $_POST[$year.'threshold'][$j];
+					
+						$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_target_thresholds(kpi_id, tbl_kpi_target_id, threshold) VALUES (:kpi_id, :target_id, :threshold)");
+						$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":target_id" => $target_id, ":threshold" => $threshold));
+					}
+				}
+			} else {
+				/* $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, outcome=:outcome, indicator=:indicator, baseline=:kpibaseline, target=:target, created_by=:user, date_created=:dates WHERE id='$objid'");
+				$resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":outcome" => $outcome, ":indicator" => $indicator, ":kpibaseline" => $kpibaseline, ":target" => $outcometarget, ":user" => $user, ":dates" => $current_date)); */
+			}
+			
+		}
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
 	?>
+<style>
+.container{
+     
+     margin-top:100px;
+ }
+.modal.fade .modal-bottom,
+.modal.fade .modal-left,
+.modal.fade .modal-right,
+.modal.fade .modal-top {
+    position: fixed;
+    z-index: 1055;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    max-width: 100%
+}
+
+.modal.fade .modal-right {
+    left: auto!important;
+    transform: translate3d(100%, 0, 0);
+    transition: transform .3s cubic-bezier(.25, .8, .25, 1)
+}
+
+.modal.fade.show .modal-bottom,
+.modal.fade.show .modal-left,
+.modal.fade.show .modal-right,
+.modal.fade.show .modal-top {
+    transform: translate3d(0, 0, 0)
+}
+.w-xl {
+    width: 50%
+}
+
+.modal-content,
+.modal-footer,
+.modal-header {
+    border: none
+}
+
+.h-100 {
+    height: 100%!important
+}
+
+.list-group.no-radius .list-group-item {
+    border-radius: 0!important
+}
+
+.btn-light {
+    color: #212529;
+    background-color: #f5f5f6;
+    border-color: #f5f5f6
+}
+
+.btn-light:hover {
+    color: #212529;
+    background-color: #e1e1e4;
+    border-color: #dadade
+}
+
+.modal-footer {
+    align-items: center
+}
+
+/* Important part */
+.modal-dialog{
+    overflow-y: initial !important
+}
+.modal-body{
+    height: 80vh;
+    overflow-y: auto;
+}
+</style>
+<style src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"></style>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
@@ -46,10 +168,10 @@ if ($permission) {
                         <div class="card-header">
                             <div class="header" style="padding-bottom:0px">
                                 <div class="button-demo" style="margin-top:-15px">
-                                    <span class="label bg-black" style="font-size:18px"><img src="assets/images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" /> Menu </span>
                                     <a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
                                     <a href="view-kra.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
                                     <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
+                                    <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a>
                                     <a href="view-program.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
                                     <a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
                                     <a href="strategic-plan-implementation-matrix.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Implementation Matrix</a>
@@ -57,6 +179,7 @@ if ($permission) {
                             </div>
                         </div>
                         <div class="body">
+							<input type="hidden" value="0" id="clicked">
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="manageItemTable">
                                     <thead>
@@ -89,13 +212,17 @@ if ($permission) {
                                                 $query_objPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE program_type=1 AND strategic_obj=:objid");	
                                                 $query_objPrograms->execute(array(":objid"=>$objid));   
                                                 $totalRows_objPrograms = $query_objPrograms->rowCount();
+
+                                                $query_kpis = $db->prepare("SELECT id, kpi_description FROM tbl_kpi WHERE strategic_objective_id=:objid");	
+                                                $query_kpis->execute(array(":objid"=>$objid));   
+                                                $totalRows_kpis = $query_kpis->rowCount();
 												?>
                                                 <tr>
                                                     <td>
                                                         <?php echo $counter ?>
                                                     </td>
                                                     <td>
-                                                        <?php echo $objective; ?>
+                                                        <div onclick="objective_kpi(<?= $objid ?>)"><?php echo $objective; ?></div>
                                                     </td>
                                                     <td>
                                                         <?php echo $kra; ?>
@@ -129,6 +256,11 @@ if ($permission) {
                                                                                 <i class="fa fa-plus-square"></i> Add Strategy
                                                                             </a>
                                                                         </li>
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#addKPIModal" id="addKPIModalBtn" onclick="addkpi(<?php echo $objid ?>, '<?=$objective ?>')">
+                                                                                <i class="fa fa-key"></i> Add KPI
+                                                                            </a>
+                                                                        </li>
                                                                     <?php
                                                                     }
                                                                     if (in_array("update",$page_actions)) {
@@ -155,7 +287,32 @@ if ($permission) {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                        <?php
+												<?php if($totalRows_kpis > 0){ ?>
+													<tr class="objid <?=$objid?>" style="background-color:#cccccc">
+														<th></th>
+														<th colspan="3">KPI</th>
+														<th colspan="2">Performance</th>
+													</tr>
+													<?php 
+													$count_kpi=0;
+													while($rows = $query_kpis->fetch()){ 
+														$count_kpi++;
+														$kpi_id = $rows['id'];
+														$kpi_description = $rows['kpi_description'];
+														$kpi_performance = 10 . "%";
+														?>
+														<tr class="objid <?=$objid?>">
+															<td><?= $counter.".".$count_kpi ?></td>
+															<td colspan="3">
+																<a data-toggle="modal" data-target="#kpi-modal-right" data-toggle-class="modal-open-aside" onclick="kpi_more_info(<?= $kpi_id ?>)" >
+																	<?= $kpi_description ?> 
+																</a>
+															</td>
+															<td colspan="2"><?= $kpi_performance ?></td>
+														</tr>
+													<?php
+													}
+												}
                                             }
                                         }
                                         ?>
@@ -168,7 +325,8 @@ if ($permission) {
             </div>
     </section>
     <!-- end body  -->
-    <!-- Start Modal Item Edit -->
+	
+    <!-- Start Add Strategy Modal -->
     <div class="modal fade" id="editItemModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -212,6 +370,161 @@ if ($permission) {
         </div>
         <!-- /modal-dailog -->
     </div>
+    <!-- End Add Strategy Modal -->
+	
+    <!-- Start View KPI Details Modal -->
+    <div id="kpi-modal-right" class="modal fade" data-backdrop="true">
+		<div class="modal-dialog modal-right modal-lg w-xl">
+		   <div class="modal-content h-100 no-radius">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-bar-chart" aria-hidden="true" style="color:yellow"></i> <span id="modal_info"> KPI Performance Details</span></h3>
+                </div>
+				<div class="modal-body">
+					<div class="p-4" id="kpi_details">
+					</div>
+				</div>
+				<div class="modal-footer">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+					</div>
+				</div>
+		   </div>
+		</div>
+	</div>
+    <!-- End View KPI Details Modal -->
+	
+    <!-- Start Add KPI Modal -->
+    <div class="modal fade" id="addKPIModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Add Key Performance Indicator (KPI)</h4>
+                </div>
+                <div class="modal-body" style="max-height:450px; overflow:auto;">
+					<div class="row clearfix">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="div-result">
+								<form class="form-horizontal" id="addKPIForm" action="" method="POST" autocomplete="off">
+									<br>
+									<div id="result">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<label>Strategic Objective:</label>
+											<div id="objective" class="form-control" style="height:auto; padding-bottom:10px; padding-top:10px; width:100%; color:#000;">
+											</div>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<label>KPI Description:</label>
+											<div class="form-line">
+												<input type="text" name="kpi_description" id="kpi_description" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter a new KPI description" />
+											</div>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<div class="form-inline">
+												<label for="">Link Outcome Indicator</label>
+												<select name="indicator" id="indicator" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+													<option value="">.... Select Impact ....</option>
+													<?php
+													while ($row_outcome_indicator = $query_outcome_indicator->fetch()) {
+													?>
+														<font color="black">
+															<option value="<?php echo $row_outcome_indicator['indid'] ?>"><?php echo $row_outcome_indicator['indicator_name'] ?></option>
+														</font>
+													<?php
+													}
+													?>
+												</select>
+											</div>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+											<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
+												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-list-alt" style="color:green" aria-hidden="true"></i> KPI Targets & Thresholds</legend>
+												<div class="table-responsive">
+													<table class="table table-bordered table-striped table-hover" style="width:100%">
+														<thead class="thead" id="phead">
+															<tr>
+																<th class="text-center"></th>
+																<?php
+																for($i=0; $i<$duration; $i++){
+																	$year = $start_year + $i;
+																	$endyear = $year+1; 
+																	$fy = $year."/".$endyear;
+																	?>
+																	<th colspan="4" class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?=$fy?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+																	<?php
+																}
+																?>
+															</tr>
+														</thead>
+														<tbody>
+															<tr>
+																<td>
+																	<strong>Target:</strong>
+																</td>
+																<?php
+																for($i=0; $i<$duration; $i++){
+																	$year = $start_year + $i;
+																	$endyear = $year+1; 
+																	$fy = $year."/".$endyear;
+																	?>
+																	<td colspan="4">
+																		<input type="number" name="<?=$year?>target" id="strategy" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter <?=$fy?> Target Change in %ntage" />
+																	</td>
+																	<?php
+																}
+																?>
+															</tr>
+															<tr>
+																<td>
+																	<strong>Threshold:</strong>
+																</td>
+																<?php
+																for($i=0; $i<$duration; $i++){
+																	$year = $start_year + $i;
+																	$endyear = $year+1; 
+																	$fy = $year."/".$endyear;
+																	?>
+																	<td>
+																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold1" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																	</td>
+																	<td>
+																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold2" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																	</td>
+																	<td>
+																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold3" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																	</td>
+																	<td>
+																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold4" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																	</td>
+																	<?php
+																}
+																?>
+															</tr>
+														</tbody>
+													</table>
+												</div>
+											</fieldset>
+										</div>
+									</div>
+									<div class="modal-footer editItemFooter">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center strat">
+											<input type="hidden" name="kpi" id="kpi" value="addkpi">
+											<input type="hidden" name="objid" id="objid">
+											<input name="save" type="submit" id="addKPIBtn" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+											<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+										</div>
+									</div> <!-- /modal-footer -->
+								</form> <!-- /.form -->
+							</div>
+                        </div>
+                    </div>
+                </div> <!-- /modal-body -->
+            </div>
+            <!-- /modal-content -->
+        </div>
+        <!-- /modal-dailog -->
+    </div>
+    <!-- End Add KPI Modal -->
 
     <!-- Start Item more -->
     <div class="modal fade" tabindex="-1" role="dialog" id="moreInfoItemModal">
