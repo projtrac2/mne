@@ -6,13 +6,15 @@ $sql = $db->prepare("SELECT * FROM `tbl_cooperates_types` ORDER BY `id` ASC");
 $sql->execute();
 $rows_count = $sql->rowCount();
 $output = array('data' => array());
+
+
 if ($rows_count > 0) {
 	$active = "";
 	$sn = 0;
 	while ($row = $sql->fetch()) {
 		$sn++;
 		$itemId = $row['id'];
-		// status 
+		// status
 		if ($row['active'] == 1) {
 			$active = "<label class='label label-success'>Enabled</label>";
 		} else {
@@ -26,7 +28,7 @@ if ($rows_count > 0) {
 			</button>
 			<ul class="dropdown-menu">
 				<li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-				<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>       
+				<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
 			</ul>
 		</div>';
 
@@ -35,11 +37,11 @@ if ($rows_count > 0) {
 		$output['data'][] = array(
 			$sn,
 			$type,
-			$description, 
+			$description,
 			$active,
 			$button
 		);
-	} // /while 
+	} // /while
 
 } // if num_rows
 
