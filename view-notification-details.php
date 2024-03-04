@@ -57,7 +57,8 @@ if ($permission) {
                                                 <thead style="width:100%">
                                                     <tr class="bg-blue" style="width:100%">
                                                         <th width="5%"><strong>#</strong></th>
-                                                        <th width="65%"><strong>Notification</strong></th>
+                                                        <th width="35%"><strong>Notification</strong></th>
+                                                        <th width="25%"><strong>Page URL</strong></th>
                                                         <?php
                                                         if ($notification_group_id != 1) {
                                                         ?>
@@ -85,6 +86,7 @@ if ($permission) {
                                                             $data_entry = $row_rsNotification['data_entry'];
                                                             $approval = $row_rsNotification['approval'];
                                                             $status_id = $row_rsNotification['status'];
+                                                            $page_url = $row_rsNotification['page_url'];
                                                             $status = $status_id == 1 ? "Disable" : "Enable";
 
                                                             $query_rsStage = $db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority=:stage_id");
@@ -95,7 +97,8 @@ if ($permission) {
                                                     ?>
                                                             <tr>
                                                                 <td width="5%"><?= $counter ?></td>
-                                                                <td width="65%"><?= $notification ?></td>
+                                                                <td width="35%"><?= $notification ?></td>
+                                                                <td width="25%"><?= $page_url ?></td>
                                                                 <?php
                                                                 if ($notification_group_id != 1) {
                                                                 ?>
@@ -112,7 +115,7 @@ if ($permission) {
                                                                         </button>
                                                                         <ul class="dropdown-menu">
                                                                             <li>
-                                                                                <a type="button" data-toggle="modal" data-target="#addNotification" id="moreNotificationBtn" onclick="get_notification_details('edit', <?= $notification_id ?>,'<?= $notification ?>', <?= $data_entry ?>, <?= $approval ?>)">
+                                                                                <a type="button" data-toggle="modal" data-target="#addNotification" id="moreNotificationBtn" onclick="get_notification_details('edit', <?= $notification_id ?>,'<?= $notification ?>', <?= $data_entry ?>, <?= $approval ?>, '<?= $page_url ?>')">
                                                                                     <i class="fa fa-file-text"></i> Edit
                                                                                 </a>
                                                                             </li>
@@ -147,9 +150,9 @@ if ($permission) {
                                                     <tr class="bg-blue" style="width:100%">
                                                         <th width="5%"><strong>#</strong></th>
                                                         <th width="20%"><strong>Notification Type</strong></th>
-                                                        <th width="20%"><strong>Title</strong></th>
-                                                        <th width="45%"><strong>Template</strong></th>
-                                                        <th width="10%"><strong>Action</strong></th>
+                                                        <th width="30%"><strong>Subject</strong></th>
+                                                        <th width="40%"><strong>Template</strong></th>
+                                                        <th width="5%"><strong>Action</strong></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -173,6 +176,7 @@ if ($permission) {
                                                                 <td width="20%"><?= $notification_type ?></td>
                                                                 <td width="20%"><?= $title ?></td>
                                                                 <td width="45%"><?= $content ?></td>
+                                                                <td width="45%"><?= $page_url ?></td>
                                                                 <td width="10%">
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -233,12 +237,18 @@ if ($permission) {
                                 </div>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
+                                <label for="program_target" class="control-label">Page URL *:</label>
+                                <div class="form-input">
+                                    <input type="text" name="page_url" id="page_url" placeholder="Enter" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
                                 <label for="program_target" class="control-label">Data Entry *:</label>
                                 <div class="form-input">
                                     <input type="number" name="data_entry" id="data_entry" placeholder="Enter" class="form-control">
                                 </div>
                             </div>
-                            <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
+                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
                                 <label for="program_target" class="control-label">Approval *:</label>
                                 <div class="form-input">
                                     <input type="number" name="approval" id="approval" placeholder="Enter" class="form-control">
@@ -278,13 +288,13 @@ if ($permission) {
                                 </div>
                             </div>
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom: 10px;">
-                                <label for="program_target" class="control-label">Title *:</label>
+                                <label for="program_target" class="control-label">Subject *:</label>
                                 <div class="form-input">
                                     <input type="text" name="title" id="title" placeholder="Enter" class="form-control">
                                 </div>
                             </div>
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                <label class="control-label">Remarks *:</label>
+                                <label class="control-label">Body *:</label>
                                 <div class="form-line">
                                     <textarea name="content" cols="" rows="7" class="form-control" id="content" placeholder="Enter content " style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
                                 </div>

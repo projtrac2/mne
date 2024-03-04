@@ -32,8 +32,9 @@ try {
         $notification_id = $_POST['notification_id'];
         $data_entry = $_POST['data_entry'];
         $approval = $_POST['approval'];
-        $sql = $db->prepare("UPDATE `tbl_notifications` SET data_entry=:data_entry,approval=:approval, updated_by=:updated_by, updated_at=:updated_at WHERE id=:notification_id");
-        $result = $sql->execute(array(':data_entry' => $data_entry, ':approval' => $approval, ":updated_by" => $user_name, ":updated_at" => $today, ":notification_id" => $notification_id));
+        $page_url = $_POST['page_url'];
+        $sql = $db->prepare("UPDATE `tbl_notifications` SET data_entry=:data_entry,approval=:approval,page_url=:page_url, updated_by=:updated_by, updated_at=:updated_at WHERE id=:notification_id");
+        $result = $sql->execute(array(':data_entry' => $data_entry, ':approval' => $approval, ":page_url" => $page_url, ":updated_by" => $user_name, ":updated_at" => $today, ":notification_id" => $notification_id));
         echo json_encode(array("success" => $result));
     }
 

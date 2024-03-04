@@ -166,12 +166,13 @@ const change_notification_status = (notification_id, status_id, status, notifica
         });
 }
 
-const get_notification_details = (edit, notification_id, notification, data_entry, approval) => {
+const get_notification_details = (edit, notification_id, notification, data_entry, approval, page_url) => {
     $("#store_notification").val(edit);
     $("#notification_id").val(notification_id);
     $("#notification_name").val(notification);
     $("#data_entry").val(data_entry);
     $("#approval").val(approval);
+    $("#page_url").val(page_url);
 }
 
 // Notification Template
