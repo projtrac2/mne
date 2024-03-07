@@ -94,6 +94,8 @@ if ($permission) {
                                                         project_name:'$projname',
                                                         edit:'$edit'
                                                     }";
+
+
                                         ?>
                                                     <tr>
                                                         <td align="center"><?= $counter ?></td>
@@ -204,8 +206,6 @@ if ($permission) {
             <!-- /modal-content -->
         </div>
     </div>
-
-
 <?php
 } else {
     $results =  restriction();

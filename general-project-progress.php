@@ -2,9 +2,9 @@
 require('includes/head.php');
 if ($permission) {
     try {
+        $workflow_stage = 9;
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage = 1  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-        $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 
         function get_members()
@@ -93,12 +93,10 @@ if ($permission) {
                                                 $counter++;
                                                 $activity_status = $activity = '';
                                                 $activity = $totalRows_rsTeamMembers == 0 ? "Assign" : "Reassign";
-                                                if ($sub_stage == 0) {
-                                                    $activity_status = "Pending";
-                                                } else if ($sub_stage == 1) {
-                                                    $activity_status = "Assigned";
-                                                } else if ($sub_stage > 1) {
-                                                    $activity_status = "Pending Approval";
+                                                if ($sub_stage == 1) {
+                                                    $activity_status = "Pending Assigned";
+                                                } else if ($sub_stage == 2) {
+                                                    $activity_status = "";
                                                 }
 
 
@@ -108,56 +106,56 @@ if ($permission) {
                                                 $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 
                                                 $msg = 'Approval Error';
-                                                if ($total_rsPayement_reuests > 0) {
+                                                // if ($total_rsPayement_reuests > 0) {
                                         ?>
-                                                    <tr>
-                                                        <td align="center"><?= $counter ?></td>
-                                                        <td><?= $projcode ?></td>
-                                                        <td><?= $projname ?></td>
-                                                        <td><?= date('Y M d') ?></td>
-                                                        <td><label class='label label-success'><?= $activity_status; ?></label></td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
+                                                <tr>
+                                                    <td align="center"><?= $counter ?></td>
+                                                    <td><?= $projcode ?></td>
+                                                    <td><?= $projname ?></td>
+                                                    <td><?= date('Y M d') ?></td>
+                                                    <td><label class='label label-success'><?= $activity_status; ?></label></td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                Options <span class="caret"></span>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
+                                                                        <i class="fa fa-file-text"></i> View More
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
+                                                                        <i class="fa fa-comment-o"></i> <?= $activity ?> Commitee
+                                                                    </a>
+                                                                </li>
+                                                                <?php
+                                                                if ($totalRows_rsTeamMembers > 0) {
+                                                                ?>
                                                                     <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
-                                                                            <i class="fa fa-file-text"></i> View More
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
-                                                                            <i class="fa fa-comment-o"></i> <?= $activity ?> Commitee
+                                                                        <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
+                                                                            <i class="fa fa-comment-o"></i> Add Inspection Checklist
                                                                         </a>
                                                                     </li>
                                                                     <?php
-                                                                    if ($totalRows_rsTeamMembers > 0) {
+                                                                    if ($totalRows_rsQuestions > 0) {
                                                                     ?>
                                                                         <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
-                                                                                <i class="fa fa-comment-o"></i> Add Inspection Checklist
+                                                                            <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
+                                                                                <i class="fa fa-list"></i> Inspect
                                                                             </a>
                                                                         </li>
-                                                                        <?php
-                                                                        if ($totalRows_rsQuestions > 0) {
-                                                                        ?>
-                                                                            <li>
-                                                                                <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
-                                                                                    <i class="fa fa-list"></i> Inspect
-                                                                                </a>
-                                                                            </li>
-                                                                    <?php
-                                                                        }
+                                                                <?php
                                                                     }
-                                                                    ?>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                                }
+                                                                ?>
+                                                            </ul>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                         <?php
-                                                }
+                                                // }
                                             }
                                         }
                                         ?>

@@ -6,9 +6,18 @@ try {
         $monitoring_frequency = $_POST['monitoring_frequency'];
         $activity_monitoring_frequency = $_POST['activity_monitoring_frequency'];
         $projid = $_POST['projid'];
-
-        $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency WHERE projid=:projid ");
+        $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency,proj_substage=1 WHERE projid=:projid ");
         $result = $sql->execute(array(':monitoring_frequency' => $monitoring_frequency, ":activity_monitoring_frequency" => $activity_monitoring_frequency, ":projid" => $projid));
+
+        $sql_projects = $db->prepare("SELECT * FROM `tbl_projects` p left join `tbl_programs` g on g.progid=p.progid WHERE projid=:projid");
+        $sql_projects->execute(array(":projid" => $projid));
+        $totalRows_projects = $sql_projects->rowCount();
+        $Rows_projects = $sql_projects->fetch();
+        $response = false;
+        if ($totalRows_projects > 0) {
+            $implimentation_type = $Rows_projects['projcategory'];
+            $response = ($implimentation_type == 2) ? $mail->send_master_data_email($projid, 6, '') : '';
+        }
         echo json_encode(array("success" => $result));
     }
 
@@ -169,7 +178,6 @@ try {
         }
         echo json_encode(array("success" => true, "tasks" => $input));
     }
-
 
     if (isset($_POST['store_tasks'])) {
         $projid = $_POST['projid'];

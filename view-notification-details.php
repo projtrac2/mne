@@ -175,7 +175,7 @@ if ($permission) {
                                                                 <td width="5%"><?= $counter ?></td>
                                                                 <td width="20%"><?= $notification_type ?></td>
                                                                 <td width="20%"><?= $title ?></td>
-                                                                <td width="45%"><?= $content ?></td> 
+                                                                <td width="45%"><?= $content ?></td>
                                                                 <td width="10%">
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

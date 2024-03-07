@@ -104,37 +104,46 @@ try {
     {
         global $db;
         $task_div = '';
-
-        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid = c.subtask_id WHERE t.outputid=:output_id AND c.site_id=:site_id");
-        $query_rsTasks->execute(array(":output_id" => $output_id, ":site_id" => $site_id));
-        $totalRows_rsTasks = $query_rsTasks->rowCount();
-        if ($totalRows_rsTasks > 0) {
-            $t_counter = 0;
-            while ($row_rsTasks = $query_rsTasks->fetch()) {
-                $t_counter++;
-                $task_name = $row_rsTasks['task'];
-                $task_id = $row_rsTasks['tkid'];
-
-                $query_rsSubTask = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id<>:member_id AND subtask_id=:subtask_id AND site_id=:site_id ");
-                $query_rsSubTask->execute(array(":member_id" => $user_id, ":subtask_id" => $task_id, ":site_id" => $site_id));
-                $totalRows_rsSubTask = $query_rsSubTask->rowCount();
-
-                if ($totalRows_rsSubTask == 0) {
-                    $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id AND subtask_id=:subtask_id AND site_id=:site_id ");
-                    $query_rsUser->execute(array(":member_id" => $user_id, ":subtask_id" => $task_id, ":site_id" => $site_id));
-                    $totalRows_rsUser = $query_rsUser->rowCount();
-                    $checked = $totalRows_rsUser > 0 ? 1 : 0;
-
-                    $check =  $checked == 1 ? "checked" : "";
-                    $task_div  .=
-                        '<tr>
-                        <td>
-                            <div class="form-line">
-                                <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $task_id . '" ' . $checked . ' onchange="check_item(' . $output_id . ',' . $task_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $task_id . $site_id . '" class="with-gap radio-col-green subtasks_' . $output_id . ' sub_task' . $task_id . '" />
-                                <label for="subtask_id' . $task_id . $site_id . '">' . $t_counter . '. ' . $task_name . '</label>
-                            </div>
-                        </td>
-                    </tr>';
+        $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
+        $query_rsMilestone->execute(array(":output_id" => $output_id));
+        $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+        if ($totalRows_rsMilestone > 0) {
+            $counter = "";
+            while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+                $counter++;
+                $milestone_name = $row_rsMilestone['milestone'];
+                $task_id = $row_rsMilestone['msid'];
+                $task_div .= '<tr><td>Task :' . $counter . '</td><td>' . $milestone_name . '</td></tr>';
+                $query_rsTasks = $db->prepare("SELECT * FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid = c.subtask_id WHERE t.outputid=:output_id AND c.site_id=:site_id AND tasks=:task_id");
+                $query_rsTasks->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id));
+                $totalRows_rsTasks = $query_rsTasks->rowCount();
+                if ($totalRows_rsTasks > 0) {
+                    $t_counter = 0;
+                    while ($row_rsTasks = $query_rsTasks->fetch()) {
+                        $t_counter++;
+                        $task_name = $row_rsTasks['task'];
+                        $task_id = $row_rsTasks['tkid'];
+                        $query_rsSubTask = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id<>:member_id AND subtask_id=:subtask_id AND site_id=:site_id ");
+                        $query_rsSubTask->execute(array(":member_id" => $user_id, ":subtask_id" => $task_id, ":site_id" => $site_id));
+                        $totalRows_rsSubTask = $query_rsSubTask->rowCount();
+                        if ($totalRows_rsSubTask == 0) {
+                            $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id AND subtask_id=:subtask_id AND site_id=:site_id ");
+                            $query_rsUser->execute(array(":member_id" => $user_id, ":subtask_id" => $task_id, ":site_id" => $site_id));
+                            $totalRows_rsUser = $query_rsUser->rowCount();
+                            $checked = $totalRows_rsUser > 0 ? 1 : 0;
+                            $check =  $checked == 1 ? "checked" : "";
+                            $task_div  .=
+                                '<tr>
+                                    <td>' . $t_counter . '</td>
+                                    <td>
+                                        <div class="form-line">
+                                            <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $task_id . '" ' . $checked . ' onchange="check_item(' . $site_id .  $output_id . ',' . $task_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $task_id . $site_id . '" class="with-gap radio-col-green subtasks_' . $site_id . $output_id . ' sub_task' . $task_id . '" />
+                                            <label for="subtask_id' . $site_id  . $task_id . '"> ' . $task_name . '</label>
+                                        </div>
+                                    </td>
+                                </tr>';
+                        }
+                    }
                 }
             }
         }
@@ -161,24 +170,10 @@ try {
                 $rows_Site_Output = $query_Site_Output->rowCount();
                 if ($rows_Site_Output > 0) {
                     $output_counter = 0;
-                    $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id AND site_id=:site_id ");
-                    $query_rsUser->execute(array(":member_id" => $user_id, ":site_id" => $site_id));
-                    $totalRows_rsUser = $query_rsUser->rowCount();
-                    $checked = $totalRows_rsUser > 0 ? 1 : 0;
-                    $site_checked =  $checked == 1 ? "checked" : "";
-                    $check =  $checked ? "Uncheck" : "Check";
-
                     $task_div .= '
                             <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($site) . '</legend>
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="form-line">
-                                        <input type="hidden" name="site_id[]" value="' . $site_id . '"/>
-                                        <input name="projevaluation" onchange="output_check_box(' . $site_id . ', 0, 0)" type="checkbox" ' . $site_checked . ' id="site' . $site_id . '" class="with-gap radio-col-green site" />
-                                        <label for="site' . $site_id . '"><span id="site_checked' . $site_id . '"> ' . $check . ' All</span></label>
-                                    </div>
-                                </div>';
-
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($site) . '</legend>
+                                <input type="hidden" name="site_id[]" value="' . $site_id . '"/>';
                     while ($row_Site_Output = $query_Site_Output->fetch()) {
                         $output_counter++;
                         $output_id = $row_Site_Output['outputid'];
@@ -201,8 +196,8 @@ try {
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($output) . '</legend>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="form-line">
-                                        <input name="projevaluation" onchange="output_check_box(' . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $output_id . '" class="with-gap radio-col-green sub_task" />
-                                        <label for="outputs' . $output_id . '"><span id="output_checked' . $output_id . '"> ' . $check . ' All</span></label>
+                                        <input name="projevaluation" onchange="output_check_box(' . $site_id . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                                        <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
                                         <input type="hidden" name="output_id' . $site_id . '[]" value="' . $output_id . '">
                                     </div>
                                 </div>
@@ -211,7 +206,8 @@ try {
                                         <table class="table table-bordered table-striped table-hover js-basic-example ">
                                             <thead>
                                                 <tr>
-                                                    <th style="width:100%;">#</th>
+                                                    <th style="width:10%;">#</th>
+                                                    <th style="width:90%;">Subtask</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="">
@@ -233,11 +229,12 @@ try {
         $total_Output = $query_Output->rowCount();
         if ($total_Output > 0) {
             $counter = 0;
+            $site_id = 0;
+            $task_div .= '<input type="hidden" name="site_id[]" value="' . $site_id . '"/>';
             while ($row_rsOutput = $query_Output->fetch()) {
                 $output_id = $row_rsOutput['id'];
                 $output = $row_rsOutput['indicator_name'];
                 $counter++;
-                $site_id = 0;
                 $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id AND output_id=:output_id ");
                 $query_rsUser->execute(array(":member_id" => $user_id, ":output_id" => $output_id));
                 $totalRows_rsUser = $query_rsUser->rowCount();
@@ -249,10 +246,9 @@ try {
                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($output) . '</legend>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="form-line">
-                            <input name="projevaluation" onchange="output_check_box(' . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $output_id . '" class="with-gap radio-col-green sub_task" />
-                            <label for="outputs' . $output_id . '"><span id="output_checked' . $output_id . '"> ' . $check . ' All</span></label>
-                            <input type="hidden" name="output_id0[]" value="' . $output_id . '">
-                            <input type="hidden" name="site_id[]" value="' . $site_id . '"/>
+                            <input name="projevaluation" onchange="output_check_box(' . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                            <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
+                            <input type="hidden" name="output_id' . $site_id . '[]" value="' . $site_id . $output_id . '">
                         </div>
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -260,7 +256,7 @@ try {
                             <table class="table table-bordered table-striped table-hover js-basic-example ">
                                 <thead>
                                     <tr>
-                                        <th style="width:100%;"> Task</th>
+                                        <th style="width:100%;"> Subtask</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -373,8 +369,6 @@ try {
 
         $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
         $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => $implimentation_stage, ':team_type' => 4, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
-
-
         if (isset($_POST['site_id'])) {
             $sites = $_POST['site_id'];
             $count_sites = count($sites);

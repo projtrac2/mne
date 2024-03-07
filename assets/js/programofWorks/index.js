@@ -1,4 +1,4 @@
-const ajax_url = "ajax/programsOfWorks/index";
+const ajax_url1 = "ajax/programsOfWorks/index";
 
 $(function () {
     $('.tasks_id_header').each((index, element) => {
@@ -29,7 +29,7 @@ $(document).ready(function () {
         var form_data = $(this).serialize();
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -57,7 +57,7 @@ $(document).ready(function () {
         var form_data = $(this).serialize();
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -87,7 +87,7 @@ $(document).ready(function () {
         $("#tag-form-submit-frequency").prop("disabled", true);
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -163,7 +163,7 @@ function get_monitoring_frequency(monitoring_frequency) {
     if (projid != '' && frequency != '') {
         $.ajax({
             type: "get",
-            url: ajax_url,
+            url: ajax_url1,
             data: {
                 get_monitoring_frequency: "get_monitoring_frequency",
                 projid: projid,
@@ -194,7 +194,7 @@ function get_tasks(details) {
     (edit == "1") ? $("#store_tasks").val(1) : $("#store_tasks").val(0);
     $.ajax({
         type: "get",
-        url: ajax_url,
+        url: ajax_url1,
         data: {
             get_tasks: "get_tasks",
             projid: projid,
@@ -220,7 +220,7 @@ function get_subtasks_adjust(details) {
     var projid = $("#projid").val();
     $.ajax({
         type: "get",
-        url: ajax_url,
+        url: ajax_url1,
         data: {
             get_subtasks_edit: "get_subtasks_edit",
             projid: projid,
@@ -393,3 +393,5 @@ function approve_project(details) {
             }
         });
 }
+
+
