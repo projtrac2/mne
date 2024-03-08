@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function() {
   $("#navtitle").addClass("active");  
     manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-financial-lines",
+    ajax: "general-settings/selected-items/fetch-selected-financial-lines.php",
     order: [], 
     'columnDefs': [{
       'targets': [4],
@@ -63,7 +63,7 @@ $(document).ready(function() {
       var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-financial-lines-action",
+        url: "general-settings/action/project-financial-lines-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
@@ -116,7 +116,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-financial-line",
+      url: "general-settings/selected-items/fetch-selected-financial-line.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -134,7 +134,6 @@ function editItem(itemId = null) {
         $("#editdescription").val(response.description);
         $("#editname").val(response.name);
         // status
-        $("#editStatus").val(response.status);
         $("#editGroup").val(response.grp);
 
         // update the line data function
@@ -145,7 +144,6 @@ function editItem(itemId = null) {
             // form validation
             var description = $("#editdescription").val();
             var name = $("#editname").val();
-            var itemStatus = $("#editStatus").val();
 
             if (name == "") {
               $("#editname").after(
@@ -183,29 +181,12 @@ function editItem(itemId = null) {
                 .addClass("has-success");
             } 
  
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
 
-            if (name && description  && itemStatus) {
+            if (name && description) {
               var form = $(this);
               var formData = new FormData(this);
               $.ajax({
-                url: "general-settings/action/project-financial-lines-action",
+                url: "general-settings/action/project-financial-lines-action.php",
                 type: "post",
                 data: formData,
                 dataType: "json",
@@ -213,7 +194,7 @@ function editItem(itemId = null) {
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                  if (response) {
+                  if (response.success) {
                     // submit loading button
                     $("#edittitleBtn").button("reset");
                     // reload the manage student table
@@ -245,7 +226,7 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-financial-lines-action",
+          url: "general-settings/action/project-financial-lines-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -270,31 +251,45 @@ function removeItem(itemId = null) {
   } // /if priorityid
 } // /remove priority function
 
-function clearForm(oForm) {
-  // var frm_elements = oForm.elements;
-  // for(i=0;i<frm_elements.length;i++) {
-  // field_type = frm_elements[i].type.toLowerCase();
-  // switch (field_type) {
-  //    case "text":
-  //    case "password":
-  //    case "textarea":
-  //    case "hidden":
-  //    case "select-one":
-  //      frm_elements[i].value = "";
-  //      break;
-  //    case "radio":
-  //    case "checkbox":
-  //      if (frm_elements[i].checked)
-  //      {
-  //          frm_elements[i].checked = false;
-  //      }
-  //      break;
-  //    case "file":
-  //     if(frm_elements[i].options) {
-  //     frm_elements[i].options= false;
-  //     }
-  //    default:
-  //        break;
-  //     } // /switch
-  // } // for
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to ${action} ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-financial-lines-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }

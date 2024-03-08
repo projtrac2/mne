@@ -94,7 +94,7 @@ if (isset($_GET['page'])) {
     $page_sectors = get_page_sectors($id);
     $page_designations = get_page_designations($id);
     $page_permissions = get_page_permissions($id);
-    
+
     echo json_encode(array("success" => $result, "page" => $row, "page_sectors" => $page_sectors, "page_designations" => $page_designations, "page_permissions" => $page_permissions, "children" => $children));
 }
 
@@ -136,7 +136,7 @@ if (isset($_POST['store'])) {
     $name = $_POST['name'];
     $allow_read = isset($_POST['allow_read']) ? $_POST['allow_read'] : 0;
     $icons = $_POST['icon'];
-    $status = $_POST['status'];
+    $status = 1;
     $priority = $_POST['priority'];
     $workflow_stage = isset($_POST['workflow_stage']) && !empty($_POST['workflow_stage']) ? $_POST['workflow_stage'] : 0;
     $page_id = $_POST['id'];
@@ -196,9 +196,22 @@ if (isset($_POST['store'])) {
     echo json_encode(array("page_id" => $page_id, "success" => true));
 }
 
-if (isset($_DELETE['destroy'])) {
-    $id = $_GET['id'];
-    $sql = $db->prepare("DELETE FROM tbl_pages WHERE id=:id");
-    $result = $sql->execute(array(':id' => $id));
-    echo json_encode(array("success" => $result));
+if (isset($_POST['destroy'])) {
+    $id = $_POST['id'];
+    $updateStatus = '';
+
+    $stmt = $db->prepare("SELECT * FROM `tbl_page_permissions` where id=:id");
+    $stmt->execute([':id' => $id]);
+    $stmt_results = $stmt->fetch();
+
+    $stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
+
+    $sql = $db->prepare("UPDATE tbl_pages SET status=:status WHERE id=:id");
+    $result = $sql->execute(array(':id' => $id, ':status' => $updateStatus));
+    if ($result) {
+        $valid = true;
+    } else {
+        $valid = false;
+    }
+    echo json_encode($valid);
 }

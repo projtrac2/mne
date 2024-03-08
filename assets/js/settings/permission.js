@@ -1,4 +1,4 @@
-const ajax_url = "ajax/settings/permission";
+const ajax_url = "ajax/settings/permission.php";
 
 $(document).ready(function () {
     $("#submitItemForm").submit(function (e) {
@@ -10,9 +10,9 @@ $(document).ready(function () {
             data: $(this).serialize(),
             dataType: "json",
             success: function (response) {
-                if(response.success){
+                if (response.success) {
                     success_alert("Successfully created record");
-                }else{
+                } else {
                     error_alert("Sorry record could not be saved");
                 }
                 setTimeout(() => {
@@ -56,7 +56,6 @@ function get_edit_details(id) {
             success: function (response) {
                 if (response.success) {
                     let perm = response.permission;
-                    $("#status").val(perm.status);
                     $("#name").val(perm.name);
                     $("#phrase").val(perm.phrase);
                 } else {
@@ -90,20 +89,62 @@ function add_designations(id) {
 }
 
 
-function destroy() {
-    $.ajax({
-        type: "delete",
-        url: ajax_url,
-        data: { destroy: "destroy", id: id },
-        dataType: "json",
-        success: function (response) {
-            if (response.success) {
-                success_alert("Successfully created record ");
+// function destroy() {
+//     $.ajax({
+//         type: "delete",
+//         url: ajax_url,
+//         data: { destroy: "destroy", id: id },
+//         dataType: "json",
+//         success: function (response) {
+//             if (response.success) {
+//                 success_alert("Successfully created record ");
+//             } else {
+//                 error_alert("Error could not create record");
+//             }
+//         }
+//     });
+// }
+
+
+function disable(id, name, action) {
+    swal({
+      title: "Are you sure?",
+      text: `You want to ${action} ${name}!`,
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    }).then((willUpdate) => {
+      if (willUpdate) {
+        $.ajax({
+          type: "post",
+          url: ajax_url,
+          data: {
+            destroy: "deleteItem",
+            id: id,
+          },
+          dataType: "json",
+          success: function (response) {
+            console.log(response);
+            if (response == true) {
+              swal({
+                title: "Notification !",
+                text: `Successfully ${status}`,
+                icon: "success",
+              });
             } else {
-                error_alert("Error could not create record");
+              swal({
+                title: "Notification !",
+                text: `Error ${status}`,
+                icon: "error",
+              });
             }
-        }
-    });
-}
-
-
+            setTimeout(function () {
+              window.location.reload(true);
+            }, 3000);
+          }
+        });
+      } else {
+        swal("You cancelled the action!");
+      }
+    })
+  }

@@ -115,23 +115,12 @@
                                             <label><font color="#174082">Priority Description : </font></label>
                                             <textarea class="form-control" id="editdescription" placeholder="Project Priorities" name="editdescription" required autocomplete="off" required></textarea>
                                         </div> <!-- /form-group-->
-                                        <div class="col-md-6 form-input">
+                                        <div class="col-md-12 form-input">
                                             <label>
                                                 <font color="#174082">Priority Weight: </font>
                                             </label>
                                             <input type="text" class="form-control" id="editweight" placeholder="Name of Priority Weight" name="editweight" required autocomplete="off">
                                         </div>
-                                        <!-- /form-group-->
-                                        <div class="col-md-6 form-input">
-                                            <label for="editStatus">
-                                                <font color="#174082">Priority Status: </font>
-                                            </label>
-                                            <select class="form-control" id="editStatus" name="editStatus" required>
-                                                <option value="">~~SELECT~~</option>
-                                                <option value="1">Enabled</option>
-                                                <option value="0">Disabled</option>
-                                            </select>
-                                        </div> <!-- /form-group-->
                                         <div class="modal-footer editItemFooter">
                                             <div class="col-md-12 text-center">
                                                 <input type="hidden" name="edititem" id="edititem" value="edit">
@@ -176,4 +165,4 @@
 </div><!-- /.modal -->
 <!-- End Item Delete -->
 
-<script src="general-settings\js\fetch-priorities.js"></script>
+<script src="general-settings/js/fetch-priorities.js"></script>

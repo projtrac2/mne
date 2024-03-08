@@ -78,6 +78,14 @@ if ($permission) {
 				} elseif (isset($_GET["financialplan"]) && !empty($_GET["financialplan"])) {
 					include_once('project-financial-plan-inner.php');
 				}
+
+				if (isset($_GET["roles"]) &&  !empty($_GET["roles"])) {
+					include_once('project-team-roles-inner.php');
+				}
+
+				if (isset($_GET["partnerRoles"]) &&  !empty($_GET["partnerRoles"])) {
+					include_once('project-partner-roles-inner.php');
+				}
 				?>
 			</div>
 	</section>

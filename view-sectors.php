@@ -29,7 +29,7 @@ if ($permission) {
             </div>
             </h4>
         </div>
-        <div class="row clearfix">
+        <div class="row clearfix container-fluid">
             <div class="block-header">
                 <?= $results; ?>
             </div>

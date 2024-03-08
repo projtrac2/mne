@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function() {
   $("#navtitle").addClass("active");  
     manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-titles-items",
+    ajax: "general-settings/selected-items/fetch-selected-titles-items.php",
     order: [], 
     'columnDefs': [{
       'targets': [3],
@@ -41,10 +41,9 @@ $(document).ready(function() {
 
     if (title) {
       var form = $(this);
-      var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-titles-action",
+        url: "general-settings/action/project-titles-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
@@ -97,7 +96,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-titles-item",
+      url: "general-settings/selected-items/fetch-selected-titles-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -166,7 +165,7 @@ function editItem(itemId = null) {
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/project-titles-action",
+                url: "general-settings/action/project-titles-action.php",
                 type: "post",
                 data: formData,
                 dataType: "json",
@@ -206,7 +205,7 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-titles-action",
+          url: "general-settings/action/project-titles-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -216,7 +215,6 @@ function removeItem(itemId = null) {
             if (response.success == true) {
               // reload the manage student table
               manageItemTable.ajax.reload(null, true);
-
               alert(response.messages);
               $(".modal").each(function() {
                 $(this).modal("hide");
@@ -259,3 +257,48 @@ function clearForm(oForm) {
   //     } // /switch
   // } // for
 }
+
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to ${action} stage ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+    }).then((willUpdate) => {
+        if (willUpdate) {
+            $.ajax({
+                type: "post",
+                url: '/system-workflow-stages-inner-update.php',
+                data: {
+                    update_title_status: "update_title_status",
+                    title_id: id,
+                },
+                dataType: "json",
+                success: function(response) {
+                  console.log(response);
+                    if (response == true) {
+                        swal({
+                            title: "Notification !",
+                            text: `Successfully ${status}`,
+                            icon: "success",
+                        });
+                    } else {
+                        swal({
+                            title: "Notification !",
+                            text: `Error ${status}`,
+                            icon: "error",
+                        });
+                    }
+                    setTimeout(function() {
+                        window.location.reload(true);
+                    }, 3000);
+                }
+            });
+        } else {
+            swal("You cancelled the action!");
+        }
+    })
+}
+
+

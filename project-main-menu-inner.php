@@ -59,6 +59,14 @@
                                         $rows_stmt = $stmt->fetch();
                                         $total_stmt = $stmt->rowCount();
                                         $parent_name = $total_stmt > 0 ? $rows_stmt['name'] : 'N/A';
+
+                                        if ($row['status']) {
+                                            $wordings = 'disable';
+                                            $wordingsCapital = 'Disable';
+                                        } else {
+                                            $wordings = 'enable';
+                                            $wordingsCapital = 'Enable';
+                                        }
                                 ?>
                                      <tr>
                                          <td><?= $sn ?></td>
@@ -79,6 +87,11 @@
                                                              <i class="glyphicon glyphicon-edit"></i> Edit
                                                          </a>
                                                      </li>
+                                                     <li>
+                                                        <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?=$id?>, '<?= $name ?>', '<?=$wordings?>')">
+                                                            <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
+                                                        </a>
+                                                    </li>
                                                  </ul>
                                              </div>
                                          </td>

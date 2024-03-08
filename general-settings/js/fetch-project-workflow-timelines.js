@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function() {
   $("#navtitle").addClass("active");  
     manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-project-workflow-timelines-items",
+    ajax: "/general-settings/selected-items/fetch-selected-project-workflow-timelines-items.php",
     order: [], 
     'columnDefs': [{
       'targets': [8],
@@ -144,7 +144,7 @@ $(document).ready(function() {
       var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-workflow-stage-timelines-action",
+        url: "general-settings/action/project-workflow-stage-timelines-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
@@ -197,7 +197,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-project-workflow-timelines-item",
+      url: "general-settings/selected-items/fetch-selected-project-workflow-timelines-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -373,7 +373,7 @@ function editItem(itemId = null) {
               var form = $(this);
               var formData = new FormData(this);
               $.ajax({
-                url: "general-settings/action/project-workflow-stage-timelines-action",
+                url: "general-settings/action/project-workflow-stage-timelines-action.php",
                 type: "post",
                 data: formData,
                 dataType: "json",
@@ -413,7 +413,7 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-workflow-stage-timelines-action",
+          url: "general-settings/action/project-workflow-stage-timelines-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",

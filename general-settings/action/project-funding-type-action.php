@@ -8,8 +8,9 @@ try{
 		$type =$_POST['type'];
 		$description = $_POST['description'];
 		$status = 1;
-		$sql = $db->prepare("INSERT INTO tbl_funding_type (type, description, status) VALUES(:type, :description, :status)");
-		$results = $sql->execute(array(":type"=>$type, ":description"=>$description, ":status"=>$status));
+		$category = 8;
+		$sql = $db->prepare("INSERT INTO tbl_funding_type (type, description, status, category) VALUES(:type, :description, :status, :category)");
+		$results = $sql->execute(array(":type"=>$type, ":description"=>$description, ":status"=>$status, ':category' => $category));
 
 		if($results === TRUE) {
 			$valid['success'] = true;
@@ -23,12 +24,11 @@ try{
 	if(isset($_POST["edititem"])){
 		$type =$_POST['editType'];
 		$description = $_POST['editDescription'];
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
 		
-		$updateQuery = $db->prepare("UPDATE tbl_funding_type SET type=:type, description=:description, status=:status WHERE id=:itemid");
-		$results = $updateQuery->execute(array(':type' => $type, ':description' => $description, ':status' => $status, ':itemid' => $itemid));
-
+		$updateQuery = $db->prepare("UPDATE tbl_funding_type SET type=:type, description=:description WHERE id=:itemid");
+		$results = $updateQuery->execute(array(':type' => $type, ':description' => $description, ':itemid' => $itemid));
+		
 		if($results === TRUE) {
 			$valid['success'] = true;
 			$valid['messages'] = "Successfully Updated";	
@@ -40,21 +40,28 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_funding_type` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
 		
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_funding_type` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+		$deleteQuery = $db->prepare("UPDATE `tbl_funding_type` SET status=:status WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status' => $updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}
 
 }catch (PDOException $ex){
     // $result = flashMessage("An error occurred: " .$ex->getMessage());
+	var_dump($ex->getMessage());
 	echo $ex->getMessage();
 }

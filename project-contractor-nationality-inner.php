@@ -97,19 +97,11 @@
 									<form class="form-horizontal" id="editItemForm" action="general-settings/action/project-contractor-nationality-action.php" method="POST">	
 										<br />
 										<div class="col-md-12 id="edit-Contractor Nationality-messages"></div>	     
-										<div class="col-md-8 form-input">
+										<div class="col-md-12 form-input">
 											<label><font color="#174082">Contractor Nationality: </font></label>
 											<input type="text" class="form-control" id="editNationality" placeholder="Name of Contractor Nationality " name="editNationality" required autocomplete="off">
 										</div> <!-- /form-group-->     
 
-										<div class="col-md-4 form-input">
-											<label for="editStatus"><font color="#174082">Contractor Nationality : </font></label>
-											<select class="form-control" id="editStatus" name="editStatus" required>
-												<option value="">~~SELECT~~</option>
-												<option value="1">Enabled</option>
-												<option value="0">Disabled</option>
-											</select>
-										</div> <!-- /form-group-->	   	 
 
 										<div class="col-md-12 form-input" style="margin-top:10px">
 											<label><font color="#174082">Contractor Nationality  Description: </font></label>

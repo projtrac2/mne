@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function() {
   // manage Procurement Method data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-procurement-method-items",
+    ajax: "general-settings/selected-items/fetch-selected-procurement-method-items.php",
     order: [], 
     'columnDefs': [{
       'targets': [4],
@@ -61,7 +61,7 @@ $(document).ready(function() {
       var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-procurement-method-action",
+        url: "general-settings/action/project-procurement-method-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
@@ -114,7 +114,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-procurement-method-item",
+      url: "general-settings/selected-items/fetch-selected-procurement-method-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -130,7 +130,6 @@ function editItem(itemId = null) {
         );
         $("#editmethod").val(response.method);
         $("#editDescription").val(response.description);
-        $("#editStatus").val(response.status);
 
         // update the Procurement Method data function
         $("#editItemForm")
@@ -139,7 +138,6 @@ function editItem(itemId = null) {
             // form validation
             var method = $("#editmethod").val();
             var description = $("#editDescription").val();
-            var itemStatus = $("#editStatus").val();
 
             if (method == "") {
               $("#editmethod").after(
@@ -176,31 +174,13 @@ function editItem(itemId = null) {
                 .closest(".form-input")
                 .addClass("has-success");
             } // /else
-
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
-
-            if (method && description && itemStatus) {
+           
+            if (method && description) {
               var form = $(this);
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/project-procurement-method-action",
+                url: "general-settings/action/project-procurement-method-action.php",
                 type: form.attr("method"),
                 data: formData,
                 dataType: "json",
@@ -208,7 +188,7 @@ function editItem(itemId = null) {
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                  if (response) {
+                  if (response.success) {
                     // submit loading button
                     $("#editProductBtn").button("reset");
 
@@ -233,66 +213,47 @@ function editItem(itemId = null) {
   }
 } // /edit Procurement Method function
 
-// remove Procurement Method
-function removeItem(itemId = null) {
-  if (itemId) {
-    // remove Procurement Method button clicked
-    $("#removeItemBtn")
-      .unbind("click")
-      .bind("click", function() {
-        var deleteItem = 1;
-        $.ajax({
-          url: "general-settings/action/project-procurement-method-action",
-          type: "post",
-          data: { itemId: itemId, deleteItem: deleteItem },
-          dataType: "json",
-          success: function(response) {
-            // loading remove button
-            $("#removeItemBtn").button("reset");
-            if (response.success == true) {
-              // reload the manage Procurement Method table
-              manageItemTable.ajax.reload(null, true);
 
-              alert(response.messages);
-              $(".modal").each(function() {
-                $(this).modal("hide");
-              });
-            } else {
-              alert(response.messages);
-            } // /error
-          } // /success function
-        }); // /ajax fucntion to remove the Procurement Method
-        return false;
-      }); // /remove Procurement Method btn clicked
-  } // /if Procurement Methodid
-} // /remove Procurement Method function
-
-function clearForm(oForm) {
-  // var frm_elements = oForm.elements;
-  // console.log(frm_elements);
-  // for(i=0;i<frm_elements.length;i++) {
-  // field_type = frm_elements[i].type.toLowerCase();
-  // switch (field_type) {
-  //    case "text":
-  //    case "password":
-  //    case "textarea":
-  //    case "hidden":
-  //    case "select-one":
-  //      frm_elements[i].value = "";
-  //      break;
-  //    case "radio":
-  //    case "checkbox":
-  //      if (frm_elements[i].checked)
-  //      {
-  //          frm_elements[i].checked = false;
-  //      }
-  //      break;
-  //    case "file":
-  //     if(frm_elements[i].options) {
-  //     frm_elements[i].options= false;
-  //     }
-  //    default:
-  //        break;
-  //     } // /switch
-  // } // for
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to  ${action} priority ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-procurement-method-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }
+

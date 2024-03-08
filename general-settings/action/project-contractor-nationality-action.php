@@ -35,11 +35,10 @@ try{
         $createdby = $_POST['createdby'];
         $dateupdated = date('Y-m-d H:m:s');  
 		$itemid = $_POST['itemId'];
-		$status = $_POST['editStatus'];
 		
-        $sql = $db->prepare("UPDATE tbl_contractornationality SET nationality=:nationality,description=:description, active=:status, created_by=:createdby, 
+        $sql = $db->prepare("UPDATE tbl_contractornationality SET nationality=:nationality,description=:description, created_by=:createdby, 
 		date_created=:dateupdated WHERE id =:id");
-        $results = $sql->execute(array(":nationality"=>$nationality, ":description"=>$description, ":status"=>$status, ":createdby"=>$createdby, ":dateupdated"=>$dateupdated, ":id"=>$itemid));
+        $results = $sql->execute(array(":nationality"=>$nationality, ":description"=>$description, ":createdby"=>$createdby, ":dateupdated"=>$dateupdated, ":id"=>$itemid));
 		
 		if($results === TRUE) {
 			$valid['success'] = true;
@@ -52,15 +51,22 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_contractornationality` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_contractornationality` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['active'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
+
+		$deleteQuery = $db->prepare("UPDATE `tbl_contractornationality` SET active=:status WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status' => $updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}

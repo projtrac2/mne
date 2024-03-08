@@ -23,11 +23,10 @@ try{
 	if(isset($_POST["edititem"])){
 		$type =$_POST['editType'];
 		$description = $_POST['editDescription'];
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
 		 
-		$updateQuery = $db->prepare("UPDATE tbl_contractorbusinesstype SET type=:type, description=:description, status=:status WHERE id=:itemid");
-		$results = $updateQuery->execute(array(':type' => $type, ':description' => $description, ':status' => $status, ':itemid' => $itemid));
+		$updateQuery = $db->prepare("UPDATE tbl_contractorbusinesstype SET type=:type, description=:description WHERE id=:itemid");
+		$results = $updateQuery->execute(array(':type' => $type, ':description' => $description, ':itemid' => $itemid));
 
 		if($results === TRUE) {
 			$valid['success'] = true;
@@ -40,16 +39,22 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_contractorbusinesstype` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
 		
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_contractorbusinesstype` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+		$deleteQuery = $db->prepare("UPDATE `tbl_contractorbusinesstype` SET status=:status WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status' => $updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}

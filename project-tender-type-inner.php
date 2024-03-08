@@ -48,7 +48,7 @@
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <div class="body">
                                     <div id="add-item-messages"></div>
-                                    <div class="col-md-8 form-input">
+                                    <div class="col-md-12 form-input">
                                         <label>
                                             <font color="#174082">Type: </font>
                                         </label>
@@ -107,16 +107,7 @@
                                             <label><font color="#174082">Description : </font></label>
                                             <textarea class="form-control" id="editdescription" placeholder="Project Priorities" name="editdescription" required autocomplete="off" required></textarea>
                                         <!-- /form-group-->
-                                        <div class="col-md-6 form-input">
-                                            <label for="editStatus">
-                                                <font color="#174082">Status: </font>
-                                            </label>
-                                            <select class="form-control" id="editStatus" name="editStatus" required>
-                                                <option value="">~~SELECT~~</option>
-                                                <option value="1">Enabled</option>
-                                                <option value="0">Disabled</option>
-                                            </select>
-                                        </div> <!-- /form-group-->
+                                        
                                         <div class="modal-footer editItemFooter">
                                             <div class="col-md-12 text-center">
                                                 <input type="hidden" name="edititem" id="edititem" value="edit">

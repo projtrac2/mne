@@ -3,10 +3,10 @@ var manageItemTable;
 $(document).ready(function () {
   // manage Project Main Menu  data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-measurement-units",
+    ajax: "general-settings/selected-items/fetch-selected-measurement-units.php",
     order: [],
     'columnDefs': [{
-      // 'targets': [4],
+      'targets': [4],
       'orderable': false,
     }]
   });
@@ -116,7 +116,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-measurement-unit",
+      url: "general-settings/selected-items/fetch-selected-measurement-unit.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -133,7 +133,6 @@ function editItem(itemId = null) {
 
         $("#editunit").val(response.unit);
         $("#editdescription").val(response.description);;
-        $("#editStatus").val(response.active);
 
         // update the Project Main Menu  data function
         $("#editItemForm")
@@ -143,7 +142,6 @@ function editItem(itemId = null) {
             e.preventDefault();
             var editunit = $("#editunit").val();
             var editdescription = $("#editdescription").val();
-            var itemStatus = $("#editStatus").val();
 
             if (editunit == "") {
               $("#editunit").after(
@@ -181,30 +179,13 @@ function editItem(itemId = null) {
                 .addClass("has-success");
             } // /else
 
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
 
-            if (editunit && editdescription && editStatus) {
+            if (editunit && editdescription) {
               var form = $(this);
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/measurement-units-action",
+                url: "general-settings/action/measurement-units-action.php",
                 type: form.attr("method"),
                 data: formData,
                 dataType: "json",
@@ -212,7 +193,7 @@ function editItem(itemId = null) {
                 contentType: false,
                 processData: false,
                 success: function (response) {
-                  if (response) {
+                  if (response.success) {
                     // submit loading button
                     $("#editProductBtn").button("reset");
                     $(".modal").each(function () {
@@ -239,69 +220,48 @@ function editItem(itemId = null) {
   }
 } // /edit Project Main Menu  function
 
-// remove Project Main Menu
-function removeItem(itemId = null) {
-  if (itemId) {
-    // remove Project Main Menu  button clicked
-    $("#removeItemBtn")
-      .unbind("click")
-      .bind("click", function () {
-        var deleteItem = 1;
-        $.ajax({
-          url: "general-settings/action/measurement-units-action",
-          type: "post",
-          data: { itemId: itemId, deleteItem: deleteItem },
-          dataType: "json",
-          success: function (response) {
-            // loading remove button
-            $("#removeItemBtn").button("reset");
-            if (response.success == true) {
-              manageItemTable.ajax.reload(null, true);
-              swal('Record successfully deleted');
-              setTimeout(() => {
-              }, 3000);
-              $(".modal").each(function () {
-                $(this).modal("hide");
-              });
-            } else {
-              swal('Error Updating Record');
-              setTimeout(() => {
-                location.reload(true);
-              }, 3000);
-            } // /error
-          } // /success function
-        }); // /ajax fucntion to remove the Project Main Menu
-        return false;
-      }); // /remove Project Main Menu  btn clicked
-  } // /if Project Main Menu id
-} // /remove Project Main Menu  function
+// disable Project Main Menu
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to ${action} ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/measurement-units-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
 
-function clearForm(oForm) {
-  // var frm_elements = oForm.elements;
-  // console.log(frm_elements);
-  // for(i=0;i<frm_elements.length;i++) {
-  // field_type = frm_elements[i].type.toLowerCase();
-  // switch (field_type) {
-  //    case "text":
-  //    case "password":
-  //    case "textarea":
-  //    case "hidden":
-  //    case "select-one":
-  //      frm_elements[i].value = "";
-  //      break;
-  //    case "radio":
-  //    case "checkbox":
-  //      if (frm_elements[i].checked)
-  //      {
-  //          frm_elements[i].checked = false;
-  //      }
-  //      break;
-  //    case "file":
-  //     if(frm_elements[i].options) {
-  //     frm_elements[i].options= false;
-  //     }
-  //    default:
-  //        break;
-  //     } // /switch
-  // } // for
+          manageItemTable.ajax.reload(null, true);
+          // setTimeout(function () {
+          //   window.location.reload(true);
+          // }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }

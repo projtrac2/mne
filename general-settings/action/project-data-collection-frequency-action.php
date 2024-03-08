@@ -10,9 +10,10 @@ try{
 		$createdby = $_POST['createdby'];
 		$date_created = date('Y-m-d h:i:s');
 		$status = 1;
-		$sql = $db->prepare("INSERT INTO tbl_datacollectionfreq (frequency,days,created_by,date_created,status) 
-		VALUES(:frequency, :days, :createdby, :date_created, :status)");
-		$results = $sql->execute(array(":frequency"=>$frequency,":days"=>$days,":createdby"=>$createdby,":date_created"=>$date_created,":status"=>$status));
+		$level = 8;
+		$sql = $db->prepare("INSERT INTO tbl_datacollectionfreq (frequency,days,created_by,date_created,status,level) 
+		VALUES(:frequency, :days, :createdby, :date_created, :status, :level)");
+		$results = $sql->execute(array(":frequency"=>$frequency,":days"=>$days,":createdby"=>$createdby,":date_created"=>$date_created,":status"=>$status,':level'=>$level));
         
 		if($results === TRUE) { 
 			$valid['success'] = true;
@@ -28,17 +29,15 @@ try{
         $days = $_POST['editdays'];
         $createdby = $_POST['createdby'];
         $date_modified = date('Y-m-d h:i:s');
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
         $sql = $db->prepare("UPDATE tbl_datacollectionfreq SET frequency=:frequency,days=:days, modified_by=:createdby, 
-		date_modified=:date_modified, status=:status WHERE fqid =:id");
+		date_modified=:date_modified WHERE fqid =:id");
         $results = $sql->execute(
         array(
             ":frequency"=>$frequency,
             ":days"=>$days,
             ":createdby"=>$createdby,
 			":date_modified"=>$date_modified,
-			":status"=>$status,
             ":id"=>$itemid
 		));
 		
@@ -53,16 +52,22 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_datacollectionfreq` where fqid=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
 		
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_datacollectionfreq` WHERE fqid=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+		$deleteQuery = $db->prepare("UPDATE `tbl_datacollectionfreq` SET status=:status WHERE fqid=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status'=>$updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}

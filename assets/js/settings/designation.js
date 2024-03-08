@@ -1,4 +1,4 @@
-const ajax_url = "ajax/settings/designation";
+const ajax_url = "ajax/settings/designation.php";
 $(document).ready(function () {
     $("#submitPermissionForm").submit(function (e) {
         e.preventDefault();
@@ -48,3 +48,47 @@ function get_edit_details(id, edit) {
         });
     }
 }
+
+
+function disable(id, name, action) {
+    swal({
+      title: "Are you sure?",
+      text: `You want to ${action} ${name}!`,
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    }).then((willUpdate) => {
+      if (willUpdate) {
+        $.ajax({
+          type: "post",
+          url: ajax_url,
+          data: {
+            store_designation: "deleteItem",
+            designation_id: id,
+          },
+          dataType: "json",
+          success: function (response) {
+            console.log(response);
+            if (response == true) {
+              swal({
+                title: "Notification !",
+                text: `Successfully ${status}`,
+                icon: "success",
+              });
+            } else {
+              swal({
+                title: "Notification !",
+                text: `Error ${status}`,
+                icon: "error",
+              });
+            }
+            setTimeout(function () {
+              window.location.reload(true);
+            }, 3000);
+          }
+        });
+      } else {
+        swal("You cancelled the action!");
+      }
+    })
+  }

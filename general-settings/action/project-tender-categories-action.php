@@ -22,11 +22,10 @@ try{
 	if(isset($_POST["edititem"])){
 		$name =$_POST['editname'];
 		$description =$_POST['editdescription'];
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
 		
-		$updateQuery = $db->prepare("UPDATE tbl_tender_category SET category=:name, description=:description,status=:status WHERE id=:itemid");
-		$results = $updateQuery->execute(array(":name"=>$name, ":description"=>$description,":status"=>$status, ':itemid' => $itemid));
+		$updateQuery = $db->prepare("UPDATE tbl_tender_category SET category=:name, description=:description WHERE id=:itemid");
+		$results = $updateQuery->execute(array(":name"=>$name, ":description"=>$description, ':itemid' => $itemid));
 
 		if($results === TRUE) {
 			$valid['success'] = true;
@@ -39,15 +38,22 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_tender_category` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_tender_category` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
+
+		$deleteQuery = $db->prepare("UPDATE `tbl_tender_category` SET status=:status WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status' => $updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deleting the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}
