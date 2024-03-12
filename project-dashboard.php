@@ -198,7 +198,6 @@ if ($permission) {
 			}
 
 			$rate = $othercost > 0 ? (($consumed / $othercost) * 100) : 0;
-
 			$projcost = number_format($othercost, 2);
 			$balance = $othercost - $consumed;
 			$balance = number_format($balance, 2);

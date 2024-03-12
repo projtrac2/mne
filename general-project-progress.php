@@ -1,11 +1,29 @@
 <?php
+// substage 0) Monitoring 1) Inspection and accceptance test
 require('includes/head.php');
 if ($permission) {
     try {
         $workflow_stage = 9;
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage = 1  ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+        function get_role()
+        {
+            global $db;
+            $query_projrole = $db->prepare("SELECT * FROM `tbl_project_team_roles` WHERE active=1");
+            $query_projrole->execute();
+            $total_rows = $query_projrole->rowCount();
+            $role_input = '<option value="">Select Role</option>';
+            if ($total_rows > 0) {
+                while ($row_projrole = $query_projrole->fetch()) {
+                    $id = $row_projrole['id'];
+                    $role = $row_projrole['role'];
+                    $role_input .= '<option value="' . $id . '" >' . $role . '</option>';
+                }
+            }
+            return  $role_input;
+        }
 
         function get_members()
         {
@@ -94,19 +112,14 @@ if ($permission) {
                                                 $activity_status = $activity = '';
                                                 $activity = $totalRows_rsTeamMembers == 0 ? "Assign" : "Reassign";
                                                 if ($sub_stage == 1) {
-                                                    $activity_status = "Pending Assigned";
+                                                    $activity_status = "Pending Assignment";
                                                 } else if ($sub_stage == 2) {
-                                                    $activity_status = "";
+                                                    $activity_status = "Pending Checklist";
+                                                } else if ($sub_stage == 3) {
+                                                    $activity_status = "Pending Acceptance";
+                                                } else {
+                                                    $activity_status = "Issue";
                                                 }
-
-
-
-                                                $query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_contractor_payment_requests WHERE status=1 AND stage=2 AND projid=:projid ");
-                                                $query_rsPayement_reuests->execute(array(":projid" => $projid));
-                                                $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
-
-                                                $msg = 'Approval Error';
-                                                // if ($total_rsPayement_reuests > 0) {
                                         ?>
                                                 <tr>
                                                     <td align="center"><?= $counter ?></td>
@@ -131,15 +144,16 @@ if ($permission) {
                                                                     </a>
                                                                 </li>
                                                                 <?php
-                                                                if ($totalRows_rsTeamMembers > 0) {
+                                                                if ($sub_stage >= 2 && $sub_stage < 4) {
                                                                 ?>
                                                                     <li>
                                                                         <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
-                                                                            <i class="fa fa-comment-o"></i> Add Inspection Checklist
+                                                                            <i class="fa fa-comment-o"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
                                                                         </a>
                                                                     </li>
+
                                                                     <?php
-                                                                    if ($totalRows_rsQuestions > 0) {
+                                                                    if ($sub_stage == 3) {
                                                                     ?>
                                                                         <li>
                                                                             <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
@@ -155,7 +169,6 @@ if ($permission) {
                                                     </td>
                                                 </tr>
                                         <?php
-                                                // }
                                             }
                                         }
                                         ?>
@@ -193,7 +206,8 @@ if ($permission) {
                                         <thead>
                                             <tr>
                                                 <th width="5%">#</th>
-                                                <th width="90%">Member</th>
+                                                <th width="70%">Member</th>
+                                                <th width="20%">Role</th>
                                                 <th width="5%">
                                                     <button type="button" name="addplus" id="addplus_output" onclick="add_row_member();" class="btn btn-success btn-sm addplus_output">
                                                         <span class="glyphicon glyphicon-plus">
@@ -208,6 +222,11 @@ if ($permission) {
                                                 <td>
                                                     <select name="member[]" id="memberrow0" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
                                                         <?= get_members() ?>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select name="role[]" id="rolerow0" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                        <?= get_role() ?>
                                                     </select>
                                                 </td>
                                                 <td></td>
@@ -327,6 +346,7 @@ require('includes/footer.php');
 
 <script>
     const members = <?= json_encode(get_members()) ?>;
+    const roles = <?= json_encode(get_role()) ?>;
     var ajax_url1 = "ajax/inspection/general";
 
     $(document).ready(function() {
@@ -351,7 +371,6 @@ require('includes/footer.php');
                 }
             });
         });
-
 
         $("#add_questions_form").submit(function(e) {
             e.preventDefault();
@@ -416,6 +435,7 @@ require('includes/footer.php');
                 success: function(response) {
                     if (response.success) {
                         $("#member_table_body").html(response.members);
+
                     } else {
                         error_alert("Record could not be saved successfully");
                     }
@@ -436,6 +456,12 @@ require('includes/footer.php');
                 <select name="member[]" id="memberrow${$rowno}" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
                     <option value="">..Select Member..</option>
                     ${members}
+                </select>
+            </td>
+            <td>
+                <select name="role[]" id="rolerow${$rowno}" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                    <option value="">..Select Member..</option>
+                    ${roles}
                 </select>
             </td>
             <td>

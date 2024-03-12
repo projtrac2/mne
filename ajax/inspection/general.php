@@ -22,6 +22,24 @@ try {
       return $input;
    }
 
+   function get_role($role_id)
+   {
+      global $db;
+      $query_projrole = $db->prepare("SELECT * FROM `tbl_project_team_roles` WHERE active=1");
+      $query_projrole->execute();
+      $total_rows = $query_projrole->rowCount();
+      $role_input = '<option value="">Select Role</option>';
+      if ($total_rows > 0) {
+         while ($row_projrole = $query_projrole->fetch()) {
+            $id = $row_projrole['id'];
+            $role = $row_projrole['role'];
+            $selected = $role_id == $id ? "selected" : '';
+            $role_input .= '<option value="' . $id . '" ' . $selected . ' >' . $role . '</option>';
+         }
+      }
+      return  $role_input;
+   }
+
    if (isset($_GET['get_edit_members'])) {
       $projid = $_GET['projid'];
       $query_rsTeamMembers = $db->prepare("SELECT * FROM tbl_projmembers WHERE team_type=5 AND projid=:projid");
@@ -34,13 +52,20 @@ try {
          while ($row = $query_rsTeamMembers->fetch()) {
             $counter++;
             $member_id = $row['responsible'];
+            $role_id = $row['role'];
             $member = get_members($member_id);
+            $roles = get_role($role_id);
             $members .= '
             <tr id="mtng' . $counter . '">
                   <td>' . $counter . '</td>
                   <td>
                      <select name="member[]" id="memberrow' . $counter . '" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
                         ' . $member . '
+                     </select>
+                  </td>
+                  <td>
+                     <select name="role[]" id="rolerow' . $counter . '" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                        ' . $roles . '
                      </select>
                   </td>
                   <td>';
@@ -58,7 +83,6 @@ try {
       }
       echo json_encode(array("success" => true, "members" => $members));
    }
-
 
    if (isset($_GET['get_edit_questions'])) {
       $projid = $_GET['projid'];
@@ -93,6 +117,14 @@ try {
       echo json_encode(array("success" => true, "questions" => $questions));
    }
 
+   function update_project($projid, $substage_id)
+   {
+      global $db;
+      $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE projid=:projid");
+      $result  = $sql->execute(array(":proj_substage" => $substage_id, ":projid" => $projid));
+      return $result;
+   }
+
    if (isset($_POST['add_questions'])) {
       $projid = $_POST['projid'];
       $datecreated = date("Y-m-d");
@@ -106,8 +138,11 @@ try {
          $sql = $db->prepare("INSERT INTO tbl_inspection_checklist_questions (projid,question,created_by,created_at) VALUES (:projid,:question,:created_by,:created_at)");
          $result = $sql->execute(array(':projid' => $projid, ':question' => $question, ':created_by' => $user_name, ':created_at' => $datecreated));
       }
+      update_project($projid, 3);
       echo json_encode(array("success" => true));
    }
+
+
 
    // answer_question
    if (isset($_POST['answer_question'])) {
@@ -115,7 +150,7 @@ try {
       $datecreated = date("Y-m-d");
       $question_id = $_POST['question_id'];
       $answer = $_POST['question'];
-      $comment = $_POST['comments'] !='' ? $_POST['comments'] : null;
+      $comment = $_POST['comments'] != '' ? $_POST['comments'] : null;
       $sql = $db->prepare("UPDATE tbl_inspection_checklist_questions SET answer=:answer, comment=:comment,updated_by=:created_by, updated_at=:updated_at WHERE id=:question_id ");
       $result = $sql->execute(array(':answer' => $answer, ':comment' => $comment, ':created_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
       echo json_encode(array("success" => $result));
@@ -125,15 +160,19 @@ try {
       $projid = $_POST['projid'];
       $datecreated = date("Y-m-d");
       $members = $_POST['member'];
+      $roles = $_POST['role'];
       $total_members = count($members);
 
       $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 5");
-      $result = $sql->execute(array(':projid' => $projid, ":stage" => 10));
+      $result = $sql->execute(array(':projid' => $projid, ":stage" => 9));
       for ($i = 0; $i < $total_members; $i++) {
          $ptid = $members[$i];
+         $role = $roles[$i];
          $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
-         $result = $sql->execute(array(':projid' => $projid, ':role' => 0, ":stage" => 10, ':team_type' => 5, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
+         $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => 9, ':team_type' => 5, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
       }
+
+      update_project($projid, 2);
       echo json_encode(array("success" => true));
    }
 } catch (PDOException $ex) {

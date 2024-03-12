@@ -132,8 +132,8 @@ if ($permission) {
 												$project_department = $row_rsProjects['projsector'];
 												$project_section = $row_rsProjects['projdept'];
 												$project_directorate = $row_rsProjects['directorate'];
-												$monitoring_frequency = $row_rsProjects['monitoring_frequency'];
-												$activity_monitoring_frequency = $row_rsProjects['activity_monitoring_frequency'];
+												$monitoring_frequency = ($row_rsProjects['monitoring_frequency'] != '') ? $row_rsProjects['monitoring_frequency'] : 0;
+												$activity_monitoring_frequency = ($row_rsProjects['activity_monitoring_frequency']  != '') ? $row_rsProjects['activity_monitoring_frequency'] : 0;
 												$start_date = date('Y-m-d');
 
 												$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid");

@@ -68,6 +68,8 @@ function initMap(lat, lng) {
 			mapTypeIds: ["styled_one_point_map"],
 		},
 	});
+
+
 }
 
 // get level 2
@@ -129,6 +131,9 @@ const get_coordinates = () => {
 	var projlga = $("#projlga").val();
 	map = null;
 	map = initMap();
+	//Associate the styled map with the MapTypeId and set it to display.
+	map.mapTypes.set("styled_one_point_map", styledMapType);
+	map.setMapTypeId("styled_one_point_map");
 
 	if (indicator_id != '') {
 		$.ajax({

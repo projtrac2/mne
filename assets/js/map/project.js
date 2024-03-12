@@ -25,6 +25,7 @@ function initMap() {
 		},
 	});
 
+
 	styledMapType = new google.maps.StyledMapType(
 		[
 			{
@@ -70,6 +71,10 @@ function initMap() {
 		{ name: "Projtrac M&E Map" }
 	);
 
+	//Associate the styled map with the MapTypeId and set it to display.
+	map.mapTypes.set("styled_one_point_map", styledMapType);
+	map.setMapTypeId("styled_one_point_map");
+
 	get_coordinates();
 }
 
@@ -93,6 +98,7 @@ const get_coordinates = () => {
 						var indicator = output_details.indicator_details;
 						var markers = output_details.markers;
 						var mapping_type = indicator.indicator_mapping_type;
+
 						if (mapping_type == '1') {
 							static_markers(markers, indicator);
 						} else if (mapping_type == '2') {
@@ -114,8 +120,6 @@ const handleLocationError = (browserHasGeolocation, pos) => {
 
 const static_markers = (markers, indicator) => {
 	infowindow = new google.maps.InfoWindow();
-
-	console.log(markers)
 	var markers_length = markers.length;
 	for (var i = 0; i < markers_length; i++) {
 		var marker_array = markers[i];
@@ -233,7 +237,6 @@ const waypoint_markers = (data, indicator) => {
 	infowindow = new google.maps.InfoWindow();
 	for (var i = 0; i < data_length; i++) {
 		var point = data[i];
-		console.log(point);
 		var markers = point.markers;
 		var markers_length = markers.length;
 		var project_details = point.project_details;

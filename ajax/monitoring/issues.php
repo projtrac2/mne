@@ -1,7 +1,6 @@
 <?php
 include '../controller.php';
 try {
-
 	if (isset($_GET['get_risk_category'])) {
 		$projid = $_GET['projid'];
 		$risk = '<option value="" selected="selected" class="selection">... Select ...</option>';
