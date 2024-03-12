@@ -28,17 +28,15 @@ try{
         $sdate = $_POST['editsdate'];
         $edate = $_POST['editedate'];
         $yr =$_POST['edityear'];
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
 		$date_modified = date('Y-m-d h:i:s');
-        $sql = $db->prepare("UPDATE tbl_fiscal_year SET year=:year, yr=:yr, sdate=:sdate, edate=:edate, status=:status  WHERE id =:id");
+        $sql = $db->prepare("UPDATE tbl_fiscal_year SET year=:year, yr=:yr, sdate=:sdate, edate=:edate  WHERE id =:id");
         $results = $sql->execute(
         array(
             ":year"=>$year,
             ":sdate"=>$sdate,
             ":yr"=>$yr, 
 			":edate"=>$edate,
-			":status"=>$status,
             ":id"=>$itemid
 		));
 		if($results === TRUE) {
@@ -52,16 +50,22 @@ try{
 	}
 	if(isset($_POST["deleteItem"])){
 		$itemid = $_POST['itemId'];
+
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_fiscal_year` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['status'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
 		
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_fiscal_year` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+		$deleteQuery = $db->prepare("UPDATE `tbl_fiscal_year` SET status=:status WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':status' => $updateStatus));
 
 		if($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";	
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
 		echo json_encode($valid);
 	}

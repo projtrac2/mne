@@ -38,77 +38,17 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable" >
+                                <table class="table table-bordered table-striped table-hover" id="manageItemTable">
                                     <thead>
                                         <tr>
                                             <th>#</th>
                                             <th>Measurement Unit</th>
                                             <th>Measurement Unit Description</th>
                                             <th>Status</th>
-                                            <?php
-                                            if (in_array("update", $page_actions) && in_array("delete", $page_actions)) {
-                                            ?>
-                                                <th>Action</th>
-                                            <?php
-                                            }
-                                            ?>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <?php
-                                        $sql = $db->prepare("SELECT * FROM `tbl_measurement_units` ORDER BY `id` ASC");
-                                        $sql->execute();
-                                        $rows_count = $sql->rowCount();
-                                        $output = array('data' => array());
-                                        if ($rows_count > 0) {
-                                            $sn = 0;
-                                            while ($row = $sql->fetch()) {
-                                                $sn++;
-                                                $unit_id = $row['id'];
-                                                $active = ($row['active'] == 1) ? "<label class='label label-success'>Enabled</label>" : "<label class='label label-danger'>Disabled</label>";;
-                                                $unit = $row["unit"];
-                                                $description = $row["description"];
-                                        ?>
-                                                <tr>
-                                                    <td><?= $sn ?></td>
-                                                    <td><?= $unit ?></td>
-                                                    <td><?= $description ?></td>
-                                                    <td><?= $active ?></td>
-                                                    <?php
-                                                    if (in_array("update", $page_actions) && in_array("delete", $page_actions)) {
-                                                    ?>
-                                                        <td>
-                                                            <!-- Single button -->
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
-                                                                    <?php
-                                                                    if (in_array("update", $page_actions)) {
-                                                                    ?>
-                                                                        <li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(<?= $unit_id ?>)"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-                                                                    <?php
-                                                                    }
-                                                                    if (in_array("delete", $page_actions)) {
-                                                                    ?>
-                                                                        <li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?= $unit_id ?>)"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    <?php
-                                                    }
-                                                    ?>
-
-                                                </tr>
-                                        <?php
-                                            } // /while 
-                                        } // if num_rows
-                                        ?>
-                                    </tbody>
+                                    
                                 </table>
                             </div>
                         </div>
@@ -197,16 +137,6 @@ if ($permission) {
                                                 <input type="text" class="form-control" id="editdescription" placeholder="Describe the measurement unit" name="editdescription" autocomplete="off">
                                             </div>
 
-                                            <div class="col-md-4 form-input">
-                                                <label for="editStatus">
-                                                    <font color="#174082">Measurement Unit Status: </font>
-                                                </label>
-                                                <select class="form-control" id="editStatus" name="editStatus" required>
-                                                    <option value="">~~SELECT~~</option>
-                                                    <option value="1">Enabled</option>
-                                                    <option value="0">Disabled</option>
-                                                </select>
-                                            </div> <!-- /form-group-->
                                             <div class="modal-footer editItemFooter">
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="edititem" id="edititem" value="edit">

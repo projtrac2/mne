@@ -25,15 +25,13 @@ try {
 	if (isset($_POST["edititem"])) {
 		$unit = $_POST['editunit'];
 		$description = $_POST['editdescription'];
-		$status = $_POST['editStatus'];
 		$itemid = $_POST['itemId'];
 
-		$sql = $db->prepare("UPDATE tbl_measurement_units SET unit=:unit,description=:description, active=:status WHERE id =:id");
+		$sql = $db->prepare("UPDATE tbl_measurement_units SET unit=:unit,description=:description WHERE id =:id");
 		$results = $sql->execute(
 			array(
 				":unit" => $unit,
 				":description" => $description,
-				":status" => $status,
 				":id" => $itemid
 			)
 		);
@@ -50,15 +48,24 @@ try {
 
 	if (isset($_POST["deleteItem"])) {
 		$itemid = $_POST['itemId'];
-		$deleteQuery = $db->prepare("DELETE FROM `tbl_measurement_units` WHERE id=:itemid");
-		$results = $deleteQuery->execute(array(':itemid' => $itemid));
+		
+		$updateStatus = '';
+
+		$stmt = $db->prepare("SELECT * FROM `tbl_measurement_units` where id=:itemid");
+		$stmt->execute([':itemid' => $itemid]);
+		$stmt_results = $stmt->fetch();
+
+		$stmt_results['active'] == 1 ? $updateStatus = '0' : $updateStatus = '1';
+
+		$deleteQuery = $db->prepare("UPDATE `tbl_measurement_units` SET active=:active WHERE id=:itemid");
+		$results = $deleteQuery->execute(array(':itemid' => $itemid, ':active' => $updateStatus));
+
 		if ($results === TRUE) {
-			$valid['success'] = true;
-			$valid['messages'] = "Successfully Deleted";
+			$valid = true;
 		} else {
-			$valid['success'] = false;
-			$valid['messages'] = "Error while deletng the record!!";
+			$valid = false;
 		}
+
 		echo json_encode($valid);
 	}
 } catch (PDOException $ex) {

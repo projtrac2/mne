@@ -1,9 +1,22 @@
+<style>
+	.wrapper {
+		padding: 10px;
+	}
+
+	.m-flex {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 10px;
+	}
+</style>
 <?php
 require('includes/head.php');
 if ($permission) {
+
 	try {
-		$query_templates = $db->prepare("SELECT * FROM tbl_email_templates order by id asc");
-		$query_templates->execute();
+		$query_templates = $db->prepare("SELECT * FROM tbl_email_templates WHERE id=:id");
+		$query_templates->execute([':id' => 6]);
+		$result = $query_templates->fetch(PDO::FETCH_OBJ);
 	} catch (PDOException $ex) {
 
 		function flashMessage($flashMessages)
@@ -15,81 +28,42 @@ if ($permission) {
 		echo $result;
 	}
 ?>
+
 	<!-- start body  -->
 	<section class="content">
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-					<?= $icon ?>
-					<?= $pageTitle ?>
+					<?= $icon . " " . $pageTitle ?>
+					<?= $results; ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-							<a class="btn btn-block btn-sm btn-success btn-flat border-primary" href="email_template">
-								<i class="fa fa-plus"></i> Add New Email Template
-							</a>
+							<button type="button" id="outputItemModalBtnrow" class="btn btn-warning" style="margin-left: 10px;" onclick="window.history.back()">
+								Go Back
+							</button>
 						</div>
 					</div>
 				</h4>
 			</div>
 			<div class="row clearfix">
-				<div class="col-md-12" style="margin-top:10px">
-					<div class="card">
-                            <div class="button-demo" style="margin-top:-15px; margin-left:0px; margin-right:-2px">
-								<?php include_once("settings-menu.php"); ?>
-							</div>
-					</div>
-				</div>
-				<div class="block-header">
-					<?= $results; ?>
-
-				</div>
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 					<div class="card">
+						<div class="card-header">
+							<?php include_once("settings-menu.php"); ?>
+						</div>
 						<div class="body">
-							<div class="table-responsive">
-								<table class="table tabe-hover table-bordered" id="list">
-									<thead>
-										<tr>
-											<th class="text-center">#</th>
-											<th data-orderable="false">Title</th>
-											<th data-orderable="false">Stage</th>
-											<th data-orderable="false">Content</th>
-											<th>Status</th>
-											<th data-orderable="false">Action</th>
-										</tr>
-									</thead>
-									<tbody>
-										<?php
-										$i = 1;
-										while ($row = $query_templates->fetch()){
-											$stageid = $row['stage'];
-											$query_stage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage where id ='$stageid'");
-											$query_stage->execute();
-											$row_stage = $query_stage->fetch();
-											?>
-											<tr>
-												<th class="text-center"><?php echo $i++ ?></th>
-												<td><b><?php echo $row['title'] ?></b></td>
-												<td><b><?php echo $row_stage['stage'] ?></b></td>
-												<td><b><?php echo $row['content'] ?></b></td>
-												<td><b> <span class="badge badge-<?php echo $row['active'] == 1 ? "success" : "warning"; ?>"></span> <?php echo $row['active'] == 1 ? "Active" : "Disabled"; ?></b></td>
-												<td class="text-center">
-													<div class="btn-group">
-														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-															Action <span class="caret"></span>
-														</button>
-														<ul class="dropdown-menu">
-															<li><a type="button" class="dropdown-item" href="email_template?tempid=<?php echo $row['id'] ?>"> <i class="glyphicon glyphicon-file"></i>View</a></li>
-															<li><a type="button" class="dropdown-item" href="email_template?tempid=<?php echo $row['id'] ?>"><i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-															<li><a type="button" class="dropdown-item change_status" onchange="change_status()" data-id="<?php echo $row['id'] ?>"><i class="glyphicon glyphicon-trash"></i> <?php echo $row['active'] == 1 ? "Disable" : "Activate"; ?></a></li>
-														</ul>
-													</div>
-												</td>
-											</tr>
-										<?php } ?>
-									</tbody>
-								</table>
+							<div class="wrapper">
+								<div class="m-flex">
+									<h5>Email Template (HTML)</h5>
+
+								</div>
+								<textarea name="" class="editable" id="" cols="30" rows="10" style="width:100%; height: 100vh"><?= htmlentities($result->content) ?></textarea>
+								<div style="text-align: center; margin-top: 10px;">
+									<button class="btn btn-success" id="save-btn">Save changes</button>
+								</div>
+
 							</div>
+
 						</div>
 					</div>
 				</div>
@@ -101,39 +75,54 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
 require('includes/footer.php');
 ?>
+
 <script>
-	$(document).ready(function() {
-		$('#list').dataTable()
-		$('.view_user').click(function() {
-			uni_modal("<i class='fa fa-id-card'></i> User Details", "view_user.php?id=" + $(this).attr('data-id'))
-		})
-		$('.change_status').click(function() {
-			_conf("Are you sure you want to disable this template?", "change_status", [$(this).attr('data-id')])
-		})
-	})
+	$('#save-btn').on('click', save_content);
+	let edits = '';
+	// $('.editable').on('change', (e) => {
+	// 	edits = e.target.textContent;
+	// });
 
-	function change_status($id) {
-		start_load()
+	function getContent(el) {
+		console.log($(el));
+	}
+
+
+
+	function save_content() {
+		let vals = $('.editable').val();
+		const data = new FormData();
+		data.append('content', vals);
 		$.ajax({
-			url: 'ajax/ajax.php?action=change_status',
-			method: 'POST',
-			data: {
-				change_status,
-				id: $id
+			url: 'general-settings/action/email-template-actions.php',
+			type: 'post',
+			contentType: false,
+			data: data,
+			cache: false,
+			processData: false,
+			error: (error) => {
+				console.log(error);
 			},
-			success: function(resp) {
-				if (resp == 1) {
-					alert_toast("Data successfully updated", 'success')
-					setTimeout(function() {
-						location.reload()
-					}, 1500)
-
+			success: (response) => {
+				if (response) {
+					swal({
+						title: "Changes saved successfully",
+						text: `Successfully saved`,
+						icon: "success",
+					});
+				} else {
+					swal({
+						title: "System error! Refresh and try again",
+						text: `Error occurred`,
+						icon: "error",
+					});
 				}
+				setTimeout(() => {
+					window.location.reload();
+				}, 2000);
 			}
 		})
 	}
 </script>
-<script src="assets/custom js/indicator-details.js"></script>

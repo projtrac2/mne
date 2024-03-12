@@ -3,10 +3,10 @@
 return [
     'database' => [
         'driver' => 'mysql',
-        'host' => '104.154.31.158',
-        'dbname' => 'mne',
+        'host' => 'localhost',
+        'dbname' => 'projtrac_webiste',
         'username' => 'root',
-        'password' => '3!&o@8ProjTrack4'
+        'password' => ''
     ],
     'mail' => [
         'transport' => 'smtp',

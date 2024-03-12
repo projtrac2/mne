@@ -130,23 +130,14 @@
                                         </label>
                                         <input type="text" class="form-control" id="editsdate" placeholder="Start Date" name="editsdate" required autocomplete="off">
                                     </div>
-                                    <div class="col-md-8 form-input">
+                                    <div class="col-md-12 form-input">
                                         <label>
                                             <font color="#174082">End Date: </font>
                                         </label>
                                         <input type="text" class="form-control" id="editedate" placeholder="End Date" name="editedate" required autocomplete="off">
                                     </div> <!-- /form-group-->
 
-                                        <div class="col-md-4 form-input">
-                                            <label for="editStatus">
-                                                <font color="#174082">Title Status: </font>
-                                            </label>
-                                            <select class="form-control" id="editStatus" name="editStatus" required>
-                                                <option value="">~~SELECT~~</option>
-                                                <option value="1">Enabled</option>
-                                                <option value="0">Disabled</option>
-                                            </select>
-                                        </div> <!-- /form-group-->
+                                       
                                         <div class="modal-footer editItemFooter">
                                             <div class="col-md-12 text-center">
                                                 <input type="hidden" name="edititem" id="edititem" value="edit">

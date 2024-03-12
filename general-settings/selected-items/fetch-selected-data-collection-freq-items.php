@@ -13,12 +13,18 @@ if ($rows_count > 0) {
 	while ($row = $sql->fetch()) {
 		$sn++;
 		$itemId = $row['fqid'];
+		$frequency = $row["frequency"];
 		// status 
 		if ($row['status'] == 1) {
 			$active = "<label class='label label-success'>Enabled</label>";
+			$wordings = 'disable';
+			$wordingsCapital = 'Disable';
 		} else {
 			$active = "<label class='label label-danger'>Disabled</label>";
+			$wordings = 'enable';
+			$wordingsCapital = 'Enable';
 		}
+
 
 		$button = '<!-- Single button -->
 		<div class="btn-group">
@@ -27,28 +33,31 @@ if ($rows_count > 0) {
 			</button>
 			<ul class="dropdown-menu">
 				<li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-				<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>       
+				<li>
+					<a type="button" id="disableBtn" class="disableBtn" onclick="disable('.$itemId.',\''.$frequency.'\',\''.$wordings.'\')">
+						<i class="glyphicon glyphicon-trash"></i> ' . $wordingsCapital . '
+					</a>
+				</li>
 			</ul>
 		</div>';
 
-		$frequency = $row["frequency"];
 		$days = $row["days"];
 		$date_created = $row["date_created"];
 		$date_modified = $row["date_modified"];
 
 		//person who created the data
-		$creatorid =$row["created_by"];
-		$creator = $db->prepare("SELECT * FROM tbl_projteam2  WHERE ptid='$creatorid' LIMIT 1"); 
-		$creator->execute();
-		$resultC = $creator->fetch();
-		$createdby =$resultC['fullname'];
+		// $creatorid =$row["created_by"];
+		// $creator = $db->prepare("SELECT * FROM tbl_projteam2  WHERE ptid='$creatorid' LIMIT 1"); 
+		// $creator->execute();
+		// $resultC = $creator->fetch();
+		// $createdby =$resultC['fullname'];
 
 		//the person who modified the data
-		$modifiedby = $row["modified_by"];
-		$modifier = $db->prepare("SELECT * FROM tbl_projteam2  WHERE ptid='$modifiedby' LIMIT 1"); 
-		$modifier->execute();
-		$resultM = $modifier->fetch();
-		$modifiedby =$resultM['fullname'];				
+		// $modifiedby = $row["modified_by"];
+		// $modifier = $db->prepare("SELECT * FROM tbl_projteam2  WHERE ptid='$modifiedby' LIMIT 1"); 
+		// $modifier->execute();
+		// $resultM = $modifier->fetch();
+		// $modifiedby =$resultM['fullname'];				
 		$output['data'][] = array(
 			$sn,
 			$frequency,

@@ -25,6 +25,7 @@
                                 <th width="3%">#</th>
                                 <th width="44%">Designation</th>
                                 <th width="43%">Reporting</th>
+                                <th width="43%">Status</th>
                                 <th width="10%">Action</th>
                             </tr>
                         </thead>
@@ -42,6 +43,7 @@
                                     $moid = $row['moid'];
                                     $designation = $row['designation'];
                                     $reportingid = $row['Reporting'];
+                                    $status = $row['active'];
                                     if ($reportingid == $moid) {
                                         $reporting = "N/A";
                                     } else {
@@ -56,11 +58,19 @@
                                     $stmt->execute(array(":designation_id" => $moid));
                                     $total_stmt = $stmt->rowCount();
                                     $edit = $total_stmt > 0 ? 1 : 0;
+                                    if ($status == 1) {
+                                        $wordings = 'disable';
+                                        $wordingsCapital = 'Disable';
+                                    } else {
+                                        $wordings = 'enable';
+                                        $wordingsCapital = 'Enable';
+                                    }
                             ?>
                                     <tr>
                                         <td><?= $sn ?></td>
                                         <td><?= $designation ?></td>
                                         <td><?= $reporting ?></td>
+                                        <td><?php if ($status == 1) { ?> <label class='label label-success'>Enabled</label> <?php } else { ?> <label class='label label-danger'>Disabled</label> <?php } ?></td>
                                         <td>
                                             <!-- Single button -->
                                             <div class="btn-group">
@@ -74,7 +84,12 @@
                                                         </a>
                                                     </li>
                                                     <li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(<?= $moid ?>)"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-                                                    <li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?= $moid ?>)"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
+                                                    <!-- <li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem()"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li> -->
+                                                    <li>
+                                                    <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?=$moid?>, '<?= $designation ?>', '<?=$wordings?>')">
+                                                        <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
+                                                    </a>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </td>

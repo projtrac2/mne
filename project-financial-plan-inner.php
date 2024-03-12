@@ -110,7 +110,7 @@
                                             <label><font color="#174082">Line Name: </font></label>
                                             <input type="text" class="form-control" id="editname" placeholder="Name of Priorities" name="editname" required autocomplete="off">
                                         </div>
-                                        <div class="col-md-6 form-input">
+                                        <div class="col-md-12 form-input">
                                             <label for="editGroup"><font color="#174082">Group : </font></label>
                                             <select class="form-control" id="editGroup" name="editGroup" required>
                                                 <option value="">~~SELECT~~</option>
@@ -125,15 +125,7 @@
                                             <textarea class="form-control" id="editdescription" placeholder="Project Priorities" name="editdescription" required autocomplete="off" required></textarea>
                                         </div>
 
-                                        <!-- /form-group-->
-                                        <div class="col-md-6 form-input">
-                                            <label for="editStatus"><font color="#174082">Line Status: </font></label>
-                                            <select class="form-control" id="editStatus" name="editStatus" required>
-                                                <option value="">~~SELECT~~</option>
-                                                <option value="1">Enabled</option>
-                                                <option value="0">Disabled</option>
-                                            </select>
-                                        </div>
+                                        
                                         <!-- /form-group-->
                                         <div class="modal-footer editItemFooter">
                                             <div class="col-md-12 text-center">

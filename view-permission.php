@@ -53,6 +53,14 @@
                                         $stmt = $db->prepare("SELECT * FROM tbl_permissions ORDER BY `id` ASC");
                                         $stmt->execute();
                                         $total_stmt = $stmt->rowCount();
+
+                                        if ($row['status']) {
+                                            $wordings = 'disable';
+                                            $wordingsCapital = 'Disable';
+                                        } else {
+                                            $wordings = 'enable';
+                                            $wordingsCapital = 'Enable';
+                                        }
                                 ?>
                                      <tr>
                                          <td><?= $sn ?></td>
@@ -66,11 +74,16 @@
                                                      Options <span class="caret"></span>
                                                  </button>
                                                  <ul class="dropdown-menu">
-                                                     <li>
-                                                         <a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addItemModal" onclick="get_edit_details(<?= $id ?>)">
-                                                             <i class="glyphicon glyphicon-edit"></i> Edit
-                                                         </a>
-                                                     </li>
+                                                    <li>
+                                                        <a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#addItemModal" onclick="get_edit_details(<?= $id ?>)">
+                                                            <i class="glyphicon glyphicon-edit"></i> Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?=$id?>, '<?= $name ?>', '<?=$wordings?>')">
+                                                            <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
+                                                        </a>
+                                                    </li>
                                                  </ul>
                                              </div>
                                          </td>
@@ -110,21 +123,12 @@
                              <label for="phrase">Tag *:</label>
                              <input type="text" class="form-control" id="phrase" placeholder="Enter permission phrase" name="phrase" required autocomplete="off" required>
                          </div>
-                         <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-                             <label>
-                                 <font color="#174082">Status: </font>
-                             </label>
-                             <select name="status" id="status" class="form-control show-tick" data-live-search="false" required>
-                                 <option value="" class="selection">Select Status</option>
-                                 <option value="1">Enable</option>
-                                 <option value="0">Disable</option>
-                             </select>
-                         </div>
+
                      </div>
                  </div>
                  <!-- /modal-body -->
-                 <div class="modal-footer">
-                     <div class="col-md-12 text-center">
+                 <div class="modal-footer" >
+                     <div class="col-md-12 text-center" style="margin-top: 10px;">
                          <input type="hidden" name="store" id="store" value="new">
                          <input type="hidden" name="id" id="id" value="">
                          <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>

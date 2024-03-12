@@ -9,10 +9,17 @@ function index($prjDuration, $start_year)
     $st = $start_year;
     $startYears =  [];
     for ($i = 0; $i < $prjDuration; $i++) {
-        $m_start = $start_year . '-' . $f_start;
-        $f_year_end = $start_year + 1 . '-' . $f_end;
-        $startYears[] =  [$m_start, $f_year_end];
-        $start_year++;
+        if ($prjDuration == 1) {
+            $m_start = $start_year . '-' . $f_start;
+            $f_year_end = $start_year . '-' . $f_end;
+            $startYears[] =  [$m_start, $f_year_end];
+            $start_year++;
+        } else {
+            $m_start = $start_year . '-' . $f_start;
+            $f_year_end = $start_year + 1 . '-' . $f_end;
+            $startYears[] =  [$m_start, $f_year_end];
+            $start_year++;
+        }
     }
 
     $annually = [];

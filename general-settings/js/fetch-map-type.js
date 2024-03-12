@@ -5,7 +5,7 @@ $(document).ready(function() {
   $("#navProduct").addClass("active");
   // manage product data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-map-type-items",
+    ajax: "general-settings/selected-items/fetch-selected-map-type-items.php",
     order: [], 
     'columnDefs': [{
       'targets': [5],
@@ -116,7 +116,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-map-type-item",
+      url: "general-settings/selected-items/fetch-selected-map-type-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -144,7 +144,6 @@ function editItem(itemId = null) {
             // form validation
             var type = $("#editType").val();
             var description = $("#editDescription").val();
-            var itemStatus = $("#editStatus").val();
 
             if (type == "") {
               $("#editType").after(
@@ -182,38 +181,22 @@ function editItem(itemId = null) {
                 .addClass("has-success");
             } // /else
 
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
+           
 
-            if (type && description && itemStatus) {
+            if (type && description) {
               var form = $(this);
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/project-map-type-action",
+                url: "general-settings/action/project-map-type-action.php",
                 type: form.attr("method"),
                 data: formData,
-                dataType: "json",
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                  if (response) {
+                  response = JSON.parse(response);
+                  if (response.success) {
                     // submit loading button
                     $("#editProductBtn").button("reset");
 
@@ -247,7 +230,7 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-map-type-action",
+          url: "general-settings/action/project-map-type-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -300,4 +283,47 @@ function clearForm(oForm) {
   //        break;
   //     } // /switch
   // } // for
+}
+
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to  ${action} priority ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-map-type-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }

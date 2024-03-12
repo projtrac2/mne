@@ -1,10 +1,10 @@
 var manageItemTable;
 
-$(document).ready(function() {
-  $("#navtitle").addClass("active");  
-    manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-priorities-items",
-    order: [], 
+$(document).ready(function () {
+  $("#navtitle").addClass("active");
+  manageItemTable = $("#manageItemTable").DataTable({
+    ajax: "general-settings/selected-items/fetch-selected-priorities-items.php",
+    order: [],
     'columnDefs': [{
       'targets': [5],
       'orderable': false,
@@ -13,7 +13,7 @@ $(document).ready(function() {
 
   // submit priority form
   //$("#submitItemForm").unbind('submit').bind('submit', function() {
-  $("#submitItemForm").on("submit", function(event) {
+  $("#submitItemForm").on("submit", function (event) {
     event.preventDefault();
     var form_data = $(this).serialize();
 
@@ -39,7 +39,7 @@ $(document).ready(function() {
       $("#priority")
         .closest(".form-input")
         .addClass("has-success");
-    } 
+    }
 
     if (description == "") {
       $("#description").after(
@@ -57,7 +57,7 @@ $(document).ready(function() {
       $("#description")
         .closest(".form-input")
         .addClass("has-success");
-    } 
+    }
 
     if (weight == "") {
       $("#weight").after(
@@ -75,23 +75,23 @@ $(document).ready(function() {
       $("#weight")
         .closest(".form-input")
         .addClass("has-success");
-    } 
-    if (weight && priority && description ) {
+    }
+    if (weight && priority && description) {
       var form = $(this);
       var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-priorities-action",
+        url: "general-settings/action/project-priorities-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
-        success: function(response) {
+        success: function (response) {
           if (response) {
             $("#submitItemForm")[0].reset();
             // reload the prioritys table 
             manageItemTable.ajax.reload(null, true);
             alert("Record Successfully Saved");
-            $(".modal").each(function() {
+            $(".modal").each(function () {
               $(this).modal("hide");
             });
           } // /if response.success
@@ -106,7 +106,7 @@ $(document).ready(function() {
   // add priority modal btn clicked
   $("#addItemModalBtn")
     .unbind("click")
-    .bind("click", function() {
+    .bind("click", function () {
       // // priority form reset
       $("#submitItemForm")[0].reset();
 
@@ -134,31 +134,29 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-priorities-item",
+      url: "general-settings/selected-items/fetch-selected-priorities-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
-      success: function(response) {
+      success: function (response) {
         $(".div-result").removeClass("div-hide");
 
         // priority id
         $(".editItemFooter").append(
           '<input type="hidden" name="itemId" id="itemId" value="' +
-            response.id +
-            '" />'
+          response.id +
+          '" />'
         );
 
         // priority name
         $("#editweight").val(response.weight);
         $("#editdescription").val(response.description);
         $("#editpriority").val(response.priority);
-        // status
-        $("#editStatus").val(response.status);
 
         // update the priority data function
         $("#editItemForm")
           .unbind("submit")
-          .bind("submit", function(e) {
+          .bind("submit", function (e) {
             e.preventDefault();
             // form validation
             var weight = $("#editweight").val();
@@ -182,7 +180,7 @@ function editItem(itemId = null) {
               $("#editpriority")
                 .closest(".form-input")
                 .addClass("has-success");
-            } 
+            }
 
             if (description == "") {
               $("#editdescription").after(
@@ -200,7 +198,7 @@ function editItem(itemId = null) {
               $("#editdescription")
                 .closest(".form-input")
                 .addClass("has-success");
-            } 
+            }
 
             if (weight == "") {
               $("#editTitle").after(
@@ -218,44 +216,27 @@ function editItem(itemId = null) {
               $("#editweight")
                 .closest(".form-input")
                 .addClass("has-success");
-            } 
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
+            }
 
-            if (weight && priority && description  && itemStatus) {
+            if (weight && priority && description) {
               var form = $(this);
               var formData = new FormData(this);
               $.ajax({
-                url: "general-settings/action/project-priorities-action",
+                url: "general-settings/action/project-priorities-action.php",
                 type: "post",
                 data: formData,
-                dataType: "json",
                 cache: false,
                 contentType: false,
                 processData: false,
-                success: function(response) {
-                  if (response) {
+                success: function (response) {
+                  response = JSON.parse(response);
+                  if (response.success) {
                     // submit loading button
                     $("#edittitleBtn").button("reset");
                     // reload the manage student table
                     manageItemTable.ajax.reload(null, true);
                     alert(response.messages);
-                    $(".modal").each(function() {
+                    $(".modal").each(function () {
                       $(this).modal("hide");
                     });
                   } // /success function
@@ -278,14 +259,14 @@ function removeItem(itemId = null) {
     // remove priority button clicked
     $("#removeItemBtn")
       .unbind("click")
-      .bind("click", function() {
+      .bind("click", function () {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-priorities-action",
+          url: "general-settings/action/project-priorities-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
-          success: function(response) {
+          success: function (response) {
             // loading remove button
             $("#removeItemBtn").button("reset");
             if (response.success == true) {
@@ -293,7 +274,7 @@ function removeItem(itemId = null) {
               manageItemTable.ajax.reload(null, true);
 
               alert(response.messages);
-              $(".modal").each(function() {
+              $(".modal").each(function () {
                 $(this).modal("hide");
               });
             } else {
@@ -333,4 +314,47 @@ function clearForm(oForm) {
   //        break;
   //     } // /switch
   // } // for
+}
+
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to  ${action} priority ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-priorities-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }

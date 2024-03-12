@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function() {
   // manage Contractor Business Type data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-contractor-business-types-items",
+    ajax: "general-settings/selected-items/fetch-selected-contractor-business-types-items.php",
     order: [], 
     'columnDefs': [{
       'targets': [4],
@@ -115,7 +115,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-contractor-business-types-item",
+      url: "general-settings/selected-items/fetch-selected-contractor-business-types-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -134,8 +134,6 @@ function editItem(itemId = null) {
         $("#editType").val(response.type);
         // quantity
         $("#editDescription").val(response.description);
-        // status
-        $("#editStatus").val(response.status);
 
         // update the Contractor Business Type data function
         $("#editItemForm")
@@ -144,7 +142,6 @@ function editItem(itemId = null) {
             // form validation
             var type = $("#editType").val();
             var description = $("#editDescription").val();
-            var itemStatus = $("#editStatus").val();
 
             if (type == "") {
               $("#editType").after(
@@ -182,25 +179,8 @@ function editItem(itemId = null) {
                 .addClass("has-success");
             } // /else
 
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
 
-            if (type && description && itemStatus) {
+            if (type && description) {
               var form = $(this);
               var formData = new FormData(this);
 
@@ -208,12 +188,12 @@ function editItem(itemId = null) {
                 url: form.attr("action"),
                 type: form.attr("method"),
                 data: formData,
-                dataType: "json",
                 cache: false,
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                  if (response) {
+                  response = JSON.parse(response);
+                  if (response.success) {
                     // submit loading button
                     $("#editProductBtn").button("reset");
 
@@ -238,66 +218,46 @@ function editItem(itemId = null) {
   }
 } // /edit Contractor Business Type function
 
-// remove Contractor Business Type
-function removeItem(itemId = null) {
-  if (itemId) {
-    // remove Contractor Business Type button clicked
-    $("#removeItemBtn")
-      .unbind("click")
-      .bind("click", function() {
-        var deleteItem = 1;
-        $.ajax({
-          url: "general-settings/action/project-contractor-business-types-action",
-          type: "post",
-          data: { itemId: itemId, deleteItem: deleteItem },
-          dataType: "json",
-          success: function(response) {
-            // loading remove button
-            $("#removeItemBtn").button("reset");
-            if (response.success == true) {
-              // reload the manage Contractor Business Type table
-              manageItemTable.ajax.reload(null, true);
-
-              alert(response.messages);
-              $(".modal").each(function() {
-                $(this).modal("hide");
-              });
-            } else {
-              alert(response.messages);
-            } // /error
-          } // /success function
-        }); // /ajax fucntion to remove the Contractor Business Type
-        return false;
-      }); // /remove Contractor Business Type btn clicked
-  } // /if Contractor Business Typeid
-} // /remove Contractor Business Type function
-
-function clearForm(oForm) {
-  // var frm_elements = oForm.elements;
-  // console.log(frm_elements);
-  // for(i=0;i<frm_elements.length;i++) {
-  // field_type = frm_elements[i].type.toLowerCase();
-  // switch (field_type) {
-  //    case "text":
-  //    case "password":
-  //    case "textarea":
-  //    case "hidden":
-  //    case "select-one":
-  //      frm_elements[i].value = "";
-  //      break;
-  //    case "radio":
-  //    case "checkbox":
-  //      if (frm_elements[i].checked)
-  //      {
-  //          frm_elements[i].checked = false;
-  //      }
-  //      break;
-  //    case "file":
-  //     if(frm_elements[i].options) {
-  //     frm_elements[i].options= false;
-  //     }
-  //    default:
-  //        break;
-  //     } // /switch
-  // } // for
+// disable Contractor Business Type
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to ${action} ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-contractor-business-types-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }

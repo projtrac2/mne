@@ -1,10 +1,10 @@
 var manageItemTable;
 
-$(document).ready(function() {
-  $("#navtitle").addClass("active");  
-    manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-project-status-items",
-    order: [], 
+$(document).ready(function () {
+  $("#navtitle").addClass("active");
+  manageItemTable = $("#manageItemTable").DataTable({
+    ajax: "general-settings/selected-items/fetch-selected-project-status-items.php",
+    order: [],
     'columnDefs': [{
       'targets': [4],
       'orderable': false,
@@ -13,7 +13,7 @@ $(document).ready(function() {
 
   // submit projstatus form
   //$("#submitItemForm").unbind('submit').bind('submit', function() {
-  $("#submitItemForm").on("submit", function(event) {
+  $("#submitItemForm").on("submit", function (event) {
     event.preventDefault();
     var form_data = $(this).serialize();
 
@@ -37,24 +37,24 @@ $(document).ready(function() {
       $("#projstatus")
         .closest(".form-input")
         .addClass("has-success");
-    } 
+    }
 
     if (projstatus) {
       var form = $(this);
       var formData = new FormData(this);
 
       $.ajax({
-        url: "general-settings/action/project-status-action",
+        url: "general-settings/action/project-status-action.php",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
-        success: function(response) {
+        success: function (response) {
           if (response) {
             $("#submitItemForm")[0].reset();
             // reload the projstatuss table 
             manageItemTable.ajax.reload(null, true);
             alert("Record Successfully Saved");
-            $(".modal").each(function() {
+            $(".modal").each(function () {
               $(this).modal("hide");
             });
           } // /if response.success
@@ -69,7 +69,7 @@ $(document).ready(function() {
   // add projstatus modal btn clicked
   $("#addItemModalBtn")
     .unbind("click")
-    .bind("click", function() {
+    .bind("click", function () {
       // // projstatus form reset
       $("#submitItemForm")[0].reset();
 
@@ -97,18 +97,18 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-project-status-item",
+      url: "general-settings/selected-items/fetch-selected-project-status-item.php",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
-      success: function(response) {
+      success: function (response) {
         $(".div-result").removeClass("div-hide");
 
         // projstatus id
         $(".editItemFooter").append(
           '<input type="hidden" name="itemId" id="itemId" value="' +
-            response.statusid +
-            '" />'
+          response.statusid +
+          '" />'
         );
 
         // projstatus name
@@ -116,17 +116,15 @@ function editItem(itemId = null) {
         // projstatus level
         $("#editstatuslevel").val(response.level);
         // status
-        $("#editStatus").val(response.active);
 
         // update the projstatus data function
         $("#editItemForm")
           .unbind("submit")
-          .bind("submit", function(e) {
+          .bind("submit", function (e) {
             e.preventDefault();
             // form validation
             var projstatus = $("#editprojstatus").val();
             var statuslevel = $("#editstatuslevel").val();
-            var itemStatus = $("#editStatus").val();
 
             if (projstatus == "") {
               $("#editprojstatus").after(
@@ -144,7 +142,7 @@ function editItem(itemId = null) {
               $("#editprojstatus")
                 .closest(".form-input")
                 .addClass("has-success");
-            } 
+            }
 
             if (statuslevel == "") {
               $("#editstatuslevel").after(
@@ -164,44 +162,26 @@ function editItem(itemId = null) {
                 .addClass("has-success");
             }
 
-            if (itemStatus == "") {
-              $("#editStatus").after(
-                '<p class="text-danger">Status field is required</p>'
-              );
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-error");
-            } else {
-              // remov error text field
-              $("#editStatus")
-                .find(".text-danger")
-                .remove();
-              // success out for form
-              $("#editStatus")
-                .closest(".form-input")
-                .addClass("has-success");
-            } // /else
 
-            if (projstatus && statuslevel && itemStatus) {
-              var form = $(this);
-              var formData = new FormData(this);
-
+            if (projstatus && statuslevel) {
               $.ajax({
-                url: "general-settings/action/project-status-action",
+                url: "general-settings/action/project-status-action.php",
                 type: "post",
-                data: formData,
-                dataType: "json",
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                  if (response) {
+                data: {
+                  edititem: 'edititem',
+                  itemId: itemId,
+                  editprojstatus: projstatus,
+                  editstatuslevel: statuslevel
+                },
+                success: function (response) {
+                  response = JSON.parse(response);
+                  if (response.success) {
                     // submit loading button
                     $("#edittitleBtn").button("reset");
                     // reload the manage student table
                     manageItemTable.ajax.reload(null, true);
                     alert(response.messages);
-                    $(".modal").each(function() {
+                    $(".modal").each(function () {
                       $(this).modal("hide");
                     });
                   } // /success function
@@ -224,14 +204,14 @@ function removeItem(itemId = null) {
     // remove projstatus button clicked
     $("#removeItemBtn")
       .unbind("click")
-      .bind("click", function() {
+      .bind("click", function () {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/project-status-action",
+          url: "general-settings/action/project-status-action.php",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
-          success: function(response) {
+          success: function (response) {
             // loading remove button
             $("#removeItemBtn").button("reset");
             if (response.success == true) {
@@ -239,7 +219,7 @@ function removeItem(itemId = null) {
               manageItemTable.ajax.reload(null, true);
 
               alert(response.messages);
-              $(".modal").each(function() {
+              $(".modal").each(function () {
                 $(this).modal("hide");
               });
             } else {
@@ -279,4 +259,47 @@ function clearForm(oForm) {
   //        break;
   //     } // /switch
   // } // for
+}
+
+function disable(id, name, action) {
+  swal({
+    title: "Are you sure?",
+    text: `You want to ${action} ${name}!`,
+    icon: "warning",
+    buttons: true,
+    dangerMode: true,
+  }).then((willUpdate) => {
+    if (willUpdate) {
+      $.ajax({
+        type: "post",
+        url: 'general-settings/action/project-status-action.php',
+        data: {
+          deleteItem: "deleteItem",
+          itemId: id,
+        },
+        dataType: "json",
+        success: function (response) {
+          console.log(response);
+          if (response == true) {
+            swal({
+              title: "Notification !",
+              text: `Successfully ${status}`,
+              icon: "success",
+            });
+          } else {
+            swal({
+              title: "Notification !",
+              text: `Error ${status}`,
+              icon: "error",
+            });
+          }
+          setTimeout(function () {
+            window.location.reload(true);
+          }, 3000);
+        }
+      });
+    } else {
+      swal("You cancelled the action!");
+    }
+  })
 }
