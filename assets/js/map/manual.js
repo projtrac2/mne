@@ -11,6 +11,44 @@ function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: latitude, lng: longitude },
     zoom: 13,
+    styles: [
+      {
+        "featureType": "administrative",
+        "elementType": "all",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "landscape",
+        "elementType": "all",
+        "stylers": [
+          {
+            "visibility": "on"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "all",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "transit",
+        "elementType": "all",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      }
+    ],
     mapTypeId: "roadmap",
   });
 

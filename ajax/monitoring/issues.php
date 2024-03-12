@@ -27,6 +27,7 @@ try {
 	if (isset($_GET['get_project_issues'])) {
 		$projid = $_GET['projid'];
 		$success = false;
+		
 		$query_allrisks = $db->prepare("SELECT c.catid, c.category, i.id AS issueid, i.issue_description, i.issue_area, i.issue_impact, i.issue_priority, i.date_created, i.status FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category WHERE projid = :projid");
 		$query_allrisks->execute(array(":projid" => $projid));
 		$totalrows_allrisks = $query_allrisks->rowCount();

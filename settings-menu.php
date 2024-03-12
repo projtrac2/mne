@@ -1,5 +1,5 @@
 <?php
-$uri = $_GET['menuItem'];
+$uri = isset($_GET['menuItem']) ? $_GET['menuItem'] : 1;
 $color = 'bg-light-blue';
 $default_color = 'bg-light-blue';
 switch ($uri) {
@@ -28,7 +28,7 @@ switch ($uri) {
 ?>
 <div class="button-demo" style="margin-top:-15px">
 	<div class="btn-group" style="margin-top:10px; margin-left:5px; background-color: transparent; border-color: transparent; box-shadow: none;">
-		<a type="button" class="btn <?php if($uri == 1) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
+		<a type="button" class="btn <?php if ($uri == 1) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Settings</span>
 			<span class="caret"></span>
 		</a>
@@ -41,9 +41,9 @@ switch ($uri) {
 			<li style="width:100%"><a href="global-configuration.php?titles=1&menuItem=1">Titles</a></li>
 		</ul>
 	</div>
-	<a href="global-configuration.php?timelines=1&menuItem=2" class="btn <?php if($uri == 2) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect" style="margin-top:10px; margin-left:-9px">Timelines</a>
+	<a href="global-configuration.php?timelines=1&menuItem=2" class="btn <?php if ($uri == 2) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect" style="margin-top:10px; margin-left:-9px">Timelines</a>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
-		<a type="button" class="btn <?php if($uri == 3) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
+		<a type="button" class="btn <?php if ($uri == 3) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Status</span>
 			<span class="caret"></span>
 		</a>
@@ -53,7 +53,7 @@ switch ($uri) {
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
-		<a type="button" class="btn <?php if($uri == 4) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
+		<a type="button" class="btn <?php if ($uri == 4) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Projects</span>
 			<span class="caret"></span>
 		</a>
@@ -69,7 +69,7 @@ switch ($uri) {
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
-		<a type="button" class="btn <?php if($uri == 5) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
+		<a type="button" class="btn <?php if ($uri == 5) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Permissions</span>
 			<span class="caret"></span>
 		</a>
@@ -80,7 +80,7 @@ switch ($uri) {
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
-		<a type="button" class="btn <?php if($uri == 6) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
+		<a type="button" class="btn <?php if ($uri == 6) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Fin & Proc</span>
 			<span class="caret"></span>
 		</a>

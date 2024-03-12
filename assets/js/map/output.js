@@ -63,10 +63,45 @@ function initMap(lat, lng) {
 
 	return new google.maps.Map(document.getElementById("map"), {
 		center: center,
-		zoom: 12,
-		mapTypeControlOptions: {
-			mapTypeIds: ["styled_one_point_map"],
-		},
+		zoom: 12, 
+		styles: [
+			{
+				"featureType": "administrative",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "simplified"
+					}
+				]
+			},
+			{
+				"featureType": "landscape",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "on"
+					}
+				]
+			},
+			{
+				"featureType": "poi",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "off"
+					}
+				]
+			},
+			{
+				"featureType": "transit",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "off"
+					}
+				]
+			}
+		],
 	});
 
 
