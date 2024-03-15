@@ -6,7 +6,7 @@ return [
         'host' => 'localhost',
         'dbname' => 'projtrac_webiste',
         'username' => 'root',
-        'password' => ''
+        'password' => '',
     ],
     'mail' => [
         'transport' => 'smtp',

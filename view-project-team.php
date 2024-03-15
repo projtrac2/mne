@@ -93,8 +93,11 @@ if ($permission) {
                                                                 </button>
                                                                 <ul class="dropdown-menu">
                                                                     <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="get_team(<?php echo $row_rsProjects['projid'] ?>, 1)">
+                                                                        <!-- <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="get_team(<?php echo $row_rsProjects['projid'] ?>, 1)">
                                                                             <i class="fa fa-file-text"></i> View Team
+                                                                        </a> -->
+                                                                        <a href="/edit-team.php?projid=<?php echo base64_encode('encodeprocprj'.$projid); ?>">
+                                                                            <i class="fa fa-pencil-square"></i> </i> View Team
                                                                         </a>
                                                                     </li>
                                                                     <?php
@@ -104,6 +107,7 @@ if ($permission) {
                                                                             <a type="button" data-toggle="modal" data-target="#addFormModal" id="addFormModalBtn" onclick="getChangeProjTeam(<?php echo $row_rsProjects['projid'] ?>)">
                                                                                 <i class="fa fa-pencil-square"></i> </i> Ammend Team
                                                                             </a>
+
                                                                         </li>
                                                                     <?php
                                                                     }

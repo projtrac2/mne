@@ -85,7 +85,7 @@ if ($permission) {
                                                             <ul class="dropdown-menu">
                                                                 <li>
                                                                     <a type="button" onclick="change_notification_status(<?= $notification_group_id ?>,<?= $status_id == 1 ? 0 : 1; ?>,'<?= $status ?>' ,'<?= $notification ?>')">
-                                                                        <i class="fa fa-file-text"></i> <?= $status ?>
+                                                                        <i class="fa fa-trash" style="font-size: 16px"></i> <?= $status ?>
                                                                     </a>
                                                                 </li>
                                                                 <li>
