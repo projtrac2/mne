@@ -179,6 +179,7 @@ if ($permission) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
 ?>
+    <!-- 0 - implementation 1) Pending assig commitee 2) Pending Checklist 3) Pending Inspection 4) Issues 5) Complete 6) Closed -->
     <!-- start body  -->
     <section class="content">
         <div class="container-fluid">
@@ -249,6 +250,7 @@ if ($permission) {
                                                             $projcode =  $detail['projcode'];
                                                             $projcost =  $detail['projcost'];
                                                             $projstage =  $detail['projstage'];
+                                                            $substage_id =  $detail['proj_substage'];
                                                             $projstatus =  $detail['projstatus'];
                                                             $location = explode(",", $detail['projlga']);
                                                             $fscyear = $detail['projfscyear'];
@@ -312,6 +314,8 @@ if ($permission) {
                                                                 }
                                                             }
 
+
+                                                            $projstatus = ($projstage == 9 && $substage_id == 6) ? 14 : $projstatus;
 
                                                             $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
                                                             $query_Projstatus->execute(array(":projstatus" => $projstatus));
@@ -431,6 +435,7 @@ if ($permission) {
                                                             $projcode =  $detail['projcode'];
                                                             $projcost =  $detail['projcost'];
                                                             $projstage =  $detail['projstage'];
+                                                            $substage_id =  $detail['proj_substage'];
                                                             $projstatus =  $detail['projstatus'];
                                                             $location = explode(",", $detail['projlga']);
                                                             $fscyear = $detail['projfscyear'];
@@ -494,6 +499,7 @@ if ($permission) {
                                                                 }
                                                             }
 
+                                                            $projstatus = ($projstage == 9 && $substage_id == 6) ? 14 : $projstatus;
                                                             $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
                                                             $query_Projstatus->execute(array(":projstatus" => $projstatus));
                                                             $row_Projstatus = $query_Projstatus->fetch();

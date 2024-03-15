@@ -128,6 +128,8 @@ if ($permission) {
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" style="margin-bottom:15px">
                                             <strong>Monitoring Frequency: </strong> <?= $monitoring_frequency; ?>
                                         </div>
+                                        <input type="hidden" name="project_start_date" id="project_start_date" value="<?= $start_date ?>">
+                                        <input type="hidden" name="project_end_date" id="project_end_date" value="<?= $end_date ?>">
                                     </div>
                                 </div>
 

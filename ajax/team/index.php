@@ -137,8 +137,8 @@ try {
                                     <td>' . $t_counter . '</td>
                                     <td>
                                         <div class="form-line">
-                                            <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $task_id . '" ' . $checked . ' onchange="check_item(' . $site_id .  $output_id . ',' . $task_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $task_id . $site_id . '" class="with-gap radio-col-green subtasks_' . $site_id . $output_id . ' sub_task' . $task_id . '" />
-                                            <label for="subtask_id' . $site_id  . $task_id . '"> ' . $task_name . '</label>
+                                            <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $task_id . '" ' . $checked . ' onchange="check_item(\'' . $site_id .  $output_id . '\',' . $task_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $site_id . $output_id . $task_id . '" class="with-gap radio-col-green subtasks_' . $site_id . $output_id . ' sub_task' . $task_id . '" />
+                                            <label for="subtask_id' . $site_id  . $output_id . $task_id . '"> ' . $task_name . '</label>
                                         </div>
                                     </td>
                                 </tr>';
@@ -172,7 +172,7 @@ try {
                     $output_counter = 0;
                     $task_div .= '
                             <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($site) . '</legend>
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Site ' . $counter . ': ' . strtoupper($site) . '</legend>
                                 <input type="hidden" name="site_id[]" value="' . $site_id . '"/>';
                     while ($row_Site_Output = $query_Site_Output->fetch()) {
                         $output_counter++;
@@ -196,7 +196,7 @@ try {
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($output) . '</legend>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="form-line">
-                                        <input name="projevaluation" onchange="output_check_box(' . $site_id . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                                        <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
                                         <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
                                         <input type="hidden" name="output_id' . $site_id . '[]" value="' . $output_id . '">
                                     </div>
@@ -246,7 +246,7 @@ try {
                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($output) . '</legend>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="form-line">
-                            <input name="projevaluation" onchange="output_check_box(' . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                            <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
                             <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
                             <input type="hidden" name="output_id' . $site_id . '[]" value="' . $site_id . $output_id . '">
                         </div>
@@ -256,7 +256,8 @@ try {
                             <table class="table table-bordered table-striped table-hover js-basic-example ">
                                 <thead>
                                     <tr>
-                                        <th style="width:100%;"> Subtask</th>
+                                        <th style="width:10%;"> #</th>
+                                        <th style="width:90%;"> Subtask</th>
                                     </tr>
                                 </thead>
                                 <tbody>

@@ -310,7 +310,7 @@ try {
       if ($total_Output > 0) {
          $indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
          $success = true;
-         if ($indicator_mapping_type == 1 ) {
+         if ($indicator_mapping_type == 1) {
             $query_Site = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE p.projid = :projid AND outputid=:output_id ");
             $query_Site->execute(array(":projid" => $projid, ":output_id" => $output_id));
             $total_Site = $query_Site->rowCount();
@@ -391,22 +391,21 @@ try {
 
    if (isset($_POST['store'])) {
       $projid = $_POST['projid'];
-      $project_stage = $_POST['project_stage'];
-      $cost_type = $_POST['cost_type'];
-
+      $cost_type = $_POST['implementation_type'];
+      $purpose = $_POST['purpose'];
+      $comments = isset($_POST['comments']) ? $_POST['comments'] : '';
       $tasks = isset($_POST['tasks']) ? $_POST['tasks'] : 0;
       $amount_requested = 0;
-      $requested_by = $_POST['user_name'];
       $date_requested = date("Y-m-d");
       $due_date = date("Y-m-d");
-      $status = $cost_type != 1 ? 1 : 0;
-      $stage = $cost_type != 1 ? 1 : 0;
-      $output_id = $_POST['output'];
+      $status = $purpose != 1 ? 1 : 0;
+      $stage = $purpose != 1 ? 1 : 0;
       $results = $data =  array();
 
       if (isset($_POST['request_id']) && !empty($_POST['request_id'])) {
          $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,date_requested=:date_requested, status=:status,comments=:comments WHERE request_id =:request_id");
          $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":comments" => $comments, ":request_id" => $request_id,));
+
          if ($result) {
             $deleteQueryI = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id");
             $resultsI = $deleteQueryI->execute(array(':request_id' => $request_id));
@@ -421,14 +420,14 @@ try {
 
             if ($cost_type != 1) {
                $comments =  $_POST['comments'];
-               $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $requested_by, ":created_at" => $date_requested);
+               $data =  array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $user_name, ":created_at" => $date_requested);
                store_comments($data);
             }
          }
       } else {
          $requested_for = $user_name;
-         $sql = $db->prepare("INSERT INTO tbl_payments_request (projid,requested_for,due_date,amount_requested,requested_by,date_requested,status,stage,project_stage,purpose) VALUES(:projid,:requested_for,:due_date,:amount_requested,:requested_by,:date_requested,:status,:stage,:project_stage,:purpose) ");
-         $result = $sql->execute(array(":projid" => $projid, ":requested_for" => $requested_for, ":due_date" => $due_date, ":amount_requested" => $amount_requested, ":requested_by" => $user_name, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":project_stage" => $project_stage, ":purpose" => $cost_type));
+         $sql = $db->prepare("INSERT INTO tbl_payments_request (projid,requested_for,due_date,amount_requested,requested_by,date_requested,status,stage,purpose) VALUES(:projid,:requested_for,:due_date,:amount_requested,:requested_by,:date_requested,:status,:stage,:purpose) ");
+         $result = $sql->execute(array(":projid" => $projid, ":requested_for" => $requested_for, ":due_date" => $due_date, ":amount_requested" => $amount_requested, ":requested_by" => $user_name, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":purpose" => $cost_type));
          if ($result) {
             $request_id = $db->lastInsertId();
             if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
@@ -444,12 +443,14 @@ try {
 
             if ($cost_type != 1) {
                $comments =  $_POST['comments'];
-               $response = store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $requested_by, ":created_at" => $date_requested));
+               $response = store_comments(array(":request_id" => $request_id, ":stage" => $stage, ":status" => $status, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $user_name, ":created_at" => $date_requested));
             }
          }
       }
+
+
       $msg = !in_array(false, $results) ? true : false;
-      echo json_encode(array("success" => $msg));
+      echo json_encode(array("success" => $msg, "items_url" => 'inhouse-payment-request-amend.php?request_id=' . $request_id_hashed));
    }
 
    if (isset($_POST['approve'])) {

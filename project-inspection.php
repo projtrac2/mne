@@ -86,6 +86,32 @@ if ($permission) {
                 $msg = 'Project approval Successfully';
             }
 
+            $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer=0");
+            $query_rsQuestions_pending->execute(array(":projid" => $projid));
+            $totalRows_rsQuestions_pending = $query_rsQuestions_pending->rowCount();
+            // tbl_inspection_noncompliance_comments // projid , question_id, comments
+
+            $sub_stage = 5;
+            if ($totalRows_rsQuestions_pending > 0) {
+                $sub_stage = 4;
+                $issue_description  = "Inspection and Acceptance";
+                $issue_area = 5;
+                $sql = $db->prepare("INSERT INTO tbl_projissues (projid, issue_description, issue_area, risk_category, issue_priority, issue_impact, created_by, date_created) VALUES (:projid, :issue_description, :issue_area, :risk_category, :issue_priority, :issue_impact, :user, :date)");
+                $results  = $sql->execute(array(':projid' => $projid, ':issue_description' => $issue_description, ':issue_area' => $issue_area, ':risk_category' => null, ':issue_priority' => null, ':issue_impact' => null, ':user' => $user_name, ':date' => $datecreated));
+                $issue_id = $db->lastInsertId();
+
+                while ($Rows_rsQuestions_pending = $query_rsQuestions_pending->fetch()) {
+                    $subtask_id = '';
+                    $query_insert = $db->prepare("INSERT INTO tbl_project_adjustments (projid, issueid, issue_area, sub_task_id, pw_id, site_id, units, timeline, created_by, date_created) VALUES (:projid, :issue_id, :issue_area, :subtask_id, :pwid, :site_id, :units, :duration, :user, :date)");
+                    $query_insert->execute(array(':projid' => $projid, ':issue_id' => $issue_id, ':issue_area' => $issue_area, ':subtask_id' => $subtaskid, ':pwid' => $pwid, ':site_id' => $site_id, ':units' => $units, ':duration' => $duration, ':user' => $user_name, ':date' => $datecreated));
+                }
+            }
+
+            $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
+            $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+
+
+
             $results = "<script type=\"text/javascript\">
                 swal({
                     title: \"Success!\",
@@ -319,7 +345,6 @@ if ($permission) {
                                                     </div>
                                                 </div>
                                             </fieldset>
-
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="MM_insert" value="addprojectfrm">

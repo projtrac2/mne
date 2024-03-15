@@ -67,7 +67,7 @@ if ($permission) {
                                     <tr class="bg-purple">
                                        <th style="width:5%">#</th>
                                        <th style="width:70%">Project Name</th>
-                                       <th style="width:15%">Project Stage</th>
+                                       <th style="width:15%">Project Category</th>
                                        <th style="width:10%">Action</th>
                                     </tr>
                                  </thead>
@@ -82,31 +82,23 @@ if ($permission) {
                                           $projid = $rows_rsprojects['projid'];
                                           $progid = $rows_rsprojects['progid'];
                                           $project_name = $rows_rsprojects['projname'];
-                                          $projstage = $rows_rsprojects['projstage'];
                                           $project_department = $rows_rsprojects['projsector'];
                                           $project_section = $rows_rsprojects['projdept'];
                                           $project_directorate = $rows_rsprojects['directorate'];
                                           $projcategory = $rows_rsprojects['projcategory'];
+                                          $implementation_type = $projcategory == 2 ? 'Contractor' : 'Inhouse';
                                           $projid_hashed = base64_encode("projid54321{$projid}");
 
-                                          $query_rsStage =  $db->prepare("SELECT * FROM  tbl_project_workflow_stage WHERE priority=:priority");
-                                          $query_rsStage->execute(array(":priority" => $projstage));
-                                          $rows_rsStage = $query_rsStage->fetch();
-                                          $total_rsStage = $query_rsStage->rowCount();
-
-                                          $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
-
                                           $filter_department = view_record($project_department, $project_section, $project_directorate);
-
                                           if ($filter_department) {
                                              $counter++;
                                     ?>
                                              <tr class="">
                                                 <td><?= $counter ?></td>
                                                 <td><?= $project_name ?></td>
-                                                <td><?= ucfirst($stage) ?></td>
+                                                <td><?= $implementation_type ?></td>
                                                 <td>
-                                                   <a type="button" class="btn bg-purple waves-effect" href="inhouse-payment-request.php?projid=<?= $projid_hashed ?>" title="Click here to request payment" style="height:25px; padding-top:0px">
+                                                   <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $projid ?>,<?= $projcategory ?>)" class="btn bg-purple waves-effect" title="Click here to request payment" style="height:25px; padding-top:0px">
                                                       <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Request
                                                    </a>
                                                 </td>
@@ -186,7 +178,7 @@ if ($permission) {
 
                                           $project_details = "{
                                              projid: $projid,
-                                             projstage: $projstage,
+                                             projcategory: $projcategory,
                                              category: $projcategory,
                                              request_id: $request_id,
                                              purpose:$purpose
@@ -213,7 +205,7 @@ if ($permission) {
                                                       <?php
                                                       if ($payment_status == 2 || $payment_status == 0) {
                                                       ?>
-                                                         <li>
+                                                         <li> 
                                                             <a type="button" href="inhouse-payment-request-amend.php?request_id=<?= $request_id_hashed ?>" title="Click here to amend request payment">
                                                                <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Amend
                                                             </a>
@@ -474,6 +466,121 @@ if ($permission) {
             </div> <!-- /modal-content -->
          </div> <!-- /modal-dailog -->
       </div>
+   </div>
+   <!-- End add item -->
+
+   <!-- add item -->
+   <div class="modal fade" id="addFormModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+      <div class="modal-dialog modal-lg">
+         <div class="modal-content">
+            <form class="form-horizontal" id="modal_form_submit1" action="" method="POST" enctype="multipart/form-data">
+               <div class="modal-header" style="background-color:#03A9F4">
+                  <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add Other Details</span></h4>
+               </div>
+               <div class="modal-body">
+                  <div class="card">
+                     <div class="row clearfix">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                           <div class="body" id="add_modal_form">
+                              <fieldset class="scheduler-border">
+                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                    <i class="fa fa-calendar" aria-hidden="true"></i> Budgetline Details
+                                 </legend>
+                                 <div class="row clearfix">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                       <label for="purpose" class="control-label">Purpose *:</label>
+                                       <div class="form-line">
+                                          <select name="purpose" id="purpose1" onchange="check_cost_type()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false">
+                                             <option value="">.... Select from list ....</option>
+                                             <option value="1">Direct Cost</option>
+                                             <option value="2">Administrative/Operational Cost</option>
+                                          </select>
+                                       </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                       <label class="control-label">Due Date <span></span>*:</label>
+                                       <div class="form-input">
+                                          <input type="date" name="due_date" value="" id="due_date" class="form-control" required="required">
+                                       </div>
+                                    </div>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
+                                       <div class="table-responsive">
+                                          <table class="table table-bordered">
+                                             <input type="hidden" name="task_id[]" id="task_id" value="0">
+                                             <thead>
+                                                <tr>
+                                                   <th style="width:30%">Description </th>
+                                                   <th style="width:15%">Unit</th>
+                                                   <th style="width:15%">Unit Cost</th>
+                                                   <th style="width:10%">No. of Units</th>
+                                                   <th style="width:10%">Remaining Units</th>
+                                                   <th style="width:15%">Total Cost</th>
+                                                   <th style="width:5%">
+                                                      <button type="button" name="addplus" id="addplus_financier" onclick="add_budget_costline(0);" class="btn btn-success btn-sm">
+                                                         <span class="glyphicon glyphicon-plus">
+                                                         </span>
+                                                      </button>
+                                                   </th>
+                                                </tr>
+                                             </thead>
+                                             <tbody id="_budget_lines_values_table">
+                                                <tr></tr>
+                                                <tr id="e_removeTr" class="text-center">
+                                                   <td colspan="5">Add Budgetline Costlines</td>
+                                                </tr>
+                                             </tbody>
+                                             <tfoot id="budget_line_foot">
+                                                <tr>
+                                                   <td colspan="1"><strong>Sub Total</strong></td>
+                                                   <td colspan="1">
+                                                      <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                   </td>
+                                                   <td colspan="1"> <strong>% Sub Total</strong></td>
+                                                   <td colspan="2">
+                                                      <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
+                                                   </td>
+                                                </tr>
+                                             </tfoot>
+                                          </table>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </fieldset>
+                              <fieldset class="scheduler-border" id="project_commets_div">
+                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                    <i class="fa fa-comment" aria-hidden="true"></i> Remarks
+                                 </legend>
+                                 <div id="comment_section">
+                                    <div class="col-md-12">
+                                       <label class="control-label">Remarks *:</label>
+                                       <br />
+                                       <div class="form-line">
+                                          <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </fieldset>
+                           </div>
+                        </div>
+                     </div>
+                  </div> <!-- /modal-body -->
+                  <div class="modal-footer">
+                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                        <input type="hidden" name="projid" id="project_id" value="">
+                        <input type="hidden" name="amount_requested" id="amount_requested" value="">
+                        <input type="hidden" name="request_id" id="request_id" value="">
+                        <input type="hidden" name="cost_type" id="cost_type" value="">
+                        <input type="hidden" name="implementation_type" id="implementation_type" value="">
+                        <input type="hidden" name="store" id="store" value="new">
+                        <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
+                           Save
+                        </button>
+                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                     </div>
+                  </div> <!-- /modal-footer -->
+            </form> <!-- /.form -->
+         </div> <!-- /modal-content -->
+      </div> <!-- /modal-dailog -->
    </div>
    <!-- End add item -->
 <?php
