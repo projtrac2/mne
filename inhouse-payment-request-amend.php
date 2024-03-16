@@ -16,7 +16,7 @@ if ($permission) {
         function get_unit_requested($request_id, $direct_cost_id)
         {
             global $db;
-            $query_rsRequestDetails = $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE request_id=:request_idB AND  direct_cost_id = :direct_cost_id");
+            $query_rsRequestDetails = $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE request_id=:request_id AND  direct_cost_id = :direct_cost_id");
             $query_rsRequestDetails->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id));
             $row_rsRequestDetails = $query_rsRequestDetails->fetch();
             $totalRows_rsRequestDetails = $query_rsRequestDetails->rowCount();
@@ -99,6 +99,7 @@ if ($permission) {
 
                                     <?php
                                     if ($purpose == 1) {
+                                        $cost_type = 1;
 
                                         $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
                                         $query_Sites->execute(array(":projid" => $projid));
@@ -153,12 +154,13 @@ if ($permission) {
 
                                                                             $budget_line_details =
                                                                                 "{
-                                                                        projid:$projid,
-                                                                        site_id:$site_id,
-                                                                        output_id:$output_id,
-                                                                        task_id:$msid,
-                                                                        cost_type:$cost_type,
-                                                                    }";
+                                                                                    projid:$projid,
+                                                                                    site_id:$site_id,
+                                                                                    output_id:$output_id,
+                                                                                    task_id:$msid,
+                                                                                    cost_type:$cost_type,
+                                                                                    request_id:$request_id,
+                                                                                }";
                                                                     ?>
                                                                             <div class="row clearfix">
                                                                                 <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
@@ -287,6 +289,7 @@ if ($permission) {
                                                                         output_id:$output_id,
                                                                         task_id:$msid,
                                                                         cost_type:$cost_type,
+                                                                        request_id:$request_id,
                                                                     }";
                                                         ?>
                                                                 <div class="row clearfix">
@@ -372,10 +375,11 @@ if ($permission) {
                                         $budget_line_details =
                                             "{
                                                 projid:$projid,
-                                                site_id:$site_id,
-                                                output_id:$output_id,
-                                                task_id:$msid,
+                                                site_id:0,
+                                                output_id:0,
+                                                task_id:0,
                                                 cost_type:2,
+                                                request_id:$request_id,
                                             }";
                                         ?>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -510,12 +514,6 @@ if ($permission) {
                                                                 <i class="fa fa-calendar" aria-hidden="true"></i> Budgetline Details
                                                             </legend>
                                                             <div class="row clearfix">
-                                                                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                                                    <label class="control-label">Due Date <span></span>*:</label>
-                                                                    <div class="form-input">
-                                                                        <input type="date" name="due_date" value="" id="due_date" class="form-control" required="required">
-                                                                    </div>
-                                                                </div>
                                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
                                                                     <div class="table-responsive">
                                                                         <table class="table table-bordered">
@@ -555,20 +553,6 @@ if ($permission) {
                                                                                 </tr>
                                                                             </tfoot>
                                                                         </table>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </fieldset>
-                                                        <fieldset class="scheduler-border" id="project_commets_div">
-                                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                                <i class="fa fa-comment" aria-hidden="true"></i> Remarks
-                                                            </legend>
-                                                            <div id="comment_section">
-                                                                <div class="col-md-12">
-                                                                    <label class="control-label">Remarks *:</label>
-                                                                    <br />
-                                                                    <div class="form-line">
-                                                                        <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -623,12 +607,56 @@ require('includes/footer.php');
 
 
 <script>
+    var ajax_url = "ajax/payments/amend";
+    $(document).ready(function() {
+        $("#modal_form_submit").submit(function(e) {
+            e.preventDefault();
+            var cost_type = $("#purpose1").val();
+            $.ajax({
+                type: "post",
+                url: ajax_url,
+                data: $(this).serialize(),
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        success_alert("Approved payment successfully");
+                    } else {
+                        error_alert("Approval error !!");
+                    }
+
+                    // $(".modal").each(function() {
+                    //     $(this).modal("hide");
+                    //     $(this)
+                    //         .find("form")
+                    //         .trigger("reset");
+                    // });
+
+                    // setTimeout(() => {
+                    //     window.location.reload();
+                    // }, 3000);
+                }
+            });
+        });
+    });
+
+
+
+    //function to put commas to the data
+    function commaSeparateNumber(val) {
+        while (/(\d+)(\d{3})/.test(val.toString())) {
+            val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
+        }
+        return val;
+    }
+
+
     const add_request_details = (details) => {
         var projid = details.projid;
         var site_id = details.site_id;
         var output_id = details.output_id;
-        var task_id = details.msid;
+        var task_id = details.task_id;
         var cost_type = details.cost_type;
+        var request_id = details.request_id;
 
         $.ajax({
             type: "get",
@@ -639,11 +667,73 @@ require('includes/footer.php');
                 site_id: site_id,
                 output_id: output_id,
                 task_id: task_id,
+                cost_type: cost_type,
+                request_id: request_id,
             },
-            dataType: "dataType",
+            dataType: "json",
             success: function(response) {
-
+                if (response.success) {
+                    $("#_budget_lines_values_table").html(response.table_body);
+                    calculate_subtotal();
+                } else {
+                    error_alert("Sorry error occured");
+                }
             }
         });
+    }
+
+    function calculate_total_cost(rowno) {
+        var unit_cost = $(`#unit_cost${rowno}`).val();
+        var no_units = $(`#no_units${rowno}`).val();
+        var h_no_units = $(`#h_no_units${rowno}`).val();
+        var ceiling_amount = $("#ceiling_amount").val();
+
+        unit_cost = (unit_cost != "") ? parseFloat(unit_cost) : 0;
+        no_units = (no_units != "") ? parseFloat(no_units) : 0;
+        h_no_units = (h_no_units != "") ? parseFloat(h_no_units) : 0;
+        var total = 0;
+        if (h_no_units >= no_units && no_units > 0) {
+            if (ceiling_amount != "") {
+                ceiling_amount = parseFloat(ceiling_amount);
+                total = no_units * unit_cost;
+
+                $(`#subtotal_amount${rowno}`).val(total);
+                var total_amount = 0;
+                $(`.subamount`).each(function() {
+                    if ($(this).val() != "") {
+                        total_amount = total_amount + parseFloat($(this).val());
+                    }
+                });
+                var remainder = ceiling_amount - total_amount;
+                if (remainder < 0) {
+                    $(`#no_units${rowno}`).val("");
+                    total = 0;
+                }
+            } else {
+                error_alert("Error check the data");
+                $(`#no_units${rowno}`).val("");
+            }
+        } else {
+            error_alert("Sorry ensure that the number of units is less or equal to the number of units specified");
+            $(`#no_units${rowno}`).val("");
+        }
+        $(`#subtotal_amount${rowno}`).val(total);
+        $(`#subtotal_cost${rowno}`).html(commaSeparateNumber(total));
+        calculate_subtotal(rowno);
+    }
+
+    function calculate_subtotal() {
+        var ceiling_amount = $("#ceiling_amount").val();
+        var total_amount = 0;
+        $(`.sub`).each(function() {
+            if ($(this).val() != "") {
+                total_amount = total_amount + parseFloat($(this).val());
+            }
+        });
+
+
+        var percentage = ((total_amount / ceiling_amount) * 100);
+        $(`#sub_total_amount`).val(commaSeparateNumber(total_amount));
+        $(`#subtotal_percentage`).val(percentage);
     }
 </script>

@@ -248,7 +248,7 @@ try {
                         <div class="form-line">
                             <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
                             <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
-                            <input type="hidden" name="output_id' . $site_id . '[]" value="' . $site_id . $output_id . '">
+                            <input type="hidden" name="output_id' . $site_id . '[]" value="'  . $output_id . '">
                         </div>
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -370,6 +370,8 @@ try {
 
         $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
         $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => $implimentation_stage, ':team_type' => 4, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
+
+
         if (isset($_POST['site_id'])) {
             $sites = $_POST['site_id'];
             $count_sites = count($sites);
@@ -380,11 +382,13 @@ try {
                     for ($o = 0; $o < $output_length; $o++) {
                         $output_id = $_POST['output_id' . $site_id][$o];
                         if (isset($_POST['subtask_id' . $site_id . $output_id])) {
-                            $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
-                            for ($i = 0; $i < $subtask_length; $i++) {
-                                $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
-                                $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:subtask_id)");
-                                $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':subtask_id' => $subtask_id));
+                            if (isset($_POST['subtask_id' . $site_id . $output_id])) {
+                                $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
+                                for ($i = 0; $i < $subtask_length; $i++) {
+                                    $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
+                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:subtask_id)");
+                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':subtask_id' => $subtask_id));
+                                }
                             }
                         }
                     }
