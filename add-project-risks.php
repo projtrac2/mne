@@ -207,13 +207,12 @@ if ($permission) {
 												$proceed = check_risk_details() ? true : false;
 												if ($proceed) {
 
-													$query_check_next_stage =  $db->prepare("SELECT * FROM tbl_project_details d left join tbl_indicator i on i.indid=d.indicator WHERE projid =:projid");
+													$query_check_next_stage =  $db->prepare("SELECT * FROM tbl_project_details d left join tbl_indicator i on i.indid=d.indicator WHERE projid =:projid AND (indicator_mapping_type =1 OR indicator_mapping_type=2 OR indicator_mapping_type=3)");
 													$query_check_next_stage->execute(array(":projid" => $projid));
 													$row_check_next_stage = $query_check_next_stage->fetch();
-													$indicator_mapping_type = $row_check_next_stage['indicator_mapping_type'];
 
 													$assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
-													$stage =  $indicator_mapping_type == 0 ? $workflow_stage + 1 : $workflow_stage;
+													$stage =  $row_check_next_stage ? $workflow_stage + 1 : $workflow_stage;
 													$approve_details =
 														"{
 														get_edit_details: 'details',
@@ -259,7 +258,6 @@ if ($permission) {
 								<?php
 								$query_risk_monitoring_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq where status=1");
 								$query_risk_monitoring_frequency->execute();
-
 								$query_risk_responsible = $db->prepare("SELECT *, tt.title AS user_title FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title where t.disabled=0");
 								$query_risk_responsible->execute();
 								?>
@@ -356,7 +354,7 @@ if ($permission) {
 											<option value="">.... Select Category ....</option>
 											<?php
 											while ($row_risk_categories = $query_risk_categories->fetch()) {
-												?>
+											?>
 												<font color="black">
 													<option value="<?php echo $row_risk_categories['catid'] ?>"><?php echo $row_risk_categories['category'] ?></option>
 												</font>

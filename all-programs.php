@@ -177,7 +177,7 @@ if ($permission) {
                                                                 }
                                                             }
 
-                                                            if ($norows_pbbtargets == 0){
+                                                            if ($norows_pbbtargets == 0) {
                                                                 $details = "{
                                                                     program_name:'$progname',
                                                                     progid:'$progid',
@@ -241,7 +241,7 @@ if ($permission) {
                                                             $count_projs = $query_projs->rowCount();
 
                                                             if ($count_projs > 0) {
-                                                                $projectscount = '<a href="view-project?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $count_projs . '</span></a>';
+                                                                $projectscount = '<a href="view-indipendent-projects.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $count_projs . '</span></a>';
                                                             } else {
                                                                 $projectscount = '<a href="#"><span class="badge bg-purple">' . $count_projs . '</span></a>';
                                                             }
@@ -265,7 +265,7 @@ if ($permission) {
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
-																?>
+                                                    ?>
                                                                 <tr>
                                                                     <td><?= $sn ?></td>
                                                                     <td><?= $progname ?></td>
@@ -290,7 +290,7 @@ if ($permission) {
                                                                         </div>
                                                                     </td>
                                                                 </tr>
-																<?php
+                                                    <?php
                                                             }
                                                         } // /while
 
@@ -396,7 +396,7 @@ if ($permission) {
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
-																?>
+                                                    ?>
                                                                 <tr>
                                                                     <td><?= $sn ?> </td>
                                                                     <td><?= $projname ?> </td>

@@ -1,14 +1,31 @@
 <?php
 include '../controller.php';
 try {
+    if (isset($_GET['compare_dates'])) {
+        $project_end_date = date('Y-m-d', strtotime($_GET["project_end_date"]));
+        $start_date = date('Y-m-d', strtotime($_GET["start_date"]));
+        $duration = $_GET["duration"];
+        $end_date = date('Y-m-d', strtotime($start_date . ' + ' . $duration . ' days'));
+        $success = $project_end_date >= $end_date ? true : false;
+        echo json_encode(array("success" => $success, "subtask_end_date" => $end_date));
+    }
 
     if (isset($_POST['store_project_frequency'])) {
         $monitoring_frequency = $_POST['monitoring_frequency'];
         $activity_monitoring_frequency = $_POST['activity_monitoring_frequency'];
         $projid = $_POST['projid'];
-
-        $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency WHERE projid=:projid ");
+        $sql = $db->prepare("UPDATE `tbl_projects` SET monitoring_frequency=:monitoring_frequency, activity_monitoring_frequency=:activity_monitoring_frequency,proj_substage=1 WHERE projid=:projid ");
         $result = $sql->execute(array(':monitoring_frequency' => $monitoring_frequency, ":activity_monitoring_frequency" => $activity_monitoring_frequency, ":projid" => $projid));
+
+        $sql_projects = $db->prepare("SELECT * FROM `tbl_projects` p left join `tbl_programs` g on g.progid=p.progid WHERE projid=:projid");
+        $sql_projects->execute(array(":projid" => $projid));
+        $totalRows_projects = $sql_projects->rowCount();
+        $Rows_projects = $sql_projects->fetch();
+        $response = false;
+        if ($totalRows_projects > 0) {
+            $implimentation_type = $Rows_projects['projcategory'];
+            $response = ($implimentation_type == 2) ? $mail->send_master_data_email($projid, 6, '') : '';
+        }
         echo json_encode(array("success" => $result));
     }
 
@@ -170,7 +187,6 @@ try {
         echo json_encode(array("success" => true, "tasks" => $input));
     }
 
-
     if (isset($_POST['store_tasks'])) {
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];
@@ -201,6 +217,9 @@ try {
                 $sql = $db->prepare("INSERT INTO tbl_program_of_works (projid,output_id,task_id,site_id,subtask_id,start_date,duration,end_date,created_by,created_at) VALUES (:projid,:output_id,:task_id,:site_id,:subtask_id,:start_date,:duration,:end_date,:created_by,:created_at)");
                 $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":task_id" => $task_id, ":site_id" => $site_id, ":subtask_id" => $tkid, ':start_date' => $start_date, ':duration' => $duration, ':end_date' => $end_date, ":created_by" => $user_name, ':created_at' => $current_date));
             }
+
+            $stmt = $db->prepare("DELETE FROM `tbl_project_target_breakdown` WHERE projid=:projid AND output_id=:output_id AND site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id ");
+            $results = $stmt->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $tkid));
         }
         echo json_encode(array("success" => true));
     }

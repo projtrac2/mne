@@ -11,7 +11,7 @@ if ($permission) {
 		}
 	}
 
-	function get_achieved($indid, $start_date, $end_date)
+	function get_q_achieved($indid, $start_date, $end_date)
 	{
 		global $db;
 		$query_quarter_four_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m
@@ -291,10 +291,10 @@ if ($permission) {
 																		$totalRows_quarterly_target = $query_quarterly_target->rowCount();
 
 
-																		$quarter_one_achived = get_achieved($indid, $startq1, $endq1);
-																		$quarter_two_achived = get_achieved($indid, $startq2, $endq2);
-																		$quarter_three_achived = get_achieved($indid, $startq3, $endq3);
-																		$quarter_four_achived = get_achieved($indid, $startq4, $endq4);
+																		$quarter_one_achived = get_q_achieved($indid, $startq1, $endq1);
+																		$quarter_two_achived = get_q_achieved($indid, $startq2, $endq2);
+																		$quarter_three_achived = get_q_achieved($indid, $startq3, $endq3);
+																		$quarter_four_achived = get_q_achieved($indid, $startq4, $endq4);
 																		$quarter_one_rate = 0 . "%";
 																		$quarter_two_rate = 0 . "%";
 																		$quarter_three_rate = 0 . "%";

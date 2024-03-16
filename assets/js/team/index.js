@@ -150,6 +150,8 @@ const add_team_members = (user_id, role_id) => {
 
 function output_check_box(output_id) {
     var checked = $(`.subtasks_${output_id}`).is(':checked');
+    console.log(`.subtasks_${output_id}`);
+
     if (checked) {
         $(`#output_checked${output_id}`).html("Check");
         $(`.subtasks_${output_id}`).prop("checked", false);

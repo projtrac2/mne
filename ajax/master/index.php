@@ -165,42 +165,94 @@ try {
         echo json_encode(array('success' => $result));
     }
 
-    if (isset($_GET['get_edit_details'])) {
-        $projid = $_GET['projid'];
-        $p_directorate = $_GET['project_directorate'];
-        $workflow_stage = $_GET['workflow_stage'];
-        $sub_stage = $_GET['sub_stage'];
-
-        $sql = $db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority=:id AND directorate_id <> 0");
-        $result = $sql->execute(array(":id" => $workflow_stage));
-        $row = $sql->fetch();
-        $rows = $sql->rowCount();
-        $project_directorate = $rows > 0 ? $row['directorate_id'] : $p_directorate;
-
+    function get_responsible($projid, $workflow_stage, $sub_stage)
+    {
+        global $db;
         $sql =  $db->prepare("SELECT * FROM tbl_projmembers WHERE projid=:projid AND stage=:stage AND sub_stage=:sub_stage ");
         $sql->execute(array(":projid" => $projid, ":stage" => $workflow_stage, ":sub_stage" => $sub_stage));
         $row = $sql->fetch();
         $total = $sql->rowCount();
         $ptid = $total > 0 ? $row['responsible'] : '';
+    }
 
-        if ($sub_stage == 2) {
-            $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.directorate=:directorate AND (p.designation >= 7 AND p.designation <= 8)");
-        } else {
-            $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.directorate=:directorate  AND p.designation > 6");
-        }
-
-        $get_user->execute(array(":directorate" => $project_directorate));
+    function get_user($responsible)
+    {
+        global $db;
+        $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:responsible");
+        $get_user->execute(array(":responsible" => $responsible));
+        $user = $get_user->fetch();
         $count_user = $get_user->rowCount();
-        $users = '<option value="">Select Responsible</option>';
+        return $count_user > 0 ? $user : false;
+    }
 
-        if ($count_user > 0) {
-            while ($user = $get_user->fetch()) {
-                $user_name = $user['fullname'];
-                $user_id = $user['userid'];
-                $selected = $ptid == $user_id ? 'selected' : '';
-                $users .= '<option value="' . $user_id . '" ' . $selected . '>' . $user_name . '</option>';
+    if (isset($_GET['get_edit_details'])) {
+        $projid = $_GET['projid'];
+        $p_directorate = $_GET['project_directorate'];
+        $workflow_stage = $_GET['workflow_stage'];
+        $sub_stage = $_GET['sub_stage'];
+        $users = '<option value="">Select Responsible</option>';
+        if ($workflow_stage == 8) {
+            $sql =  $db->prepare("SELECT * FROM tbl_projmembers WHERE projid=:projid AND stage=:stage AND team_type=4  AND role <> 2");
+            $sql->execute(array(":projid" => $projid, ":stage" => 9));
+            $total = $sql->rowCount();
+            if ($total > 0) {
+                while ($row = $sql->fetch()) {
+                    $responsible = $row['responsible'];
+                    $user = get_user($responsible);
+                    if ($user) {
+                        $user_name = $user['fullname'];
+                        $user_id = $user['userid'];
+                        $availability = $user['availability'];
+                        if ($availability == 1) {
+                            $ptid = get_responsible($projid, $workflow_stage, $sub_stage);
+                            $selected = $ptid == $user_id ? 'selected' : '';
+                            $users .= '<option value="' . $user_id . '" ' . $selected . '>' . $user_name . '</option>';
+                        } else {
+                            $query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND owner=:user_name AND status = 1 AND team_type =:team_type");
+                            $query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name, ":team_type" => 4));
+                            $row_rsOutput_standin = $query_rsOutput_standin->fetch();
+                            $total_rsOutput_standin = $query_rsOutput_standin->rowCount();
+                            if ($total_rsOutput_standin > 0) {
+                                $owner_id = $row_rsOutput_standin['owner'];
+                                $user = get_user($owner_id);
+                                if ($user) {
+                                    $user_name = $user['fullname'];
+                                    $user_id = $user['userid'];
+                                    $ptid = get_responsible($projid, $workflow_stage, $sub_stage);
+                                    $selected = $ptid == $user_id ? 'selected' : '';
+                                    $users .= '<option value="' . $user_id . '" ' . $selected . '>' . $user_name . '</option>';
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $sql = $db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority=:priority AND directorate_id <> 0");
+            $result = $sql->execute(array(":priority" => $workflow_stage));
+            $row = $sql->fetch();
+            $rows = $sql->rowCount();
+            $project_directorate = $rows > 0 ? $row['directorate_id'] : $p_directorate;
+
+            $ptid = get_responsible($projid, $workflow_stage, $sub_stage);
+            if ($sub_stage == 2) {
+                $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.directorate=:directorate AND (p.designation >= 7 AND p.designation <= 8)");
+            } else {
+                $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE p.directorate=:directorate  AND p.designation > 6");
+            }
+            $get_user->execute(array(":directorate" => $project_directorate));
+            $count_user = $get_user->rowCount();
+            if ($count_user > 0) {
+                while ($user = $get_user->fetch()) {
+                    $user_name = $user['fullname'];
+                    $user_id = $user['userid'];
+                    $selected = $ptid == $user_id ? 'selected' : '';
+                    $users .= '<option value="' . $user_id . '" ' . $selected . '>' . $user_name . '</option>';
+                }
             }
         }
+
+
         echo json_encode(array("responsible" => $users, "success" => true));
     }
 } catch (PDOException $ex) {

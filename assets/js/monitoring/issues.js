@@ -231,7 +231,7 @@ function adjustscope() {
             dataType: "json",
             success: function (response) {
                 if (response.success) {
-                    $("#issue_type").html(response.issuefileds);
+                    $("#issue_type").html(response.issuefields);
                 }
             }
         });

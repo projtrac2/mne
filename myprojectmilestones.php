@@ -96,7 +96,7 @@ if ($permission) {
 									<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> Finance &nbsp;<span class="badge bg-orange">|</span></a>
 								</li>
 								<li>
-									<a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Work Measured &nbsp;<span class="badge bg-blue">|</span></a>
+									<a data-toggle="tab" href="#menu1"><i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Progress &nbsp;<span class="badge bg-blue">|</span></a>
 								</li>
 							</ul>
 						</div>
@@ -134,7 +134,7 @@ if ($permission) {
 																	</thead>
 																	<tbody>
 																		<?php
-																		if ($indicator_mapping_type == 1 ) {
+																		if ($indicator_mapping_type == 1) {
 																			$query_rsSite_details = $db->prepare("SELECT * FROM tbl_output_disaggregation b INNER JOIN tbl_project_sites s ON s.site_id = b.output_site WHERE outputid = :output_id");
 																			$query_rsSite_details->execute(array(":output_id" => $output_id));
 																			$total_rsSite_details = $query_rsSite_details->rowCount();

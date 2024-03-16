@@ -1,37 +1,87 @@
 <?php
 require('includes/head.php');
+// 0 pending frwquency  1) Pending assignments 2) pending data entry 3) Pending Approval 4 (Assigned ) Pending Approval
+
 if ($permission) {
 	try {
 		$query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
 		$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 
-		function daily_team($projid, $workflow_stage, $role)
+		function daily_team($projid, $workflow_stage, $role, $sub_stage)
 		{
 			global $db,  $user_name, $workflow_stage, $user_designation;
-			$output_responsible = $standin_responsible = false;
+
+			$responsible = false;
 			if ($user_designation == 1) {
-				$output_responsible = true;
+				$responsible = true;
 			} else {
-				$query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
-				$query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => 4, ":responsible" => $user_name, ":role" => $role));
-				$total_rsOutput = $query_rsOutput->rowCount();
-				$output_responsible = $total_rsOutput > 0 ? true : false;
-
-				$query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND assignee=:user_name AND status = 1 AND team_type =:team_type");
-				$query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name, ":team_type" => 4));
-				$row_rsOutput_standin = $query_rsOutput_standin->fetch();
-				$total_rsOutput_standin = $query_rsOutput_standin->rowCount();
-
-				if ($total_rsOutput_standin > 0) {
-					$owner_id = $row_rsOutput_standin['owner'];
-					$query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
-					$query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => 4, ":responsible" => $owner_id, ":role" => $role));
+				if ($sub_stage == 2 || $sub_stage == 4) {
+					$query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage =:sub_stage AND responsible=:responsible");
+					$query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":sub_stage" => $sub_stage, ":responsible" => $user_name));
 					$total_rsOutput = $query_rsOutput->rowCount();
-					$standin_responsible = $total_rsOutput > 0 ? true : false;
+					$responsible = $total_rsOutput > 0 ? true : false;
+				} else {
+					$workflow_stage = 9;
+					$query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
+					$query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => 4, ":responsible" => $user_name, ":role" => $role));
+					$total_rsOutput = $query_rsOutput->rowCount();
+					$output_responsible = $total_rsOutput > 0 ? true : false;
+
+					$query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND assignee=:user_name AND status = 1");
+					$query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name));
+					$row_rsOutput_standin = $query_rsOutput_standin->fetch();
+					$total_rsOutput_standin = $query_rsOutput_standin->rowCount();
+
+					if ($total_rsOutput_standin > 0) {
+						$owner_id = $row_rsOutput_standin['owner'];
+						$query_rsOutput = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND team_type =:team_type AND responsible=:responsible AND role=:role");
+						$query_rsOutput->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":team_type" => 4, ":responsible" => $owner_id, ":role" => $role));
+						$total_rsOutput = $query_rsOutput->rowCount();
+						$standin_responsible = $total_rsOutput > 0 ? true : false;
+					}
+
+					$responsible = $standin_responsible || $output_responsible ? true : false;
 				}
 			}
-			return $output_responsible || $standin_responsible ? true : false;
+
+			return $responsible;
+		}
+
+		function check_standin_responsible($projid)
+		{
+			global $db, $user_name;
+			$query_rsOutput_standin = $db->prepare("SELECT * FROM tbl_project_team_leave  WHERE projid =:projid AND assignee=:user_name AND status = 1");
+			$query_rsOutput_standin->execute(array(":projid" => $projid, ":user_name" => $user_name));
+			$row_rsOutput_standin = $query_rsOutput_standin->fetch();
+			$total_rsOutput_standin = $query_rsOutput_standin->rowCount();
+			return $total_rsOutput_standin > 0 ? true : false;
+		}
+
+
+		function view_project($department, $section, $directorate)
+		{
+			global $db, $user_department, $user_section, $user_directorate, $user_designation;
+			$grant_access = false;
+			if ($user_designation == 1) {
+				$grant_access = true;
+			} else {
+				if ($user_designation >= 5 && $user_designation <= 7) {
+					if ($user_department == $department) {
+						if ($section == $user_section) {
+							if ($directorate == $user_directorate) {
+								$grant_access = true;
+							} else {
+								$grant_access = ($user_designation == 6) ? true : false;
+							}
+						} else {
+							$grant_access = ($user_designation == 5) ? true : false;
+						}
+					}
+				}
+			}
+
+			return $grant_access;
 		}
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -82,20 +132,19 @@ if ($permission) {
 												$project_department = $row_rsProjects['projsector'];
 												$project_section = $row_rsProjects['projdept'];
 												$project_directorate = $row_rsProjects['directorate'];
-												$monitoring_frequency = $row_rsProjects['monitoring_frequency'];
-												$activity_monitoring_frequency = $row_rsProjects['activity_monitoring_frequency'];
+												$monitoring_frequency = ($row_rsProjects['monitoring_frequency'] != '') ? $row_rsProjects['monitoring_frequency'] : 0;
+												$activity_monitoring_frequency = ($row_rsProjects['activity_monitoring_frequency']  != '') ? $row_rsProjects['activity_monitoring_frequency'] : 0;
 												$start_date = date('Y-m-d');
 
 												$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid");
 												$query_rsPlan->execute(array(":projid" => $projid));
 												$totalRows_plan = $query_rsPlan->rowCount();
 
-												$query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid");
-												$query_rsAdjustments->execute(array(":projid" => $projid));
-												$totalRows_Adjustments = $query_rsAdjustments->rowCount();
 
 												$timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
 												$filter_department = view_record($project_department, $project_section, $project_directorate);
+
+
 												$details = "{
                                                     get_edit_details: 'details',
                                                     projid:$projid,
@@ -109,29 +158,31 @@ if ($permission) {
 
 												if ($filter_department) {
 													$counter++;
-
 													$today = date('Y-m-d');
-													$assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
+													$assigned = ($sub_stage == 2 || $sub_stage == 4) ? true : false;
+													$due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
+
 													$activity = "Add";
 													if ($totalRows_plan > 0) {
-														$activity = $sub_stage > 1 ? "Approve"  : "Edit";
+														$activity = $sub_stage == 3 ? "Approve"  : "Edit";
 													}
 
-													$due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
-													$activity_status = "Pending";
-													if ($sub_stage > 1) {
-														$activity_status = "Pending Approval";
-													} else if ($sub_stage < 2) {
-														$activity_status = $sub_stage == 1 ?  "Assigned" : "Pending";
+													$activity_status = "Pending Approval";
+													if ($sub_stage < 3) {
+														$activity_status = "Pending Frequency";
 														if ($today > $due_date) {
 															$activity_status = "Behind Schedule";
+														} else {
+															if ($sub_stage == 1) {
+																$activity_status = "Pending ";
+															} else if ($sub_stage == 2) {
+																$activity_status = "Assigned";
+															}
 														}
 													}
 
-													$responsible = daily_team($projid, 10, 2);
+													$responsible = daily_team($projid, 9, 2, $sub_stage);
 													$project_category = $implementation == 1 ? "In-House" : "Contractor";
-
-
 										?>
 													<tr>
 														<td align="center"><?= $counter ?></td>
@@ -159,9 +210,18 @@ if ($permission) {
 																				<i class="fa fa-file-text"></i> <?= $activity_monitoring_frequency == '' ? "Add" : "Edit" ?> Frequency
 																			</a>
 																		</li>
+																	<?php
+																	}
+																	if ($responsible && $implementation == 1 && ($sub_stage == 1 || $sub_stage == 3)) {
+																	?>
+																		<li>
+																			<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
+																				<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
+																			</a>
+																		</li>
 																		<?php
 																	}
-																	if ($activity_monitoring_frequency != '') {
+																	if ($sub_stage > 0) {
 																		if ($implementation == 1) {
 																			if ($responsible || $assign_responsible) {
 																		?>
@@ -173,7 +233,7 @@ if ($permission) {
 																			<?php
 																			}
 																		} else {
-																			if ($sub_stage == 1 && $responsible) {
+																			if ($sub_stage == 2) {
 																			?>
 																				<li>
 																					<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
@@ -190,6 +250,7 @@ if ($permission) {
 														</td>
 													</tr>
 										<?php
+
 												}
 											}
 										}
@@ -276,6 +337,40 @@ if ($permission) {
 		</div>
 	</div>
 	<!-- End Item more -->
+
+	<!-- Start Modal Item approve -->
+	<div class="modal fade" id="assign_modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-md">
+			<div class="modal-content">
+				<div class="modal-header" style="background-color:#03A9F4">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Assign Project</h4>
+				</div>
+				<form class="form-horizontal" id="assign_responsible" action="" method="POST">
+					<div class="modal-body" style="max-height:450px; overflow:auto;">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<label for="projduration">Responsible *:</label>
+							<div class="form-line">
+								<select name="responsible" id="responsible" class="form-control" required="required">
+								</select>
+							</div>
+						</div>
+					</div> <!-- /modal-body -->
+					<div class="modal-footer approveItemFooter">
+						<div class="col-md-12 text-center">
+							<input type="hidden" name="projid" id="projid" value="">
+							<input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
+							<input type="hidden" name="sub_stage" id="sub_stage" value="">
+							<input type="hidden" name="assign_responsible" id="assign_responsible_data" value="new">
+							<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
+							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+						</div>
+					</div> <!-- /modal-footer -->
+				</form> <!-- /.form -->
+			</div>
+			<!-- /modal-content -->
+		</div>
+	</div>
 <?php
 } else {
 	$results =  restriction();
@@ -283,5 +378,6 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-<!-- <script src="assets/js/projects/view-project.js"></script> -->
+<script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/programofWorks/index.js"></script>
+<script src="assets/js/master/index.js"></script>

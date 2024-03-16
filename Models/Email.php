@@ -21,6 +21,7 @@ class Email
     protected $org;
     protected $org_email;
     protected $created_at;
+    protected $contractor_url;
 
     public function __construct()
     {
@@ -41,6 +42,7 @@ class Email
             $this->url = $company_settings->main_url;
             $this->org = $company_settings->company_name;
             $this->org_email = $company_settings->email_address;
+            $this->contractor_url = $company_settings->contractor_url;
         }
     }
 
@@ -71,7 +73,6 @@ class Email
         return  $count_rsUser > 0 ? $row_rsUser : false;
     }
 
-
     public function get_chief_officer($department_id)
     {
         $sql = $this->db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid,u.password FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title  WHERE t.designation=6 AND  department=:department_id");
@@ -99,6 +100,16 @@ class Email
         return ($total_rStandin > 0) ? $this->get_user_details($row_rStandin->assignee) : false;
     }
 
+    // get contractor details from the database
+    public function get_contractor($contractor_id)
+    {
+        $get_contractor = $this->db->prepare("SELECT * FROM tbl_contractor WHERE contrid=:contractor_id");
+        $get_contractor->execute(array(":contractor_id" => $contractor_id));
+        $count_contractor = $get_contractor->rowCount();
+        $contractor = $get_contractor->fetch();
+        return ($count_contractor > 0) ? $contractor : false;
+    }
+
 
     public function get_date($projid, $stage_id)
     {
@@ -113,6 +124,15 @@ class Email
     {
         $query_rsMember = $this->db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage AND sub_stage=:substage_id");
         $query_rsMember->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage, ":substage_id" => $substage_id));
+        $total_rsMember = $query_rsMember->rowCount();
+        $rows_rsMember = $query_rsMember->fetch();
+        return ($total_rsMember > 0) ? $this->get_user_details($rows_rsMember->responsible) : false;
+    }
+
+    public function get_team_leader($projid)
+    {
+        $query_rsMember = $this->db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:stage AND team_type=4  AND role <> 2");
+        $query_rsMember->execute(array(":projid" => $projid));
         $total_rsMember = $query_rsMember->rowCount();
         $rows_rsMember = $query_rsMember->fetch();
         return ($total_rsMember > 0) ? $this->get_user_details($rows_rsMember->responsible) : false;
@@ -203,6 +223,12 @@ class Email
         return  $varMap;
     }
 
+    public function send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url)
+    {
+        $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
+        return $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+    }
+
     function send_master_data_email($projid, $notification_type_id, $user_id)
     {
         $notification_group_id = 2;
@@ -219,6 +245,8 @@ class Email
             $project = $Rows_projects->projname;
             $sector_id = $Rows_projects->projdept;
             $directorate_id = $Rows_projects->directorate;
+            $contractor_id = $Rows_projects->projcontractor;
+            $implementation = $Rows_projects->projcategory;
 
             $sql = $this->db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority = :priority ");
             $sql->execute(array(":priority" => $stage_id));
@@ -230,11 +258,11 @@ class Email
                 $directorate_id = ($row->directorate_id != 0) ? $row['directorate_id'] : $directorate_id;
                 $date = $this->get_date($projid, $stage_id);
                 $notification = $this->get_notification($stage_id);
-
                 if ($notification && $date) {
                     $notification_id = $notification->id;
                     $notifications = $notification->notification;
-                    $page_url = $notification->page_url . $projid_hashed;
+                    $page_link = $notification->page_url . $projid_hashed;
+                    $page_url = $this->url . $page_link;
                     $duration = ($substage_id == 0 || $substage_id == 1) ? $notification->data_entry : $notification->approval;
                     $action = ($substage_id == 0 || $substage_id == 1) ? "Data Entry" : "Approval";
                     $due_date = date('Y-m-d', strtotime($date . ' + ' . $duration . ' days'));
@@ -255,26 +283,22 @@ class Email
                                         $responsible_id = $stand_in ? $stand_in->userid : '';
                                     }
                                 }
-
-                                $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
-
+                                $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
                                 if ($availability == 0) {
                                     $user = $this->get_stand_in($user_id);
                                     if ($user) {
                                         $user_id = $user->userid;
                                         $fullname = $user->title . ' ' . $user->fullname;
-                                        $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                        $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                        $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
                                     }
                                 }
                             }
                         } else {
                             $user = $this->get_director($directorate_id);
                             if ($user) {
+                                $fullname = $user->title . ' ' . $user->fullname;
                                 $availability = $user->availability;
                                 $user_id = $user->userid;
-                                $fullname = $user->title . ' ' . $user->fullname;
                                 $main_url = $availability == 1 ? $page_url : '';
                                 $responsible = $this->get_members($projid, $stage_id, $substage_id);
                                 if ($responsible) {
@@ -284,16 +308,13 @@ class Email
                                         $responsible_id = $stand_in ? $stand_in->userid : '';
                                     }
                                 }
-
-                                $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
                                 if ($availability == 0) {
                                     $user = $this->get_stand_in($user_id);
                                     if ($user) {
                                         $user_id = $user->userid;
                                         $fullname = $user->title . ' ' . $user->fullname;
-                                        $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                        $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                        $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
                                     }
                                 }
                             }
@@ -315,17 +336,13 @@ class Email
                                         $responsible_id = $stand_in ? $stand_in->userid : '';
                                     }
                                 }
-
-                                $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
                                 if ($availability == 0) {
                                     $user = $this->get_stand_in($user_id);
                                     if ($user) {
-                                        $availability = $user->availability;
-                                        $user_id = $user->userid;
                                         $fullname = $user->title . ' ' . $user->fullname;
-                                        $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                        $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                        $user_id = $user->userid;
+                                        $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
                                     }
                                 }
                             }
@@ -333,29 +350,53 @@ class Email
                             $user = $this->get_members($projid, $stage_id, $substage_id);
                             if ($user) {
                                 $availability = $user->availability;
-                                $user_id = $user->userid;
-                                $fullname = $user->title . ' ' . $user->fullname;
                                 $main_url = $availability == 1 ? $page_url : '';
-                                $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                $fullname = $user->title . ' ' . $user->fullname;
+                                $user_id = $user->userid;
+                                $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
                             }
                         }
                     } else if ($notification_type_id == 6) {
-                        $user = $this->get_director($directorate_id);
-                        if ($user) {
-                            $availability = $user->availability;
-                            $user_id = $user->userid;
-                            $fullname = $user->title . ' ' . $user->fullname;
-                            $main_url = $availability == 1 ? $page_url : '';
-                            $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                            $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
-                            if ($availability == 0) {
-                                $user = $this->get_stand_in($user_id);
+                        if ($stage_id == 8) {
+                            if ($substage_id == 1 && $implementation == 2) {
+                                $user = $this->get_contractor($contractor_id);
+                                $main_url = $this->contractor_url . $page_link;
                                 if ($user) {
+                                    $response = $this->send_mail($user->contrid, $user->contractor_name, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                }
+                            } else {
+                                $user = $this->get_team_leader($projid);
+                                if ($user) {
+                                    $availability = $user->availability;
                                     $user_id = $user->userid;
                                     $fullname = $user->title . ' ' . $user->fullname;
-                                    $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                                    $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                    $main_url = $availability == 1 ? $page_url : '';
+                                    $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                    if ($availability == 0) {
+                                        $user = $this->get_stand_in($user_id);
+                                        if ($user) {
+                                            $user_id = $user->userid;
+                                            $fullname = $user->title . ' ' . $user->fullname;
+                                            $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            $user = $this->get_director($directorate_id);
+                            if ($user) {
+                                $availability = $user->availability;
+                                $user_id = $user->userid;
+                                $fullname = $user->title . ' ' . $user->fullname;
+                                $main_url = $availability == 1 ? $page_url : '';
+                                $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $main_url);
+                                if ($availability == 0) {
+                                    $user = $this->get_stand_in($user_id);
+                                    if ($user) {
+                                        $user_id = $user->userid;
+                                        $fullname = $user->title . ' ' . $user->fullname;
+                                        $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                                    }
                                 }
                             }
                         }
@@ -364,8 +405,7 @@ class Email
                         if ($user) {
                             $user_id = $user->userid;
                             $fullname = $user->title . ' ' . $user->fullname;
-                            $token =  $this->get_master_data_token($fullname, $action, $project, $due_date, $notifications, $responsible_id);
-                            $response = $this->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
+                            $response = $this->send_mail($user_id, $fullname, $action, $project, $due_date, $notifications, $responsible_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
                         }
                     }
                 }
@@ -422,9 +462,10 @@ class Email
         if ($count > 0) {
             $content = strtr($row_email_templates->content, $token);
             $subject = strtr($row_email_templates->title, $token);
-            $main_url = $this->url . $page_url;
-            $details_link =  '<a href="' . $main_url . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Click Here</a>';
-            $body = $this->email_body_template($subject, $content, $details_link);
+            if ($page_url != '') {
+                $details_link =  '<a href="' . $page_url . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Click Here</a>';
+                $body = $this->email_body_template($subject, $content, $details_link);
+            }
 
             if ($recipient_id != '') {
                 $user = $this->get_user_details($recipient_id);
@@ -433,7 +474,7 @@ class Email
                     $recipient_email = $user->email;
                     $response =  $this->sendMail($subject, $body, $recipient_email, $recipient_name, []);
                     $status = $response ? 1 : 0;
-                    $result =  $this->store_notification_status(array(":notification_type_id" => $notification_type_id, ":notification_group_id" => 1, ":notification_id" => $notification_id, ":item_id" => $recipient_id, ':user_id' => $recipient_id, ":title" => $subject, ":content" => $body, ":page_url" => $main_url, ":status" => $status, "created_at" => $this->created_at));
+                    $result =  $this->store_notification_status(array(":notification_type_id" => $notification_type_id, ":notification_group_id" => 1, ":notification_id" => $notification_id, ":item_id" => $recipient_id, ':user_id' => $recipient_id, ":title" => $subject, ":content" => $body, ":page_url" => $page_url, ":status" => $status, "created_at" => $this->created_at));
                 }
             }
         }

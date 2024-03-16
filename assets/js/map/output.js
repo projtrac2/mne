@@ -63,11 +63,48 @@ function initMap(lat, lng) {
 
 	return new google.maps.Map(document.getElementById("map"), {
 		center: center,
-		zoom: 12,
-		mapTypeControlOptions: {
-			mapTypeIds: ["styled_one_point_map"],
-		},
+		zoom: 12, 
+		styles: [
+			{
+				"featureType": "administrative",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "simplified"
+					}
+				]
+			},
+			{
+				"featureType": "landscape",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "on"
+					}
+				]
+			},
+			{
+				"featureType": "poi",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "off"
+					}
+				]
+			},
+			{
+				"featureType": "transit",
+				"elementType": "all",
+				"stylers": [
+					{
+						"visibility": "off"
+					}
+				]
+			}
+		],
 	});
+
+
 }
 
 // get level 2
@@ -129,6 +166,9 @@ const get_coordinates = () => {
 	var projlga = $("#projlga").val();
 	map = null;
 	map = initMap();
+	//Associate the styled map with the MapTypeId and set it to display.
+	map.mapTypes.set("styled_one_point_map", styledMapType);
+	map.setMapTypeId("styled_one_point_map");
 
 	if (indicator_id != '') {
 		$.ajax({

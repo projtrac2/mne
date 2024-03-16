@@ -38,8 +38,6 @@ try {
             $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer > 0");
             $query_rsQuestions->execute(array(":projid" => $projid));
             $totalRows_rsQuestions = $query_rsQuestions->rowCount();
-
-
 ?>
             <!-- start body  -->
             <section class="content">

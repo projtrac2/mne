@@ -1,26 +1,5 @@
-const ajax_url = "ajax/programsOfWorks/index";
+const ajax_url1 = "ajax/programsOfWorks/index";
 
-$(function () {
-    $('.tasks_id_header').each((index, element) => {
-        var projid = $("#projid").val();
-        $.ajax({
-            type: "get",
-            url: "ajax/programsOfWorks/get-wbs",
-            data: {
-                projid: projid,
-                site_id: $(element).next().val(),
-                output_id: $(element).next().next().val(),
-                task_id: $(element).val(),
-                get_wbs: 'get_wbs'
-            },
-            dataType: "json",
-            success: function (response) {
-                let tkid = $(element).val();
-                $(`.peter-${tkid}`).html(response.table);
-            }
-        });
-    });
-})
 
 
 $(document).ready(function () {
@@ -29,7 +8,7 @@ $(document).ready(function () {
         var form_data = $(this).serialize();
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -57,7 +36,7 @@ $(document).ready(function () {
         var form_data = $(this).serialize();
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -78,6 +57,9 @@ $(document).ready(function () {
                 }, 3000);
             }
         });
+
+
+
     });
     //
 
@@ -87,7 +69,7 @@ $(document).ready(function () {
         $("#tag-form-submit-frequency").prop("disabled", true);
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -138,6 +120,30 @@ $(document).ready(function () {
             }
         });
     });
+
+    $('.tasks_id_header').each((index, element) => {
+        var projid = $("#projid").val();
+        var site_id = $(element).next().val();
+        if (projid != '') {
+            $.ajax({
+                type: "get",
+                url: "ajax/programsOfWorks/get-wbs",
+                data: {
+                    projid: projid,
+                    site_id: site_id,
+                    output_id: $(element).next().next().val(),
+                    task_id: $(element).val(),
+                    get_wbs: 'get_wbs'
+                },
+                dataType: "json",
+                cache: false,
+                success: function (response) {
+                    let tkid = $(element).val();
+                    $(`.peter-${site_id + tkid}`).html(response.table);
+                }
+            });
+        }
+    });
 });
 
 function add_project_frequency(details) {
@@ -163,7 +169,7 @@ function get_monitoring_frequency(monitoring_frequency) {
     if (projid != '' && frequency != '') {
         $.ajax({
             type: "get",
-            url: ajax_url,
+            url: ajax_url1,
             data: {
                 get_monitoring_frequency: "get_monitoring_frequency",
                 projid: projid,
@@ -194,7 +200,7 @@ function get_tasks(details) {
     (edit == "1") ? $("#store_tasks").val(1) : $("#store_tasks").val(0);
     $.ajax({
         type: "get",
-        url: ajax_url,
+        url: ajax_url1,
         data: {
             get_tasks: "get_tasks",
             projid: projid,
@@ -220,7 +226,7 @@ function get_subtasks_adjust(details) {
     var projid = $("#projid").val();
     $.ajax({
         type: "get",
-        url: ajax_url,
+        url: ajax_url1,
         data: {
             get_subtasks_edit: "get_subtasks_edit",
             projid: projid,
@@ -273,15 +279,30 @@ function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
 }
 
 function validate_dates(task_id) {
-    var start_date = $(`#start_date${task_id}`).val();
+    var project_start_date = $("#project_start_date").val();
+    var project_end_date = $("#project_end_date").val();
     var today = $("#today").val();
-    if (start_date != "") {
-        $(`#end_date${task_id}`).val("");
-        var d1 = new Date(start_date);
-        var d2 = new Date(today);
-        if (d2 > d1) {
+
+    if (project_start_date != '' && project_end_date != '') {
+        var start_date = $(`#start_date${task_id}`).val();
+        if (start_date != "") {
+            var d1 = new Date(start_date);
+            var d2 = new Date(today);
+            var d3 = new Date(project_start_date);
+            var d4 = new Date(project_end_date);
+
+            if (d3 <= d1 && d1 <= d4) {
+                if (d2 > d1) {
+                    $(`#start_date${task_id}`).val("");
+                    error_alert("Please ensure task start date is greater today")
+                }
+                calculate_end_date(task_id)
+            } else {
+                $(`#start_date${task_id}`).val("");
+                error_alert("Please ensure that start date is between contract dates");
+            }
+        } else {
             $(`#start_date${task_id}`).val("");
-            error_alert("Please ensure task start date is greater today")
         }
     } else {
         $(`#start_date${task_id}`).val("");
@@ -289,18 +310,41 @@ function validate_dates(task_id) {
 }
 
 function calculate_end_date(task_id) {
+    var project_end_date = $(`#project_end_date`).val();
     var start_date = $(`#start_date${task_id}`).val();
     var duration = $(`#duration${task_id}`).val();
-    if (start_date != "") {
-        duration = parseInt(duration);
-        var today = new Date(start_date);
-        var end_date = new Date(today);
-        end_date.setDate(today.getDate() + duration);
-        var today = new Date(end_date).toISOString().split('T')[0];
-        $(`#end_date${task_id}`).val(today);
+    if (project_end_date != '') {
+        if (start_date != "" && duration != "") {
+            $.ajax({
+                type: "get",
+                url: ajax_url1,
+                data: {
+                    compare_dates: "compare_dates",
+                    project_end_date: project_end_date,
+                    start_date: start_date,
+                    duration: duration
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        $(`#end_date${task_id}`).val(response.subtask_end_date);
+                    } else {
+                        $(`#duration${task_id}`).val("");
+                        $(`#end_date${task_id}`).val("");
+                        error_alert("Please ensure that end date is between contract dates");
+                    }
+                }
+            });
+        } else {
+            $(`#duration${task_id}`).val("");
+            $(`#end_date${task_id}`).val("");
+        }
     } else {
         $(`#duration${task_id}`).val("");
+        $(`#end_date${task_id}`).val("");
+        error_alert('Project start date please check');
     }
+
 }
 
 
@@ -392,4 +436,50 @@ function approve_project(details) {
                 swal("You cancelled the action!");
             }
         });
+}
+
+
+const calculate_total = (direct_cost_id) => {
+    var target = 0;
+    $(".targets").each(function (k, v) {
+        var getVal = $(v).val();
+        if (getVal != '') {
+            target += parseFloat(getVal);
+        }
+    });
+
+    var response = false;
+    var total_target = $("#total_target").val();
+    if (total_target != '') {
+        total_target = parseFloat(total_target);
+        if (total_target >= target) {
+            response = true;
+        } else {
+            $(`#direct_cost_id${direct_cost_id}`).val("");
+            error_alert('You should not exceed planned target')
+        }
+    }
+    return response;
+}
+
+const calculate_total1 = () => {
+    var target = 0;
+    $(".targets").each(function (k, v) {
+        var getVal = $(v).val();
+        if (getVal != '') {
+            target += parseFloat(getVal);
+        }
+    });
+
+    var response = false;
+    var total_target = $("#total_target").val();
+    if (total_target != '') {
+        total_target = parseFloat(total_target);
+        if (total_target == target) {
+            response = true;
+        } else {
+            error_alert('Subtask Target should be equal to the planned target')
+        }
+    }
+    return response;
 }

@@ -147,7 +147,6 @@ if (isset($_POST['store'])) {
     $parent = $child != 0 ? $child : $parent_id;
     $result = false;
 
-
     if ($store == "edit") {
         $sql = $db->prepare("UPDATE tbl_pages SET name=:name,icon=:icon,url=:url,parent=:parent,priority=:priority,workflow_stage=:workflow_stage, allow_read=:allow_read,status=:status, updated_by=:updated_by,updated_at=:updated_at  WHERE id =:id");
         $result  = $sql->execute(array(":name" => $name, ":icon" => $icons, ":url" => $url, ":parent" => $parent, ":priority" => $priority, ":workflow_stage" => $workflow_stage, ":allow_read" => $allow_read, ":status" => $status, ":updated_by" => $created_by, ":updated_at" => $created_at, ":id" => $page_id));
