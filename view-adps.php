@@ -180,7 +180,7 @@ if ($permission) {
 										}
 
 										// get active adp
-										$query_activeadp =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a left join tbl_fiscal_year y on y.id=a.financial_year left join tbl_projects p on p.projid=a.projid WHERE y.sdate <= '$currentdatetime' and y.edate >= '$currentdatetime' AND financial_year = '$adpfyid' GROUP BY a.financial_year");
+										$query_activeadp =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a left join tbl_fiscal_year y on y.id=a.financial_year left join tbl_projects p on p.projid=a.projid WHERE y.sdate <= '$currentdatetime' and y.edate >= '$currentdatetime' AND y.financial_year = '$adpfyid' GROUP BY y.financial_year");
 										$query_activeadp->execute();
 										$totalRows_activeadp = $query_activeadp->rowCount();
 										if ($totalRows_activeadp > 0) {

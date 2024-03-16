@@ -172,7 +172,7 @@ if ($permission) {
                                                                             <?php
                                                                             if (in_array("create", $page_actions)) {
                                                                             ?>
-                                                                                <li><a type="button" id="addproject" href="add-project?progid=<?= $progid_hashed ?>"> <i class="fa fa-plus-square"></i> Add Project</a></li>
+                                                                                <li><a type="button" id="addproject" href="add-project.php?progid=<?= $progid_hashed ?>"> <i class="fa fa-plus-square"></i> Add Project</a></li>
                                                                                 <?php
                                                                             }
                                                                             if ($totalRows_projs == 0) {

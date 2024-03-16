@@ -33,7 +33,7 @@ switch ($uri) {
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="organization-details?menuItem=1">Organization Details</a></li>
+			<li style="width:100%"><a href="organization-details.php?menuItem=1">Organization Details</a></li>
 			<li style="width:100%"><a href="system-terminologies.php?menuItem=1&menuItem=1">Global Terminologies</a></li>
 			<li style="width:100%"><a href="global-configuration.php?workflow=1&menuItem=1">System Workflow Stages</a></li>
 			<li style="width:100%"><a href="email_configuration.php?menuItem=1">Email Configuration</a></li>

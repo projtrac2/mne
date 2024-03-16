@@ -6,6 +6,7 @@ if ($permission) {
         $workflow_stage = 9;
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
+
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 
         function get_role()
@@ -140,29 +141,35 @@ if ($permission) {
                                                                 </li>
                                                                 <li>
                                                                     <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
-                                                                        <i class="fa fa-comment-o"></i> <?= $activity ?> Commitee
+
+                                                                        <i class="fa fa-users"></i> <?= $activity ?> Commitee
                                                                     </a>
                                                                 </li>
                                                                 <?php
-                                                                if ($sub_stage >= 2 && $sub_stage < 4) {
+                                                                // if ($totalRows_rsTeamMembers > 0) {
                                                                 ?>
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
-                                                                            <i class="fa fa-comment-o"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
-                                                                        </a>
-                                                                    </li>
-
-                                                                    <?php
-                                                                    if ($sub_stage == 3) {
-                                                                    ?>
-                                                                        <li>
-                                                                            <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
-                                                                                <i class="fa fa-list"></i> Inspect
+                                                                <!-- <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
+                                                                                <i class="fa fa-comment-o"></i> Add Inspection Checklist
                                                                             </a>
-                                                                        </li>
+                                                                        </li> -->
+
+                                                                <li>
+                                                                    <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_encoded ?>">
+                                                                        <i class="fa fa-plus-square"></i> Add Inspection Checklist
+                                                                    </a>
+                                                                </li>
                                                                 <?php
-                                                                    }
-                                                                }
+                                                                // if ($totalRows_rsQuestions > 0) {
+                                                                ?>
+                                                                <li>
+                                                                    <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
+                                                                        <i class="fa fa-list"></i> Inspect
+                                                                    </a>
+                                                                </li>
+                                                                <?php
+                                                                // }
+                                                                // }
                                                                 ?>
                                                             </ul>
                                                         </div>
@@ -170,6 +177,7 @@ if ($permission) {
                                                 </tr>
                                         <?php
                                             }
+                                            // }
                                         }
                                         ?>
                                     </tbody>
@@ -395,7 +403,7 @@ require('includes/footer.php');
         });
     });
 
-    const add_checklist = (details) => {
+    function add_checklist(details) {
         $("#checklist_projid").val(details.projid);
         $("#projcode").html(details.projcode);
         $("#projname").html(details.project_name);
