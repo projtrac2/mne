@@ -81,12 +81,12 @@ if ($permission) {
                 while ($row_rsTasks = $query_rsTasks->fetch()) {
                     $task_id = $row_rsTasks['tkid'];
                     $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE subtask_id=:sub_task AND  milestone_id=:milestone_id ");
-                    $query_rsChecked->execute(array(":sub_task" => $task_id, ":milestone_id"=>$project_milestone_id));
+                    $query_rsChecked->execute(array(":sub_task" => $task_id, ":milestone_id" => $project_milestone_id));
                     $totalRows_rsChecked = $query_rsChecked->rowCount();
                     $checked[] = $totalRows_rsChecked > 0 ? true : false;
                 }
             }
-            return in_array(true,$checked) ? true : false;
+            return in_array(true, $checked) ? true : false;
         }
 
         if ((isset($_POST["store_data"])) && ($_POST["store_data"] == "store_data")) {
@@ -128,7 +128,6 @@ if ($permission) {
                 }, 2000);
             </script>";
         }
-
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -140,7 +139,7 @@ if ($permission) {
                     <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
-                        <a type="button" id="outputItemModalBtnrow" href="add-milestone.php?projid=<?=base64_encode("projid54321{$projid}")?>" class="btn btn-warning pull-right" style="margin-right:10px;">
+                        <a type="button" id="outputItemModalBtnrow" href="add-milestone.php?projid=<?= base64_encode("projid54321{$projid}") ?>" class="btn btn-warning pull-right" style="margin-right:10px;">
                             Go Back
                         </a>
                     </div>
@@ -217,7 +216,7 @@ if ($permission) {
                                                                             $task_id = $row_rsTasks['tkid'];
 
                                                                             $query_rsChecked = $db->prepare("SELECT * FROM tbl_milestone_output_subtasks WHERE subtask_id=:sub_task AND  milestone_id=:milestone_id ");
-                                                                            $query_rsChecked->execute(array(":sub_task" => $task_id, ":milestone_id"=>$project_milestone_id));
+                                                                            $query_rsChecked->execute(array(":sub_task" => $task_id, ":milestone_id" => $project_milestone_id));
                                                                             $totalRows_rsChecked = $query_rsChecked->rowCount();
                                                                             $checked = $totalRows_rsChecked > 0 ? true : false;
                                                                     ?>
@@ -245,20 +244,13 @@ if ($permission) {
                                         }
                                         ?>
                                     </div>
-                                    <?php
-                                    if ($project_sub_stage < 2) {
-                                    ?>
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                                            <input type="hidden" name="store_data" id="store_data" value="store_data">
-                                            <input type="hidden" name="output_id" id="output_id" value="<?= $output_id ?>">
-                                            <input type="hidden" name="milestone_id" id="milestone_id" value="<?= $project_milestone_id ?>">
-                                            <input type="hidden" name="projid" id="projid" class="projid" value="<?= $projid ?>">
-                                            <button type="submit" class="btn btn-success">Submit</button>
-                                        </div>
-                                    <?php
-                                    }
-                                    ?>
-
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                        <input type="hidden" name="store_data" id="store_data" value="store_data">
+                                        <input type="hidden" name="output_id" id="output_id" value="<?= $output_id ?>">
+                                        <input type="hidden" name="milestone_id" id="milestone_id" value="<?= $project_milestone_id ?>">
+                                        <input type="hidden" name="projid" id="projid" class="projid" value="<?= $projid ?>">
+                                        <button type="submit" class="btn btn-success">Submit</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>

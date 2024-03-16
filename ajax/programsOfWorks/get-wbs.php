@@ -177,7 +177,7 @@ function filter_body($contractor_start, $contractor_end, $start_date, $end_date,
     return $table;
 }
 
-function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
 
@@ -219,22 +219,25 @@ function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_i
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            $body .= '<td>';
-            if ($work_program) {
-                $body .=
-                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                $body .= '
+            if ($implimentation_type == 1) {
+                $body .= '<td>';
+                if ($work_program) {
+                    $body .=
+                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                    $body .= '
                 </button>';
+                }
+                $body .= '</td>';
             }
-            $body .= '</td></tr>';
+            $body .= '</tr>';
         }
     }
 
     return array('head' => $head, 'body' => $body);
 }
 
-function get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
     $head = $body = '';
@@ -278,21 +281,24 @@ function get_semiannual_table($annually, $site_id, $task_id, $frequency, $output
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            $body .= '<td>';
-            if ($work_program) {
-                $body .=
-                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                $body .= '
+            if ($implimentation_type == 1) {
+                $body .= '<td>';
+                if ($work_program) {
+                    $body .=
+                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                    $body .= '
                 </button>';
+                }
+                $body .= '</td>';
             }
-            $body .= '</td></tr>';
+            $body .= '</tr>';
         }
     }
     return array('head' => $head, 'body' => $body);
 }
 
-function get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
     $head = $body = '';
@@ -335,21 +341,24 @@ function get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            $body .= '<td>';
-            if ($work_program) {
-                $body .=
-                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                $body .= '
+            if ($implimentation_type == 1) {
+                $body .= '<td>';
+                if ($work_program) {
+                    $body .=
+                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                    $body .= '
                 </button>';
+                }
+                $body .= '</td>';
             }
-            $body .= '</td></tr>';
+            $body .= '</tr>';
         }
     }
     return array('head' => $head, 'body' => $body);
 }
 
-function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
     $head = $body = '';
@@ -385,24 +394,30 @@ function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id,
             for ($i = 0; $i < count($new_months); $i++) {
                 $start_date = $new_months[$i][0];
                 $end_date = $new_months[$i][1];
+
                 $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
                 $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            $body .= '<td style="width:10%">';
-            if ($work_program) {
-                $body .= '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                $body .= '</button>';
+            if ($implimentation_type == 1) {
+                $body .= '<td>';
+                if ($work_program) {
+                    $body .=
+                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                    $body .= '
+                </button>';
+                }
+                $body .= '</td>';
             }
-            $body .= '</td></tr>';
+            $body .= '</tr>';
         }
     }
     return array('head' => $head, 'body' => $body);
 }
 
-function get_weekly_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_weekly_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
     $start_year = date('Y', strtotime($project_start_date));
@@ -459,20 +474,25 @@ function get_weekly_table($project_start_date, $project_end_date, $site_id, $tas
                 $body_year++;
             }
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            $body .= '<td style="width:10%">';
-            if ($work_program) {
-                $body .= '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                $body .= '</button>';
+            if ($implimentation_type == 1) {
+                $body .= '<td>';
+                if ($work_program) {
+                    $body .=
+                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                    $body .= '
+                </button>';
+                }
+                $body .= '</td>';
             }
-            $body .= '</td></tr>';
+            $body .= '</tr>';
         }
     }
 
     return array('head' => $head, 'body' => $body);
 }
 
-function get_daily_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+function get_daily_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
 {
     global $db;
     // gets the task start dates
@@ -535,27 +555,7 @@ function get_daily_table($project_start_date, $project_end_date, $site_id, $task
                 $y = "$date";
                 $frequency = 1;
                 $target = get_target($site_id, $task_id, $subtask_id, $con_task_start_date, $con_task_start_date, $frequency);
-                $achieved = get_achieved($site_id, $task_id, $subtask_id, $con_task_start_date, $con_task_start_date);
-                if ($exists) {
-                    if ($target && $achieved) {
-                        $body .= '<td style="width:15%">' . $target . '</td><td style="width:15%">' . $achieved . '</td>';
-                    }
-
-                    if ($target && !$achieved) {
-                        $body .= '<td style="width:15%">' . $target . '</td><td style="width:15%">' . 0 . '</td>';
-                    }
-
-                    if (!$target && $achieved) {
-                        $body .= '<td style="width:15%">' . 0 . '</td><td style="width:15%">' . $achieved . '</td>';
-                    }
-
-                    if (!$target && !$achieved) {
-                        $body .= '<td style="width:15%">' . 0 . '</td><td style="width:15%">' . 0 . '</td>';
-                    }
-                } else {
-                    $body .= '<td >N/A</td><td >N/A</td>';
-                }
-
+                $body .= filter_body($con_task_start_date, $con_task_start_date, $con_task_start_date, $con_task_start_date, $target, $site_id, $task_id, $subtask_id, 2);
                 $con_task_start_date = date('Y-m-d', strtotime('+1 day', strtotime($date)));
                 $counter++;
             }
@@ -587,7 +587,7 @@ if (isset($_GET['get_wbs'])) {
     $query_rsProjects->execute(array(":projid" => $projid));
     $row_rsProjects = $query_rsProjects->fetch();
     $totalRows_rsProjects = $query_rsProjects->rowCount();
-    $frequency = '';
+    $frequency = $action = '';
 
     $table_details = array('head' => '', 'colspan' => '', 'body' => '');
     if ($totalRows_rsProjects > 0) {
@@ -595,9 +595,9 @@ if (isset($_GET['get_wbs'])) {
         $max_date = $row_rsProjects['projenddate'];
         $frequency = $row_rsProjects['activity_monitoring_frequency'];
         $implimentation_type = $row_rsProjects['projcategory'];
-
         $contractor_start = $min_date;
         $contractor_end = $max_date;
+        $action = '<th>Action</th>';
         if ($implimentation_type == 2) {
             $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
             $query_rsTender->execute(array(":projid" => $projid));
@@ -607,6 +607,7 @@ if (isset($_GET['get_wbs'])) {
                 $contractor_start = $row_rsTender['startdate'];
                 $contractor_end = $row_rsTender['enddate'];
             }
+            $action = '';
         }
 
 
@@ -616,22 +617,23 @@ if (isset($_GET['get_wbs'])) {
         $annually = $details['annually'];
         $quarterly = $details['quarterly'];
         $monthly = $details['monthly'];
-        $frequency = 3;
+
+
+
         if ($frequency == 6) {
-            $table_details = get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details = get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         } elseif ($frequency == 5) {
-            $table_details = get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details = get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         } else if ($frequency == 4) {
-            $table_details = get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details = get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         } else if ($frequency == 3) {
-            $table_details = get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details = get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         } else if ($frequency == 2) {
-            $table_details = get_weekly_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details = get_weekly_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         } else if ($frequency == 1) {
-            $table_details  = get_daily_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            $table_details  = get_daily_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         }
     }
-
     $table =
         '<div class="table-responsive">
             <table class="table table-bordered js-basic-example dataTable" id="direct_table">
@@ -641,7 +643,7 @@ if (isset($_GET['get_wbs'])) {
                         <th>Subtask</th>
                         <th>Unit of Measure</th>
                         ' . $table_details['head'] . '
-                        <th>Action</th>
+                        ' . $action . '
                     </tr>
                 </thead>
                 <tbody>
@@ -649,5 +651,6 @@ if (isset($_GET['get_wbs'])) {
                 </tbody>
             </table>
         </div>';
+
     echo json_encode(array("success" => true, 'frequency' => $frequency, 'table' => $table, 'task_id' => $task_id));
 }

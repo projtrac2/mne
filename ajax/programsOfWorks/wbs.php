@@ -80,7 +80,7 @@ try {
     {
         $tr = '';
         if (
-            ($contractor_start >= $start_date && $contractor_end <= $end_date) ||
+            ($contractor_start >= $start_date && $contractor_start <= $end_date) ||
             ($contractor_end >= $start_date && $contractor_end <= $end_date) ||
             ($contractor_start <= $start_date && $contractor_end >= $start_date && $contractor_end >= $end_date)
         ) {
@@ -98,12 +98,13 @@ try {
                         <td>
                             <input type="hidden" value="' . $start_date . '" id="start_date" name="start_date[]" />
                             <input type="hidden" value="' . $end_date . '" id="end_date" name="end_date[]" />
-                            <input type="number" value="' . $target . '" class="form-control target_breakdown" placeholder="Enter Target" name="target[]" min="0" step="0.01" required/>
+                            <input type="number" value="' . $target . '" class="form-control target_breakdown  targets" placeholder="Enter Target" name="target[]" id="direct_cost_id' . $counter . '" onchange="calculate_total(' . $counter . ')" onkeyup="calculate_total(' . $counter . ')" min="0" step="0.01" required/>
                         </td>
                     </tr>';
                 $counter++;
             }
         }
+
         return array('table_body' => $tr, "counter" => $counter);
     }
 
@@ -249,8 +250,8 @@ try {
         if ($totalRows_rsProjects > 0) {
             $min_date = $row_rsProjects['projstartdate'];
             $max_date = $row_rsProjects['projenddate'];
-            $implimentation_type = $row_rsProjects['projcategory'];
             $frequency =  $row_rsProjects['activity_monitoring_frequency'];
+            $implimentation_type = $row_rsProjects['projcategory'];
             $contractor_start = $min_date;
             $contractor_end = $max_date;
             if ($implimentation_type == 2) {
@@ -264,14 +265,12 @@ try {
                 }
             }
 
-
             $date_details = get_duration($min_date, $max_date);
             $details = index($date_details['duration'], $date_details['start_year'], $contractor_start, $contractor_end, $task_id, $site_id);
             $startYears = $details['startYears'];
             $annually = $details['annually'];
             $quarterly = $details['quarterly'];
             $monthly = $details['monthly'];
-
 
             $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
             $query_rsTask_Start_Dates->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
@@ -281,8 +280,6 @@ try {
                 $task_start_date = $row_rsTask_Start_Dates['start_date'];
                 $task_end_date = $row_rsTask_Start_Dates['end_date'];
                 $duration = $row_rsTask_Start_Dates['duration'];
-
-                $frequency = 3;
                 if ($frequency == 6) { // yearly
                     $structure = get_annual_table($contractor_start, $contractor_end, $task_start_date, $task_end_date, $startYears, $subtask_id, $site_id, $task_id, $frequency);
                     $title = 'Year';
@@ -305,7 +302,7 @@ try {
             }
         }
 
-        $query_rsTask = $db->prepare("SELECT t.task, c.units_no FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid=c.subtask_id WHERE t.msid=:task_id AND c.site_id=:site_id AND t.tkid=:subtask_id ");
+        $query_rsTask = $db->prepare("SELECT t.task, c.units_no, m.unit FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid=c.subtask_id INNER JOIN tbl_measurement_units m ON m.id=t.unit_of_measure WHERE t.msid=:task_id AND c.site_id=:site_id AND t.tkid=:subtask_id ");
         $query_rsTask->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
         $row_rsTask = $query_rsTask->fetch();
         $table = '
@@ -321,6 +318,7 @@ try {
             ' . $structure . '
             </tbody>
         </table>';
+
         echo json_encode(array("success" => true, "structure" => $table, 'task' => $row_rsTask, "start_date" => $task_start_date, "end_date" => $task_end_date, "duration" => $duration));
     }
 

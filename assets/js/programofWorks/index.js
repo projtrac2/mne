@@ -1,26 +1,5 @@
 const ajax_url1 = "ajax/programsOfWorks/index";
 
-$(function () {
-    $('.tasks_id_header').each((index, element) => {
-        var projid = $("#projid").val();
-        $.ajax({
-            type: "get",
-            url: "ajax/programsOfWorks/get-wbs",
-            data: {
-                projid: projid,
-                site_id: $(element).next().val(),
-                output_id: $(element).next().next().val(),
-                task_id: $(element).val(),
-                get_wbs: 'get_wbs'
-            },
-            dataType: "json",
-            success: function (response) {
-                let tkid = $(element).val();
-                $(`.peter-${tkid}`).html(response.table);
-            }
-        });
-    });
-})
 
 
 $(document).ready(function () {
@@ -78,6 +57,9 @@ $(document).ready(function () {
                 }, 3000);
             }
         });
+
+
+
     });
     //
 
@@ -137,6 +119,30 @@ $(document).ready(function () {
                 }, 3000);
             }
         });
+    });
+
+    $('.tasks_id_header').each((index, element) => {
+        var projid = $("#projid").val();
+        var site_id = $(element).next().val();
+        if (projid != '') {
+            $.ajax({
+                type: "get",
+                url: "ajax/programsOfWorks/get-wbs",
+                data: {
+                    projid: projid,
+                    site_id: site_id,
+                    output_id: $(element).next().next().val(),
+                    task_id: $(element).val(),
+                    get_wbs: 'get_wbs'
+                },
+                dataType: "json",
+                cache: false,
+                success: function (response) {
+                    let tkid = $(element).val();
+                    $(`.peter-${site_id + tkid}`).html(response.table);
+                }
+            });
+        }
     });
 });
 
@@ -311,7 +317,7 @@ function calculate_end_date(task_id) {
         if (start_date != "" && duration != "") {
             $.ajax({
                 type: "get",
-                url: ajax_url,
+                url: ajax_url1,
                 data: {
                     compare_dates: "compare_dates",
                     project_end_date: project_end_date,
@@ -433,3 +439,47 @@ function approve_project(details) {
 }
 
 
+const calculate_total = (direct_cost_id) => {
+    var target = 0;
+    $(".targets").each(function (k, v) {
+        var getVal = $(v).val();
+        if (getVal != '') {
+            target += parseFloat(getVal);
+        }
+    });
+
+    var response = false;
+    var total_target = $("#total_target").val();
+    if (total_target != '') {
+        total_target = parseFloat(total_target);
+        if (total_target >= target) {
+            response = true;
+        } else {
+            $(`#direct_cost_id${direct_cost_id}`).val("");
+            error_alert('You should not exceed planned target')
+        }
+    }
+    return response;
+}
+
+const calculate_total1 = () => {
+    var target = 0;
+    $(".targets").each(function (k, v) {
+        var getVal = $(v).val();
+        if (getVal != '') {
+            target += parseFloat(getVal);
+        }
+    });
+
+    var response = false;
+    var total_target = $("#total_target").val();
+    if (total_target != '') {
+        total_target = parseFloat(total_target);
+        if (total_target == target) {
+            response = true;
+        } else {
+            error_alert('Subtask Target should be equal to the planned target')
+        }
+    }
+    return response;
+}

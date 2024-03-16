@@ -2,7 +2,7 @@ const ajax_url = 'ajax/payments/index';
 
 
 $(document).ready(function () {
-    $("#modal_form_submit").submit(function (e) {
+    $("#modal_form_submit1").submit(function (e) {
         e.preventDefault();
         var cost_type = $("#purpose1").val();
         $.ajax({

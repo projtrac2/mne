@@ -62,10 +62,11 @@ if ($permission) {
                 $current_date = date("Y-m-d");
                 $projid = $_POST['projid'];
                 $comments = $_POST['comments'];
-                $sub_stage = ($_POST['submit'] == "Approve") ? 3 : 2;
+                $sub_stage = ($_POST['submit'] == "Approve") ? 0 : 2;
+                $stage_id = ($_POST['submit'] == "Approve") ? 9 : 8;
 
-                $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
-                $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+                $sql = $db->prepare("UPDATE tbl_projects SET projstage=:stage_id, proj_substage=:proj_substage WHERE  projid=:projid");
+                $result  = $sql->execute(array(":stage_id" => $stage_id, ":proj_substage" => $sub_stage, ":projid" => $projid));
 
                 $insertSQL = $db->prepare("INSERT INTO tbl_program_of_work_comments (projid, comments, created_by, created_at) VALUES (:projid, :comments, :createdby, :datecreated)");
                 $insertSQL->execute(array(':projid' => $projid, ':comments' => $comments, ':createdby' => $user_name, ':datecreated' => $current_date));

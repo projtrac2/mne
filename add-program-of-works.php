@@ -212,7 +212,7 @@ if ($permission) {
 																		</li>
 																	<?php
 																	}
-																	if ($responsible && $implementation == 1) {
+																	if ($responsible && $implementation == 1 && ($sub_stage == 1 || $sub_stage == 3)) {
 																	?>
 																		<li>
 																			<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
