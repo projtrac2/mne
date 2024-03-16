@@ -98,13 +98,14 @@ try {
       $datecreated = date("Y-m-d");
       $questions = $_POST['question'];
       $total_questions = count($questions);
+      $output_id = $_POST['output_id'];
 
       $sql = $db->prepare("DELETE FROM `tbl_inspection_checklist_questions` WHERE projid=:projid");
       $result = $sql->execute(array(':projid' => $projid));
       for ($i = 0; $i < $total_questions; $i++) {
          $question = $questions[$i];
-         $sql = $db->prepare("INSERT INTO tbl_inspection_checklist_questions (projid,question,created_by,created_at) VALUES (:projid,:question,:created_by,:created_at)");
-         $result = $sql->execute(array(':projid' => $projid, ':question' => $question, ':created_by' => $user_name, ':created_at' => $datecreated));
+         $sql = $db->prepare("INSERT INTO tbl_inspection_checklist_questions (projid,question,created_by,output_id,created_at) VALUES (:projid,:question,:created_by,:output_id,:created_at)");
+         $result = $sql->execute(array(':projid' => $projid, ':question' => $question, ':created_by' => $user_name, ':created_at' => $datecreated, ':output_id' => $output_id));
       }
       echo json_encode(array("success" => true));
    }
@@ -112,13 +113,58 @@ try {
    // answer_question
    if (isset($_POST['answer_question'])) {
       $projid = $_POST['projid'];
+      $output_id = $_POST['output_id'];
+      $site_id = $_POST['site_id'];
       $datecreated = date("Y-m-d");
       $question_id = $_POST['question_id'];
       $answer = $_POST['question'];
-      $comment = $_POST['comments'] !='' ? $_POST['comments'] : null;
-      $sql = $db->prepare("UPDATE tbl_inspection_checklist_questions SET answer=:answer, comment=:comment,updated_by=:created_by, updated_at=:updated_at WHERE id=:question_id ");
-      $result = $sql->execute(array(':answer' => $answer, ':comment' => $comment, ':created_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
-      echo json_encode(array("success" => $result));
+      $comment = $_POST['comments'] != '' ? $_POST['comments'] : '';
+
+      try {
+
+
+         $db->beginTransaction();
+
+         $sql = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE site_id=:site_id AND `output`=:output_id AND question_id=:question_id");
+         $sql->execute(array(":site_id" => $site_id, "output_id" => $output_id, ':question_id' => $question_id));
+         $total_rows = $sql->rowCount();
+         $rows = $sql->fetch();
+
+
+         if ($total_rows > 0) {
+
+            $sql = $db->prepare("UPDATE tbl_inspection_checklist_questions SET answer=:answer, comment=:comment, updated_by=:created_by, updated_at=:updated_at WHERE id=:question_id ");
+            $result = $sql->execute(array(':answer' => $answer, ':comment' => $comment, ':created_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
+
+
+            $lastChecklistId = $rows['id'];
+            $sql = $db->prepare("UPDATE tbl_inspection_checklist SET answer=:answer,updated_by=:created_by, updated_at=:updated_at WHERE id=:question_id ");
+            $result = $sql->execute(array(':answer' => $answer, ':created_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
+
+            if ($comment != '') {
+               $checklist = $db->prepare('UPDATE tbl_inspection_checklist_comments SET comment=:comment WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id AND checklist_id=:checklist_id');
+               $result_checklist = $checklist->execute([':comment' => $comment, ':projid' => $projid, ':site_id' => $site_id, ':output_id' => $output_id, 'question_id' => $question_id, ':checklist_id' => $lastChecklistId]);
+            }
+         } else {
+
+            $sql = $db->prepare("UPDATE tbl_inspection_checklist_questions SET answer=:answer, comment=:comment, updated_by=:created_by, updated_at=:updated_at WHERE id=:question_id ");
+            $result = $sql->execute(array(':answer' => $answer, ':comment' => $comment, ':created_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
+
+            $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist (projid, site_id, `output`, question_id, created_by, created_at, updated_at, answer) VALUES (:projid, :site_id, :output_id, :question_id, :created_by, :created_at, :updated_at, :answer)');
+            $result_checklist = $checklist->execute([':projid' => $projid, ':site_id' => $site_id, ':output_id' => $output_id, 'question_id' => $question_id, ':created_by' => 1, 'created_at' => $datecreated, 'updated_at' => $datecreated, ':answer' => $answer]);
+            $lastChecklistId = $db->lastInsertId();
+
+            $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist_comments (projid, site_id, output_id, question_id, checklist_id, comment) VALUES (:projid, :site_id, :output_id, :question_id, :checklist_id, :comment)');
+            $result_checklist = $checklist->execute([':projid' => $projid, ':site_id' => $site_id, ':output_id' => $output_id, 'question_id' => $question_id, ':checklist_id' => $lastChecklistId, ':comment' => $comment]);
+         }
+
+         $db->commit();
+         echo json_encode(array("success" => true));
+      } catch (\Throwable $th) {
+         //$pdo->rollback();
+         var_dump($th->getMessage());
+         echo json_encode(array("success" => false));
+      }
    }
 
    if (isset($_POST['assign_responsible'])) {
