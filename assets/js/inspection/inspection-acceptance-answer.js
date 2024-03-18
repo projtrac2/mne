@@ -22,6 +22,8 @@ $(document).ready(function () {
         });
     });
 });
+
+
 const get_details = (details) => {
     $("#project_approve_div").hide();
     $("#question_id").val(details.question_id);

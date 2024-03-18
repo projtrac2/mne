@@ -364,6 +364,7 @@ if ($permission) {
                                                 <li class="list-group-item"><strong>Duration: </strong> <span id="subtask_duration"></span> </li>
                                                 <li class="list-group-item"><strong>End Date: </strong> <span id="subtask_end_date"></span> </li>
                                                 <li class="list-group-item"><strong>Target: </strong> <span id="subtask_target"></span> </li>
+                                                <input type="hidden" name="total_target" id="total_target" value="">
                                             </ul>
                                         </div>
                                     </div>

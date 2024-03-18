@@ -268,8 +268,9 @@ function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
                 $("#subtask_start_date").html(response.start_date);
                 $("#subtask_duration").html(response.duration);
                 $("#subtask_end_date").html(response.end_date);
-                $("#subtask_target").html(subtask.units_no);
+                $("#subtask_target").html(subtask.units_no + ' ' + subtask.unit);
                 $("#subtask_name").html(subtask.task);
+                $("#total_target").val(subtask.units_no);
             } else {
                 error_alert("Error please try again later");
             }

@@ -1,5 +1,4 @@
 <?php
-// substage 0) Monitoring 1) Inspection and accceptance test
 require('includes/head.php');
 if ($permission) {
     try {
@@ -141,35 +140,24 @@ if ($permission) {
                                                                 </li>
                                                                 <li>
                                                                     <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
-
                                                                         <i class="fa fa-users"></i> <?= $activity ?> Commitee
                                                                     </a>
                                                                 </li>
-                                                                <?php
-                                                                // if ($totalRows_rsTeamMembers > 0) {
-                                                                ?>
-                                                                <!-- <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#inspection_acceptance_modal" id="addFormModalBtn" onclick="add_checklist(<?= $details ?>)">
-                                                                                <i class="fa fa-comment-o"></i> Add Inspection Checklist
-                                                                            </a>
-                                                                        </li> -->
-
                                                                 <li>
-                                                                    <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_encoded ?>">
-                                                                        <i class="fa fa-plus-square"></i> Add Inspection Checklist
+                                                                    <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_hashed ?>">
+                                                                        <i class="fa fa-plus-square"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
                                                                     </a>
                                                                 </li>
                                                                 <?php
-                                                                // if ($totalRows_rsQuestions > 0) {
+                                                                if ($sub_stage == 3) {
                                                                 ?>
-                                                                <li>
-                                                                    <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
-                                                                        <i class="fa fa-list"></i> Inspect
-                                                                    </a>
-                                                                </li>
+                                                                    <li>
+                                                                        <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
+                                                                            <i class="fa fa-list"></i> Inspect
+                                                                        </a>
+                                                                    </li>
                                                                 <?php
-                                                                // }
-                                                                // }
+                                                                }
                                                                 ?>
                                                             </ul>
                                                         </div>
