@@ -277,9 +277,17 @@ if ($permission) {
                                                 <label for="">Issue Area</label>
                                                 <select name="issue_area" id="issue_area" class="form-control topic" onchange="adjustscope(<?= $projid ?>)" data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
                                                     <option value="" selected="selected" class="selection">... Select Issue Area...</option>
-                                                    <option value="2" class="selection">Scope</option>
-                                                    <option value="3" class="selection">Schedule</option>
-                                                    <option value="4" class="selection">Cost</option>
+                                                    <?php
+                                                    $query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE type=1 AND active = 1");
+                                                    $query_issue_area->execute();
+                                                    while ($row_issue_area = $query_issue_area->fetch()) {
+                                                    ?>
+                                                        <font color="black">
+                                                            <option value="<?php echo $row_issue_area['id'] ?>" class="selection"><?php echo $row_issue_area['issue_area'] ?></option>
+                                                        </font>
+                                                    <?php
+                                                    }
+													?>
                                                 </select>
                                             </div>
                                         </div>

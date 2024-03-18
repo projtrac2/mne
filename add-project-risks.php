@@ -258,6 +258,7 @@ if ($permission) {
 								<?php
 								$query_risk_monitoring_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq where status=1");
 								$query_risk_monitoring_frequency->execute();
+
 								$query_risk_responsible = $db->prepare("SELECT *, tt.title AS user_title FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title where t.disabled=0");
 								$query_risk_responsible->execute();
 								?>

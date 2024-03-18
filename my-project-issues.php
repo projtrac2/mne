@@ -131,16 +131,11 @@ if ($permission) {
 													$priority = "Low";
 													$priorityclass = 'bg-green';
 												}
-												
-												if($issueareaid == 1){
-													$issue_area = "Quality";
-												}elseif($issueareaid == 2){
-													$issue_area = "Scope";
-												}elseif($issueareaid == 3){
-													$issue_area = "Schedule";
-												}else{
-													$issue_area = "Cost";
-												}
+
+												$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issueareaid");
+												$query_issue_area->execute(array(":issueareaid" => $issueareaid));
+												$row_issue_area = $query_issue_area->fetch();
+												$issue_area = $row_issue_area["issue_area"];
 
 												$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=1 and active=1");
 												$query_timeline->execute();

@@ -941,15 +941,10 @@ if ($permission) {
 				$issue_priority = "Low";
 			}
 			
-			if($issue_areaid == 1){
-				$issue_area = "Quality";
-			}elseif($issue_areaid == 2){
-				$issue_area = "Scope";
-			}elseif($issue_areaid == 3){
-				$issue_area = "Schedule";
-			}elseif($issue_areaid == 4){
-				$issue_area = "Cost";
-			}
+			$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issue_areaid");
+			$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));		
+			$rows_issue_area = $query_issue_area->fetch();
+			$issue_area = $rows_issue_area["issue_area"];
 		}
 
 		$query_project_members =  $db->prepare("SELECT t.ptid, t.fullname, t.email, t.phone, t.availability, d.title, r.role FROM tbl_projmembers m left join users u on u.userid=m.responsible left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles d on d.id=t.title left join tbl_project_team_roles r on r.id=m.role where projid=:projid and team_type=4");
@@ -1082,11 +1077,14 @@ if ($permission) {
 												<label>Date Recorded:</label>
 												<div <?=$style?>><?=$daterecorded?></div>
 											</div>
+											<?php
+											if($issue_areaid != 1){
+											?>
 											<input type="hidden" value="0" id="clicked">
-											<?php if($issue_areaid == 2){ ?>
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<fieldset class="scheduler-border">
-														<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (Scope)</legend>
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<fieldset class="scheduler-border">
+													<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (<?=$issue_area?>)</legend>
+													<?php if($issue_areaid == 1){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
 																<?php											
@@ -1154,12 +1152,75 @@ if ($permission) {
 																?>
 															</table>
 														</div>
-													</fieldset>
-												</div>
-											<?php } elseif($issue_areaid == 3){ ?>
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<fieldset class="scheduler-border">
-														<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (Scope)</legend>
+													<?php } elseif ($issue_areaid == 2){ ?>
+														<div class="table-responsive">
+															<table class="table table-bordered table-striped table-hover">
+																<?php											
+																$textclass = "text-primary";
+																$issues_scope = "";
+																$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
+																			
+																$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
+																$query_site_id->execute(array(":issueid" => $issueid));
+														
+																$sites = 0;
+																while ($rows_site_id = $query_site_id->fetch()) {
+																	$sites++;
+																	$site_id = $rows_site_id['site_id'];
+																	
+																	if($site_id==0){
+																		$allsites = '
+																		<thead>
+																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
+																				<th colspan="5">Site '.$sites.': Way Point Sub Tasks</th>
+																			</tr>';
+																	} else {
+																		$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
+																		$query_site->execute(array(":site_id" => $site_id));
+																		$row_site = $query_site->fetch();
+																		$site = $row_site['site'];
+																	
+																		$allsites = '
+																		<thead>
+																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
+																				<th colspan="5">Site '.$sites.': '.$site.'</th>
+																			</tr>';
+																	}
+															
+																	$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id ".$leftjoin." left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
+																	$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
+																
+																	$issues_scope .= $allsites.'
+																		<tr class="adjustments '.$site_id.'" style="background-color:#cccccc">
+																			<th style="width:5%">#</th>
+																			<th style="width:50%">Sub-Task</th>
+																			<th style="width:15%">Requesting Units</th>
+																			<th style="width:15%">Additional Days</th>
+																			<th style="width:15%">Additional Cost</th>
+																		</tr>
+																	</thead><tbody>';
+																	$scopecount = 0;
+																	while ($row_adjustments = $query_adjustments->fetch()){
+																		$scopecount++;
+																		$subtask = $row_adjustments["task"];
+																		$units =  number_format($row_adjustments["units"])." ".$row_adjustments["unit"];
+																		$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
+																		$timeline = $row_adjustments["timeline"]." days";
+																		$issues_scope .= '<tr class="adjustments '.$site_id.'" style="background-color:#e5e5e5">
+																			<td>' . $scopecount.'</td>
+																			<td>' . $subtask . '</td>
+																			<td>' . $units . ' </td>
+																			<td>' . $timeline . '</td>
+																			<td>' . number_format($totalcost, 2) . ' </td>
+																		</tr>';
+																	}
+																	$issues_scope .= '</tbody>';
+																}
+																echo $issues_scope;
+																?>
+															</table>
+														</div>
+													<?php } elseif($issue_areaid == 3){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
 																<?php											
@@ -1224,12 +1285,7 @@ if ($permission) {
 																?>
 															</table>
 														</div>
-													</fieldset>
-												</div>
-											<?php } elseif($issue_areaid == 4){ ?>
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<fieldset class="scheduler-border">
-														<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (Scope)</legend>
+													<?php } elseif($issue_areaid == 4){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
 																<?php											
@@ -1296,9 +1352,12 @@ if ($permission) {
 																?>
 															</table>
 														</div>
-													</fieldset>
-												</div>
-											<?php } ?>
+													<?php } ?>
+												</fieldset>
+											</div>
+											<?php
+											}
+											?>
 											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 												<fieldset class="scheduler-border">
 													<legend  class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-paperclip" aria-hidden="true"></i> Issue Attachments</legend>

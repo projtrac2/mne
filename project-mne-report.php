@@ -19,13 +19,21 @@ if ($permission) {
 	$projlocations = explode(",", $proj_locations);
 	$proj_location_count = count($projlocations);
 
-	$tab1 = $projstage > 9 && $projstatus != 3 ? "home" : "";
+	/* $tab1 = $projstage > 9 && $projstatus != 3 ? "home" : "";
 	$class1 = $projstage > 9 && $projstatus != 3 ? "active" : "";
 	$inactive1 = $projstage > 9 && $projstatus != 3 ? "in active" : "";
 
 	$tab2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "home" : "menu2";
 	$class2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "active" : "";
-	$inactive2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "in active" : "";
+	$inactive2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "in active" : ""; */
+
+	$tab1 = $projstage > 8 && $projstatus != 3 ? "home" : "";
+	$class1 = $projstage > 8 && $projstatus != 3 ? "active" : "";
+	$inactive1 = $projstage > 8 && $projstatus != 3 ? "in active" : "";
+
+	$tab2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "home" : "menu2";
+	$class2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "active" : "";
+	$inactive2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "in active" : "";
 
 	function get_checklist_score($mapping_type, $task_id, $site_id)
 	{
@@ -90,7 +98,7 @@ if ($permission) {
 								<div class="header">
 									<ul class="nav nav-tabs" style="font-size:14px">
 										<?php
-										if ($projstage > 9) {
+										if ($projstage > 8) {
 										?>
 											<li class="<?= $class1 ?>">
 												<a data-toggle="tab" href="#<?= $tab1 ?>"><i class="fa fa-file-text-o bg-orange" aria-hidden="true"></i> Activities Monitoring &nbsp;<span class="badge bg-orange"></span></a>
@@ -118,7 +126,7 @@ if ($permission) {
 								<div class="row clearfix">
 									<div class="table-responsive">
 										<div class="tab-content">
-											<?php if ($projstage > 9) { ?>
+											<?php if ($projstage > 8) { ?>
 												<div id="<?= $tab1 ?>" class="tab-pane fade <?= $inactive1 ?>">
 													<div class="body">
 														<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

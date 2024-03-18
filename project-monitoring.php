@@ -269,7 +269,7 @@ if ($permission && isset($_GET['projid'])) {
                                                 <input type="hidden" name="subtask_id" id="subtask_id" value="">
                                                 <input type="hidden" name="subtask_issues" id="subtask_issues" value="">
                                                 <button type="submit" class="btn btn-primary waves-effect waves-light" value="button1" id="tag-form-submit"> Save</button>
-                                                <button type="submit" class="btn btn-success waves-effect waves-light" value="button2" id="tag-form-submit1"> Save and Complete</button>
+                                                <button type="submit" class="btn btn-success waves-effect waves-light" value="button2" id="tag-form-submit2"> Save and Complete</button>
                                                 <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                             </div>
                                         </div> <!-- /modal-footer -->

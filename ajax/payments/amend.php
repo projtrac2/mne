@@ -66,17 +66,17 @@ try {
                     </td>
                     <td id="unit' . $counter . '"> ' . $unit_of_measure . ' </td>
                     <td>
-                        ' . $remaining_units . '
+                        ' . number_format($remaining_units, 2) . '
                     </td>
                     <td>
-                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $counter . ')" onkeyup="calculate_total_cost(' . $counter . ')" id="no_units' . $counter . '">
+                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $counter . ')" onkeyup="calculate_total_cost(' . $counter . ')" id="no_units' . $counter . '" value="' . $requested_units . '">
                     </td>
                     <td>
-                        ' . $unit_cost . '
+                        ' . number_format($unit_cost, 2) . '
                     </td>
                     <td>
-                        <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="">
-                        <span id="subtotal_cost' . $counter . '" style="color:red">' . $subtotal_cost . '</span>
+                        <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="' . $subtotal_cost . '">
+                        <span id="subtotal_cost' . $counter . '" style="color:red">' . number_format($subtotal_cost, 2) . '</span>
                     </td>
                 </tr>';
             }
@@ -106,6 +106,7 @@ try {
             $total_requested_units = get_total_requested_units($direct_cost_id);
             $remaining_units = $units_no -  ($total_requested_units - $requested_units);
             $subtotal_cost = $requested_units * $unit_cost;
+
             $body .= '
                 <input type="hidden" name="unit_cost[]" id="unit_cost' . $counter . '" value="' . $unit_cost . '">
                 <input type="hidden" name="h_no_units[]" id="h_no_units' . $counter . '" value="' . $remaining_units . '">
@@ -116,17 +117,17 @@ try {
                     </td>
                     <td id="unit' . $counter . '"> ' . $unit_of_measure . ' </td>
                     <td>
-                        ' . $remaining_units . '
+                        ' . number_format($remaining_units, 2) . '
                     </td>
                     <td>
                         <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $counter . ')" onkeyup="calculate_total_cost(' . $counter . ')" id="no_units' . $counter . '">
                     </td>
                     <td>
-                        ' . $unit_cost . '
+                        ' . number_format($unit_cost, 2) . '
                     </td>
                     <td>
-                        <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="">
-                        <span id="subtotal_cost' . $counter . '" style="color:red">' . $subtotal_cost . '</span>
+                        <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="' . $subtotal_cost . '">
+                        <span id="subtotal_cost' . $counter . '" style="color:red">' . number_format($subtotal_cost, 2) . '</span>
                     </td>
                 </tr>';
         }
@@ -162,21 +163,22 @@ try {
         $request_id = $_POST['request_id'];
 
         if ($cost_type == 1) {
-            $sql = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id");
-            $results = $sql->execute(array(':request_id' => $request_id));
             if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
                 $_count = count($_POST['direct_cost_id']);
                 for ($j = 0; $j < $_count; $j++) {
                     $direct_cost_id = $_POST['direct_cost_id'][$j];
-                    $no_of_units = $_POST['no_units'][$j];
-                    $unit_cost = $_POST['unit_cost'][$j];
-                    $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
-                    $results[]  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
+                    $sql = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id AND direct_cost_id=:direct_cost_id");
+                    $results = $sql->execute(array(':request_id' => $request_id, ":direct_cost_id" => $direct_cost_id));
+
+                    if (isset($_POST['no_units'][$j])  && $_POST['no_units'][$j] != 0) {
+                        $no_of_units = $_POST['no_units'][$j];
+                        $unit_cost = $_POST['unit_cost'][$j];
+                        $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
+                        $results  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
+                    }
                 }
             }
         } else {
-            $sql = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id AND direct_cost_id=:direct_cost_id");
-            $results = $sql->execute(array(':request_id' => $request_id, ":direct_cost_id" => $direct_cost_id));
             if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
                 $_count = count($_POST['direct_cost_id']);
                 for ($j = 0; $j < $_count; $j++) {
@@ -188,9 +190,6 @@ try {
                 }
             }
         }
-
-        return;
-
         echo json_encode(array("success" => true));
     }
 } catch (PDOException $ex) {

@@ -195,7 +195,7 @@
 																	?>
 																	<tr style="background-color:#FFFFFF">
 																		<td align="center"><?= $counter ?></td>
-																		<td><?= $risk ?></td>
+																		<td><?= $rskid ?></td>
 																		<td><?= $category ?></td>
 																		<td align="center" class="<?=$levelcolor?>"><?= $risklevel ?></td>
 																		<td>
@@ -502,7 +502,7 @@
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                 <input type="hidden" name="store_risk_monitoring" id="store_risk_monitoring" value="addriskmonitoring">
                                 <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                <input type="hidden" name="risk_id" id="risk_id">
+                                <input type="text" name="risk_id" id="risk_id">
                                 <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                 <input name="submtt" type="submit" class="btn btn-success waves-effect waves-light" id="tag-monitoring-submit" value="Save" />
                                 <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>

@@ -413,15 +413,9 @@ if ($permission) {
 											<div id="objective" class="form-control" style="height:auto; padding-bottom:10px; padding-top:10px; width:100%; color:#000;">
 											</div>
 										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<label>KPI Description:</label>
-											<div class="form-line">
-												<input type="text" name="kpi_description" id="kpi_description" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter a new KPI description" />
-											</div>
-										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<div class="form-inline">
-												<label for="">Link Outcome Indicator</label>
+												<label for="">Link Outcome Indicator *:</label>
 												<select name="indicator" id="indicator" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
 													<option value="">.... Select Impact ....</option>
 													<?php
@@ -436,7 +430,48 @@ if ($permission) {
 												</select>
 											</div>
 										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+											<label>Source of data *:</label>
+											<div class="form-line">
+												<input type="text" name="data_source" id="data_source" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter data source" />
+											</div>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+											<label>Data Collection Frequency *:</label>
+											<select name="data_frequency" id="data_frequency" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+												<option value="">.... Select Frequency ....</option>
+												<?php
+                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");	
+                                                $query_frequency->execute();   
+                                                
+												while ($row_frequency = $query_frequency->fetch()) {
+												?>
+													<font color="black">
+														<option value="<?php echo $row_frequency['fqid'] ?>"><?php echo $row_frequency['frequency'] ?></option>
+													</font>
+												<?php
+												}
+												?>
+											</select>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+											<label for="">Responsible *:</label>
+											<select name="responsible" id="responsible" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+												<option value="">.... Select Responsible Role ....</option>
+												<?php
+												$query_designation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE active=1 ");	
+												$query_designation->execute();
+												while ($row_designation = $query_designation->fetch()) {
+												?>
+													<font color="black">
+														<option value="<?php echo $row_designation['moid'] ?>"><?php echo $row_designation['designation'] ?></option>
+													</font>
+												<?php
+												}
+												?>
+											</select>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
 											<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
 												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-list-alt" style="color:green" aria-hidden="true"></i> KPI Targets & Thresholds</legend>
 												<div class="table-responsive">

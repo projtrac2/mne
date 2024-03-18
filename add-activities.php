@@ -1,4 +1,4 @@
-9i    <?php
+    <?php
     require('includes/head.php');
     if ($permission) {
         try {
