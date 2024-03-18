@@ -1,4 +1,4 @@
-var ajax_url1 = "ajax/inspection/general";
+var ajax_url1 = "ajax/inspection/general.php";
 
 $(document).ready(function () {
     $("#assign_responsible").submit(function (e) {

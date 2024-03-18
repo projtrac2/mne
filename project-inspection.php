@@ -31,13 +31,27 @@ if ($permission) {
                 $workflow_stage = $row_rsProjects['projstage'];
                 $project_directorate = $row_rsProjects['directorate'];
 
-                $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer=0");
+                $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid");
                 $query_rsQuestions_pending->execute(array(":projid" => $projid));
                 $totalRows_rsQuestions_pending = $query_rsQuestions_pending->rowCount();
+                $insp_questions = $query_rsQuestions_pending->fetchAll(PDO::FETCH_OBJ);
+                $not_answered = 0;
+                $answered = 0;
+                foreach ($insp_questions as $key => $qn) {
+                    $qn_id = $qn->id;
+                    $stmt_check = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND question_id=:question_id");
+                    $stmt_check->execute(array(":projid" => $projid, ":question_id" => $qn_id));
+                    $total_rows_check = $stmt_check->rowCount();
+                    if ($total_rows_check > 0) {
+                        $answered++;
+                    } else {
+                        $not_answered++;
+                    }
+                }
 
-                $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer > 0");
-                $query_rsQuestions->execute(array(":projid" => $projid));
-                $totalRows_rsQuestions = $query_rsQuestions->rowCount();
+
+
+
 ?>
                 <!-- start body  -->
                 <section class="content">
@@ -73,13 +87,13 @@ if ($permission) {
                                                     <li class="active">
                                                         <a data-toggle="tab" href="#menu1">
                                                             <i class="fa fa-caret-square-o-up bg-deep-purple" aria-hidden="true"></i>
-                                                            Pending Questions &nbsp;&nbsp;<span class="badge bg-orange" id="total-programs"><?= $totalRows_rsQuestions_pending ?></span>
+                                                            Pending Questions &nbsp;&nbsp;<span class="badge bg-orange" id="total-programs"><?= $not_answered ?></span>
                                                         </a>
                                                     </li>
                                                     <li>
                                                         <a data-toggle="tab" href="#menu2">
                                                             <i class="fa fa-caret-square-o-right bg-indigo" aria-hidden="true"></i>
-                                                            Answered Questions &nbsp;<span class="badge bg-indigo"><?= $totalRows_rsQuestions ?></span>
+                                                            Answered Questions &nbsp;<span class="badge bg-indigo"><?= $answered ?></span>
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -94,6 +108,7 @@ if ($permission) {
                                                     $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
                                                     $query_Sites->execute(array(":projid" => $projid));
                                                     $rows_sites = $query_Sites->rowCount();
+
                                                     if ($rows_sites > 0) {
                                                         $counter = 0;
                                                         while ($row_Sites = $query_Sites->fetch()) {
@@ -144,19 +159,18 @@ if ($permission) {
                                                                                                     $query_rsQuestions_pending->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                                     $totalRows_rsQuestions_pending = $query_rsQuestions_pending->rowCount();
                                                                                                     if ($totalRows_rsQuestions_pending > 0) {
-                                                                                                        $counter = 0;
+                                                                                                        $hash = 0;
                                                                                                         while ($row = $query_rsQuestions_pending->fetch()) {
-                                                                                                            $counter++;
                                                                                                             $question_id = $row['id'];
                                                                                                             $question = $row['question'];
                                                                                                             $answer = $row['answer'];
 
+                                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id  ");
+                                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id));
+                                                                                                            $total_rows = $stmt->rowCount();
 
-                                                                                                            $sql = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer=0 AND output_id=:output_id");
-                                                                                                            $sql->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, "question_id" => $question_id));
-                                                                                                            $total_rows = $sql->rowCount();
-
-                                                                                                            if ($total_rows > 0) {
+                                                                                                            if ($total_rows == 0) {
+                                                                                                                $hash++;
                                                                                                                 $question_details =
                                                                                                                     "{
                                                                                                                     question_id: $question_id,
@@ -166,10 +180,14 @@ if ($permission) {
                                                                                                                     comment:'',
                                                                                                                     answer:'',
                                                                                                                 }";
+
+
+
                                                                                                     ?>
                                                                                                                 <tr>
-                                                                                                                    <td><?= $counter ?></td>
+                                                                                                                    <td><?= $hash ?></td>
                                                                                                                     <td>
+
                                                                                                                         <?= $question ?>
                                                                                                                     </td>
                                                                                                                     <td>
@@ -234,32 +252,41 @@ if ($permission) {
                                                                                     if ($totalRows_rsQuestions_pending > 0) {
                                                                                         $counter = 0;
                                                                                         while ($row = $query_rsQuestions_pending->fetch()) {
-                                                                                            $counter++;
                                                                                             $question_id = $row['id'];
                                                                                             $question = $row['question'];
                                                                                             $answer = $row['answer'];
-                                                                                            $question_details =
-                                                                                                "{
+
+
+                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id  AND output_id=:output_id AND question_id=:question_id  ");
+                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id,  ":question_id" => $question_id));
+                                                                                            $total_rows = $stmt->rowCount();
+
+
+                                                                                            if ($total_rows == 0) {
+                                                                                                $counter++;
+                                                                                                $question_details =
+                                                                                                    "{
                                                                                                     question_id: $question_id,
                                                                                                     question:'$question',
                                                                                                     output_id: '$output_id',
-                                                                                                    site_id: '$site_id',
+                                                                                                    site_id: '0',
                                                                                                     comment:'',
                                                                                                     answer:'',
                                                                                                 }";
                                                                                     ?>
-                                                                                            <tr>
-                                                                                                <td><?= $counter ?></td>
-                                                                                                <td>
-                                                                                                    <?= $question ?>
-                                                                                                </td>
-                                                                                                <td>
-                                                                                                    <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
-                                                                                                        <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
-                                                                                                    </a>
-                                                                                                </td>
-                                                                                            </tr>
+                                                                                                <tr>
+                                                                                                    <td><?= $counter ?></td>
+                                                                                                    <td>
+                                                                                                        <?= $question ?>
+                                                                                                    </td>
+                                                                                                    <td>
+                                                                                                        <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
+                                                                                                            <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
+                                                                                                        </a>
+                                                                                                    </td>
+                                                                                                </tr>
                                                                                     <?php
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                     ?>
@@ -315,7 +342,6 @@ if ($permission) {
                                                                                     <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
                                                                                 </legend>
                                                                                 <div class="row clearfix">
-                                                                                    <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
                                                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                                         <div class="table-responsive">
                                                                                             <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
@@ -331,7 +357,7 @@ if ($permission) {
                                                                                                 <tbody>
                                                                                                     <?php
                                                                                                     $question_arr = [];
-                                                                                                    $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer > 0 AND output_id=:output_id");
+                                                                                                    $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                                                                                     $query_rsQuestions->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                                     $totalRows_rsQuestions = $query_rsQuestions->rowCount();
                                                                                                     if ($totalRows_rsQuestions > 0) {
@@ -340,12 +366,37 @@ if ($permission) {
                                                                                                             $counter++;
                                                                                                             $question_id = $row['id'];
                                                                                                             $question = $row['question'];
-                                                                                                            $comment = $row['comment'];
-                                                                                                            $answ = $row['answer'];
-                                                                                                            $answer = $row['answer'] == 1 ? 'Yes' : 'No';
-                                                                                                            $question_arr[] = $answ;
-                                                                                                            $question_details =
-                                                                                                                "{
+
+
+                                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id");
+                                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id));
+                                                                                                            $total_rows = $stmt->rowCount();
+                                                                                                            $stmt_result = $stmt->fetch();
+
+
+                                                                                                            $answ = '';
+                                                                                                            $answer = '';
+
+
+                                                                                                            if ($total_rows > 0) {
+                                                                                                                $checklist_id = $stmt_result['id'];
+
+                                                                                                                $checklist_stmt_comment = $db->prepare("SELECT * FROM tbl_inspection_checklist_comments WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id AND checklist_id=:checklist_id");
+                                                                                                                $checklist_stmt_comment->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id, ':checklist_id' => $checklist_id));
+                                                                                                                $stmt_result_comment = $checklist_stmt_comment->fetch();
+
+                                                                                                                $answ = $stmt_result['answer'];
+                                                                                                                $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
+                                                                                                                $question_arr[] = $answ;
+
+                                                                                                                $comment = '';
+
+                                                                                                                if ($stmt_result_comment) {
+                                                                                                                    $comment = $stmt_result_comment['comment'];
+                                                                                                                }
+
+                                                                                                                $question_details =
+                                                                                                                    "{
                                                                                                                     question_id: $question_id,
                                                                                                                     question:'$question',
                                                                                                                     output_id: '$output_id',
@@ -354,18 +405,19 @@ if ($permission) {
                                                                                                                     answer:$answ,
                                                                                                                 }";
                                                                                                     ?>
-                                                                                                            <tr>
-                                                                                                                <td style="width:5%"><?= $counter ?></td>
-                                                                                                                <td style="width:40%"><?= $question ?></td>
-                                                                                                                <td style="width:5%"><?= $answer ?></td>
-                                                                                                                <td style="width:40%"><?= $comment ?></td>
-                                                                                                                <td style="width:10%">
-                                                                                                                    <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
-                                                                                                                        <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
-                                                                                                                    </a>
-                                                                                                                </td>
-                                                                                                            </tr>
+                                                                                                                <tr>
+                                                                                                                    <td style="width:5%"><?= $counter ?> </td>
+                                                                                                                    <td style="width:40%"><?= $question ?></td>
+                                                                                                                    <td style="width:5%"><?= $answer ?></td>
+                                                                                                                    <td style="width:40%"><?= $comment ?></td>
+                                                                                                                    <td style="width:10%">
+                                                                                                                        <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
+                                                                                                                            <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
+                                                                                                                        </a>
+                                                                                                                    </td>
+                                                                                                                </tr>
                                                                                                     <?php
+                                                                                                            }
                                                                                                         }
                                                                                                     }
                                                                                                     ?>
@@ -420,7 +472,7 @@ if ($permission) {
                                                                                 <tbody>
                                                                                     <?php
                                                                                     $question_arr = [];
-                                                                                    $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer > 0 AND output_id=:output_id");
+                                                                                    $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                                                                     $query_rsQuestions->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                     $totalRows_rsQuestions = $query_rsQuestions->rowCount();
                                                                                     if ($totalRows_rsQuestions > 0) {
@@ -433,28 +485,56 @@ if ($permission) {
                                                                                             $answ = $row['answer'];
                                                                                             $answer = $row['answer'] == 1 ? 'Yes' : 'No';
                                                                                             $question_arr[] = $answ;
+                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id  ");
+                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id, ":question_id" => $question_id));
+                                                                                            $total_rows = $stmt->rowCount();
+                                                                                            $stmt_result = $stmt->fetch();
 
-                                                                                            $question_details = "{
+
+                                                                                            // $answ = $stmt_result['answer'];
+                                                                                            // $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
+                                                                                            // $question_arr[] = $answ;
+                                                                                            $answ = '';
+                                                                                            $answer = '';
+
+                                                                                            if ($total_rows > 0) {
+                                                                                                $checklist_id = $stmt_result['id'];
+                                                                                                $checklist_stmt_comment = $db->prepare("SELECT * FROM tbl_inspection_checklist_comments WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id AND checklist_id=:checklist_id");
+                                                                                                $checklist_stmt_comment->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id, ":question_id" => $question_id, ':checklist_id' => $checklist_id));
+                                                                                                $stmt_result_comment = $checklist_stmt_comment->fetch();
+
+                                                                                                $answ = $stmt_result['answer'];
+                                                                                                $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
+                                                                                                $question_arr[] = $answ;
+
+                                                                                                $comment = '';
+
+                                                                                                if ($stmt_result_comment) {
+                                                                                                    $comment = $stmt_result_comment['comment'];
+                                                                                                }
+
+                                                                                                $question_details = "{
                                                                                                 question_id: $question_id,
                                                                                                 question:'$question',
                                                                                                 output_id: '$output_id',
-                                                                                                site_id: '$site_id',
+                                                                                                site_id: '0',
                                                                                                 comment:'$comment',
                                                                                                 answer:$answ,
                                                                                             }";
                                                                                     ?>
-                                                                                            <tr>
-                                                                                                <td style="width:5%"><?= $counter ?></td>
-                                                                                                <td style="width:40%"><?= $question ?></td>
-                                                                                                <td style="width:5%"><?= $answer ?></td>
-                                                                                                <td style="width:40%"><?= $comment ?></td>
-                                                                                                <td style="width:10%">
-                                                                                                    <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
-                                                                                                        <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
-                                                                                                    </a>
-                                                                                                </td>
-                                                                                            </tr>
+                                                                                                <tr>
+                                                                                                    <td style="width:5%"><?= $counter ?></td>
+                                                                                                    <td style="width:40%"><?= $question ?></td>
+                                                                                                    <td style="width:5%"><?= $answer ?></td>
+                                                                                                    <td style="width:40%"><?= $comment ?></td>
+                                                                                                    <td style="width:10%">
+                                                                                                        <a type="button" class="btn bg-purple waves-effect" onclick="get_details(<?= $question_details ?>)" data-toggle="modal" id="addFormModalbtn" data-target="#inspection_acceptance_modal" title="Click here to request payment" style="height:25px; padding-top:0px">
+                                                                                                            <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Answer
+                                                                                                        </a>
+                                                                                                    </td>
+                                                                                                </tr>
                                                                                     <?php
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                     ?>

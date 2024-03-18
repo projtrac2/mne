@@ -1,6 +1,6 @@
 <?php
 require('includes/head.php');
-if ($permission) {
+// if ($permission) {
     try {
         $proj_id_decode = base64_decode($_GET['projid']);
         $proj_id_array = explode("projid54321", $proj_id_decode);
@@ -219,10 +219,10 @@ if ($permission) {
     </div>
     <!-- End  Item more Info -->
 <?php
-} else {
-    $results =  restriction();
-    echo $results;
-}
+// } else {
+//     $results =  restriction();
+//     echo $results;
+// }
 
 require('includes/footer.php');
 ?>
