@@ -41,13 +41,17 @@ const get_details = (details) => {
         $("#comment").attr('required', 'required');
     } else if (details.answer == 1) {
         $(`#question1`).prop("checked", true);
+        $("#comment").val('');
     }
 }
+
+
 
 const check_box = (id) => {
     if (id == 1) {
         $("#project_approve_div").hide();
         $("#comment").removeAttr('required');
+        $("#comment").val('');
     } else {
         $("#project_approve_div").show();
         $("#comment").attr('required', 'required');
