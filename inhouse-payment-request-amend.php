@@ -1,5 +1,8 @@
 <?php
 require('includes/head.php');
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 if ($permission) {
     try {
 
@@ -23,17 +26,33 @@ if ($permission) {
             return  $totalRows_rsRequestDetails > 0 ? $row_rsRequestDetails['no_of_units'] : '';
         }
 
-        if (isset($_POST[''])) {
-            $projid = $_POST['projid'];
-            $cost_type = $_POST['implementation_type'];
-            $purpose = $_POST['purpose'];
-            $comments = isset($_POST['comments']) ? $_POST['comments'] : '';
-            $tasks = isset($_POST['tasks']) ? $_POST['tasks'] : 0;
-            $status = 3;
-            $amount_requested = 0;
+        if (isset($_POST['store_remarks'])) {
+            var_dump($_POST);
+            return;
+            $due_date = $_POST['due_date'];
+            $request_id = $_POST['request_id'];
+            $comments = $_POST['comments'];
+            $status = 1;
+            $stage = 1;
             $date_requested = date("Y-m-d");
             $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,date_requested=:date_requested, status=:status WHERE request_id =:request_id");
-            $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":request_id" => $request_id,));
+            $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":request_id" => $request_id));
+
+            $sql = $db->prepare("INSERT INTO tbl_payment_request_comments (request_id,stage,status,comments,role,created_by,created_at) VALUES (:request_id,:stage,:status,:comments,:role,:created_by,:created_at)");
+            $result  = $sql->execute(array(":request_id" => $request_id, ":stage" => $stage, ":status" => 2, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $user_name, ":created_at" => $date_requested));
+
+            $results = "<script type=\"text/javascript\">
+            swal({
+                    title: \"Success!\",
+                    text: \" $msg\",
+                    type: 'Success',
+                    timer: 2000,
+                    'icon':'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                    window.location.href = 'inhouse-payment-requests.php';
+                }, 2000);
+            </script>";
         }
 
 
@@ -54,8 +73,7 @@ if ($permission) {
                 $projid = $rows_rsPayement_requests['projid'];
                 $purpose = $rows_rsPayement_requests['purpose'];
                 $request_id = $rows_rsPayement_requests['id'];
-                $remarks = $rows_rsPayement_requests['id'];
-                $due_date = $rows_rsPayement_requests['id'];
+                $due_date = $rows_rsPayement_requests['due_date'];
 
 
                 $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
@@ -519,7 +537,7 @@ if ($permission) {
                                     }
 
                                     $query_rsComments = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE request_id=:request_id and created_by=:created_by");
-                                    $query_rsComments->execute(array(":request_id" => $request_id, ":created_by" => $created_by));
+                                    $query_rsComments->execute(array(":request_id" => $request_id, ":created_by" => $user_name));
                                     $totalRows_rsComments = $query_rsComments->rowCount();
                                     $Rows_rsComments = $query_rsComments->fetch();
                                     $remarks = $totalRows_rsComments > 0 ? $Rows_rsComments['comments'] : '';
@@ -533,7 +551,7 @@ if ($permission) {
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label class="control-label">Due Date <span id="impunit"></span>*:</label>
                                                 <div class="form-input">
-                                                    <input type="date" name="due_date" value="" id="due_date" class="form-control" value="<?= $due_date ?>" required="required">
+                                                    <input type="date" name="due_date" id="due_date" class="form-control" value="<?= $due_date ?>" required="required">
                                                 </div>
                                             </div>
                                             <div id="comment_section">
@@ -548,7 +566,8 @@ if ($permission) {
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="request_id" value="<?= $request_id ?>">
-                                                    <button type="button" class="btn btn-success">Request</button>
+                                                    <input type="hidden" name="store_remarks" value="store_remarks">
+                                                    <button type="submit" class="btn btn-success">Request</button>
                                                 </div>
                                             </div>
                                         </form>
