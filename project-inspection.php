@@ -1,6 +1,6 @@
 <?php
 require('includes/head.php');
-if ($permission) {
+// if ($permission) {
     try {
 
         if (isset($_POST['store'])) {
@@ -43,6 +43,7 @@ if ($permission) {
             $totalRows_rsProjects = $query_rsProjects->rowCount();
 
             $approve_details = "";
+
             if ($totalRows_rsProjects > 0) {
                 $implimentation_type = $row_rsProjects['projcategory'];
                 $projname = $row_rsProjects['projname'];
@@ -78,6 +79,11 @@ if ($permission) {
                         $not_answered++;
                     }
                 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> c0e07d118193ba7810b6bbffd6d3380090237cbf
 ?>
                 <!-- start body  -->
                 <section class="content">
@@ -678,10 +684,10 @@ if ($permission) {
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
-} else {
-    $results =  restriction();
-    echo $results;
-}
+// } else {
+//     $results =  restriction();
+//     echo $results;
+// }
 
 require('includes/footer.php');
 ?>
