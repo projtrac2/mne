@@ -2,6 +2,36 @@
 require('includes/head.php');
 if ($permission) {
     try {
+
+        if (isset($_POST['store'])) {
+            $projid = $_POST['projid'];
+            $comments = $_POST['comments'];
+            $date_requested = date("Y-m-d");
+            $workflow_stage = 9;
+            $sub_stage = $comments != '' ? 4 : 5;
+            $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
+            $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+
+            if ($comments != '') {
+                $sql = $db->prepare("INSERT INTO tbl_projissues (projid, issue_description, issue_area, risk_category, issue_priority, issue_impact, created_by, date_created) VALUES (:projid, :issue_description, :issue_area, :risk_category, :issue_priority, :issue_impact, :user, :date)");
+                $results  = $sql->execute(array(':projid' => $projid, ':issue_description' => $comments, ':issue_area' => 5, ':risk_category' => 5, ':issue_priority' => 5, ':issue_impact' => 5, ':user' => $user_name, ':date' => $date_requested));
+            }
+            $msg = "Record created Successfully";
+            $results = "<script type=\"text/javascript\">
+            swal({
+                    title: \"Success!\",
+                    text: \" $msg\",
+                    type: 'Success',
+                    timer: 2000,
+                    'icon':'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                    window.location.href = 'general-project-progress.php';
+                }, 2000);
+            </script>";
+
+            echo $results;
+        }
         if (isset($_GET['projid'])) {
             $encoded_projid = $_GET['projid'];
             $decode_projid = base64_decode($encoded_projid);
@@ -48,10 +78,6 @@ if ($permission) {
                         $not_answered++;
                     }
                 }
-
-
-
-
 ?>
                 <!-- start body  -->
                 <section class="content">
@@ -306,6 +332,7 @@ if ($permission) {
                                             <div id="menu2" class="tab-pane">
                                                 <div class="body">
                                                     <?php
+                                                    $proceed = [];
                                                     $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
                                                     $query_Sites->execute(array(":projid" => $projid));
                                                     $rows_sites = $query_Sites->rowCount();
@@ -356,7 +383,6 @@ if ($permission) {
                                                                                                 </thead>
                                                                                                 <tbody>
                                                                                                     <?php
-                                                                                                    $question_arr = [];
                                                                                                     $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                                                                                     $query_rsQuestions->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                                     $totalRows_rsQuestions = $query_rsQuestions->rowCount();
@@ -386,14 +412,10 @@ if ($permission) {
                                                                                                                 $stmt_result_comment = $checklist_stmt_comment->fetch();
 
                                                                                                                 $answ = $stmt_result['answer'];
-                                                                                                                $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
-                                                                                                                $question_arr[] = $answ;
+                                                                                                                $answer = $answ == 1 ? 'Yes' : 'No';
+                                                                                                                $proceed[] = $answ == 1 ? true : false;
+                                                                                                                $comment = ($stmt_result_comment) ? $stmt_result_comment['comment'] : 'N/A';
 
-                                                                                                                $comment = '';
-
-                                                                                                                if ($stmt_result_comment) {
-                                                                                                                    $comment = $stmt_result_comment['comment'];
-                                                                                                                }
 
                                                                                                                 $question_details =
                                                                                                                     "{
@@ -471,7 +493,6 @@ if ($permission) {
                                                                                 </thead>
                                                                                 <tbody>
                                                                                     <?php
-                                                                                    $question_arr = [];
                                                                                     $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                                                                     $query_rsQuestions->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                     $totalRows_rsQuestions = $query_rsQuestions->rowCount();
@@ -483,17 +504,12 @@ if ($permission) {
                                                                                             $question = $row['question'];
                                                                                             $comment = $row['comment'];
                                                                                             $answ = $row['answer'];
-                                                                                            $answer = $row['answer'] == 1 ? 'Yes' : 'No';
-                                                                                            $question_arr[] = $answ;
+                                                                                            $answer = $answ == 1 ? 'Yes' : 'No';
+                                                                                            $proceed[] = $answ == 1 ? true : false;
                                                                                             $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id  ");
                                                                                             $stmt->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id, ":question_id" => $question_id));
                                                                                             $total_rows = $stmt->rowCount();
                                                                                             $stmt_result = $stmt->fetch();
-
-
-                                                                                            // $answ = $stmt_result['answer'];
-                                                                                            // $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
-                                                                                            // $question_arr[] = $answ;
                                                                                             $answ = '';
                                                                                             $answer = '';
 
@@ -505,22 +521,18 @@ if ($permission) {
 
                                                                                                 $answ = $stmt_result['answer'];
                                                                                                 $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
-                                                                                                $question_arr[] = $answ;
+                                                                                                $comment = ($stmt_result_comment) ? $stmt_result_comment['comment'] : 'N/A';
 
-                                                                                                $comment = '';
 
-                                                                                                if ($stmt_result_comment) {
-                                                                                                    $comment = $stmt_result_comment['comment'];
-                                                                                                }
-
-                                                                                                $question_details = "{
-                                                                                                question_id: $question_id,
-                                                                                                question:'$question',
-                                                                                                output_id: '$output_id',
-                                                                                                site_id: '0',
-                                                                                                comment:'$comment',
-                                                                                                answer:$answ,
-                                                                                            }";
+                                                                                                $question_details =
+                                                                                                    "{
+                                                                                                        question_id: $question_id,
+                                                                                                        question:'$question',
+                                                                                                        output_id: '$output_id',
+                                                                                                        site_id: '0',
+                                                                                                        comment:'$comment',
+                                                                                                        answer:$answ,
+                                                                                                    }";
                                                                                     ?>
                                                                                                 <tr>
                                                                                                     <td style="width:5%"><?= $counter ?></td>
@@ -552,6 +564,41 @@ if ($permission) {
                                             </div>
                                         </div>
 
+                                        <?php
+                                        // if ($proceed) {
+                                        ?>
+                                        <fieldset class="scheduler-border" id="direct_cost">
+                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                <i class="fa fa-calendar" aria-hidden="true"></i> Proceed
+                                            </legend>
+                                            <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                <?php
+                                                if (in_array(false, $proceed)) {
+                                                ?>
+                                                    <div id="comment_section">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <label class="control-label">Remarks *:</label>
+                                                            <br>
+                                                            <div class="form-line">
+                                                                <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php
+                                                }
+                                                ?>
+                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                    <div class="col-md-12 text-center">
+                                                        <input type="hidden" name="projid" value="<?= $projid ?>">
+                                                        <input type="hidden" name="store" value="store">
+                                                        <button type="submit" class="btn btn-success">Submit</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </fieldset>
+                                        <?php
+                                        // }
+                                        ?>
                                     </div>
                                 </div>
                             </div>

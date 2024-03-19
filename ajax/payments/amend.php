@@ -85,29 +85,29 @@ try {
         return $body;
     }
 
-    function administrative_cost($request_id, $direct_cost_id)
+    function administrative_cost($request_id)
     {
         global $db;
         $body = '';
         $query_rsPayement_requests =  $db->prepare("SELECT r.unit_cost, r.no_of_units, d.unit, d.description, r.direct_cost_id, r.id as sub_request_id FROM tbl_project_direct_cost_plan d INNER JOIN tbl_payments_request_details r ON r.direct_cost_id = d.id WHERE request_id =:request_id");
-        $query_rsPayement_requests->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id));
+        $query_rsPayement_requests->execute(array(":request_id" => $request_id));
         $total_rsPayement_requests = $query_rsPayement_requests->rowCount();
-        $rows_rsPayement_requests = $query_rsPayement_requests->fetch();
+
         if ($total_rsPayement_requests > 0) {
-            $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
-            $description = $rows_rsPayement_requests['description'];
-            $unit = $rows_rsPayement_requests['unit'];
-            $unit_cost = $rows_rsPayement_requests['unit_cost'];
-            $units_no = $rows_rsPayement_requests['no_of_units'];
-            $counter = 1;
-
-            $unit_of_measure = get_unit_of_measure($unit);
-            $requested_units =    get_unit_requested($request_id, $direct_cost_id);
-            $total_requested_units = get_total_requested_units($direct_cost_id);
-            $remaining_units = $units_no -  ($total_requested_units - $requested_units);
-            $subtotal_cost = $requested_units * $unit_cost;
-
-            $body .= '
+            $counter = 0;
+            while ($rows_rsPayement_requests = $query_rsPayement_requests->fetch()) {
+                $direct_cost_id = $rows_rsPayement_requests['direct_cost_id'];
+                $description = $rows_rsPayement_requests['description'];
+                $unit = $rows_rsPayement_requests['unit'];
+                $unit_cost = $rows_rsPayement_requests['unit_cost'];
+                $units_no = $rows_rsPayement_requests['no_of_units'];
+                $unit_of_measure = get_unit_of_measure($unit);
+                $requested_units =    get_unit_requested($request_id, $direct_cost_id);
+                $total_requested_units = get_total_requested_units($direct_cost_id);
+                $remaining_units = $units_no -  ($total_requested_units - $requested_units);
+                $subtotal_cost = $requested_units * $unit_cost;
+                $counter++;
+                $body .= '
                 <input type="hidden" name="unit_cost[]" id="unit_cost' . $counter . '" value="' . $unit_cost . '">
                 <input type="hidden" name="h_no_units[]" id="h_no_units' . $counter . '" value="' . $remaining_units . '">
                 <input type="hidden" name="direct_cost_id[]" id="direct_cost_id' . $counter . '" value="' . $direct_cost_id . '">
@@ -120,7 +120,7 @@ try {
                         ' . number_format($remaining_units, 2) . '
                     </td>
                     <td>
-                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $counter . ')" onkeyup="calculate_total_cost(' . $counter . ')" id="no_units' . $counter . '">
+                        <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(' . $counter . ')" onkeyup="calculate_total_cost(' . $counter . ')" id="no_units' . $counter . '" value="' . $requested_units . '">
                     </td>
                     <td>
                         ' . number_format($unit_cost, 2) . '
@@ -129,9 +129,14 @@ try {
                         <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="' . $subtotal_cost . '">
                         <span id="subtotal_cost' . $counter . '" style="color:red">' . number_format($subtotal_cost, 2) . '</span>
                     </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_budget_costline(\'budget_line_cost_line' . $counter . '\', \'\')">
+                            <span class="glyphicon glyphicon-minus"></span>
+                        </button>
+                    </td>
                 </tr>';
+            }
         }
-
         return $body;
     }
 
@@ -143,14 +148,12 @@ try {
         $task_id = $_GET['task_id'];
         $cost_type = $_GET['cost_type'];
         $request_id = $_GET['request_id'];
-
         $body = '';
         if ($cost_type == 1) {
             $body = direct_cost($request_id, $task_id, $site_id);
         } else {
-            $body = administrative_cost($request_id, $task_id, $site_id);
+            $body = administrative_cost($request_id);
         }
-
         echo json_encode(array("success" => true, "table_body" => $body));
     }
 
@@ -179,14 +182,18 @@ try {
                 }
             }
         } else {
+            $sql = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id");
+            $results = $sql->execute(array(':request_id' => $request_id));
             if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
                 $_count = count($_POST['direct_cost_id']);
                 for ($j = 0; $j < $_count; $j++) {
                     $direct_cost_id = $_POST['direct_cost_id'][$j];
-                    $no_of_units = $_POST['no_units'][$j];
-                    $unit_cost = $_POST['unit_cost'][$j];
-                    $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
-                    $results[]  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
+                    if (isset($_POST['no_units'][$j])  && $_POST['no_units'][$j] != 0) {
+                        $no_of_units = $_POST['no_units'][$j];
+                        $unit_cost = $_POST['unit_cost'][$j];
+                        $sql = $db->prepare("INSERT INTO tbl_payments_request_details (request_id, direct_cost_id,no_of_units, unit_cost) VALUES (:request_id, :direct_cost_id,:no_of_units, :unit_cost)");
+                        $results  = $sql->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id, ":no_of_units" => $no_of_units, ":unit_cost" => $unit_cost));
+                    }
                 }
             }
         }

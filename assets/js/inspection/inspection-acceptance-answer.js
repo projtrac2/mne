@@ -1,4 +1,4 @@
-const ajax_url1 = "ajax/inspection/general.php";
+const ajax_url1 = "ajax/inspection/general";
 $(document).ready(function () {
     $("#add_questions_form").submit(function (e) {
         e.preventDefault();

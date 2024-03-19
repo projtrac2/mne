@@ -3,11 +3,9 @@ require('includes/head.php');
 if ($permission) {
     try {
         $workflow_stage = 9;
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1  ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1 AND  proj_substage <= 4  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-
         function get_role()
         {
             global $db;
@@ -143,12 +141,16 @@ if ($permission) {
                                                                         <i class="fa fa-users"></i> <?= $activity ?> Commitee
                                                                     </a>
                                                                 </li>
-                                                                <li>
-                                                                    <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_hashed ?>">
-                                                                        <i class="fa fa-plus-square"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
-                                                                    </a>
-                                                                </li>
                                                                 <?php
+                                                                if ($sub_stage <= 3) {
+                                                                ?>
+                                                                    <li>
+                                                                        <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_hashed ?>">
+                                                                            <i class="fa fa-plus-square"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
+                                                                        </a>
+                                                                    </li>
+                                                                <?php
+                                                                }
                                                                 if ($sub_stage == 3) {
                                                                 ?>
                                                                     <li>

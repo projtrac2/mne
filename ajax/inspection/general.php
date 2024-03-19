@@ -176,7 +176,6 @@ try {
       $rows = $sql->fetch();
 
       if ($total_rows > 0) {
-
          $checklist_id = $rows['id'];
          $sql = $db->prepare("UPDATE tbl_inspection_checklist SET answer=:answer,updated_by=:updated_by, updated_at=:updated_at WHERE question_id=:question_id ");
          $result = $sql->execute(array(':answer' => $answer, ':updated_by' => $user_name, ':updated_at' => $datecreated, ":question_id" => $question_id));
@@ -187,7 +186,7 @@ try {
          if ($comment != '') {
             $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist_comments (projid, site_id, output_id, question_id, checklist_id, comment, created_by, created_at) VALUES (:projid, :site_id, :output_id, :question_id, :checklist_id, :comment, :created_by, :created_at)');
             $result_checklist = $checklist->execute([':projid' => $projid, ':site_id' => $site_id, ':output_id' => $output_id, 'question_id' => $question_id, ':checklist_id' => $checklist_id, ':comment' => $comment, ":created_by" => $user_name, ":created_at" => $datecreated]);
-         } 
+         }
 
       } else {
          $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist (projid, site_id, output_id, question_id,answer, created_by, created_at) VALUES (:projid, :site_id, :output_id, :question_id, :answer, :created_by, :created_at )');

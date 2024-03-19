@@ -5,7 +5,6 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 if ($permission) {
     try {
-
         function get_unit_of_measure($unit)
         {
             global $db;
@@ -27,20 +26,19 @@ if ($permission) {
         }
 
         if (isset($_POST['store_remarks'])) {
-            var_dump($_POST);
-            return;
-            $due_date = $_POST['due_date'];
+            $due_date = date("Y-m-d", strtotime($_POST['due_date']));
             $request_id = $_POST['request_id'];
             $comments = $_POST['comments'];
             $status = 1;
             $stage = 1;
             $date_requested = date("Y-m-d");
-            $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,date_requested=:date_requested, status=:status WHERE request_id =:request_id");
-            $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":request_id" => $request_id));
+            $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date, date_requested=:date_requested, status=:status, stage=:stage WHERE id=:request_id");
+            $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":request_id" => $request_id));
 
             $sql = $db->prepare("INSERT INTO tbl_payment_request_comments (request_id,stage,status,comments,role,created_by,created_at) VALUES (:request_id,:stage,:status,:comments,:role,:created_by,:created_at)");
             $result  = $sql->execute(array(":request_id" => $request_id, ":stage" => $stage, ":status" => 2, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $user_name, ":created_at" => $date_requested));
 
+            $msg = "Request created successfully";
             $results = "<script type=\"text/javascript\">
             swal({
                     title: \"Success!\",
@@ -86,13 +84,6 @@ if ($permission) {
                     $projname = $row_rsProjects['projname'];
                     $projcode = $row_rsProjects['projcode'];
                     $projcost = $row_rsProjects['projcost'];
-                    $project_stage = $row_rsProjects['projstage'];
-
-                    $query_rsStage =  $db->prepare("SELECT * FROM  tbl_project_workflow_stage WHERE priority=:priority");
-                    $query_rsStage->execute(array(":priority" => $project_stage));
-                    $rows_rsStage = $query_rsStage->fetch();
-                    $total_rsStage = $query_rsStage->rowCount();
-                    $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
 ?>
                     <!-- start body  -->
                     <section class="content">
@@ -124,7 +115,6 @@ if ($permission) {
                                                         <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
                                                         <li class="list-group-item"><strong>Total Project Cost: </strong> Ksh. <?php echo number_format($projcost, 2); ?> </li>
                                                         <li class="list-group-item"><strong>Total Project Year Budget: </strong> Ksh. <?php echo number_format($projcost, 2); ?> </li>
-                                                        <li class="list-group-item"><strong>Project Stage: </strong><?= $stage; ?> </li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -429,8 +419,8 @@ if ($permission) {
                                         ?>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <div class="btn-group" style="float:right">
-                                                <a type="button" data-toggle="modal" class="btn btn-primary" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $request_details ?>)">
-                                                    <i class="fa fa-plus"></i> Amend
+                                                <a type="button" data-toggle="modal" class="btn btn-success" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $budget_line_details ?>)">
+                                                    <i class="fa fa-plus"></i> Add
                                                 </a>
                                             </div>
                                         </div>
@@ -440,11 +430,10 @@ if ($permission) {
                                                     <thead>
                                                         <tr>
                                                             <th style="width:5%"># </th>
-                                                            <th style="width:30%">Description </th>
-                                                            <th style="width:20%">No. of Units</th>
+                                                            <th style="width:40%">Description </th>
+                                                            <th style="width:25%">No. of Units</th>
                                                             <th style="width:10%">Unit Cost</th>
                                                             <th style="width:10%">Total Cost</th>
-                                                            <th style="width:5%">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -468,29 +457,10 @@ if ($permission) {
                                                         ?>
                                                                 <tr>
                                                                     <td style="width:5%"><?= $counter ?></td>
-                                                                    <td style="width:30%"><?= $description ?> </td>
-                                                                    <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
+                                                                    <td style="width:40%"><?= $description ?> </td>
+                                                                    <td style="width:25%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
                                                                     <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
                                                                     <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
-                                                                    <td style="width:5%">
-                                                                        <div class="btn-group">
-                                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                                Options <span class="caret"></span>
-                                                                            </button>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
-                                                                                        <i class="fa fa-check"></i> Edit
-                                                                                    </a>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
-                                                                                        <i class="fa fa-check"></i> Delete
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </td>
                                                                 </tr>
                                                         <?php
                                                             }
@@ -722,7 +692,6 @@ require('includes/footer.php');
     });
 
 
-
     //function to put commas to the data
     function commaSeparateNumber(val) {
         while (/(\d+)(\d{3})/.test(val.toString())) {
@@ -738,7 +707,6 @@ require('includes/footer.php');
         var task_id = details.task_id;
         var cost_type = details.cost_type;
         var request_id = details.request_id;
-
         $("#projid").val(projid);
         $("#site_id").val(site_id);
         $("#output_id").val(output_id);
@@ -817,10 +785,117 @@ require('includes/footer.php');
                 total_amount = total_amount + parseFloat($(this).val());
             }
         });
-
-
         var percentage = ((total_amount / ceiling_amount) * 100);
         $(`#sub_total_amount`).val(commaSeparateNumber(total_amount));
         $(`#subtotal_percentage`).val(percentage);
+    }
+
+    // function to add new rowfor financiers
+    function add_budget_costline() {
+        var stage = $("#stage").val();
+        var purpose = $("#purpose1").val();
+        var result = false;
+        var task = '';
+        result = false;
+        var msg = "Please select a purpose first";
+        if (purpose != '') {
+            result = true;
+            if (stage == '10') {
+                if (purpose == 1) {
+                    task = $("#tasks").val();
+                    result = task != '' ? true : false;
+                    msg = task == '' ? "Please select a task first" : '';
+                }
+            }
+        }
+
+        if (result) {
+            $(`#e_removeTr`).remove(); //new change
+            $rowno = $(`#_budget_lines_values_table tr`).length;
+            $rowno += 1;
+            $rowno = $rowno;
+            $(`#_budget_lines_values_table tr:last`).after(`
+        <tr id="budget_line_cost_line${$rowno}">
+            <td>
+                <select name="direct_cost_id[]" id="description${$rowno}" data-id="${$rowno}" onchange="get_costline_details(${$rowno})" class="form-control show-tick description" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                    <option value="">.... Select from list ....</option>
+                </select>
+            </td>
+            <td id="unit${$rowno}"> </td>
+            <td>
+                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})">
+            </td>
+            <td>
+                <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" id="no_units${$rowno}">
+            </td>
+                <td>
+                <input type="hidden" name="h_no_units[]" id="h_no_units${$rowno}">
+                <input type="text" name="p_no_units[]" min="0" class="form-control " id="p_no_units${$rowno}" readonly>
+            </td>
+            <td>
+                    <input type="hidden" name="subtotal_amount[]" id="subtotal_amount${$rowno}" class="subamount sub" value="">
+                    <span id="subtotal_cost${$rowno}" style="color:red"></span>
+            </td>
+            <td style="width:2%">
+                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_budget_costline('budget_line_cost_line${$rowno}', '')">
+                    <span class="glyphicon glyphicon-minus"></span>
+                </button>
+            </td>
+        </tr>`);
+            get_budgetline_details($rowno, purpose);
+        } else {
+            error_alert(msg);
+        }
+    }
+
+    // function to delete financiers row
+    function delete_budget_costline(rowno) {
+        $("#" + rowno).remove();
+        var check = $(`#_budget_lines_values_table tr`).length;
+        if (check == 1) {
+            $(`#_budget_lines_values_table`).html(`
+        <tr></tr>
+            <tr id="e_removeTr" class="text-center">
+            <td colspan="7">Add Budgetline Costlines</td>
+        </tr>`);
+        }
+        calculate_subtotal();
+    }
+
+    function get_budgetline_details(rowno, task_id, cost_type) {
+        var projid = $("#project_id").val();
+        var output_id = $("#output").val();
+        var site_id = $("#site_id").val();
+        var task_id = $("#tasks").val();
+        var stage = $("#stage").val();
+        var cost_type = $("#implementation_type").val();
+        var purpose = $("#purpose1").val();
+
+        if (projid != "") {
+            $.ajax({
+                type: "get",
+                url: ajax_url,
+                data: {
+                    get_budgetline_info: "get_budgetline_info",
+                    projid: projid,
+                    output_id: output_id,
+                    site_id: site_id,
+                    task_id: task_id,
+                    stage: stage,
+                    purpose: purpose,
+                    cost_type: cost_type,
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        $(`#description${rowno}`).html(response.description);
+                    } else {
+                        console.log("Error please ensure that you use the correct project")
+                    }
+                }
+            });
+        } else {
+            console.log("Ensure you have the correct project");
+        }
     }
 </script>
