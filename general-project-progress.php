@@ -159,6 +159,11 @@ if ($permission) {
                                                                 <?php
                                                                 }
                                                                 ?>
+                                                                <li>
+                                                                    <a href="project-reinspection.php?projid=<?= $projid_hashed ?>">
+                                                                        <i class="fa fa-list"></i> Reinspect
+                                                                    </a>
+                                                                </li>
                                                             </ul>
                                                         </div>
                                                     </td>

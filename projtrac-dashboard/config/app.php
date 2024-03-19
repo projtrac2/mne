@@ -4,7 +4,7 @@ return [
     'database' => [
         'driver' => 'mysql',
         'host' => 'localhost',
-        'dbname' => 'projtrac_webiste',
+        'dbname' => 'projtrac_system',
         'username' => 'root',
         'password' => '',
     ],
