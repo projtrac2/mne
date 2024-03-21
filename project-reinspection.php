@@ -87,7 +87,7 @@ try {
                                                     $checklist_total_rows = $checklist_stmt->rowCount();
 
                                                     if ($checklist_total_rows > 0) {
-                                                    
+
                                             ?>
 
                                                     <fieldset class="scheduler-border">
@@ -109,7 +109,7 @@ try {
                                                                 $row_Output = $query_Output->fetch();
                                                                 $total_Output = $query_Output->rowCount();
 
-                                                                
+
 
                                                                 if ($total_Output) {
                                                                     $output_id = $row_Output['id'];
@@ -225,7 +225,7 @@ try {
                                                 <?php
                                                 ?>
                                                     </fieldset>
-                                                <?php 
+                                                <?php
                                                     }
 
                                                     }
@@ -251,7 +251,7 @@ try {
                                                         if ($outputlist_total_rows > 0) {
                                                 ?>
 
-                                                
+
                                                             <fieldset class="scheduler-border">
                                                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                                                     <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
@@ -349,10 +349,8 @@ try {
                                                                             </table>
                                                                         </div>
                                                                     </div>
-
                                                                 </div>
                                                             </fieldset>
-
                                                 <?php
                                                         }
                                                     }
@@ -364,11 +362,8 @@ try {
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
-
                 </div>
             </section>
 

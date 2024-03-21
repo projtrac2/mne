@@ -79,11 +79,6 @@ require('includes/head.php');
                         $not_answered++;
                     }
                 }
-<<<<<<< HEAD
-=======
-
-
->>>>>>> c0e07d118193ba7810b6bbffd6d3380090237cbf
 ?>
                 <!-- start body  -->
                 <section class="content">
@@ -212,9 +207,6 @@ require('includes/head.php');
                                                                                                                     comment:'',
                                                                                                                     answer:'',
                                                                                                                 }";
-
-
-
                                                                                                     ?>
                                                                                                                 <tr>
                                                                                                                     <td><?= $hash ?></td>
