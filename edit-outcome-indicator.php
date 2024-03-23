@@ -1,11 +1,11 @@
 <?php
-$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php"); 
+$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php");
 $indid_array = explode("ocid", $decode_indid);
 $ind = $indid_array[1];
 
 require('includes/head.php');
 if ($permission) {
-	// get the functions selecting data 
+	// get the functions selecting data
 	require('functions/indicator.php');
 	require('functions/department.php');
 	require('functions/strategicplan.php');
@@ -27,7 +27,7 @@ if ($permission) {
 		$results = "";
 		$indicator = get_indicator_by_indid($ind);
 
-		// get all the variables here 
+		// get all the variables here
 		$indcode = $indicator['indicator_code'];
 		$indname = $indicator['indicator_name'];
 		$inddesc = $indicator['indicator_description'];
@@ -49,8 +49,6 @@ if ($permission) {
 			$desc = $_POST['inddesc'];
 			$indcat = "Outcome";
 			$unit = $_POST['indunit'];
-			$indsector = $_POST['indsector'];
-			$inddept = $_POST['inddept'];
 			$current_date = date("Y-m-d");
 
 			$inddirection = null;
@@ -69,8 +67,8 @@ if ($permission) {
 
 			if ($ind == $indid || $indcount == 0) {
 
-				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_calculation_method=:indcalcmethod, indicator_unit=:indunit, indicator_direction=:inddirection, indicator_sector=:indsector, indicator_dept=:inddept,indicator_data_source=:source_data,indicator_aggregation=:disaggregated, updated_by=:user, date_updated=:date WHERE indid=:indid");
-				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat,  ':indcalcmethod' => $calculationmethod, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ":source_data" => $source_data, ":disaggregated" => $disaggregated, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
+				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_calculation_method=:indcalcmethod, indicator_unit=:indunit, indicator_direction=:inddirection,indicator_data_source=:source_data,indicator_aggregation=:disaggregated, updated_by=:user, date_updated=:date WHERE indid=:indid");
+				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat,  ':indcalcmethod' => $calculationmethod, ':indunit' => $unit, ':inddirection' => $inddirection, ":source_data" => $source_data, ":disaggregated" => $disaggregated, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
 
 				if ($result) {
 					// delete from tbl_indicator_measurement_variables_disaggregation_type
@@ -106,7 +104,7 @@ if ($permission) {
 									$type = "n";
 									$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 									$result2 = $insertBeneficiary->execute(array(":indicatorid" => $indid, ":measurement_variable" => $numerator, ":category" => $category, ":type" => $type));
-									
+
 									$type = "d";
 									$insertBeneficiary = $db->prepare("INSERT INTO tbl_indicator_measurement_variables(indicatorid,measurement_variable,category,type) VALUES(:indicatorid,:measurement_variable,:category, :type)");
 									$result2 = $insertBeneficiary->execute(array(":indicatorid" => $indid, ":measurement_variable" => $denominator, ":category" => $category, ":type" => $type));
@@ -175,7 +173,7 @@ if ($permission) {
 							type: 'Danger',
 							timer: 5000,
 							icon:'success',
-							showConfirmButton: false 
+							showConfirmButton: false
 						});
 						setTimeout(function(){
 							window.location.href = 'add-indicators';
@@ -224,7 +222,8 @@ if ($permission) {
 									</div>
 
 									<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12" id="code-availability-status">
-										<p id="loaderIcon" style="display:none" /></p>
+										<p id="loaderIcon" style="display:none" />
+										</p>
 									</div>
 
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -244,43 +243,8 @@ if ($permission) {
 												<?php
 												foreach ($measurement_units as $measurement_unit) {
 													$selected = $indunit == $measurement_unit['id'] ? "selected" : "";
-													?>
+												?>
 													<option value="<?php echo $measurement_unit['id'] ?>" <?= $selected ?>><?php echo $measurement_unit['unit'] ?></option>
-													<?php
-												}
-												?>
-											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<label>Indicator <?= $ministrylabel ?>*:</label>
-										<div class="form-line">
-											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
-												<?php
-												foreach ($departments as $department) {
-													$selected = ($indicator_sector == $department['stid']) ? "selected" : "";
-												?>
-													<option value="<?php echo $department['stid'] ?>" <?= $selected ?>><?php echo $department['sector'] ?></option>
-												<?php
-												}
-												?>
-											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<label>Indicator <?= $departmentlabel ?>*:</label>
-										<div class="form-line" id="inddeparment">
-											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $departmentlabel ?> ....</option>
-												<?php
-												$sectors = get_department_child($indicator_sector);
-												foreach ($sectors as $sector) {
-													$selected = ($indicator_dept == $sector['stid']) ? "selected" : "";
-												?>
-													<option value="<?php echo $sector['stid'] ?>" <?= $selected ?>><?php echo $sector['sector'] ?></option>
 												<?php
 												}
 												?>

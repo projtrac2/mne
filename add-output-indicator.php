@@ -2,13 +2,10 @@
 require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
-	require('functions/department.php');
 	require('functions/measurement-unit.php');
 	$pageTitle = "Add Output Indicator";
 
 	$measurement_units = get_measurement_units();
-
-
 	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 
@@ -21,8 +18,6 @@ if ($permission) {
 			$indname = $_POST['indname'];
 			$desc = $_POST['inddesc'];
 			$unit = $_POST['indunit'];
-			$indsector = $_POST['indsector'];
-			$inddept = $_POST['inddept'];
 			$baselinelevel = $_POST['baselinelevel'];
 			$user = $_POST['user_name'];
 			$mapping_type = $_POST['mapping_type'];
@@ -33,8 +28,8 @@ if ($permission) {
 			$indicators = get_indicator_by_indcode($indcd);
 			$url = 'view-indicators.php';
 			if (!$indicators) {
-				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_type, indicator_category, indicator_unit, indicator_sector, indicator_dept, indicator_baseline_level, indicator_mapping_type, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indicator_type, :indcat, :indunit, :indsector, :inddept, :baselinelevel,:mapping_type, :user, :date)");
-				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indicator_type' => $indicator_type, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept, ':baselinelevel' => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user, ':date' => $current_date));
+				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_type, indicator_category, indicator_unit, indicator_baseline_level, indicator_mapping_type, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indicator_type, :indcat, :indunit,:baselinelevel,:mapping_type, :user, :date)");
+				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indicator_type' => $indicator_type, ':indcat' => $indcat, ':indunit' => $unit, ':baselinelevel' => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user, ':date' => $current_date));
 				if ($result) {
 					$msg = 'Indicator successfully added.';
 					$results = "<script type=\"text/javascript\">
@@ -148,34 +143,6 @@ if ($permission) {
 											<div>
 												<input name="indname" type="text" class="form-control" placeholder="Enter result to be measured" id="indname" style="border:#CCC thin solid; border-radius: 5px" required />
 											</div>
-										</div>
-									</div>
-									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
-										<label>Indicator <?= $ministrylabel ?>*:</label>
-										<div class="form-line">
-											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
-												<?php
-												$departments = get_departments();
-												if ($departments) {
-													foreach ($departments as $department) {
-												?>
-														<option value="<?php echo $department['stid'] ?>"><?php echo $department['sector'] ?></option>
-												<?php
-													}
-												}
-
-												?>
-											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-12 col-sm12 col-xs-12">
-										<label>Indicator <?= $departmentlabel ?>*:</label>
-										<div class="form-line" id="inddeparment">
-											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?> first....</option>
-											</select>
 										</div>
 									</div>
 
@@ -302,7 +269,7 @@ if ($permission) {
 													</div>
 												</div>
 											</div>
-											<div id="diss_type"> 
+											<div id="diss_type">
 											</div>
 											<div class="modal-footer">
 												<div class="col-lg-12 col-md-12 col-sm12 col-xs-12 text-center" id="">

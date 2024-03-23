@@ -4,7 +4,7 @@ require('includes/head.php');
 if ($permission) {
     try {
         /* $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.rskid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)"); */
-        $query_escalated_issues = $db->prepare("SELECT i.id, i.issue_area, i.issue_priority, i.issue_impact, category, issue_description, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate, i.projid, projname FROM tbl_projissues i INNER JOIN tbl_projects p on i.projid=p.projid inner join tbl_projrisk_categories c ON c.catid=i.risk_category WHERE status=0 OR status=2");
+        $query_escalated_issues = $db->prepare("SELECT i.id, i.issue_area, i.issue_priority, i.issue_impact, category, issue_description, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate, i.projid, projname FROM tbl_projissues i LEFT JOIN tbl_projects p on i.projid=p.projid left join tbl_projrisk_categories c ON c.catid=i.risk_category WHERE issue_area<>5");
         $query_escalated_issues->execute();
 		$totalRows_escalated_issues = $query_escalated_issues->rowCount();
 		
@@ -77,21 +77,26 @@ if ($permission) {
 												if($totalRows_escalated_issues > 0){
 													$nm = 0;
 													while ($row_issues = $query_escalated_issues->fetch()) {
-														$nm = $nm + 1;
-														$issueid = $row_issues['id'];
-														$projid = $row_issues['projid'];
-														$project = $row_issues['projname'];
-														$risk_category = $row_issues['category'];
-														$issue_description = $row_issues['issue_description'];
-														$issue_priority = $row_issues['issue_priority'];
-														$issue_areaid = $row_issues['issue_area'];
-														$issue_impact = $row_issues['issue_impact'];
-														$monitorid = $row_issues['monitor'];
-														$recommendation = $row_issues['recommendation'];
-														$issuedate = $row_issues['issuedate'];
-														$issuestatus = $row_issues['status'];
-
 														if($superuser || $monitorid == $user_name){
+															$nm = $nm + 1;
+															$issueid = $row_issues['id'];
+															$projid = $row_issues['projid'];
+															$project = $row_issues['projname'];
+															$risk_category = $row_issues['category'];
+															$issue_description = $row_issues['issue_description'];
+															$issue_priority = $row_issues['issue_priority'];
+															$issue_areaid = $row_issues['issue_area'];
+															$issue_impact = $row_issues['issue_impact'];
+															$monitorid = $row_issues['monitor'];
+															$recommendation = $row_issues['recommendation'];
+															$issuedate = $row_issues['issuedate'];
+															$issuestatus = $row_issues['status'];
+															
+															$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id = :issue_areaid");
+															$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));
+															$row_issue_area = $query_issue_area->fetch();
+															$issue_area = $row_issue_area["issue_area"];
+															
 															$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=1 and active=1");
 															$query_timeline->execute();
 															$row_timeline = $query_timeline->fetch();
@@ -109,16 +114,6 @@ if ($permission) {
 															}else{
 																$priority = "Unknown";
 															}
-																																	
-															if($issue_areaid == 1){
-																$issue_area = "Quality";
-															}elseif($issue_areaid == 2){
-																$issue_area = "Scope";
-															}elseif($issue_areaid == 3){
-																$issue_area = "Schedule";
-															}else{
-																$issue_area = "Cost";
-															}
 
 															$duedate = strtotime($issuedate . "+ " . $time . " " . $units);
 															$actionnduedate = date("d M Y", $duedate);
@@ -126,22 +121,22 @@ if ($permission) {
 															$current_date = date("Y-m-d");
 															$actduedate = date("Y-m-d", $duedate);
 	
-														if($issuestatus == 0){
-															if ($actduedate >= $current_date) {
-																$actionstatus = $stgstatus;
-																$styled = 'style="color:blue"';
-															} elseif ($actduedate < $current_date) {
-																$actionstatus = "Behind Schedule";
-																$styled = 'style="color:red"';
+															if($issuestatus == 0){
+																if ($actduedate >= $current_date) {
+																	$actionstatus = $stgstatus;
+																	$styled = 'style="color:blue"';
+																} elseif ($actduedate < $current_date) {
+																	$actionstatus = "Behind Schedule";
+																	$styled = 'style="color:red"';
+																}
+															}else{
+																$query_issue_status = $db->prepare("SELECT status FROM tbl_issue_status WHERE statuskey=:statuskey");
+																$query_issue_status->execute(array(":statuskey" => $issuestatus));
+																$row_issue_status = $query_issue_status->fetch();
+																
+																$actionstatus = $row_issue_status["status"];
+																$styled = 'style="color:green"';														
 															}
-														}else{
-															$query_issue_status = $db->prepare("SELECT status FROM tbl_issue_status WHERE statuskey=:statuskey");
-															$query_issue_status->execute(array(":statuskey" => $issuestatus));
-															$row_issue_status = $query_issue_status->fetch();
-															
-															$actionstatus = $row_issue_status["status"];
-															$styled = 'style="color:green"';														
-														}
 
 															$actiondate = $actionnduedate;
 															$query_owner = $db->prepare("SELECT tt.title, fullname FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid='$monitorid'");

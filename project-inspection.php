@@ -1,13 +1,15 @@
 <?php
 require('includes/head.php');
-// if ($permission) {
-    try {
 
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+if ($permission) {
+    try {
         if (isset($_POST['store'])) {
             $projid = $_POST['projid'];
             $comments = $_POST['comments'];
             $date_requested = date("Y-m-d");
-            $workflow_stage = 9;
             $sub_stage = $comments != '' ? 4 : 5;
             $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
             $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
@@ -15,7 +17,12 @@ require('includes/head.php');
             if ($comments != '') {
                 $sql = $db->prepare("INSERT INTO tbl_projissues (projid, issue_description, issue_area, risk_category, issue_priority, issue_impact, created_by, date_created) VALUES (:projid, :issue_description, :issue_area, :risk_category, :issue_priority, :issue_impact, :user, :date)");
                 $results  = $sql->execute(array(':projid' => $projid, ':issue_description' => $comments, ':issue_area' => 5, ':risk_category' => 5, ':issue_priority' => 5, ':issue_impact' => 5, ':user' => $user_name, ':date' => $date_requested));
+
+                $issue_id = $db->lastInsertId();
+                $sql = $db->prepare("UPDATE tbl_inspection_checklist SET issue_id=:issue_id WHERE  projid=:projid AND issue_id=0 AND answer=2 ");
+                $result  = $sql->execute(array(":issue_id" => $issue_id, ":projid" => $projid));
             }
+
             $msg = "Record created Successfully";
             $results = "<script type=\"text/javascript\">
             swal({
@@ -32,6 +39,8 @@ require('includes/head.php');
 
             echo $results;
         }
+
+
         if (isset($_GET['projid'])) {
             $encoded_projid = $_GET['projid'];
             $decode_projid = base64_decode($encoded_projid);
@@ -42,25 +51,10 @@ require('includes/head.php');
             $row_rsProjects = $query_rsProjects->fetch();
             $totalRows_rsProjects = $query_rsProjects->rowCount();
 
-            $approve_details = "";
-
             if ($totalRows_rsProjects > 0) {
                 $implimentation_type = $row_rsProjects['projcategory'];
                 $projname = $row_rsProjects['projname'];
                 $projcode = $row_rsProjects['projcode'];
-                $projcost = $row_rsProjects['projcost'];
-                $projfscyear = $row_rsProjects['projfscyear'];
-                $projduration = $row_rsProjects['projduration'];
-                $mne_cost = $row_rsProjects['mne_budget'];
-                $direct_cost = $row_rsProjects['direct_cost'];
-                $administrative_cost = $row_rsProjects['administrative_cost'];
-                $implementation_cost = $projcost - $mne_cost;
-                $progid = $row_rsProjects['progid'];
-                $projstartdate = $row_rsProjects['projstartdate'];
-                $projenddate = $row_rsProjects['projenddate'];
-                $project_sub_stage = $row_rsProjects['proj_substage'];
-                $workflow_stage = $row_rsProjects['projstage'];
-                $project_directorate = $row_rsProjects['directorate'];
 
                 $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid");
                 $query_rsQuestions_pending->execute(array(":projid" => $projid));
@@ -79,6 +73,18 @@ require('includes/head.php');
                         $not_answered++;
                     }
                 }
+
+                function check_if_answered($projid, $site_id, $output_id, $question_id)
+                {
+                    global $db;
+                    $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id  ");
+                    $stmt->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id));
+                    $total_rows = $stmt->rowCount();
+
+                    return $total_rows;
+                }
+
+                $proceed_array = [];
 ?>
                 <!-- start body  -->
                 <section class="content">
@@ -181,7 +187,6 @@ require('includes/head.php');
                                                                                                 </thead>
                                                                                                 <tbody>
                                                                                                     <?php
-                                                                                                    $questions = '';
                                                                                                     $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer=0 AND output_id=:output_id");
                                                                                                     $query_rsQuestions_pending->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                                     $totalRows_rsQuestions_pending = $query_rsQuestions_pending->rowCount();
@@ -192,26 +197,24 @@ require('includes/head.php');
                                                                                                             $question = $row['question'];
                                                                                                             $answer = $row['answer'];
 
-                                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id  ");
-                                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id));
-                                                                                                            $total_rows = $stmt->rowCount();
+                                                                                                            $total_rows = check_if_answered($projid, $site_id, $output_id, $question_id);
 
                                                                                                             if ($total_rows == 0) {
+                                                                                                                $proceed_array[] = true;
                                                                                                                 $hash++;
                                                                                                                 $question_details =
                                                                                                                     "{
-                                                                                                                    question_id: $question_id,
-                                                                                                                    question:'$question',
-                                                                                                                    output_id: '$output_id',
-                                                                                                                    site_id: '$site_id',
-                                                                                                                    comment:'',
-                                                                                                                    answer:'',
-                                                                                                                }";
+                                                                                                                            question_id: $question_id,
+                                                                                                                            question:'$question',
+                                                                                                                            output_id: '$output_id',
+                                                                                                                            site_id: '$site_id',
+                                                                                                                            comment:'',
+                                                                                                                            answer:'',
+                                                                                                                        }";
                                                                                                     ?>
                                                                                                                 <tr>
                                                                                                                     <td><?= $hash ?></td>
                                                                                                                     <td>
-
                                                                                                                         <?= $question ?>
                                                                                                                     </td>
                                                                                                                     <td>
@@ -245,6 +248,7 @@ require('includes/head.php');
                                                     $query_Output->execute(array(":projid" => $projid));
                                                     $total_Output = $query_Output->rowCount();
                                                     $outputs = '';
+                                                    $site_id = 0;
                                                     if ($total_Output > 0) {
                                                         $counter = 0;
                                                         while ($row_rsOutput = $query_Output->fetch()) {
@@ -269,8 +273,7 @@ require('includes/head.php');
                                                                                 </thead>
                                                                                 <tbody>
                                                                                     <?php
-                                                                                    $questions = '';
-                                                                                    $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND answer=0 AND output_id=:output_id");
+                                                                                    $query_rsQuestions_pending = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                                                                     $query_rsQuestions_pending->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                                                     $totalRows_rsQuestions_pending = $query_rsQuestions_pending->rowCount();
                                                                                     if ($totalRows_rsQuestions_pending > 0) {
@@ -279,24 +282,19 @@ require('includes/head.php');
                                                                                             $question_id = $row['id'];
                                                                                             $question = $row['question'];
                                                                                             $answer = $row['answer'];
-
-
-                                                                                            $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id  AND output_id=:output_id AND question_id=:question_id  ");
-                                                                                            $stmt->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id,  ":question_id" => $question_id));
-                                                                                            $total_rows = $stmt->rowCount();
-
-
+                                                                                            $total_rows = check_if_answered($projid, $site_id, $output_id, $question_id);
                                                                                             if ($total_rows == 0) {
+                                                                                                $proceed_array[] = true;
                                                                                                 $counter++;
                                                                                                 $question_details =
                                                                                                     "{
-                                                                                                    question_id: $question_id,
-                                                                                                    question:'$question',
-                                                                                                    output_id: '$output_id',
-                                                                                                    site_id: '0',
-                                                                                                    comment:'',
-                                                                                                    answer:'',
-                                                                                                }";
+                                                                                                        question_id: $question_id,
+                                                                                                        question:'$question',
+                                                                                                        output_id: '$output_id',
+                                                                                                        site_id: $site_id,
+                                                                                                        comment:'',
+                                                                                                        answer:'',
+                                                                                                    }";
                                                                                     ?>
                                                                                                 <tr>
                                                                                                     <td><?= $counter ?></td>
@@ -374,7 +372,7 @@ require('includes/head.php');
                                                                                                     <tr>
                                                                                                         <th style="width:5%" align="center">#</th>
                                                                                                         <th style="width:40%">Question</th>
-                                                                                                        <th style="width:5%">Answer</th>
+                                                                                                        <th style="width:5%">Compliant</th>
                                                                                                         <th style="width:40%">Comment</th>
                                                                                                         <th style="width:10%">Action</th>
                                                                                                     </tr>
@@ -390,21 +388,13 @@ require('includes/head.php');
                                                                                                             $counter++;
                                                                                                             $question_id = $row['id'];
                                                                                                             $question = $row['question'];
-
-
                                                                                                             $stmt = $db->prepare("SELECT * FROM tbl_inspection_checklist WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id");
                                                                                                             $stmt->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id));
                                                                                                             $total_rows = $stmt->rowCount();
                                                                                                             $stmt_result = $stmt->fetch();
 
-
-                                                                                                            $answ = '';
-                                                                                                            $answer = '';
-
-
                                                                                                             if ($total_rows > 0) {
                                                                                                                 $checklist_id = $stmt_result['id'];
-
                                                                                                                 $checklist_stmt_comment = $db->prepare("SELECT * FROM tbl_inspection_checklist_comments WHERE projid=:projid AND site_id=:site_id AND output_id=:output_id AND question_id=:question_id AND checklist_id=:checklist_id");
                                                                                                                 $checklist_stmt_comment->execute(array(":projid" => $projid, ":site_id" => $site_id, ":output_id" => $output_id, ":question_id" => $question_id, ':checklist_id' => $checklist_id));
                                                                                                                 $stmt_result_comment = $checklist_stmt_comment->fetch();
@@ -414,16 +404,15 @@ require('includes/head.php');
                                                                                                                 $proceed[] = $answ == 1 ? true : false;
                                                                                                                 $comment = ($stmt_result_comment) ? $stmt_result_comment['comment'] : 'N/A';
 
-
                                                                                                                 $question_details =
                                                                                                                     "{
-                                                                                                                    question_id: $question_id,
-                                                                                                                    question:'$question',
-                                                                                                                    output_id: '$output_id',
-                                                                                                                    site_id: '$site_id',
-                                                                                                                    comment:'$comment',
-                                                                                                                    answer:$answ,
-                                                                                                                }";
+                                                                                                                        question_id: $question_id,
+                                                                                                                        question:'$question',
+                                                                                                                        output_id: '$output_id',
+                                                                                                                        site_id: '$site_id',
+                                                                                                                        comment:'$comment',
+                                                                                                                        answer:$answ,
+                                                                                                                    }";
                                                                                                     ?>
                                                                                                                 <tr>
                                                                                                                     <td style="width:5%"><?= $counter ?> </td>
@@ -475,7 +464,6 @@ require('includes/head.php');
                                                                 </legend>
 
                                                                 <div class="row clearfix">
-                                                                    <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
                                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 
                                                                         <div class="table-responsive">
@@ -484,7 +472,7 @@ require('includes/head.php');
                                                                                     <tr>
                                                                                         <th style="width:5%" align="center">#</th>
                                                                                         <th style="width:40%">Question</th>
-                                                                                        <th style="width:5%">Answer</th>
+                                                                                        <th style="width:5%">Compliant</th>
                                                                                         <th style="width:40%">Comment</th>
                                                                                         <th style="width:10%">Action</th>
                                                                                     </tr>
@@ -508,8 +496,6 @@ require('includes/head.php');
                                                                                             $stmt->execute(array(":projid" => $projid, ":site_id" => 0, ":output_id" => $output_id, ":question_id" => $question_id));
                                                                                             $total_rows = $stmt->rowCount();
                                                                                             $stmt_result = $stmt->fetch();
-                                                                                            $answ = '';
-                                                                                            $answer = '';
 
                                                                                             if ($total_rows > 0) {
                                                                                                 $checklist_id = $stmt_result['id'];
@@ -520,7 +506,6 @@ require('includes/head.php');
                                                                                                 $answ = $stmt_result['answer'];
                                                                                                 $answer = $stmt_result['answer'] == 1 ? 'Yes' : 'No';
                                                                                                 $comment = ($stmt_result_comment) ? $stmt_result_comment['comment'] : 'N/A';
-
 
                                                                                                 $question_details =
                                                                                                     "{
@@ -563,39 +548,39 @@ require('includes/head.php');
                                         </div>
 
                                         <?php
-                                        // if ($proceed) {
+                                        if (empty($proceed_array)) {
                                         ?>
-                                        <fieldset class="scheduler-border" id="direct_cost">
-                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                <i class="fa fa-calendar" aria-hidden="true"></i> Proceed
-                                            </legend>
-                                            <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                                <?php
-                                                if (in_array(false, $proceed)) {
-                                                ?>
-                                                    <div id="comment_section">
-                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                            <label class="control-label">Remarks *:</label>
-                                                            <br>
-                                                            <div class="form-line">
-                                                                <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                            <fieldset class="scheduler-border" id="direct_cost">
+                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                    <i class="fa fa-calendar" aria-hidden="true"></i> Proceed
+                                                </legend>
+                                                <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                    <?php
+                                                    if (in_array(false, $proceed)) {
+                                                    ?>
+                                                        <div id="comment_section">
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                                <label class="control-label">Remarks *:</label>
+                                                                <br>
+                                                                <div class="form-line">
+                                                                    <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                    <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                        <div class="col-md-12 text-center">
+                                                            <input type="hidden" name="projid" value="<?= $projid ?>">
+                                                            <input type="hidden" name="store" value="store">
+                                                            <button type="submit" class="btn btn-success">Proceed</button>
+                                                        </div>
                                                     </div>
-                                                <?php
-                                                }
-                                                ?>
-                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                    <div class="col-md-12 text-center">
-                                                        <input type="hidden" name="projid" value="<?= $projid ?>">
-                                                        <input type="hidden" name="store" value="store">
-                                                        <button type="submit" class="btn btn-success">Submit</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </fieldset>
+                                                </form>
+                                            </fieldset>
                                         <?php
-                                        // }
+                                        }
                                         ?>
                                     </div>
                                 </div>
@@ -610,12 +595,12 @@ require('includes/head.php');
                         <div class="modal-content">
                             <div class="modal-header" style="background-color:#03A9F4">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Project Inspection Checklist</h4>
+                                <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Inspection & Acceptance Checklists</h4>
                             </div>
                             <form class="form-horizontal" id="add_questions_form" action="" method="POST">
                                 <div class="modal-body">
                                     <fieldset class="scheduler-border" id="tasks_div">
-                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Inspection & Acceptance Checklists </legend>
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Is it compliant? </legend>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <ul class="list-group">
                                                 <li class="list-group-item list-group-item list-group-item-action active">Project Name: <span id="projname"><?= $projname ?></span> </li>
@@ -676,10 +661,10 @@ require('includes/head.php');
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
-// } else {
-//     $results =  restriction();
-//     echo $results;
-// }
+} else {
+    $results =  restriction();
+    echo $results;
+}
 
 require('includes/footer.php');
 ?>

@@ -1,6 +1,6 @@
 <?php
 require('includes/head.php');
-// if ($permission) {
+if ($permission) {
     try {
         $proj_id_decode = base64_decode($_GET['projid']);
         $proj_id_array = explode("projid54321", $proj_id_decode);
@@ -54,16 +54,15 @@ require('includes/head.php');
                                     $edit = $totalRows_rsQuestions > 0 ? 1 : 0;
                                     $proceed[] = $totalRows_rsQuestions > 0 ? true : false;
                                     $counter++;
-
                                     $details =
                                         "{
-                                            projid:$projid,
-                                            projcode:'$projcode',
-                                            project_name:'$projname',
-                                            output_id: '$output_id',
-                                            output_name: '$output',
-                                            edit:$totalRows_rsQuestions ,
-                                        }";
+                                        projid:$projid,
+                                        projcode:'$projcode',
+                                        project_name:'$projname',
+                                        output_id: '$output_id',
+                                        output_name: '$output',
+                                        edit:$totalRows_rsQuestions ,
+                                    }";
                             ?>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
@@ -116,7 +115,7 @@ require('includes/head.php');
                                 }
                             }
 
-                            if ($proceed) {
+                            if (!empty($proceed) && !in_array(false, $proceed)) {
                                 ?>
                                 <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                     <div class="col-md-12 text-center">
@@ -134,24 +133,23 @@ require('includes/head.php');
     </section>
     <!-- end body  -->
 
-
     <!-- Start Modal Item approve -->
     <div class="modal fade" id="inspection_acceptance_modal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header" style="background-color:#03A9F4">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Project Inspection Checklist</h4>
+                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Inspection & Acceptance</h4>
                 </div>
                 <form class="form-horizontal" id="add_questions_form" action="" method="POST">
                     <div class="modal-body">
                         <fieldset class="scheduler-border" id="tasks_div">
-                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Inspection & Acceptance Checklists </legend>
+                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Checklists </legend>
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <ul class="list-group">
-                                    <li class="list-group-item list-group-item list-group-item-action active">Project Name: <span id="projname"></span> </li>
-                                    <li class="list-group-item"><strong>Output Name: </strong><span id="outputname"></span> </li>
-                                    <li class="list-group-item"><strong>Code: </strong> <span id="projcode"></span> </li>
+                                    <li class="list-group-item list-group-item list-group-item-action active"> Project Name: <span id="projname"></span> </li>
+                                    <li class="list-group-item"><strong> Output Name: </strong><span id="outputname"></span> </li>
+                                    <li class="list-group-item"><strong> Code: </strong> <span id="projcode"></span> </li>
                                 </ul>
                             </div>
                             <div class="col-md-12" id="projoutputTable">
@@ -199,32 +197,12 @@ require('includes/head.php');
     </div>
     <!-- end assignment modal -->
 
-    <!-- Start projects Item more Info -->
-    <div class="modal fade" tabindex="-1" role="dialog" id="moreItemModal">
-        <div class="modal-dialog  modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info"></i> Project More Information</h4>
-                </div>
-                <div class="modal-body" id="moreinfo">
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-12 text-center">
-                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
-                    </div>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div>
-    <!-- End  Item more Info -->
 <?php
-// } else {
-//     $results =  restriction();
-//     echo $results;
-// }
+} else {
+    $results =  restriction();
+    echo $results;
+}
 
 require('includes/footer.php');
 ?>
-<script src="assets/js/projects/view-project.js"></script>
-<script src="assets/js/inspection/acceptance.js" defer></script>
+<script src="assets/js/inspection/checklist.js" defer></script>

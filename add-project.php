@@ -15,7 +15,7 @@ if ($permission) {
     }
 
     $program_type = $planid = $progid = $projid = $projcode = $projname = $projdescription = $projtype = $projendyear = "";
-    $projbudget = $projfscyear = $projduration = $projevaluation = $projimpact  = $projimpact = "";
+    $projbudget = $projfscyear = $projduration = $projevaluation = $projimpact  = $projimpact = $asset = "";
     $project_budget = 0;
     $projcommunity = $projlga = $projlocation = "";
     $projcategory = $projstatus = "";
@@ -52,6 +52,7 @@ if ($permission) {
             $key_unique = $row_rsProgjects['key_unique'];
             $target_beneficiaries = $row_rsProgjects['beneficiaries'];
             $project_budget = $row_rsProgjects['projcost'];
+            $asset = $row_rsProgjects['asset'];
 
             $query_rsFscYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year where id ='$projfscyear'");
             $query_rsFscYear->execute();
@@ -396,7 +397,7 @@ if ($permission) {
                                         <input type="text" name="beneficiary" id="beneficiary" value="<?= $target_beneficiaries ?>" class="form-control">
                                         <span id="" style="color:red"></span>
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                         <label for="" class="control-label">Outcome Evaluation Required? *:</label>
                                         <div class="form-line">
                                             <input name="projevaluation" type="radio" value="1" onchange="show_impact(1)" <?= $projevaluation == 1 && $projid != "" ? "checked" : "" ?> id="evaluation1" class="with-gap radio-col-green evaluation" required="required" />
@@ -405,7 +406,7 @@ if ($permission) {
                                             <label for="evaluation2">NO</label>
                                         </div>
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="impact_div">
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12" id="impact_div">
                                         <label for="" class="control-label">Impact Evaluation Required? *:</label>
                                         <div class="form-line">
                                             <input name="impact" type="radio" value="1" id="impact1" <?= $projimpact == 1 && $projid != "" ? "checked" : "" ?> class="with-gap radio-col-green impact" />
@@ -414,22 +415,31 @@ if ($permission) {
                                             <label for="impact2">NO</label>
                                         </div>
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                                        <label for="" class="control-label">Project Sites Required? *:</label>
+                                    <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <label for="" class="control-label">Asset ? *:</label>
                                         <div class="form-line">
-                                            <input name="project_sites" type="radio" value="1" onchange="hide_project_site_table(1)" <?= $totalRows_rsSites > 0 && $projid != "" ? "checked" : "" ?> id="project_sites1" class="with-gap radio-col-green project_site" required="required" />
-                                            <label for="project_sites1">YES</label>
-                                            <input name="project_sites" type="radio" value="0" onchange="hide_project_site_table(0)" <?= $totalRows_rsSites == 0 && $projid != "" ? "checked" : "" ?> id="project_sites2" class="with-gap radio-col-red project_site" required="required" />
-                                            <label for="project_sites2">NO</label>
+                                            <input name="project_asset" type="radio" value="1" <?= $asset == 1 && $projid != "" ? "checked" : "" ?> id="project_asset1" class="with-gap radio-col-green project_asset" required="required" />
+                                            <label for="project_asset1">YES</label>
+                                            <input name="project_asset" type="radio" value="0" <?= $asset == 0 && $projid != "" ? "checked" : "" ?> id="project_asset2" class="with-gap radio-col-red project_asset" required="required" />
+                                            <label for="project_asset2">NO</label>
                                         </div>
                                     </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Implementation Method *:</label>
                                         <div class="form-line">
                                             <select name="projimplmethod" id="projimplmethod" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
                                                 <option value="">.... Select the method ....</option>
                                                 <?= get_implimentation_method($projcategory) ?>
                                             </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label for="" class="control-label">Project Sites Required? *:</label>
+                                        <div class="form-line">
+                                            <input name="project_sites" type="radio" value="1" onchange="hide_project_site_table(1)" <?= $totalRows_rsSites > 0 && $projid != "" ? "checked" : "" ?> id="project_sites1" class="with-gap radio-col-green project_site" required="required" />
+                                            <label for="project_sites1">YES</label>
+                                            <input name="project_sites" type="radio" value="0" onchange="hide_project_site_table(0)" <?= $totalRows_rsSites == 0 && $projid != "" ? "checked" : "" ?> id="project_sites2" class="with-gap radio-col-red project_site" required="required" />
+                                            <label for="project_sites2">NO</label>
                                         </div>
                                     </div>
                                     <script>
@@ -471,107 +481,110 @@ if ($permission) {
                                             </select>
                                         </div>
                                     </div>
-                                    <fieldset class="scheduler-border" id="project_site_table">
-                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Project Sites </legend>
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="projoutputTable">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-striped table-hover" id="project_sites_table" style="width:100%">
-                                                    <thead>
-                                                        <tr>
-                                                            <th width="5%">#</th>
-                                                            <th width="40%"><?= $level2label ?></th>
-                                                            <th width="50%">Sites </th>
-                                                            <th width="5%">
-                                                                <button type="button" name="addplus" id="add_project_site" onclick="add_site_row()" class="btn btn-success btn-sm">
-                                                                    <span class="glyphicon glyphicon-plus">
-                                                                    </span>
-                                                                </button>
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="project_sites_table_body">
-                                                        <tr></tr>
-                                                        <?php
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <fieldset class="scheduler-border" id="project_site_table">
+                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Project Sites </legend>
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="projoutputTable">
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered table-striped table-hover" id="project_sites_table" style="width:100%">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="5%">#</th>
+                                                                <th width="40%"><?= $level2label ?></th>
+                                                                <th width="50%">Sites </th>
+                                                                <th width="5%">
+                                                                    <button type="button" name="addplus" id="add_project_site" onclick="add_site_row()" class="btn btn-success btn-sm">
+                                                                        <span class="glyphicon glyphicon-plus">
+                                                                        </span>
+                                                                    </button>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="project_sites_table_body">
+                                                            <tr></tr>
+                                                            <?php
 
-                                                        function get_sites($projid, $state_id)
-                                                        {
-                                                            global $db;
-                                                            $query_rsSites =  $db->prepare("SELECT * FROM tbl_project_sites WHERE projid =:projid AND state_id=:state_id");
-                                                            $query_rsSites->execute(array(":projid" => $projid, ":state_id" => $state_id));
-                                                            $totalRows_rsSites = $query_rsSites->rowCount();
-                                                            $sites = [];
-                                                            if ($totalRows_rsSites > 0) {
-                                                                while ($row_rsSites = $query_rsSites->fetch()) {
-                                                                    $sites[] = $row_rsSites['site'];
-                                                                }
-                                                            }
-                                                            return implode(",", $sites);
-                                                        }
-
-                                                        function get_states($stid, $projlga)
-                                                        {
-                                                            global $db;
-                                                            $projlga = explode(",", $projlga);
-                                                            $count = count($projlga);
-                                                            $states  = '';
-                                                            for ($i = 0; $i < $count; $i++) {
-                                                                $state_id = $projlga[$i];
-                                                                $query_rsSites =  $db->prepare("SELECT * FROM tbl_state WHERE id=:state_id");
-                                                                $query_rsSites->execute(array(":state_id" => $state_id));
+                                                            function get_sites($projid, $state_id)
+                                                            {
+                                                                global $db;
+                                                                $query_rsSites =  $db->prepare("SELECT * FROM tbl_project_sites WHERE projid =:projid AND state_id=:state_id");
+                                                                $query_rsSites->execute(array(":projid" => $projid, ":state_id" => $state_id));
                                                                 $totalRows_rsSites = $query_rsSites->rowCount();
+                                                                $sites = [];
                                                                 if ($totalRows_rsSites > 0) {
-                                                                    $row_rsSites = $query_rsSites->fetch();
-                                                                    $state   = $row_rsSites['state'];
-                                                                    $selected = $stid == $state_id ? "selected" : "";
-                                                                    $states .= '<option value="' . $state_id . '"  ' . $selected . '>' . $state . '</option>';
+                                                                    while ($row_rsSites = $query_rsSites->fetch()) {
+                                                                        $sites[] = $row_rsSites['site'];
+                                                                    }
                                                                 }
+                                                                return implode(",", $sites);
                                                             }
-                                                            return $states;
-                                                        }
+
+                                                            function get_states($stid, $projlga)
+                                                            {
+                                                                global $db;
+                                                                $projlga = explode(",", $projlga);
+                                                                $count = count($projlga);
+                                                                $states  = '';
+                                                                for ($i = 0; $i < $count; $i++) {
+                                                                    $state_id = $projlga[$i];
+                                                                    $query_rsSites =  $db->prepare("SELECT * FROM tbl_state WHERE id=:state_id");
+                                                                    $query_rsSites->execute(array(":state_id" => $state_id));
+                                                                    $totalRows_rsSites = $query_rsSites->rowCount();
+                                                                    if ($totalRows_rsSites > 0) {
+                                                                        $row_rsSites = $query_rsSites->fetch();
+                                                                        $state   = $row_rsSites['state'];
+                                                                        $selected = $stid == $state_id ? "selected" : "";
+                                                                        $states .= '<option value="' . $state_id . '"  ' . $selected . '>' . $state . '</option>';
+                                                                    }
+                                                                }
+                                                                return $states;
+                                                            }
 
 
 
-                                                        if ($totalRows_rsSites > 0) {
-                                                            $rowno = 0;
-                                                            while ($row_rsSites = $query_rsSites->fetch()) {
-                                                                $rowno++;
-                                                                $state_id = $row_rsSites['state_id'];
-                                                                $states = get_states($state_id, $projlga);
-                                                                $sites = get_sites($projid, $state_id);
-                                                        ?>
-                                                                <tr id="siterow<?= $rowno ?>">
-                                                                    <td><?= $rowno ?></td>
-                                                                    <td>
-                                                                        <select name="lvid[]" id="lvidrow<?= $rowno ?>" class="form-control lvidstates" required="required">
-                                                                            <option value="">Select <?= $level2label ?> from list</option>
-                                                                            <?= $states ?>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" name="site[]" id="siterow<?= $rowno ?>" value="<?= $sites ?>" placeholder="Enter" class="form-control" required />
-                                                                    </td>
-                                                                    <td>
-                                                                        <button type="button" name="addplus" id="add_project_site" onclick='delete_row_sites("siterow<?= $rowno ?>")' class="btn btn-danger btn-sm">
-                                                                            <span class="glyphicon glyphicon-minus">
-                                                                            </span>
-                                                                        </button>
-                                                                    </td>
+                                                            if ($totalRows_rsSites > 0) {
+                                                                $rowno = 0;
+                                                                while ($row_rsSites = $query_rsSites->fetch()) {
+                                                                    $rowno++;
+                                                                    $state_id = $row_rsSites['state_id'];
+                                                                    $states = get_states($state_id, $projlga);
+                                                                    $sites = get_sites($projid, $state_id);
+                                                            ?>
+                                                                    <tr id="siterow<?= $rowno ?>">
+                                                                        <td><?= $rowno ?></td>
+                                                                        <td>
+                                                                            <select name="lvid[]" id="lvidrow<?= $rowno ?>" class="form-control lvidstates" required="required">
+                                                                                <option value="">Select <?= $level2label ?> from list</option>
+                                                                                <?= $states ?>
+                                                                            </select>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="text" name="site[]" id="siterow<?= $rowno ?>" value="<?= $sites ?>" placeholder="Enter" class="form-control" required />
+                                                                        </td>
+                                                                        <td>
+                                                                            <button type="button" name="addplus" id="add_project_site" onclick='delete_row_sites("siterow<?= $rowno ?>")' class="btn btn-danger btn-sm">
+                                                                                <span class="glyphicon glyphicon-minus">
+                                                                                </span>
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                <?php
+                                                                }
+                                                            } else {
+                                                                ?>
+                                                                <tr id="removeSTr" class="text-center">
+                                                                    <td colspan="5">Add Project Sites!!</td>
                                                                 </tr>
                                                             <?php
                                                             }
-                                                        } else {
                                                             ?>
-                                                            <tr id="removeSTr" class="text-center">
-                                                                <td colspan="5">Add Project Sites!!</td>
-                                                            </tr>
-                                                        <?php
-                                                        }
-                                                        ?>
-                                                    </tbody>
-                                                </table>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </fieldset>
+                                        </fieldset>
+                                    </div>
+
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <ul class="list-inline text-center">
                                             <li><button class="btn btn-success btn-sm" id="project_details_id" type="submit"><?= $totalRows_rsSites > 0 ? "Edit" : "Save" ?></button></li>

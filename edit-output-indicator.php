@@ -1,17 +1,15 @@
 <?php
-$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php"); 
+$decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php");
 $indid_array = explode("opid", $decode_indid);
 $ind = $indid_array[1];
 
 require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
-	require('functions/department.php');
 	require('functions/measurement-unit.php');
 	try {
 		$indicator = get_indicator_by_indid($ind);
 		$measurement_units = get_measurement_units();
-		$departments = get_departments();
 		($indicator) ?  "" : header("Location: view-indicators.php");
 		$indcode = $indicator['indicator_code'];
 		$indname = $indicator['indicator_name'];
@@ -30,8 +28,6 @@ if ($permission) {
 			$indname = $_POST['indname'];
 			$desc = $_POST['inddesc'];
 			$unit = $_POST['indunit'];
-			$indsector = $_POST['indsector'];
-			$inddept = $_POST['inddept'];
 			$user = $_POST['user_name'];
 			$indid = $_POST['indid'];
 			$baselinelevel = $_POST['baselinelevel'];
@@ -47,8 +43,8 @@ if ($permission) {
 			$ind = $indcount > 0 ? $row_rsIndicator["indid"] : '';
 
 			if ($ind == $indid || $indcount == 0) {
-				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_unit=:indunit, indicator_sector=:indsector, indicator_dept=:inddept, indicator_baseline_level=:baselinelevel, indicator_mapping_type=:mapping_type, updated_by=:user, date_updated=:date WHERE indid=:indid");
-				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indunit' => $unit, ':indsector' => $indsector, ':inddept' => $inddept, ":baselinelevel" => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
+				$updateSQL = $db->prepare("UPDATE tbl_indicator SET indicator_code=:indcode, indicator_name=:indname, indicator_description=:inddesc, indicator_category=:indcat, indicator_unit=:indunit, indicator_baseline_level=:baselinelevel, indicator_mapping_type=:mapping_type, updated_by=:user, date_updated=:date WHERE indid=:indid");
+				$result = $updateSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indunit' => $unit, ":baselinelevel" => $baselinelevel, ":mapping_type" => $mapping_type, ':user' => $user_name, ':date' => $current_date, ':indid' => $indid));
 
 				if ($result) {
 					$msg = 'Indicator successfully updated.';
@@ -167,39 +163,6 @@ if ($permission) {
 										</div>
 									</div>
 									<div class="col-md-6">
-										<label>Indicator <?= $ministrylabel ?>*:</label>
-										<div class="form-line">
-											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
-												<?php
-												foreach ($departments as $department) {
-													$selected = ($indicator_sector == $department['stid']) ? "selected" : "";
-												?>
-													<option value="<?php echo $department['stid'] ?>" <?= $selected ?>><?php echo $department['sector'] ?></option>
-												<?php
-												}
-												?>
-											</select>
-										</div>
-									</div>
-									<div class="col-md-6">
-										<label>Indicator <?= $departmentlabel ?>*:</label>
-										<div class="form-line" id="inddeparment">
-											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $departmentlabel ?> ....</option>
-												<?php
-												$sectors = get_department_child($indicator_sector);
-												foreach ($sectors as $sector) {
-													$selected = ($indicator_dept == $sector['stid']) ? "selected" : "";
-												?>
-													<option value="<?php echo $sector['stid'] ?>" <?= $selected ?>><?php echo $sector['sector'] ?></option>
-												<?php
-												}
-												?>
-											</select>
-										</div>
-									</div>
-									<div class="col-md-6">
 										<label>Indicator Data Level *:</label>
 										<div class="form-line">
 											<select name="baselinelevel" id="baselinelevel" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
@@ -214,12 +177,12 @@ if ($permission) {
 										<div class="form-line">
 											<select name="mapping_type" id="mapping_type" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px" required>
 												<option value="" selected="selected" class="selection">....Select Mapping Type....</option>
-												
+
 												<?php
 												$query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type where status=1");
 												$query_rsMapType->execute();
 												$selected = $mapping_type == 0 ? "selected" : "";
-												echo '<option value="0" '.$selected.'>Not Applicable</option>';
+												echo '<option value="0" ' . $selected . '>Not Applicable</option>';
 												while ($row_rsMapType = $query_rsMapType->fetch()) {
 													$selected = $row_rsMapType['id'] == $mapping_type ? "selected" : "";
 												?>

@@ -85,11 +85,10 @@ if ($permission) {
                                                 <thead>
                                                     <tr class="bg-orange">
                                                         <th width="3%"><strong id="colhead">SN</strong></th>
-                                                        <th width="5%"><strong id="colhead">Code</strong></th>
-                                                        <th width="48%"><strong id="colhead">Indicator</strong></th>
-                                                        <th width="30%"><strong id="colhead"><?= $departmentlabel ?></strong></th>
-                                                        <th width="7%"><strong id="colhead">Baseline</strong></th>
-                                                        <th width="7%"><strong id="colhead">Action</strong></th>
+                                                        <th width="10%"><strong id="colhead">Code</strong></th>
+                                                        <th width="62%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="10%"><strong id="colhead">Baseline</strong></th>
+                                                        <th width="10%"><strong id="colhead">Action</strong></th>
                                                     </tr>
                                                 <tbody>
                                                     <?php
@@ -99,7 +98,6 @@ if ($permission) {
                                                             $indid = $output_indicator['indid'];
                                                             $indid = base64_encode("opid{$indid}");
                                                             $ind = $output_indicator['indid'];
-                                                            $inddept = $output_indicator['indicator_dept'];
                                                             $baselinelevel = $output_indicator['indicator_baseline_level'];
                                                             $baselineid = $output_indicator['baseline'];
                                                             $indunit = $output_indicator['indicator_unit'];
@@ -116,18 +114,11 @@ if ($permission) {
                                                                 $baseline = '<span class="badge bg-green">Complete</span>';
                                                             }
                                                             $num = $num + 1;
-
-                                                            $result_department = get_department($inddept);
-                                                            $department = "N/A";
-                                                            if ($result_department) {
-                                                                $department = $result_department['sector'];
-                                                            }
                                                     ?>
                                                             <tr id="rowlines">
                                                                 <td><?php echo $num; ?></td>
                                                                 <td><?php echo $output_indicator['indicator_code']; ?></td>
                                                                 <td><?php echo $ms_unit . " of " . $output_indicator['indicator_name']; ?></td>
-                                                                <td><?php echo $department; ?></td>
                                                                 <td><?php echo $baseline; ?></td>
                                                                 <td>
                                                                     <div class="btn-group">
@@ -141,7 +132,7 @@ if ($permission) {
                                                                                 </a>
                                                                             </li>
                                                                             <?php
-                                                                           if (in_array("update", $page_actions)) {
+                                                                            if (in_array("update", $page_actions)) {
                                                                             ?>
                                                                                 <li>
                                                                                     <a type="button" href="edit-output-indicator.php?ind=<?= $indid ?>" id="addFormModalBtn">
@@ -214,9 +205,8 @@ if ($permission) {
                                                     <tr class="bg-blue" style="width:100%">
                                                         <th width="3%"><strong id="colhead">SN</strong></th>
                                                         <th width="5%"><strong id="colhead">Code</strong></th>
-                                                        <th width="40%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="70%"><strong id="colhead">Indicator</strong></th>
                                                         <th width="15%"><strong id="colhead">Unit of Measure</strong></th>
-                                                        <th width="30%"><strong id="colhead"><?= $departmentlabel ?></strong></th>
                                                         <th width="7%"><strong id="colhead">Action</strong></th>
                                                     </tr>
                                                 </thead>
@@ -252,9 +242,8 @@ if ($permission) {
                                                             <tr id="rowlines">
                                                                 <td width="3%"><?php echo $num; ?></td>
                                                                 <td width="5%"><?php echo $outcome_indicator['indicator_code']; ?></td>
-                                                                <td width="40%"><?php echo $outcome_indicator['indicator_name']; ?></td>
+                                                                <td width="70%"><?php echo $outcome_indicator['indicator_name']; ?></td>
                                                                 <td width="15%"><?php echo $ms_unit; ?></td>
-                                                                <td width="30%"><?php echo $department; ?></td>
                                                                 <td width="7%">
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -319,9 +308,8 @@ if ($permission) {
                                                     <tr class="bg-green" style="width:100%">
                                                         <th width="3%"><strong id="colhead">SN</strong></th>
                                                         <th width="5%"><strong id="colhead">Code</strong></th>
-                                                        <th width="40%"><strong id="colhead">Indicator</strong></th>
+                                                        <th width="70%"><strong id="colhead">Indicator</strong></th>
                                                         <th width="15%"><strong id="colhead">Unit of Measure</strong></th>
-                                                        <th width="30%"><strong id="colhead"><?= $departmentlabel ?></strong></th>
                                                         <th width="7%"><strong id="colhead">Action</strong></th>
                                                     </tr>
                                                 </thead>
@@ -357,9 +345,8 @@ if ($permission) {
                                                             <tr id="rowlines">
                                                                 <td width="3%"><?php echo $num; ?></td>
                                                                 <td width="5%"><?php echo $impact_indicator['indicator_code']; ?></td>
-                                                                <td width="40%"><?php echo $impact_indicator['indicator_name']; ?></td>
+                                                                <td width="70%"><?php echo $impact_indicator['indicator_name']; ?></td>
                                                                 <td width="15%"><?php echo $ms_unit; ?></td>
-                                                                <td width="30%"><?php echo $department; ?></td>
                                                                 <td width="7%">
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

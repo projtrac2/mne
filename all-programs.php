@@ -115,8 +115,7 @@ if ($permission) {
                                                         <th width="15%">Budget Bal (ksh)</th>
                                                         <th width="4%">Project(s)</th>
                                                         <th width="10%">Start Year </th>
-                                                        <th width="4%">Duration </th>
-                                                        <th width="4%">SP Linked </th>
+                                                        <th width="8%">Duration </th>
                                                         <th width="7%">Action</th>
                                                     </tr>
                                                 </thead>
@@ -156,10 +155,6 @@ if ($permission) {
                                                             $query_projs =  $db->prepare("SELECT projid FROM tbl_projects WHERE progid='$progid'");
                                                             $query_projs->execute();
                                                             $totalRows_projs = $query_projs->rowCount();
-                                                            $sp_link = "No";
-                                                            if ($program_type != 1 && $strategic_plan != 0) {
-                                                                $sp_link = 'Yes';
-                                                            }
 
                                                             // get program quarterly targets
                                                             $query_pbbtargets =  $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid = :progid");
@@ -253,15 +248,8 @@ if ($permission) {
                                                             $row_projsbudget = $query_projsbudget->fetch();
                                                             $count_projsbudget = $query_projsbudget->rowCount();
 
-                                                            if ($count_projsbudget > 0) {
-                                                                $projsbudget = $row_projsbudget['budget'];
-                                                            } else {
-                                                                $projsbudget = 0;
-                                                            }
-
+                                                            $projsbudget = ($count_projsbudget > 0) ?  $row_projsbudget['budget'] : 0;
                                                             $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
-                                                            $link = ($program_type == 0) ? $sp_link : $button;
-
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
@@ -274,7 +262,6 @@ if ($permission) {
                                                                     <td><?= $projectscount ?></td>
                                                                     <td><?= $projsyear ?></td>
                                                                     <td><?= $projduration ?></td>
-                                                                    <td><?= $link ?></td>
                                                                     <td>
                                                                         <!-- Single button -->
                                                                         <div class="btn-group">
@@ -310,9 +297,8 @@ if ($permission) {
                                                         <th width="3%">#</th>
                                                         <th width="40%">Project</th>
                                                         <th width="13%">Budget (ksh)</th>
-                                                        <th width="10%">Start Year </th>
-                                                        <th width="10%">Duration (day)</th>
-                                                        <th width="8%">SP Linked </th>
+                                                        <th width="14%">Start Year </th>
+                                                        <th width="14%">Duration (day)</th>
                                                         <th width="10%">Status </th>
                                                         <th width="8%">Action</th>
                                                     </tr>
@@ -349,11 +335,6 @@ if ($permission) {
                                                             $query_projs =  $db->prepare("SELECT projid FROM tbl_projects WHERE progid='$projfscyear'");
                                                             $query_projs->execute();
                                                             $totalRows_projs = $query_projs->rowCount();
-
-                                                            $sp_link = "No";
-                                                            if ($program_type == 0 && $strategic_plan == 1) {
-                                                                $sp_link = 'Yes';
-                                                            }
 
                                                             $projstatus = "<label class='label label-danger'>Pending Approval</div>";
                                                             $action = "";
@@ -403,7 +384,6 @@ if ($permission) {
                                                                     <td><?= $projcost ?> </td>
                                                                     <td><?= $projfscyear ?> </td>
                                                                     <td><?= $projduration ?> </td>
-                                                                    <td><?= $sp_link ?> </td>
                                                                     <td><?= $projstatus ?> </td>
                                                                     <td>
                                                                         <!-- Single button -->

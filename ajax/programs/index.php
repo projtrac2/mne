@@ -51,7 +51,7 @@ try {
     if (isset($_GET['get_strategy'])) {
         $objid = $_GET['objid'];
         $query_strategy =  $db->prepare("SELECT * FROM tbl_objective_strategy where objid=:objid");
-        $query_strategy->execute(array(":objid"=>$objid));
+        $query_strategy->execute(array(":objid" => $objid));
         $totalRows_strategy = $query_strategy->rowCount();
         $strategy_options = '<option value="">.... Select Strategy from list ....</option>';
         if ($totalRows_strategy > 0) {
@@ -63,13 +63,11 @@ try {
     }
 
     if (isset($_GET['getprogindicator'])) {
-        $sector = $_GET['getprogindicator'];
-        $query_Indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_dept =:sector_id AND indicator_category='Output' AND active='1' AND baseline='1'");
-        $query_Indicator->execute(array(":sector_id" => $sector));
+        $query_Indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND active='1' AND baseline='1'");
+        $query_Indicator->execute();
         echo '<option value="">Select Indicator</option>';
         while ($row = $query_Indicator->fetch()) {
             $unit = $row['indicator_unit'];
-
             $query_opunit = $db->prepare("SELECT unit FROM  tbl_measurement_units  WHERE id ='$unit'");
             $query_opunit->execute();
             $opunit_ro = $query_opunit->fetch();
@@ -77,7 +75,7 @@ try {
             $opunit = ($count_opunit > 0) ? $opunit_ro['unit'] : "";
 
             $indname = $row['indicator_name'];
-            echo '<option value="' . $row['indid'] . '"> ' . $opunit . " of " . $indname. '</option>';
+            echo '<option value="' . $row['indid'] . '"> ' . $opunit . " of " . $indname . '</option>';
         }
     }
 
