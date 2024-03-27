@@ -85,7 +85,7 @@ if ($permission) {
                                                     $query_rsOutput->execute(array(":projid" => $projid));
                                                     $totalRows_rsOutput = $query_rsOutput->rowCount();
                                                     if ($totalRows_rsOutput == 0) {
-                                                        $projstatus = "<label class='label label-danger'>Pending Output/s</div>";
+                                                        $projstatus = "<label class='label label-danger'>Pending M&E Plan</div>";
                                                     }
                                                 }
 

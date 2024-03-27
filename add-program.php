@@ -221,8 +221,6 @@ if ($permission) {
                                         <input type="hidden" name="directorate_id" id="directorate_id" value="<?= $directorate_id ?>">
                                     <?php
                                     }
-
-
                                     $query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1 LIMIT 1");
                                     $query_rsStrategicPlan->execute();
                                     $row_rsStrategicPlan = $query_rsStrategicPlan->fetch();
@@ -247,6 +245,7 @@ if ($permission) {
                                     $financial_years = program_financial_years($syear, $endyear);
                                     $ind_financial_years = get_independent_financial_years();
                                     ?>
+                                    <input type="hidden" name="stratplanendyear" value="<?= $endyear ?>" id="stratplanendyear">
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="strat_div">
                                         <label>Strategic Objective *:</label>
                                         <div class="form-line">

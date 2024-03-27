@@ -5,6 +5,31 @@ if ($permission) {
 		$decode_progid = (isset($_GET['prg']) && !empty($_GET["prg"])) ? base64_decode($_GET['prg']) : "";
 		$progid_array = explode("progid54321", $decode_progid);
 		$progid = $progid_array[1];
+
+		function check_approve_project($projid, $projevaluation, $projimpact)
+		{
+			global $db, $projid;
+			$query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+			$query_rsOutput->execute(array(":projid" => $projid));
+			$totalRows_rsOutput = $query_rsOutput->rowCount();
+			$output = $totalRows_rsOutput > 0 ? true : false;
+			$outcome = true;
+			if ($projevaluation == 1) {
+				$sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+				$sql->execute(array(":projid" => $projid));
+				$rows_count = $sql->rowCount();
+				$outcome = $rows_count > 0 ? true : false;
+			}
+
+			$impact = true;
+			if ($projimpact == 1) {
+				$sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+				$sql->execute(array(":projid" => $projid));
+				$row_count = $sql->rowCount();
+				$impact = $row_count > 0 ? true : false;
+			}
+			return $output && $outcome && $impact ? true : false;
+		}
 	} catch (PDOException $ex) {
 		$result = flashMessage("An error occurred: " . $ex->getMessage());
 	}
@@ -52,10 +77,11 @@ if ($permission) {
 											$sn = 0;
 											$active = "";
 											while ($row = $sql->fetch()) {
-												$itemId = $row['projid'];
+												$projid = $row['projid'];
 												$budget = $row['projcost'];
 												$username = $row['user_name'];
-
+												$projevaluation = $row['projevaluation'];
+												$projimpact = $row['projimpact'];
 												$projname = $row["projname"];
 												$progid = $row["progid"];
 												$srcfyear = $row["projfscyear"];
@@ -87,7 +113,7 @@ if ($permission) {
 												$totalRows_rsDept = $query_rsDept->rowCount();
 
 												$query_adp =  $db->prepare("SELECT *, p.status as status FROM tbl_annual_dev_plan p inner join tbl_fiscal_year y ON y.id=p.financial_year WHERE projid = :projid");
-												$query_adp->execute(array(":projid" => $itemId));
+												$query_adp->execute(array(":projid" => $projid));
 												$row_adp = $query_adp->fetch();
 												$totalRows_adp = $query_adp->rowCount();
 												$adpstatus = $totalRows_adp > 0 ? $row_adp["status"] : "";
@@ -102,11 +128,9 @@ if ($permission) {
 														$active = '<label class="label label-primary" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending Approval" >' . $status . '</label>';
 													}
 												} else {
-													$query_outputs =  $db->prepare("SELECT * FROM tbl_project_details WHERE projid = :projid");
-													$query_outputs->execute(array(":projid" => $itemId));
-													$total_rows_outputs = $query_outputs->rowCount();
-													$status = $total_rows_outputs == 0 ? "Pending Output/s" : "Pending ADP";
-													$labelclass = $total_rows_outputs == 0 ? "label-danger" : "label-warning";
+													$mneplan = check_approve_project($projid, $projevaluation, $projimpact);
+													$status = !$mneplan ? "Pending M&E Plan" : "Pending ADP";
+													$labelclass = !$mneplan ? "label-danger" : "label-warning";
 
 													$active = '<label class="label ' . $labelclass . '" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">' . $status . '</label>';
 												}
@@ -117,16 +141,16 @@ if ($permission) {
 
 												if ($filter_department) {
 													$sn++;
-													?>
+										?>
 													<tr>
 														<td><?= $sn ?> </td>
 														<td><?= $projname ?> </td>
 														<td><?= $progname ?> </td>
-														<td><?= number_format($budget,2) ?> </td>
+														<td><?= number_format($budget, 2) ?> </td>
 														<td><?= $projYear ?> </td>
 														<td><?= $active ?> </td>
 														<td>
-															<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(<?=$itemId ?>)" class="btn btn-info btn-xm"> <i class="fa fa-info fa-lg" aria-hidden="true"></i> More Info</a>
+															<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(<?= $projid ?>)" class="btn btn-info btn-xm"> <i class="fa fa-info fa-lg" aria-hidden="true"></i> More Info</a>
 														</td>
 													</tr>
 										<?php

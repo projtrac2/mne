@@ -11,7 +11,6 @@ if ($permission) {
 		function daily_team($projid, $workflow_stage, $role, $sub_stage)
 		{
 			global $db,  $user_name, $workflow_stage, $user_designation;
-
 			$responsible = false;
 			if ($user_designation == 1) {
 				$responsible = true;
@@ -183,6 +182,19 @@ if ($permission) {
 
 													$responsible = daily_team($projid, 9, 2, $sub_stage);
 													$project_category = $implementation == 1 ? "In-House" : "Contractor";
+
+													$program_of_works  = false;
+													if ($sub_stage >= 1) {
+														if ($implementation == 1 && $sub_stage <= 2) {
+															$program_of_works = true;
+														} else {
+															if ($sub_stage >= 3) {
+																$program_of_works = true;
+															}
+														}
+													}
+
+
 										?>
 													<tr>
 														<td align="center"><?= $counter ?></td>
@@ -203,45 +215,30 @@ if ($permission) {
 																		</a>
 																	</li>
 																	<?php
-																	if ($totalRows_plan == 0) {
+																	if ($responsible) {
+																		if ($totalRows_plan == 0) {
 																	?>
-																		<li>
-																			<a type="button" data-toggle="modal" data-target="#add_project_frequency_modal" id="add_project_frequency_ModalBtn" onclick="add_project_frequency_data(<?= $projid ?>, <?= $activity_monitoring_frequency ?>, <?= $monitoring_frequency ?>)">
-																				<i class="fa fa-file-text"></i> <?= $activity_monitoring_frequency == '' ? "Add" : "Edit" ?> Frequency
-																			</a>
-																		</li>
-																	<?php
-																	}
-																	if ($responsible && $implementation == 1 && ($sub_stage == 1 || $sub_stage == 3)) {
-																	?>
-																		<li>
-																			<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
-																				<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
-																			</a>
-																		</li>
+																			<li>
+																				<a type="button" data-toggle="modal" data-target="#add_project_frequency_modal" id="add_project_frequency_ModalBtn" onclick="add_project_frequency_data(<?= $projid ?>, <?= $activity_monitoring_frequency ?>, <?= $monitoring_frequency ?>)">
+																					<i class="fa fa-file-text"></i> <?= $activity_monitoring_frequency == '' ? "Add" : "Edit" ?> Frequency
+																				</a>
+																			</li>
 																		<?php
-																	}
-																	if ($sub_stage > 0) {
-																		if ($implementation == 1) {
-																			if ($responsible || $assign_responsible) {
+																		}
+
+																		if ($program_of_works) {
 																		?>
-																				<li>
-																					<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-																						<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
-																					</a>
-																				</li>
-																			<?php
-																			}
-																		} else {
-																			if ($sub_stage == 2) {
-																			?>
-																				<li>
-																					<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-																						<i class="fa fa-plus-square-o"></i> Approve Program of Works
-																					</a>
-																				</li>
+																			<li>
+																				<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
+																					<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
+																				</a>
+																			</li>
+																			<li>
+																				<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																					<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
+																				</a>
+																			</li>
 																	<?php
-																			}
 																		}
 																	}
 																	?>

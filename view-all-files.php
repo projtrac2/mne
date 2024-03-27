@@ -2,8 +2,9 @@
 require('includes/head.php');
 if ($permission) {
 	try {
-		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, g.program_type, g.progid, p.projstartdate, p.projenddate FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' AND p.projstage = 10 ORDER BY p.projstartdate ASC");
-		$query_all_projects->execute();
+		$workflow_stage = 9;
+		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, g.program_type, g.progid, p.projstartdate, p.projenddate FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' AND p.projstage = :workflow_stage ORDER BY p.projstartdate ASC");
+		$query_all_projects->execute(array(":workflow_stage" => $workflow_stage));
 		$total_all_projects_count = $query_all_projects->rowCount();
 	} catch (PDOException $ex) {
 		$results = flashMessage("An error occurred: " . $ex->getMessage());

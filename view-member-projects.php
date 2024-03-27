@@ -11,7 +11,7 @@ if ($permission) {
             $mbrid = $mbrid_array[1];
         }
 
-
+        $workflow_stage_id = 9;
 
         $query_rsUser = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
         $query_rsUser->execute(array(":user_id" => $mbrid));
@@ -29,70 +29,62 @@ if ($permission) {
 
         function get_department_list($project_type)
         {
-            global $db, $mbrid, $department_id;
-            $workflow_stage = 10;
-            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector=:department_id AND g.program_type=:project_type GROUP BY m.projid");
-            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":department_id" => $department_id, ":project_type" => $project_type));
-            $technical_projects = $query_rsNoPrj->rowCount();
-
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id AND g.program_type=:project_type ORDER BY p.projid DESC");
-            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id, ":project_type" => $project_type));
+            global $db, $department_id, $workflow_stage_id;
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projsector=:department_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":department_id" => $department_id, ":project_type" => $project_type));
             $department_projects = $query_rsProjects->rowCount();
-            return $technical_projects + $department_projects;
+            return $department_projects;
         }
 
         function get_section_list($project_type)
         {
-            global $db, $mbrid, $section_id;
-            $workflow_stage = 10;
-            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept:section_id AND g.program_type=:project_type GROUP BY m.projid");
-            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":section_id" => $section_id, ":project_type" => $project_type));
-            $technical_projects = $query_rsNoPrj->rowCount();
-
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id AND g.program_type=:project_type ORDER BY p.projid DESC");
-            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id, ":project_type" => $project_type));
+            global $db, $section_id, $workflow_stage_id;
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projdept=:section_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":section_id" => $section_id, ":project_type" => $project_type));
             $section_projects = $query_rsProjects->rowCount();
-            return $technical_projects + $section_projects;
+            return  $section_projects;
         }
 
         function get_directorate_list($project_type)
         {
-            global $db, $mbrid, $directorate_id;
-            $workflow_stage = 10;
-            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate=:directorate_id AND g.program_type=:project_type GROUP BY m.projid");
-            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
-            $technical_projects = $query_rsNoPrj->rowCount();
-
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id  AND g.program_type=:project_type ORDER BY p.projid DESC");
-            $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
+            global $db, $directorate_id, $workflow_stage_id;
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.directorate=:directorate_id  AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
             $directorate_projects = $query_rsProjects->rowCount();
-            return $technical_projects + $directorate_projects;
+            return $directorate_projects;
         }
 
         function get_project_list($project_type)
         {
-            global $db, $mbrid;
-            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type GROUP BY m.projid");
-            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type));
+            global $db, $mbrid, $designation_id, $department_id, $section_id, $directorate_id, $workflow_stage_id;
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND p.projstage=:workflow_stage_id");
+            $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":workflow_stage_id" => $workflow_stage_id));
+            if ($designation_id == 7) {
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.projsector<>:department AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":department" => $department_id, ":workflow_stage_id" => $workflow_stage_id));
+            } else if ($designation_id == 6) {
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.projdept<>:section AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":section" => $section_id, ":workflow_stage_id" => $workflow_stage_id));
+            } else if ($designation_id == 5) {
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.directorate<>:directorate AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":directorate" => $directorate_id, ":workflow_stage_id" => $workflow_stage_id));
+            }
             $technical_projects = $query_rsNoPrj->rowCount();
             return $technical_projects;
         }
 
-
-
         function get_counter($project_type)
         {
             global  $designation_id;
-            $totalRows_rsNoPrj = get_project_list($project_type);
+            $counter = get_project_list($project_type);
             if ($designation_id == 7) {
-                $totalRows_rsNoPrj =  get_directorate_list($project_type);
+                $counter +=  get_directorate_list($project_type);
             } else if ($designation_id == 6) {
-                $totalRows_rsNoPrj = get_section_list($project_type);
+                $counter += get_section_list($project_type);
             } else if ($designation_id == 5) {
-                $totalRows_rsNoPrj = get_department_list($project_type);
+                $counter += get_department_list($project_type);
             }
-
-            return $totalRows_rsNoPrj;
+            return $counter;
         }
 
 
@@ -155,7 +147,7 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                    <?= $icon  . ' ' . $fullname . ' ' . $pageTitle ?> <?= $designation_id ?>
+                    <?= $icon  . ' ' . $fullname . ' ' . $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                             <button onclick="history.back()" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
@@ -208,8 +200,6 @@ if ($permission) {
                                                 <tbody>
                                                     <!-- =========================================== -->
                                                     <?php
-
-
                                                     if ($total_sp_projects > 0) {
                                                         $sn = 0;
                                                         while ($row__sp_projects = $query_rs_sp_projects->fetch()) {

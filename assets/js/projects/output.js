@@ -1,7 +1,7 @@
 ////////////////
 // Finish page
 ////////////////
-var ajax_url = "ajax/projects/index";
+var ajax_url1 = "ajax/projects/index";
 $(document).ready(function () {
   show_dissaggregation(0);
   //filter the expected output  cannot be selected twice
@@ -86,7 +86,7 @@ $(document).ready(function () {
     if (submit_handler) {
       $.ajax({
         type: "post",
-        url: ajax_url,
+        url: ajax_url1,
         data: $(this).serialize(),
         dataType: "json",
         success: function (response) {
@@ -170,7 +170,7 @@ function get_output(rowno) {
   if (progid != "" && projid != "") {
     $.ajax({
       type: "POST",
-      url: ajax_url,
+      url: ajax_url1,
       data: {
         getprojoutput: "getprojoutput",
         progid: progid,
@@ -193,7 +193,7 @@ function delete_row_output(rowno) {
     if (handler) {
       $.ajax({
         type: "post",
-        url: ajax_url,
+        url: ajax_url1,
         data: { deleteItem: "deleteItem", itemId: outputIdsTrue },
         dataType: "json",
         success: function (response) {
@@ -232,7 +232,7 @@ function getIndicator(rowno) {
   if (outputid) {
     $.ajax({
       type: "post",
-      url: ajax_url,
+      url: ajax_url1,
       data: {
         getIndicator: outputid,
         indicator: outputid,
@@ -289,7 +289,7 @@ function get_output_details(rowno) {
   if (indicator_id != "") {
     $.ajax({
       type: "get",
-      url: ajax_url,
+      url: ajax_url1,
       data: {
         get_output_details: "get_output_details",
         indicator_id: indicator_id,
@@ -337,7 +337,7 @@ function get_locations(rowno, outputstate) {
   var projid = $("#projid").val();
   $.ajax({
     type: "get",
-    url: ajax_url,
+    url: ajax_url1,
     data: {
       get_project_locations: "locations",
       projid: projid,
@@ -354,7 +354,7 @@ function get_project_sites(rowno, site_id) {
   var projid = $("#projid").val();
   $.ajax({
     type: "get",
-    url: ajax_url,
+    url: ajax_url1,
     data: {
       get_project_sites: "sites",
       projid: projid,
