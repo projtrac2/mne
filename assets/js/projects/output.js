@@ -281,7 +281,7 @@ function get_output_details(rowno) {
   var indicator_id = $(`#indicator_id_${rowno}`).val();
   var output_id = $(`#output${rowno}`).val();
   var progid = $("#progid").val();
-  var projid = $("#projid").val();
+  var projid = $("#myprojid").val();
   var key_unique = $("#key_unique").val();
   $("#output_id").val(output_id);
   $("#indicator_id").val(indicator_id);
@@ -334,7 +334,7 @@ function output_target_div(output_details = []) {
 }
 
 function get_locations(rowno, outputstate) {
-  var projid = $("#projid").val();
+  var projid = $("#myprojid").val();
   $.ajax({
     type: "get",
     url: ajax_url1,
@@ -351,7 +351,7 @@ function get_locations(rowno, outputstate) {
 }
 
 function get_project_sites(rowno, site_id) {
-  var projid = $("#projid").val();
+  var projid = $("#myprojid").val();
   $.ajax({
     type: "get",
     url: ajax_url1,

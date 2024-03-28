@@ -58,11 +58,7 @@ if ($permission) {
         function mne_plan($projid, $projevaluation, $projimpact)
         {
             global $db;
-            $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
-            $query_rsOutput->execute(array(":projid" => $projid));
-            $totalRows_rsOutput = $query_rsOutput->rowCount();
-            $output = $totalRows_rsOutput > 0 ? true : false;
-            $outcome = true;
+            $outcome = false;
             if ($projevaluation == 1) {
                 $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
                 $sql->execute(array(":projid" => $projid));
@@ -70,13 +66,19 @@ if ($permission) {
                 $outcome = $rows_count > 0 ? true : false;
             }
 
-            $impact = true;
+            $impact = false;
             if ($projimpact == 1) {
                 $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
                 $sql->execute(array(":projid" => $projid));
                 $row_count = $sql->rowCount();
                 $impact = $row_count > 0 ? true : false;
             }
+
+            $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+            $query_rsOutput->execute(array(":projid" => $projid));
+            $totalRows_rsOutput = $query_rsOutput->rowCount();
+            $output = $totalRows_rsOutput > 0 ? true : false;
+
             return $output || $outcome || $impact ? true : false;
         }
 

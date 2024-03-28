@@ -76,7 +76,7 @@ if ($permission) {
 			$query_rsOutput->execute(array(":projid" => $projid));
 			$totalRows_rsOutput = $query_rsOutput->rowCount();
 			$output = $totalRows_rsOutput > 0 ? true : false;
-			$outcome = true;
+			$outcome = false;
 			if ($projevaluation == 1) {
 				$sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
 				$sql->execute(array(":projid" => $projid));
@@ -84,7 +84,7 @@ if ($permission) {
 				$outcome = $rows_count > 0 ? true : false;
 			}
 
-			$impact = true;
+			$impact = false;
 			if ($projimpact == 1) {
 				$sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
 				$sql->execute(array(":projid" => $projid));
@@ -233,9 +233,9 @@ if ($permission) {
 														$button .= '<li><a type="button" onclick="remove_from_adp(' . $projid . ')"> <i class="glyphicon glyphicon-edit"></i> Remove from ADP</a></li>';
 													}
 												} else {
-													$mne_plan = check_approve_project($projid, $projevaluation, $projimpact);
-													$status = !$mne_plan ? "Pending M&E Plan" : "Pending ADP";
-													$labelclass = !$mne_plan ? "label-danger" : "label-warning";
+													$mneplan = check_approve_project($projid, $projevaluation, $projimpact);
+													$status = !$mneplan ? "Pending M&E Plan" : "Pending ADP";
+													$labelclass = !$mneplan ? "label-danger" : "label-warning";
 
 													$active = '<label class="label ' . $labelclass . '" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">' . $status . '</label>';
 													$button =  '';
@@ -256,11 +256,8 @@ if ($permission) {
 															if (in_array("update", $page_actions)) {
 																$button .= '<li><a type="button" data-toggle="modal" id="editprogram"  href="add-project?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>';
 															}
-
-															if ($mne_plan) {
-																if (in_array("create", $page_actions)) {
-																	$button .= '<li><a type="button" href="add-project-mne-plan.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Add M&E Plan</a></li>';
-																}
+															if (in_array("create", $page_actions)) {
+																$button .= '<li><a type="button" href="add-project-mne-plan.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Add M&E Plan</a></li>';
 															}
 
 															if (in_array("delete", $page_actions)) {

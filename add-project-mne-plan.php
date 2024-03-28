@@ -105,6 +105,8 @@ if ($permission) {
                                                 <li class="list-group-item"><strong> Start Date: </strong><?php $projstartdate; ?> </li>
                                                 <li class="list-group-item"><strong> End Date: </strong> <?= $projenddate ?> </li>
                                                 <input type="hidden" name="myprojid" id="myprojid" value="<?= $projid ?>">
+                                                <input type="hidden" name="key_unique" id="key_unique" value="<?= $projid ?>">
+
                                             </ul>
                                         </div>
                                     </div>
@@ -115,12 +117,22 @@ if ($permission) {
                                             <li class="active">
                                                 <a data-toggle="tab" href="#output"><i class="fa fa-list bg-blue" aria-hidden="true"></i> Output/s&nbsp;<span class="badge bg-blue">|</span></a>
                                             </li>
-                                            <li class="">
-                                                <a data-toggle="tab" href="#outcome"><i class="fa fa-tasks bg-indigo" aria-hidden="true"></i> Outcome/s&nbsp;<span class="badge bg-indigo">|</span></a>
-                                            </li>
-                                            <li class="">
-                                                <a data-toggle="tab" href="#impact"><i class="fa fa-id-card-o bg-green" aria-hidden="true"></i> Impact/s &nbsp;<span class="badge bg-green">|</span></a>
-                                            </li>
+                                            <?php
+                                            if ($projevaluation == 1) {
+                                            ?>
+                                                <li class="">
+                                                    <a data-toggle="tab" href="#outcome"><i class="fa fa-tasks bg-indigo" aria-hidden="true"></i> Outcome/s&nbsp;<span class="badge bg-indigo">|</span></a>
+                                                </li>
+                                            <?php
+                                            }
+                                            if ($projimpact == 1) {
+                                            ?>
+                                                <li class="">
+                                                    <a data-toggle="tab" href="#impact"><i class="fa fa-id-card-o bg-green" aria-hidden="true"></i> Impact/s &nbsp;<span class="badge bg-green">|</span></a>
+                                                </li>
+                                            <?php
+                                            }
+                                            ?>
                                         </ul>
                                     </div>
                                     <div class="tab-content">
@@ -231,26 +243,66 @@ if ($permission) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div id="outcome" class="tab-pane fade">
-                                            <fieldset class="scheduler-border" style="border-radius:3px">
-                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                    <i class="fa fa-tasks" style="color:#F44336" aria-hidden="true"></i> Outcome Details
-                                                </legend>
-                                                <div class="header row">
-                                                    <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                                        <?php
+                                        if ($projevaluation == 1) {
+                                        ?>
+                                            <div id="outcome" class="tab-pane fade">
+                                                <fieldset class="scheduler-border" style="border-radius:3px">
+                                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                        <i class="fa fa-tasks" style="color:#F44336" aria-hidden="true"></i> Outcome Details
+                                                    </legend>
+                                                    <div class="header row">
+                                                        <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                                                        </div>
+                                                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                                            <button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                                                        <button type="button" id="modal_button" class="pull-right btn bg-indigo" data-toggle="modal" id="addOutcomeModalBtn" data-target="#addOutcomeModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Outcome </button>
+                                                    <div class="body">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-striped table-hover" id="manageOutcomeTable" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th width="5%">#</th>
+                                                                            <th width="40%">Outcome</th>
+                                                                            <th width="15%">Source of Data</th>
+                                                                            <th width="18%">Evaluation Frequency</th>
+                                                                            <th width="15%">Number of Endline Evaluations</th>
+                                                                            <th width="7%">Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="body">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                </fieldset>
+                                            </div>
+                                        <?php
+                                        }
+                                        if ($projimpact == 1) {
+                                        ?>
+                                            <div id="impact" class="tab-pane fade">
+                                                <fieldset class="scheduler-border" style="border-radius:3px">
+                                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                        <i class="fa fa-id-card-o" style="color:#F44336" aria-hidden="true"></i> Impact Details
+                                                    </legend>
+                                                    <div class="header row">
+                                                        <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
+                                                        </div>
+                                                        <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
+                                                            <button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="body">
                                                         <div class="table-responsive">
-                                                            <table class="table table-bordered table-striped table-hover" id="manageOutcomeTable" style="width:100%">
+                                                            <table class="table table-bordered table-striped table-hover" id="manageImpactTable" style="width:100%">
                                                                 <thead>
                                                                     <tr>
                                                                         <th width="5%">#</th>
-                                                                        <th width="40%">Outcome</th>
+                                                                        <th width="40%">Impact</th>
                                                                         <th width="15%">Source of Data</th>
                                                                         <th width="18%">Evaluation Frequency</th>
                                                                         <th width="15%">Number of Endline Evaluations</th>
@@ -262,43 +314,14 @@ if ($permission) {
                                                             </table>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </fieldset>
-                                        </div>
-                                        <div id="impact" class="tab-pane fade">
-                                            <fieldset class="scheduler-border" style="border-radius:3px">
-                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                    <i class="fa fa-id-card-o" style="color:#F44336" aria-hidden="true"></i> Impact Details
-                                                </legend>
-                                                <div class="header row">
-                                                    <div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
-                                                    </div>
-                                                    <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
-                                                        <button type="button" id="modal_button" class="pull-right btn bg-green" data-toggle="modal" id="addImpactModalBtn" data-target="#addImpactModal" style="margin-top:-10px; margin-bottom:-10px"> <i class="fa fa-plus-square"></i> Add Impact</button>
-                                                    </div>
-                                                </div>
-                                                <div class="body">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered table-striped table-hover" id="manageImpactTable" style="width:100%">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th width="5%">#</th>
-                                                                    <th width="40%">Impact</th>
-                                                                    <th width="15%">Source of Data</th>
-                                                                    <th width="18%">Evaluation Frequency</th>
-                                                                    <th width="15%">Number of Endline Evaluations</th>
-                                                                    <th width="7%">Action</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-                                        </div>
-                                    </div> 
+                                                </fieldset>
+                                            </div>
+                                        <?php
+                                        }
+                                        ?>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
