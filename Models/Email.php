@@ -563,7 +563,7 @@ class Email
     public function sendMail($subject, $body, $recipient, $recipient_name, $attachments)
     {
         $results = false;
-        $recipient = 'biwottech@gmail.com';
+        $recipient = 'pwambua25@gmail.com';
         try {
             $mail = new PHPMailer;
             // $mail->SMTPDebug = 2;
@@ -600,6 +600,42 @@ class Email
     {
         $sql = $this->db->prepare("INSERT INTO `tbl_notification_status` (notification_type_id,notification_group_id,notification_id,item_id,user_id,title,page_url,content,status,created_at) VALUES(:notification_type_id,:notification_group_id,:notification_id,:item_id,:user_id,:title,:content,:page_url,:status,:created_at)");
         $results = $sql->execute($data);
+        return $results;
+    }
+
+    public function sendMailOtp($subject, $otp, $recipient, $recipient_name, $attachments)
+    {
+        $results = false;
+        $recipient = 'pwambua25@gmail.com';
+        try {
+            $mail = new PHPMailer;
+            // $mail->SMTPDebug = 2;
+            $mail->isSMTP();
+            $mail->Host       = $this->host;
+            $mail->SMTPAuth   = $this->smtp_auth;
+            $mail->Username   = $this->username;
+            $mail->Password   = $this->password;
+            $mail->SMTPSecure = $this->smtp_secure;
+            $mail->Port       = $this->port;
+            $mail->setFrom($this->username, $this->org);
+            $mail->addAddress($recipient, $recipient_name);
+
+            if (count($attachments) > 0) {
+                for ($i = 0; $i < count($attachments); $i++) {
+                    $mail->addStringAttachment($attachments[$i], $attachments[$i]);
+                }
+            }
+
+            $mail->isHTML(True);
+            $mail->Subject = $subject;
+            $mail->Body = "<h1>otp is $otp</h1>";
+            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            $results = $mail->send();
+        } catch (Exception $e) {
+            $results = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        }
+
+
         return $results;
     }
 }
