@@ -2,6 +2,8 @@
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
+
+
 class Auth
 {
     protected $db;
@@ -10,10 +12,14 @@ class Auth
 
     public function __construct()
     {
-        $conn = new Connection();
-        $this->db = $conn->openConnection();
-        // $conn->closeConnection();
-        $this->today = date('d-m-Y');
+        try {
+            $conn = new Connection();
+            $this->db = $conn->openConnection();
+            // $conn->closeConnection();
+            $this->today = date('d-m-Y');
+        } catch (\Throwable $th) {
+            var_dump($th->getMessage());
+        }
     }
 
     // get user details from the database
@@ -60,7 +66,7 @@ class Auth
                 $notification_group_id = 1;
                 $notification_type_id = 8;
                 $priority = 1;
-                $page_url = "reset-password.php?token=$token";
+                $page_url = "http://localhost:8000/reset-password.php?token=$token";
                 $mail_response = $this->send_mail($user->userid, $user->ttitle . " " . $user->fullname, $email, $priority, $notification_group_id, $notification_type_id, $page_url);
             }
         }
@@ -194,5 +200,63 @@ class Auth
             $pass[] = $alphabet[$n];
         }
         return implode($pass);
+    }
+
+
+    // send mail to contractor and block if attempts reached limit
+    public function otp($email)
+    {
+        $mail = new Email();
+        $user = $this->get_user($email);
+        $mail_response = false;
+        if ($user) {
+            // generate otp 
+            $otp = rand(100000, 999999);
+            date_default_timezone_set('Africa/Nairobi');
+            $expires_at = date('Y-m-d H:i:s', strtotime('+2 minute'));
+            // store this details in db
+            $opt_stmt = $this->db->prepare('UPDATE users SET otp=:otp, expires_at=:expires_at WHERE email=:email');
+            $otp_result = $opt_stmt->execute([":otp" => $otp, ":expires_at" => $expires_at, ":email" => $email]);
+            if ($otp_result) {
+                // $mail_response = $this->send_mail($user->contrid, $user->fullname, $email, 10, "/otp.php", 3);
+                $mail_response = $mail->sendMailOtp("one time password", $otp, $email, $user->user_name, []);
+            }
+        }
+        return $mail_response;
+    }
+
+    /**
+     * checks if the opt sent has expired or not
+     * @param ContractorEmail
+     * @return std class
+     */
+    public function checkIfOptExpired($email, $otp_code)
+    {
+        $sql = $this->db->prepare("SELECT * FROM users WHERE email=:email");
+        $sql->execute(array(":email" => $email));
+        $record = $sql->fetch(PDO::FETCH_OBJ);
+        $otp_expired_at = $record->expires_at;
+        $now = date('Y-m-d H:i:s');
+        if ($now > $otp_expired_at) {
+            // regenerate otp and send
+            $this->otp($email);
+            $_SESSION["errorMessage"] = "Otp has expired check mail for new one!";
+            return false;
+        } else {
+            // check if its true
+            $otp_sved = $record->otp;
+            if ($otp_code === $otp_sved) {
+                // remove otp
+                $opt_stmt = $this->db->prepare('UPDATE users SET otp=:otp, expires_at=:expires_at WHERE email=:email');
+                $otp_result = $opt_stmt->execute([":otp" => null, ":expires_at" => null, ":email" => $email]);
+                if ($otp_result) {
+                    unset($_SESSION["errorMessage"]);
+                    return true;
+                }
+            } else {
+                $_SESSION["errorMessage"] = "Wrong otp code entered.";
+                return false;
+            }
+        }
     }
 }
