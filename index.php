@@ -165,6 +165,8 @@ if (isset($_POST['sign-in'])) {
   <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.css" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   <script type="text/javascript" src="bootstrap/js/bootstrap.js"></script>
+  <script src="https://kit.fontawesome.com/6557f5a19c.js" crossorigin="anonymous"></script>
+
 </head>
 
 <body>
