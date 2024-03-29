@@ -178,8 +178,8 @@ if (isset($_POST['sign-in'])) {
         </div>
 
         <div style="margin-bottom: 4vh;">
-          <h4 style="color: #003366;">OTP Verification</h4>
-          <p style="color: black;">Check email for otp code!</p>
+          <h4 style="color: #003366;">Login to mne</h4>
+          <!-- <p style="color: black;">Check email for otp code!</p> -->
         </div>
         <form method="POST" id="loginusers">
           <div style="margin-bottom: 4vh;">
