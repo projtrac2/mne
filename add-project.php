@@ -263,6 +263,38 @@ if ($permission) {
         </script>";
     }
 
+    function show_alert($msg, $page_url, $type)
+    {
+        if ($type == 1) {
+            $results = "<script type=\"text/javascript\">
+                swal({
+                    title: \"Success!\",
+                    text: \" $msg\",
+                    type: 'Success',
+                    timer: 2000,
+                    'icon':'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                    window.location.href = '$page_url';
+                }, 2000);
+            </script>";
+        } else {
+            $results = "<script type=\"text/javascript\">
+                swal({
+                    title: \"Success!\",
+                    text: \" $msg\",
+                    type: 'Success',
+                    timer: 2000,
+                    'icon':'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                    window.location.href = '$page_url';
+                }, 2000);
+            </script>";
+        }
+
+        return $results;
+    }
 
     $query_rsSites =  $db->prepare("SELECT state_id FROM tbl_project_sites WHERE projid =:projid GROUP BY state_id");
     $query_rsSites->execute(array(":projid" => $projid));
