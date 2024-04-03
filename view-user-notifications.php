@@ -96,11 +96,11 @@ if ($permission) {
                                 <div id="notification" class="tab-pane ">
                                     <div class="card-body">
                                         <div class="table-responsive">
-                                            <table class="table email-table no-wrap table-hover v-middle mb-0 font-14">
+                                            <table class="table email-table no-wrap table-hover v-middle mb-0 font-14 ">
                                                 <tbody>
                                                     <!-- row -->
                                                     <?php
-                                                    $query_rsNotifications = $db->prepare("SELECT * FROM tbl_notification_status s INNER JOIN tbl_notification_types t ON t.id = s.notification_type_id  WHERE user_id=:user_id AND seen=0 AND notification_type_id<>3 ");
+                                                    $query_rsNotifications = $db->prepare("SELECT s.*, t.type FROM tbl_notification_status s INNER JOIN tbl_notification_types t ON t.id = s.notification_type_id  WHERE user_id=:user_id AND seen=0 AND notification_type_id<>3 ");
                                                     $query_rsNotifications->execute(array(":user_id" => $user_name));
                                                     $totalRows_rsNotifications = $query_rsNotifications->rowCount();
                                                     $notifications = '';
@@ -128,15 +128,15 @@ if ($permission) {
                                                                     </div>
                                                                 </td>
                                                                 <!-- star -->
-                                                                <td><i class="fa fa-star text-warning"></i></td>
+                                                                <td><i class="fa fa-star text-<?php $notification_id == 34 ? "warning" : "success" ?>"></i></td>
                                                                 <td>
-                                                                    <span class="mb-0 text-muted"><?= $notification ?></span>
+                                                                    <span class="mb-0 text-muted"><?= $notification . $notification_id  ?></span>
                                                                 </td>
                                                                 <!-- Message -->
                                                                 <td>
                                                                     <a class="link" href="javascript: void(0)">
-                                                                        <span class="badge badge-pill text-white font-medium badge-danger mr-2"><?= $notification_type ?></span>
-                                                                        <span class="text-dark"><?= $title ?></span>
+                                                                        <span class="badge badge-pill text-white font-medium badge-success mr-2"><?= $title ?></span>
+                                                                        <span class="text-dark"></span>
                                                                     </a>
                                                                 </td>
                                                                 <!-- Attachment -->

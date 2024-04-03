@@ -7,6 +7,7 @@ if ($permission) {
         $currentPage = $_SERVER["PHP_SELF"];
         if (isset($_GET['contrid'])) {
             $contrid_rsInfo = $_GET['contrid'];
+
             $query_rsContrInfo = $db->prepare("SELECT *, dateregistered AS dtregistered FROM tbl_contractor WHERE contrid = '$contrid_rsInfo'");
             $query_rsContrInfo->execute();
             $row_rsContrInfo = $query_rsContrInfo->fetch();
@@ -19,7 +20,6 @@ if ($permission) {
             $query_rsBzType = $db->prepare("SELECT * FROM tbl_contractorbusinesstype WHERE id='$BusinessType'");
             $query_rsBzType->execute();
             $row_rsBzType = $query_rsBzType->fetch();
-
 
             $query_rsContrPinStatus = $db->prepare("SELECT * FROM tbl_contractorpinstatus WHERE id='$pinStatus'");
             $query_rsContrPinStatus->execute();

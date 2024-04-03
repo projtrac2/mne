@@ -25,7 +25,7 @@ class Auth
     // get user details from the database
     public function get_user($email)
     {
-        $get_user = $this->db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid,u.password FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title  WHERE u.email=:email ");
+        $get_user = $this->db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid,u.password, u.first_login FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title  WHERE u.email=:email ");
         $get_user->execute(array(":email" => $email));
         $count_user = $get_user->rowCount();
         $user = $get_user->fetch();
@@ -35,7 +35,7 @@ class Auth
     // get user details from the database
     public function get_user_by_id($user_id)
     {
-        $get_user = $this->db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid,u.password FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title  WHERE u.userid=:user_id");
+        $get_user = $this->db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid,u.password, u.first_login FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title  WHERE u.userid=:user_id");
         $get_user->execute(array(":user_id" => $user_id));
         $count_user = $get_user->rowCount();
         $user = $get_user->fetch();
@@ -113,10 +113,11 @@ class Auth
         return ((60 - $minutes) > 0) ? true : false;
     }
 
-    private function send_mail($user_id, $fullname, $email, $priority, $notification_group_id, $notification_type_id, $page_url)
+    private function send_mail($user_id, $fullname, $email, $priority, $notification_type_id, $page_url, $otp)
     {
         $mail = new Email();
-        $token = $mail->get_auth_token($fullname, $email, '');
+        $notification_group_id = 1;
+        $token = $mail->get_auth_token($fullname, $email, '', $otp);
         $notification = $mail->get_notifications($priority, $notification_group_id);
         $notification_id = $notification->id;
         return $mail->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
@@ -133,11 +134,7 @@ class Auth
                 $sql = $this->db->prepare("UPDATE users SET  `password`=:password, last_update_password_date=:today WHERE email=:email");
                 $results = $sql->execute(array(":password" => password_hash($password, PASSWORD_DEFAULT), ":today" => date('Y-m-d'), ":email" => $email));
                 if ($results) {
-                    $notification_group_id = 1;
-                    $notification_type_id = 22;
-                    $priority = 1;
-                    $page_url = "index.php";
-                    $mail_response =  $this->send_mail($user->userid, $user->fullname, $email, $priority, $notification_group_id, $notification_type_id, $page_url);
+                    $mail_response =  $this->send_mail($user->userid, $user->fullname, $email, 1, 22, "index.php", '');
                 }
             }
         }
@@ -152,11 +149,7 @@ class Auth
             $sql = $this->db->prepare("UPDATE tbl_projteam2 SET  `disabled`=1 WHERE email=:email");
             $results = $sql->execute(array(":email" => $email));
             if ($results) {
-                $notification_group_id = 1;
-                $notification_type_id = 10;
-                $priority = 1;
-                $page_url = "index.php";
-                $mail_response = $this->send_mail($user->userid, $user->fullname, $email, $priority, $notification_group_id, $notification_type_id, $page_url);
+                $mail_response = $this->send_mail($user->userid, $user->fullname, $email, 1, 10, "index.php", '');
             }
         }
         return $mail_response;
@@ -172,11 +165,7 @@ class Auth
             $sql = $this->db->prepare("UPDATE users SET password=:password, last_update_password_date=:today, first_login=0 WHERE userid=:userid");
             $response = $sql->execute(array(":password" => $password_hashed, ":today" => date('Y-m-d'), ":userid" => $userid));
             if ($response) {
-                $notification_group_id = 1;
-                $notification_type_id = 22;
-                $priority = 1;
-                $page_url = "index.php";
-                $response = $this->send_mail($user->userid, $user->fullname, $user->email, $priority, $notification_group_id, $notification_type_id, $page_url);
+                $response = $this->send_mail($user->userid, $user->fullname, $user->email, 1, 22, "index.php", '');
             }
         }
         return $response ? $user : false;
@@ -206,11 +195,10 @@ class Auth
     // send mail to contractor and block if attempts reached limit
     public function otp($email)
     {
-        $mail = new Email();
         $user = $this->get_user($email);
         $mail_response = false;
         if ($user) {
-            // generate otp 
+            // generate otp
             $otp = rand(100000, 999999);
             date_default_timezone_set('Africa/Nairobi');
             $expires_at = date('Y-m-d H:i:s', strtotime('+2 minute'));
@@ -218,8 +206,7 @@ class Auth
             $opt_stmt = $this->db->prepare('UPDATE users SET otp=:otp, expires_at=:expires_at WHERE email=:email');
             $otp_result = $opt_stmt->execute([":otp" => $otp, ":expires_at" => $expires_at, ":email" => $email]);
             if ($otp_result) {
-                // $mail_response = $this->send_mail($user->contrid, $user->fullname, $email, 10, "/otp.php", 3);
-                $mail_response = $mail->sendMailOtp("one time password", $otp, $email, $user->user_name, []);
+                $mail_response = $this->send_mail($user->userid, $user->fullname, $user->email, 3, 27, '', $otp);
             }
         }
         return $mail_response;

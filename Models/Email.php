@@ -206,13 +206,14 @@ class Email
         return  $varMap;
     }
 
-    function get_auth_token($recipient_name, $email, $password)
+    function get_auth_token($recipient_name, $email, $password, $otp)
     {
         $varMap = [];
         $token = array(
             'FIRST_NAME' => $recipient_name,
             'EMAIL' => $email,
             "PASSWORD" => $password,
+            "OTP" => $otp,
         );
 
         $pattern = '[%s]';
@@ -462,11 +463,12 @@ class Email
         if ($count > 0) {
             $content = strtr($row_email_templates->content, $token);
             $subject = strtr($row_email_templates->title, $token);
+            $details_link = '';
             if ($page_url != '') {
                 $details_link =  '<a href="' . $page_url . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Click Here</a>';
-                $body = $this->email_body_template($subject, $content, $details_link);
             }
 
+            $body = $this->email_body_template($subject, $content, $details_link);
             if ($recipient_id != '') {
                 $user = $this->get_user_details($recipient_id);
                 if ($user) {
@@ -563,7 +565,6 @@ class Email
     public function sendMail($subject, $body, $recipient, $recipient_name, $attachments)
     {
         $results = false;
-        $recipient = 'pwambua25@gmail.com';
         try {
             $mail = new PHPMailer;
             // $mail->SMTPDebug = 2;
@@ -600,42 +601,6 @@ class Email
     {
         $sql = $this->db->prepare("INSERT INTO `tbl_notification_status` (notification_type_id,notification_group_id,notification_id,item_id,user_id,title,page_url,content,status,created_at) VALUES(:notification_type_id,:notification_group_id,:notification_id,:item_id,:user_id,:title,:content,:page_url,:status,:created_at)");
         $results = $sql->execute($data);
-        return $results;
-    }
-
-    public function sendMailOtp($subject, $otp, $recipient, $recipient_name, $attachments)
-    {
-        $results = false;
-        $recipient = 'pwambua25@gmail.com';
-        try {
-            $mail = new PHPMailer;
-            // $mail->SMTPDebug = 2;
-            $mail->isSMTP();
-            $mail->Host       = $this->host;
-            $mail->SMTPAuth   = $this->smtp_auth;
-            $mail->Username   = $this->username;
-            $mail->Password   = $this->password;
-            $mail->SMTPSecure = $this->smtp_secure;
-            $mail->Port       = $this->port;
-            $mail->setFrom($this->username, $this->org);
-            $mail->addAddress($recipient, $recipient_name);
-
-            if (count($attachments) > 0) {
-                for ($i = 0; $i < count($attachments); $i++) {
-                    $mail->addStringAttachment($attachments[$i], $attachments[$i]);
-                }
-            }
-
-            $mail->isHTML(True);
-            $mail->Subject = $subject;
-            $mail->Body = "<h1>otp is $otp</h1>";
-            $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
-            $results = $mail->send();
-        } catch (Exception $e) {
-            $results = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-        }
-
-
         return $results;
     }
 }

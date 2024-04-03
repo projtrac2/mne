@@ -43,10 +43,11 @@ if ($permission) {
 			$initial_basevalue = $_POST['initial_basevalue'];
 			$responsible = $_POST['responsible'];
 			$current_date = date("Y-m-d");
+			$record_name = $data_source == 2 ? $_POST['record_name']: "";
 			
 			if($kpi == "addkpi"){
-				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(strategic_objective_id, outcome_indicator_id, weighting, data_source, data_frequency, initial_baseline, responsible, created_by, date_created) VALUES (:objid, :indid, :weighting, :data_source, :frequency, :initial_basevalue, :responsible, :user, :dates)");
-				$result = $query_insert_kpi->execute(array(":objid" => $objid, ":indid" => $indid, ":weighting" => $weighting, ":data_source" => $data_source, ":frequency" => $frequency, ":initial_basevalue" => $initial_basevalue, ":responsible" => $responsible, ":user" => $user_name, ":dates" => $current_date));
+				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(strategic_objective_id, outcome_indicator_id, weighting, data_source, record_name, data_frequency, initial_baseline, responsible, created_by, date_created) VALUES (:objid, :indid, :weighting, :data_source, :record_name, :frequency, :initial_basevalue, :responsible, :user, :dates)");
+				$result = $query_insert_kpi->execute(array(":objid" => $objid, ":indid" => $indid, ":weighting" => $weighting, ":data_source" => $data_source, ":record_name" => $record_name, ":frequency" => $frequency, ":initial_basevalue" => $initial_basevalue, ":responsible" => $responsible, ":user" => $user_name, ":dates" => $current_date));
 				$kpi_id = $db->lastInsertId();
 				
 				for($i=0; $i<$duration; $i++){
@@ -447,13 +448,13 @@ if ($permission) {
 									<div id="result">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<label>Strategic Objective:</label>
-											<div id="objective" class="form-control" style="height:auto; padding-bottom:10px; padding-top:10px; width:100%; color:#000;">
+											<div id="objective" class="form-control">
 											</div>
 										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<div class="form-inline">
 												<label for="">Link Outcome Indicator *:</label>
-												<select name="indicator" id="indicator" class="form-control require" onchange="get_measurement_unit()" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+												<select name="indicator" id="indicator" class="form-control require" onchange="get_measurement_unit()" style="width:100%;" required>
 													<option value="">.... Select Impact ....</option>
 													<?php
 													while ($row_outcome_indicator = $query_outcome_indicator->fetch()) {
@@ -467,24 +468,24 @@ if ($permission) {
 												</select>
 											</div>
 										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Unit of Measure *:</label>
+											<div id="unit" class="form-control">....</div>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<label>Weighting *:</label>
-											<div class="form-line">
-												<input type="number" name="weighting" id="weighting" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter KPI weight">
-											</div>
+											<input type="number" name="weighting" id="weighting" class="form-control" required="required" placeholder="Enter KPI weight">
 										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-											<label>Source of data *:</label>
-											<div class="form-line">
-												<input type="text" name="data_source" id="data_source" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter data source">
-											</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Base Year Value (<span id="basevalue_id"></span>)*:</label>
+											<input type="number" name="initial_basevalue" id="initial_basevalue" class="form-control" required="required" placeholder="Enter the base year value">
 										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<label>Data Collection Frequency *:</label>
-											<select name="data_frequency" id="data_frequency" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+											<select name="data_frequency" id="data_frequency" class="form-control require" required>
 												<option value="">.... Select Frequency ....</option>
 												<?php
-                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");	
+                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE level > 2 AND status=1");	
                                                 $query_frequency->execute();   
                                                 
 												while ($row_frequency = $query_frequency->fetch()) {
@@ -497,21 +498,9 @@ if ($permission) {
 												?>
 											</select>
 										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-											<label>Initial Basevalue *:</label>
-											<div class="form-line">
-												<input type="number" name="initial_basevalue" id="initial_basevalue" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter KPI weight">
-											</div>
-										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-											<label>Unit of Measure *:</label>
-											<div class="form-line">
-												<div id="unit" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">....</div>
-											</div>
-										</div>
-										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<label for="">Responsible *:</label>
-											<select name="responsible" id="responsible" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+											<select name="responsible" id="responsible" class="form-control require" required>
 												<option value="">.... Select Responsible Role ....</option>
 												<?php
 												$query_designation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE active=1 ");	
@@ -525,6 +514,19 @@ if ($permission) {
 												}
 												?>
 											</select>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Source of data *:</label>
+											<select name="data_source" id="data_source" class="form-control require" onchange="get_record_type()" required>
+												<option value="">.... Select Data Source ....</option>
+												<font color="black">
+													<option value="1">Survey</option>
+													<option value="2">Records</option>
+												</font>
+											</select>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="record_name" style="margin-bottom:10px">
+											
 										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
 											<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
@@ -558,7 +560,7 @@ if ($permission) {
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td colspan="4">
-																		<input type="number" name="<?=$year?>target" id="strategy" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter <?=$fy?> Target Change in %ntage" />
+																		<input type="number" name="<?=$year?>target" id="strategy" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter <?=$fy?> Target Change" />
 																	</td>
 																	<?php
 																}
@@ -575,16 +577,16 @@ if ($permission) {
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td>
-																		<input type="number" name="<?=$year?>_threshold_1" id="<?=$year?>threshold1" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_1" id="<?=$year?>threshold1" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>_threshold_2" id="<?=$year?>threshold2" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_2" id="<?=$year?>threshold2" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>_threshold_3" id="<?=$year?>threshold3" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_3" id="<?=$year?>threshold3" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>_threshold_4" id="<?=$year?>threshold4" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_4" id="<?=$year?>threshold4" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<?php
 																}

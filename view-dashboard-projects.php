@@ -146,6 +146,9 @@ if ($permission) {
             $prjsc = $_GET['projscounty'];
             $prjward = $_GET['projward'];
             $prjloc = $_GET['projlocation'];
+
+
+
             if (empty($prjfyfrom) && empty($prjsc)) {
                 $widget_data = widgets($query = NULL, $prjsc = NULL, $prjward = NULL, $prjloc = NULL, $prjstatus, $accesslevel, 1);
                 $projects = (count($widget_data) > 0) ?  array_unique($widget_data) : array();
