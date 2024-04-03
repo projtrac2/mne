@@ -55,6 +55,58 @@ if ($permission) {
             return $input;
         }
 
+        function mne_plan($projid, $projevaluation, $projimpact)
+        {
+            global $db;
+            $outcome = false;
+            if ($projevaluation == 1) {
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql->execute(array(":projid" => $projid));
+                $rows_count = $sql->rowCount();
+                $outcome = $rows_count > 0 ? true : false;
+            }
+
+            $impact = false;
+            if ($projimpact == 1) {
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql->execute(array(":projid" => $projid));
+                $row_count = $sql->rowCount();
+                $impact = $row_count > 0 ? true : false;
+            }
+
+            $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+            $query_rsOutput->execute(array(":projid" => $projid));
+            $totalRows_rsOutput = $query_rsOutput->rowCount();
+            $output = $totalRows_rsOutput > 0 ? true : false;
+
+            return $output || $outcome || $impact ? true : false;
+        }
+
+        function check_approve_project($projid, $projevaluation, $projimpact)
+        {
+            global $db, $projid;
+            $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+            $query_rsOutput->execute(array(":projid" => $projid));
+            $totalRows_rsOutput = $query_rsOutput->rowCount();
+            $output = $totalRows_rsOutput > 0 ? true : false;
+            $outcome = true;
+            if ($projevaluation == 1) {
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql->execute(array(":projid" => $projid));
+                $rows_count = $sql->rowCount();
+                $outcome = $rows_count > 0 ? true : false;
+            }
+
+            $impact = true;
+            if ($projimpact == 1) {
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql->execute(array(":projid" => $projid));
+                $row_count = $sql->rowCount();
+                $impact = $row_count > 0 ? true : false;
+            }
+            return $output && $outcome && $impact ? true : false;
+        }
+
 
         $source_categories = get_source_categories();
         $partner_roles  = get_partner_roles();
@@ -115,8 +167,7 @@ if ($permission) {
                                                         <th width="15%">Budget Bal (ksh)</th>
                                                         <th width="4%">Project(s)</th>
                                                         <th width="10%">Start Year </th>
-                                                        <th width="4%">Duration </th>
-                                                        <th width="4%">SP Linked </th>
+                                                        <th width="8%">Duration </th>
                                                         <th width="7%">Action</th>
                                                     </tr>
                                                 </thead>
@@ -156,10 +207,6 @@ if ($permission) {
                                                             $query_projs =  $db->prepare("SELECT projid FROM tbl_projects WHERE progid='$progid'");
                                                             $query_projs->execute();
                                                             $totalRows_projs = $query_projs->rowCount();
-                                                            $sp_link = "No";
-                                                            if ($program_type != 1 && $strategic_plan != 0) {
-                                                                $sp_link = 'Yes';
-                                                            }
 
                                                             // get program quarterly targets
                                                             $query_pbbtargets =  $db->prepare("SELECT * FROM tbl_independent_programs_quarterly_targets WHERE progid = :progid");
@@ -253,15 +300,8 @@ if ($permission) {
                                                             $row_projsbudget = $query_projsbudget->fetch();
                                                             $count_projsbudget = $query_projsbudget->rowCount();
 
-                                                            if ($count_projsbudget > 0) {
-                                                                $projsbudget = $row_projsbudget['budget'];
-                                                            } else {
-                                                                $projsbudget = 0;
-                                                            }
-
+                                                            $projsbudget = ($count_projsbudget > 0) ?  $row_projsbudget['budget'] : 0;
                                                             $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
-                                                            $link = ($program_type == 0) ? $sp_link : $button;
-
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
@@ -274,7 +314,6 @@ if ($permission) {
                                                                     <td><?= $projectscount ?></td>
                                                                     <td><?= $projsyear ?></td>
                                                                     <td><?= $projduration ?></td>
-                                                                    <td><?= $link ?></td>
                                                                     <td>
                                                                         <!-- Single button -->
                                                                         <div class="btn-group">
@@ -310,9 +349,8 @@ if ($permission) {
                                                         <th width="3%">#</th>
                                                         <th width="40%">Project</th>
                                                         <th width="13%">Budget (ksh)</th>
-                                                        <th width="10%">Start Year </th>
-                                                        <th width="10%">Duration (day)</th>
-                                                        <th width="8%">SP Linked </th>
+                                                        <th width="14%">Start Year </th>
+                                                        <th width="14%">Duration (day)</th>
                                                         <th width="10%">Status </th>
                                                         <th width="8%">Action</th>
                                                     </tr>
@@ -338,6 +376,8 @@ if ($permission) {
                                                             $approved = $row_project['projplanstatus'];
                                                             $username = $row_project['user_name'];
                                                             $projstage = $row_project['projstage'];
+                                                            $projevaluation = $row_project['projevaluation'];
+                                                            $projimpact = $row_project['projimpact'];
                                                             $projid_hashed = base64_encode("projid54321{$projid}");
 
 
@@ -350,11 +390,6 @@ if ($permission) {
                                                             $query_projs->execute();
                                                             $totalRows_projs = $query_projs->rowCount();
 
-                                                            $sp_link = "No";
-                                                            if ($program_type == 0 && $strategic_plan == 1) {
-                                                                $sp_link = 'Yes';
-                                                            }
-
                                                             $projstatus = "<label class='label label-danger'>Pending Approval</div>";
                                                             $action = "";
                                                             $button = ' ';
@@ -365,24 +400,22 @@ if ($permission) {
                                                                     $button .= '<li><a type="button" onclick="unapprove_project(' . $projid . ')"> <i class="glyphicon glyphicon-edit"></i> Unapprove</a></li>';
                                                                 }
                                                             } else {
-                                                                $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
-                                                                $query_rsOutput->execute(array(":projid" => $projid));
-                                                                $totalRows_rsOutput = $query_rsOutput->rowCount();
-
-                                                                if ($totalRows_rsOutput > 0) {
+                                                                if (mne_plan($projid, $projevaluation, $projimpact)) {
                                                                     if (in_array("create", $page_actions)) {
-                                                                        $button .= '<li><a type="button" href="add-project-outputs.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Edit Outputs</a></li>';
+                                                                        $button .= '<li><a type="button" href="add-project-mne-plan.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Edit M&E Plan</a></li>';
                                                                     }
 
-                                                                    if (in_array("approve_project", $page_actions)) {
-                                                                        $button .= '<li><a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(' . $projid . ')"> <i class="fa fa-check-square-o"></i> Approve Project </a></li>';
+                                                                    if (check_approve_project($projid, $projevaluation, $projimpact)) {
+                                                                        if (in_array("approve_project", $page_actions)) {
+                                                                            $button .= '<li><a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(' . $projid . ')"> <i class="fa fa-check-square-o"></i> Approve Project </a></li>';
+                                                                        }
                                                                     }
                                                                 } else {
                                                                     if (in_array("create", $page_actions)) {
-                                                                        $button .= '<li><a type="button" href="add-project-outputs.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Add Outputs</a></li>';
+                                                                        $button .= '<li><a type="button" href="add-project-mne-plan.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-plus"></i>Add M&E Plan</a></li>';
                                                                     }
 
-                                                                    $projstatus = "<label class='label label-danger'>Pending Output/s</div>";
+                                                                    $projstatus = "<label class='label label-danger'>Pending M&E Plan</div>";
 
                                                                     if (in_array("update", $page_actions)) {
                                                                         $button .= '<li><a type="button" href="add-project.php?projid=' . $projid_hashed . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>';
@@ -403,7 +436,6 @@ if ($permission) {
                                                                     <td><?= $projcost ?> </td>
                                                                     <td><?= $projfscyear ?> </td>
                                                                     <td><?= $projduration ?> </td>
-                                                                    <td><?= $sp_link ?> </td>
                                                                     <td><?= $projstatus ?> </td>
                                                                     <td>
                                                                         <!-- Single button -->

@@ -17,7 +17,7 @@ if ($permission) {
 		$projcat = $row_projdetails["projcategory"];
 		$percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
 
-		$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+		$query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE r.projid=:projid GROUP BY r.id");
 		$query_proj_risks->execute(array(":projid" => $projid));
 		$totalRows_proj_risks = $query_proj_risks->rowCount();
 
@@ -306,13 +306,10 @@ if ($permission) {
 																	$priorityclass = 'bg-green';
 																}
 
-																if ($issueareaid == 2) {
-																	$issue_area = "Scope";
-																} elseif ($issueareaid == 3) {
-																	$issue_area = "Schedule";
-																} else {
-																	$issue_area = "Cost";
-																}
+																$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issueareaid");
+																$query_issue_area->execute(array(":issueareaid" => $issueareaid));
+																$row_issue_area = $query_issue_area->fetch();
+																$issue_area = $row_issue_area["issue_area"];
 
 																$query_timeline =  $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'issue' and stage=1 and active=1");
 																$query_timeline->execute();

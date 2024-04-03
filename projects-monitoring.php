@@ -62,7 +62,7 @@ if ($permission) {
             return $output_responsible || $standin_responsible ? true : false;
         }
 
-        function check_output_completion($projid, $record_type)
+        function check_output_completion($projid)
         {
             global $db;
             $query_rsTarget = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid");
@@ -74,14 +74,24 @@ if ($permission) {
                     $target =  $Rows_rsOutput['total_target'];
                     $output_id = $Rows_rsOutput['id'];
 
-                    $query_rsCummulative = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE output_id=:output_id AND record_type=:record_type");
-                    $query_rsCummulative->execute(array(":output_id" => $output_id, ":record_type" => $record_type));
+                    $query_rsCummulative = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE output_id=:output_id");
+                    $query_rsCummulative->execute(array(":output_id" => $output_id));
                     $Rows_rsCummulative = $query_rsCummulative->fetch();
                     $output_cummulative_record = $Rows_rsCummulative['achieved'] != null ? $Rows_rsCummulative['achieved'] : 0;
                     $complete[] = $output_cummulative_record == $target ? true : false;
                 }
             }
             return !in_array(false, $complete) ? true : false;
+        }
+
+        function get_milestone_type($projid)
+        {
+            global $db;
+            $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid LIMIT 1");
+            $query_rsMilestone->execute(array(":projid" => $projid));
+            $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+            $Rows_rsMilestone = $query_rsMilestone->fetch();
+            return $totalRows_rsMilestone > 0 ? $Rows_rsMilestone['milestone_type'] : '';
         }
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -136,66 +146,23 @@ if ($permission) {
                                                 $projstatus = $row_rsProjects['projstatus'];
                                                 $projstartdate = $row_rsProjects['projstartdate'];
                                                 $monitoring_frequency =  $row_rsProjects['monitoring_frequency'];
-                                                $schedule_team  = scheduled_team($projid, $workflow_stage);
                                                 $daily_team = daily_team($projid, $workflow_stage, 2);
 
-                                                $record_type = 0;
                                                 $Date = date("Y-m-d");
                                                 $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
                                                 $project_complete = false;
+                                                $Date = date("Y-m-d");
+                                                $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
+                                                $project_complete = check_output_completion($projid);
+
+                                                $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid AND mne_complete=0");
+                                                $query_rsOutput->execute(array(":projid" => $projid));
+                                                $totalRows_rsOutput = $query_rsOutput->rowCount();
+                                                $Rows_rsOutput = $query_rsOutput->fetch();
+                                                $output_monitoring_complete = $totalRows_rsOutput > 0 ? true : false;
+
+
                                                 if ($daily_team) {
-                                                    $record_type = 1;
-                                                    $Date = date("Y-m-d");
-                                                    $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
-                                                    $project_complete = check_output_completion($projid, $record_type);
-
-                                                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid AND mne_complete=0");
-                                                    $query_rsOutput->execute(array(":projid" => $projid));
-                                                    $totalRows_rsOutput = $query_rsOutput->rowCount();
-                                                    $Rows_rsOutput = $query_rsOutput->fetch();
-                                                    $output_monitoring_complete = $totalRows_rsOutput > 0 ? true : false;
-                                                } else if ($schedule_team) {
-                                                    $record_type = 2;
-                                                    $query_rsFrequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE fqid = :fqid");
-                                                    $query_rsFrequency->execute(array(":fqid" => $monitoring_frequency));
-                                                    $row_rsFrequency = $query_rsFrequency->fetch();
-                                                    $total_rsFrequency = $query_rsFrequency->rowCount();
-                                                    if ($total_rsFrequency > 0) {
-                                                        $days = $row_rsFrequency['days'];
-                                                        $due_date = date("Y-m-d");
-                                                        $Date = date("Y-m-d");
-
-                                                        $query_rsCummulative = $db->prepare("SELECT  * FROM tbl_monitoringoutput WHERE projid=:projid AND record_type=:record_type ORDER BY moid DESC  LIMIT 1");
-                                                        $query_rsCummulative->execute(array(":projid" => $projid, ":record_type" => $record_type));
-                                                        $Rows_rsCummulative = $query_rsCummulative->fetch();
-                                                        $Row_rsCummulative = $query_rsCummulative->rowCount();
-                                                        if ($Row_rsCummulative > 0) {
-                                                            $Date = $Rows_rsCummulative['date_created'];
-                                                        } else {
-                                                            $Date = $projstartdate;
-                                                            if ($implementation == 2) {
-                                                                $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
-                                                                $query_rsTender->execute(array(":projid" => $projid));
-                                                                $row_rsTender = $query_rsTender->fetch();
-                                                                $totalRows_rsTender = $query_rsTender->rowCount();
-                                                                if ($totalRows_rsTender > 0) {
-                                                                    $Date = $row_rsTender['startdate'];
-                                                                }
-                                                            }
-                                                        }
-
-                                                        $due_date = date('Y-m-d', strtotime($Date . ' + ' . $days));
-                                                    }
-                                                    $project_complete = check_output_completion($projid, $record_type);
-
-                                                    $query_rsOutput = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid AND mne_complete=0");
-                                                    $query_rsOutput->execute(array(":projid" => $projid));
-                                                    $totalRows_rsOutput = $query_rsOutput->rowCount();
-                                                    $Rows_rsOutput = $query_rsOutput->fetch();
-                                                    $output_monitoring_complete = $totalRows_rsOutput > 0 ? true : false;
-                                                }
-
-                                                if ($schedule_team || $daily_team) {
                                                     $monitored = false;
                                                     $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
                                                     $query_Projstatus->execute(array(":projstatus" => $projstatus));
@@ -227,6 +194,8 @@ if ($permission) {
                                                     }
 
                                                     $counter++;
+
+                                                    $milestone_type =   get_milestone_type($projid);
                                         ?>
                                                     <tr>
                                                         <td style="width:5%" align="center"><?= $counter ?></td>
@@ -245,7 +214,7 @@ if ($permission) {
                                                                     </button>
                                                                     <ul class="dropdown-menu">
                                                                         <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_project_outputs(<?= $projid ?>,'<?= $record_type ?>', '<?= htmlspecialchars($projname) ?>')">
+                                                                            <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_project_outputs(<?= $projid ?>,'<?= $milestone_type ?>', '<?= htmlspecialchars($projname) ?>')">
                                                                                 <i class="fa fa-check"></i> Monitor
                                                                             </a>
                                                                         </li>
@@ -407,7 +376,6 @@ if ($permission) {
                                     <input type="hidden" name="output_project_type" id="output_project_type" value="new">
                                     <input type="hidden" name="store_outputs" id="store_outputs" value="new">
                                     <input type="hidden" name="monitoring_type" id="monitoring_type" value="1">
-                                    <input type="hidden" name="record_type" id="record_type" value="">
                                     <input type="hidden" name="completed" id="completed" value="">
                                     <button type="submit" class="btn btn-primary waves-effect waves-light" value="button1" id="tag-form-submit"> Save</button>
                                     <button type="submit" class="btn btn-success waves-effect waves-light" value="button2" id="tag-form-submit1"> Save and Complete</button>

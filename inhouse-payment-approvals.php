@@ -97,7 +97,7 @@ if ($permission) {
 											</thead>
 											<tbody>
 												<?php
-												$query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_payments_request WHERE status != 3");
+												$query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_payments_request WHERE status >=1 AND status < 3");
 												$query_rsPayement_reuests->execute();
 												$total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
 												if ($total_rsPayement_reuests > 0) {

@@ -3,7 +3,7 @@ require('includes/head.php');
 
 if ($permission) {
 	try {
-		$query_mne_projects = $db->prepare("SELECT * FROM tbl_projects where projstage > 5");
+		$query_mne_projects = $db->prepare("SELECT * FROM tbl_projects where projstage > 7");
 		$query_mne_projects->execute();
 		$count_mne_projects = $query_mne_projects->rowCount();
 	} catch (PDOException $ex) {

@@ -180,11 +180,11 @@ if ($permission) {
 										}
 
 										// get active adp
-										$query_activeadp =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a left join tbl_fiscal_year y on y.id=a.financial_year left join tbl_projects p on p.projid=a.projid WHERE y.sdate <= '$currentdatetime' and y.edate >= '$currentdatetime' AND y.financial_year = '$adpfyid' GROUP BY y.financial_year");
+										$query_activeadp =  $db->prepare("SELECT * FROM tbl_annual_dev_plan a left join tbl_fiscal_year y on y.id=a.financial_year left join tbl_projects p on p.projid=a.projid WHERE y.sdate <= '$currentdatetime' and y.edate >= '$currentdatetime' AND a.financial_year = '$adpfyid' GROUP BY a.financial_year");
 										$query_activeadp->execute();
 										$totalRows_activeadp = $query_activeadp->rowCount();
 										if ($totalRows_activeadp > 0) {
-											?>
+								?>
 											<li class="active">
 												<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-up bg-green" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-green"><?php echo $totalcount; ?></span></a>
 											</li>
@@ -194,7 +194,7 @@ if ($permission) {
 											<li>
 												<a data-toggle="tab" href="#menu<?= $adpfyid ?>"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-deep-orange"><?php echo $totalcount; ?></span></a>
 											</li>
-										<?php
+								<?php
 										}
 									}
 								}
@@ -263,7 +263,7 @@ if ($permission) {
 										$totalRows_activeadpbody = $query_activeadpbody->rowCount();
 
 										if ($totalRows_activeadpbody > 0) {
-											?>
+								?>
 											<div id="home" class="tab-pane fade in active">
 												<div style="color:#fff; background-color:green; width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px"></i> <?= $adp ?> Projects</h4>
@@ -591,7 +591,7 @@ if ($permission) {
 										} else {
 										?>
 
-											<div id="menu<?= $adpfyid ?>" class="tab-pane fade clearfix">											
+											<div id="menu<?= $adpfyid ?>" class="tab-pane fade clearfix">
 												<div class="bg-orange text-white" style="width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:#FF9800"></i> <?= $adp ?> Projects</h4>
 												</div>
@@ -660,12 +660,12 @@ if ($permission) {
 																	$query_rsDept->execute(array(":sector" => $projdept));
 																	$row_rsDept = $query_rsDept->fetch();
 																	$department = $row_rsDept['sector'];
-																	
+
 																	//check if project has adp budget tbl_adp_projects_budget
 																	$query_adp_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid = :projid AND year = :adpfyid");
 																	$query_adp_budget->execute(array(":projid" => $itemId, ":adpfyid" => $adpfyid));
 																	$row_adp_budget = $query_adp_budget->rowCount();
-																	
+
 																	if ($row_adp_budget == 0) {
 																		$buttonunapprov = '
 																		<li>
@@ -685,7 +685,7 @@ if ($permission) {
 																			Options <span class="caret"></span>
 																		</button>
 																		<ul class="dropdown-menu">
-																			'.$buttonunapprov .'
+																			' . $buttonunapprov . '
 																			<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More Info</a></li>
 																		</ul>
 																	</div>';
@@ -693,7 +693,7 @@ if ($permission) {
 
 																	$filter_department = view_record($project_department, $project_section, $project_directorate);
 																	if ($filter_department) {
-																		?>
+															?>
 																		<tr>
 																			<td align="center" width="5%"><?php echo $sn; ?></td>
 																			<td width="30%"><?php echo $projname; ?></td>
@@ -703,7 +703,7 @@ if ($permission) {
 																			<td width="8%"><?php echo $active; ?></td>
 																			<td width="8%"><?php echo $button; ?></td>
 																		</tr>
-																		<?php
+															<?php
 																	} // /while
 																}
 															}

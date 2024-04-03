@@ -1,197 +1,107 @@
 <?php
-include_once('../../projtrac-dashboard/resource/Database.php');
-include_once('../../projtrac-dashboard/resource/utilities.php');
-include_once("../../system-labels.php");
-require('../../vendor/autoload.php');
- 
-function disaggregation($indid)
-{
-    global $db;
-    $query_rsIndicator = $db->prepare("SELECT *  FROM tbl_indicator WHERE indid='$indid' ");
-    $query_rsIndicator->execute();
-    $row_rsIndicator = $query_rsIndicator->fetch();
-    $totalRows_rsIndicator = $query_rsIndicator->rowCount();
-    if ($totalRows_rsIndicator > 0) {
-        $indicator_disaggregation = $row_rsIndicator['indicator_disaggregation'];
-        if ($indicator_disaggregation > 0) {
-            $query_rsIndicator1 = $db->prepare("SELECT d.type FROM `tbl_indicator_measurement_variables_disaggregation_type` as t INNER JOIN tbl_disaggregation_type as d  on  d.id = t.disaggregation_type WHERE indicatorid='$indid' ");
-            $query_rsIndicator1->execute();
-            $row_rsIndicator1 = $query_rsIndicator1->fetch();
-            $totalRows_rsIndicator1 = $query_rsIndicator1->rowCount();
-            if ($totalRows_rsIndicator1 > 0) {
-                $type = $row_rsIndicator1['type'];
-                if ($type == 1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
+include '../controller.php';
+try {
+    function get_members($responsible)
+    {
+        global $db;
+        $query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title ORDER BY ptid ASC");
+        $query_rsPMbrs->execute();
+        $count_row_rsPMbrs = $query_rsPMbrs->rowCount();
+        $input = '<option value="">Select Member from List</option>';
+        if ($count_row_rsPMbrs > 0) {
+            while ($row_rsPMbrs = $query_rsPMbrs->fetch()) {
+                $fullname = $row_rsPMbrs['ttitle'] . " " . $row_rsPMbrs['fullname'];
+                $user_id = $row_rsPMbrs['userid'];
+                $selected = $user_id == $responsible ? 'selected' : '';
+                $input .= '<option value="' . $user_id . '" ' . $selected . ' >' . $fullname . '</option>';
             }
-        } else {
-            return false;
         }
+
+        return $input;
     }
-}
 
-
-
-if(isset($_POST['add'])){
-   $opid = $_POST['opid'];
-   $projid = $_POST['projid'];
-   $data ='';
-
-   // Responsible 
-   $query_rsOutputs = $db->prepare("SELECT *  FROM tbl_project_details WHERE projid=:projid and id=:outputid");
-   $query_rsOutputs->execute(array(":projid" => $projid, ":outputid"=>$opid));
-   $row_rsOutputs = $query_rsOutputs->fetch();
-   $totalRows_rsOutputs = $query_rsOutputs->rowCount();
-
-   if($totalRows_rsOutputs > 0){
-      $indicator = $row_rsOutputs['indicator'];
-      $disaggregated = disaggregation($indicator);
-
-      if($disaggregated){
-
-         $query_rsdissegragations = $db->prepare("SELECT * FROM tbl_output_disaggregation d INNER JOIN tbl_state s ON s.id = d.outputstate WHERE projid=:projid and outputid=:opid ");
-        $result = $query_rsdissegragations->execute(array(":projid" => $projid, ":opid" => $opid));
-        $row_rsdissegragations = $query_rsdissegragations->fetch();
-        $totalRows_rsdissegragations = $query_rsdissegragations->rowCount();
-
-        $data .= '
-        <input type="hidden" name="projid" id="projid"   value="' . $projid . '"  />
-        <input type="hidden" name="opid" id="opid"   value="' . $opid . '"  />
-        <input type="hidden" name="disaggregated_value" id="opid"   value="0" />';
-        if ($totalRows_rsdissegragations > 0) {
-            $st = 0;
-            do {
-                $row = 0;
-                $st++;
-                $opstate = $row_rsdissegragations['outputstate'];
-                $forest = $row_rsdissegragations['state'];
-                $oprow = $opstate . $st;
-                $data .= '
-                <tr>
-                    <td>' . $st . '</td>
-                    <td colspan="4"> <strong>
-                        ' . $forest . ' ' . $level3label . ' </strong>
-                        <input type="hidden" name="rowno[]" id="rowno"  value="' . $st . '" />
-                        <input type="hidden" name="forest[]" id="forest' . $st . '"   value="' . $opstate . '"  />
-                    </td>
-                </tr>';
-
-                // level4
-                $query_rsproject_dissegragations = $db->prepare("SELECT s.disaggregations, s.id, l.target FROM tbl_indicator_level3_disaggregations s INNER JOIN tbl_projects_location_targets l ON l.locationdisid = s.id WHERE l.outputid ='$opid' AND l.projid='$projid' AND l.level3='$opstate'");
-                $result = $query_rsproject_dissegragations->execute();
-                $row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch();
-                $totalRows_rsproject_dissegragations = $query_rsproject_dissegragations->rowCount();
-
-                if ($totalRows_rsproject_dissegragations > 0) {
-                    do {
-                        $rowno = $opstate . $st . $row;
-                        $team = '';
-                        $locationName = $row_rsproject_dissegragations['disaggregations'];
-                        $result_level = $row_rsproject_dissegragations['id'];
-                        $value = $row_rsproject_dissegragations['target'];
-                        if ($value > 0) {
-                            $row++;
-                            $query_rsMembers = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid=:projid");
-                            $query_rsMembers->execute(array(":projid" => $projid));
-                            $row_rsMembers = $query_rsMembers->fetch();
-                            $totalRows_rsMembers = $query_rsMembers->rowCount();
-
-                            do {
-                                $ptid = $row_rsMembers['ptid'];
-                                $query_rsTeam = $db->prepare("SELECT *  FROM tbl_projteam2 WHERE ptid=:ptid ");
-                                $query_rsTeam->execute(array(":ptid" => $ptid));
-                                $row_rsTeam = $query_rsTeam->fetch();
-                                $totalRows_rsTeam = $query_rsTeam->rowCount();
-
-                                $team .= '<option value="' . $row_rsTeam['ptid'] . '">' . $row_rsTeam['fullname'] . '</option>';
-                            } while ($row_rsMembers = $query_rsMembers->fetch());
-
-                            $data .= '
-                            <tr id=""> 
-                                <td>' . $st . "." . $row . '</td>
-                                <td>
-                                    '. $locationName .'
-                                    <input type="hidden" name="result_level' . $oprow . '[]" id="result_level' . $rowno . '" class="form-control" value="' . $result_level . '" style="width:85%; float:right" required />
-                                </td>
-                                <td>
-                                    <select name="responsible' . $oprow . '[]" id="responsible' . $rowno . '" class="form-control selectpicker" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required="required">
-                                        <option value="">Select from list</option>
-                                        ' . $team . '
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="date" name="mdate' . $oprow . '[]" id="mdate' . $rowno . '" placeholder="Enter" onchange="validate_date(' . $rowno . ')" class="form-control" style="width:85%; float:right" required />
-                                </td>
-                            </tr>';
-                        }
-                    } while ($row_rsproject_dissegragations = $query_rsproject_dissegragations->fetch());
-                }
-            } while ($row_rsdissegragations = $query_rsdissegragations->fetch());
+    function get_role($role_id)
+    {
+        global $db;
+        $query_projrole = $db->prepare("SELECT * FROM `tbl_project_team_roles` WHERE active=1");
+        $query_projrole->execute();
+        $total_rows = $query_projrole->rowCount();
+        $role_input = '<option value="">Select Role</option>';
+        if ($total_rows > 0) {
+            while ($row_projrole = $query_projrole->fetch()) {
+                $id = $row_projrole['id'];
+                $role = $row_projrole['role'];
+                $selected = $role_id == $id ? "selected" : '';
+                $role_input .= '<option value="' . $id . '" ' . $selected . ' >' . $role . '</option>';
+            }
         }
-      }else{
-         $query_rsdissegragations = $db->prepare("SELECT * FROM `tbl_output_disaggregation` where projid=:projid and outputid=:opid");
-        $result = $query_rsdissegragations->execute(array(":projid" => $projid, ":opid" => $opid));
-        $row_rsdissegragations = $query_rsdissegragations->fetch();
-        $totalRows_rsdissegragations = $query_rsdissegragations->rowCount();
-        $data .= '
-        <input type="hidden" name="projid" id="projid"   value="' . $projid . '"  />
-        <input type="hidden" name="opid" id="opid"   value="' . $opid . '"  />';
-        if ($totalRows_rsdissegragations > 0) {
-            $rowno = 0;
-            do {
-                $rowno++;
-                $opstate = $row_rsdissegragations['outputstate'];
-                $query_rsForest = $db->prepare("SELECT id, state FROM tbl_state WHERE  id='$opstate' LIMIT 1");
-                $query_rsForest->execute();
-                $row_rsForest = $query_rsForest->fetch();
-                $forest = $row_rsForest['state'];
+        return  $role_input;
+    }
 
-                $query_rsMembers = $db->prepare("SELECT *  FROM tbl_projmembers WHERE projid=:projid");
-                $query_rsMembers->execute(array(":projid" => $projid));
-                $row_rsMembers = $query_rsMembers->fetch();
-                $totalRows_rsMembers = $query_rsMembers->rowCount();
-
-                $team = '';
-                if ($totalRows_rsMembers > 0) {
-                    do {
-                        $ptid = $row_rsMembers['ptid'];
-                        $query_rsTeam = $db->prepare("SELECT *  FROM tbl_projteam2 WHERE ptid=:ptid ");
-                        $query_rsTeam->execute(array(":ptid" => $ptid));
-                        $row_rsTeam = $query_rsTeam->fetch();
-                        $totalRows_rsTeam = $query_rsTeam->rowCount();
-                        $team .= '<option value="' . $row_rsTeam['ptid'] . '">' . $row_rsTeam['fullname'] . '</option>';
-                    } while ($row_rsMembers = $query_rsMembers->fetch());
-                } else {
-                    $team .= '<option value="Assign project team first">Assign project team first</option>';
-                }
-
-                $data .= '
-                <tr id=""> 
-                    <td>' . $rowno . '</td>
+    if (isset($_GET['get_edit_members'])) {
+        $projid = $_GET['projid'];
+        $query_rsTeamMembers = $db->prepare("SELECT * FROM tbl_projmembers WHERE team_type=5 AND projid=:projid");
+        $query_rsTeamMembers->execute(array(":projid" => $projid));
+        $totalRows_rsTeamMembers = $query_rsTeamMembers->rowCount();
+        $members = '';
+        if ($totalRows_rsTeamMembers > 0) {
+            $counter = 0;
+            while ($row = $query_rsTeamMembers->fetch()) {
+                $counter++;
+                $member_id = $row['responsible'];
+                $role_id = $row['role'];
+                $member = get_members($member_id);
+                $roles = get_role($role_id);
+                $members .= '
+                <tr id="mtng' . $counter . '">
+                    <td>' . $counter . '</td>
                     <td>
-                        ' . $forest . ' ' . $level3label . ' </strong> 
-                        <input type="hidden" name="level3[]" value="' . $opstate .'"  />
-                    </td>
-                    <td>
-                        <select name="responsible[]"  class="form-control selectpicker" data-actions-box="true" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required="required">
-                            <option value="">Select from list</option>
-                            ' . $team . '
+                        <select name="member[]" id="memberrow' . $counter . '" class="form-control show-tick members" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                            ' . $member . '
                         </select>
                     </td>
+                    <td>
+                        <select name="role[]" id="rolerow' . $counter . '" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                            ' . $roles . '
+                        </select>
+                    </td>
+                    <td>';
+
+                if ($counter != 1) {
+                    $members .= '
+                    <button type="button" class="btn btn-danger btn-sm"  onclick=delete_member("mtng' . $counter . '")>
+                        <span class="glyphicon glyphicon-minus"></span>
+                    </button>';
+                }
+                $members .= '
+                    </td>
                 </tr>';
-            } while ($row_rsdissegragations = $query_rsdissegragations->fetch());
+            }
         }
-      }
+        echo json_encode(array("success" => true, "members" => $members));
+    }
 
-   }
+    if (isset($_POST['assign_responsible'])) {
+        $projid = $_POST['projid'];
+        $datecreated = date("Y-m-d");
+        $members = $_POST['member'];
+        $roles = $_POST['role'];
+        $total_members = count($members);
 
-   echo $data;
-}
+        $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 5");
+        $result = $sql->execute(array(':projid' => $projid, ":stage" => 9));
+        for ($i = 0; $i < $total_members; $i++) {
+            $ptid = $members[$i];
+            $role = $roles[$i];
+            $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
+            $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => 9, ':team_type' => 5, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
+        }
 
-if(isset($_POST['edit'])){
-
+        $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE projid=:projid");
+        $result  = $sql->execute(array(":proj_substage" => 2, ":projid" => $projid));
+        echo json_encode(array("success" => true));
+    }
+} catch (PDOException $ex) {
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    echo $ex->getMessage();
 }

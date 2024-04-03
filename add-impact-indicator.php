@@ -1,17 +1,15 @@
-<?php 
-require('functions/strategicplan.php'); 
+<?php
+require('functions/strategicplan.php');
 require('includes/head.php');
 
 if ($permission) {
 	require('functions/indicator.php');
-	require('functions/department.php');
 	require('functions/datasources.php');
 	require('functions/measurement-unit.php');
 	require('functions/calculationmethods.php');
 
 	try {
 		//$currentYear = get_current_year();
-		$departments = get_departments();
 		$data_sources = get_data_sources();
 		$measurement_units = get_measurement_units();
 		$indicator_calculation_methods = get_indicator_calculation_methods();
@@ -25,8 +23,6 @@ if ($permission) {
 			$desc = $_POST['inddesc'];
 			$indcat = "Impact";
 			$unit = $_POST['indunit'];
-			$indsector = $_POST['indsector'];
-			$inddept = $_POST['inddept'];
 			$user = $_POST['user_name'];
 			$current_date = date("Y-m-d");
 			$source_data = 0;
@@ -40,12 +36,12 @@ if ($permission) {
 			$indcount = $query_rsIndicator->rowCount();
 
 			if ($indcount == 0) {
-				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_sector, indicator_dept, indicator_data_source, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :indsector, :inddept, :source_data, :user, :date)");
-				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':indsector' => $indsector, ':inddept' => $inddept, ':source_data' => $source_data, ':user' => $user, ':date' => $current_date));
-				
+				$insertSQL = $db->prepare("INSERT INTO tbl_indicator (indicator_code, indicator_name, indicator_description, indicator_category, indicator_disaggregation, indicator_calculation_method, indicator_unit, indicator_direction, indicator_data_source, user_name, date_entered) VALUES (:indcode, :indname, :inddesc, :indcat, :indidis, :indcalcmethod, :indunit, :inddirection, :source_data, :user, :date)");
+				$result = $insertSQL->execute(array(':indcode' => $indcd, ':indname' => $indname, ':inddesc' => $desc, ':indcat' => $indcat, ':indidis' => $disaggregated, ':indcalcmethod' => $indcalculation, ':indunit' => $unit, ':inddirection' => $inddirection, ':source_data' => $source_data, ':user' => $user, ':date' => $current_date));
+
 				if ($result) {
 					$last_id = $db->lastInsertId();
-					
+
 					if (isset($_POST['inddirectBenfType'])) {
 						/* if (isset($_POST['indcalculation'])) {
 							$category = 2;
@@ -103,7 +99,7 @@ if ($permission) {
 							}
 						}
 					}
-					
+
 					$indid = $last_id;
 					$url = 'view-indicators.php';
 					$msg = 'Indicator successfully added.';
@@ -116,8 +112,8 @@ if ($permission) {
 						icon:'success',
 						showConfirmButton: false });
 					setTimeout(function(){
-						window.location.href = \"$url\"; 
-					}, 3000); 
+						window.location.href = \"$url\";
+					}, 3000);
 				</script>";
 				} else {
 					$msg = 'Failed!! This Indicator was not added!!';
@@ -216,31 +212,6 @@ if ($permission) {
 												<option value="">.... Select Direction ....</option>
 												<option value="1">Upward</option>
 												<option value="2">Downward</option>
-											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<label>Indicator <?= $ministrylabel ?>*:</label>
-										<div class="form-line">
-											<select name="indsector" id="indsector" onchange="get_department()" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?>....</option>
-												<?php
-												for ($i = 0; $i < count($departments); $i++) {
-												?>
-													<option value="<?php echo $departments[$i]['stid'] ?>"><?php echo $departments[$i]['sector'] ?></option>
-												<?php
-												}
-												?>
-											</select>
-										</div>
-									</div>
-
-									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<label>Indicator <?= $departmentlabel ?>*:</label>
-										<div class="form-line" id="inddeparment">
-											<select name="inddept" id="inddept" class="form-control show-tick" false style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">....Select <?= $ministrylabel ?> first....</option>
 											</select>
 										</div>
 									</div>

@@ -1,128 +1,197 @@
-
-var process_url = "ajax/inspection/assign";
+var ajax_url1 = "ajax/inspection/assign";
 $(document).ready(function () {
-   $(".projects td").click(function (e) {
+   $("#assign_responsible").submit(function (e) {
       e.preventDefault();
-      $(this).find("i").toggleClass("fa-plus-square fa-minus-square");
-   });
-
-   $("#tag-form-submit").click(function (e) {
-      e.preventDefault();
-      var formData = $("#submitMilestoneForm").serialize();
-      $("#tag-form-submit").prop("disabled", true);
+      $("#tag-form-submit-2").prop("disabled", true);
       $.ajax({
-         type: "POST",
-         url: process_url,
-         data: formData,
+         type: "post",
+         url: ajax_url1,
+         data: $(this).serialize(),
          dataType: "json",
          success: function (response) {
-            $("#tag-form-submit").prop("disabled", false);
-            if (response.success == true) {
-               alert(response.messages);
-               $(".modal").each(function () {
-                  $(this).modal("hide");
-               });
-               location.reload(true);
+            if (response.success) {
+               success_alert("Record saved successfully");
             } else {
-               alert(response.messages);
-               location.reload(true);
+               error_alert("Record could not be saved successfully");
             }
-         },
+            $("#tag-form-submit-2").prop("disabled", false);
+            setTimeout(() => {
+               location.reload(true);
+            }, 3000);
+         }
       });
    });
 
+   $("#add_questions_form").submit(function (e) {
+      e.preventDefault();
+      $("#tag-form-submit-1").prop("disabled", true);
+      $.ajax({
+         type: "post",
+         url: ajax_url1,
+         data: $(this).serialize(),
+         dataType: "json",
+         success: function (response) {
+            if (response.success) {
+               success_alert("Record saved successfully");
+            } else {
+               error_alert("Record could not be saved successfully");
+            }
+            $("#tag-form-submit-2").prop("disabled", false);
+            setTimeout(() => {
+               location.reload(true);
+            }, 3000);
+         }
+      });
+   });
+
+   //filter users to ensure that you have not selected same user twice
+   $(document).on("change", ".members", function (e) {
+      var tralse = true;
+      var selectOutcome_arr = []; // for contestant name
+      var attrb = $(this).attr("id");
+      var selectedid = "#" + attrb;
+      var selectedText = $(selectedid + " option:selected").html();
+
+      $(".members").each(function (k, v) {
+         var getVal = $(v).val();
+         if (getVal && $.trim(selectOutcome_arr.indexOf(getVal)) != -1) {
+            tralse = false;
+            error_alert("You canot select member " + selectedText + " more than once");
+            $(v).val("");
+            return false;
+         } else {
+            selectOutcome_arr.push($(v).val());
+         }
+      });
+      if (!tralse) {
+         return false;
+      }
+   });
 });
 
-function add(projid, opid) {
-   if (opid && projid) {
+function add_checklist(details) {
+   $("#checklist_projid").val(details.projid);
+   $("#projcode").html(details.projcode);
+   $("#projname").html(details.project_name);
+   if (details.edit > 0) {
       $.ajax({
-         type: "post",
-         url: process_url,
+         type: "GET",
+         url: ajax_url1,
          data: {
-            opid: opid,
-            projid: projid,
-            add: "add",
+            get_edit_questions: 'get_edit_questions',
+            projid: details.projid,
          },
-         dataType: "html",
+         dataType: "json",
          success: function (response) {
-            $("#assign_table_body").html(response);
-            $(".selectpicker").selectpicker("refresh");
-            $("#newitem").val("newitem");
-            $("#newitem").attr("name", "newitem");
-         },
+            if (response.success) {
+               $("#checklist_table_body").html(response.questions);
+            } else {
+               error_alert("Record could not be saved successfully");
+            }
+         }
       });
    }
 }
 
-function edit(projid, opid, dissagragated) {
-   if (opid && projid) {
+const assign_committee = (details) => {
+   $("#member_projid").val(details.projid);
+   $("#project_code").html(details.projcode);
+   $("#project_name").html(details.project_name);
+   if (details.edit == true) {
       $.ajax({
-         type: "post",
-         url: process_url,
+         type: "GET",
+         url: ajax_url1,
          data: {
-            opid: opid,
-            projid: projid,
-            edit: "edit",
+            get_edit_members: 'get_edit_members',
+            projid: details.projid,
          },
-         dataType: "html",
+         dataType: "json",
          success: function (response) {
-            $("#assign_table_body").html(response);
-            $(".selectpicker").selectpicker("refresh");
-            $("#newitem").val("edititem");
-            $("#newitem").attr("name", "edititem");
-         },
+            if (response.success) {
+               $("#member_table_body").html(response.members);
+
+            } else {
+               error_alert("Record could not be saved successfully");
+            }
+         }
       });
    }
-} 
+}
 
-// sweet alert notifications
-function sweet_alert(err, msg) {
-   return swal({
-      title: err,
-      text: msg,
-      type: "Error",
-      timer: 5000,
-      showConfirmButton: false,
+function add_row_member() {
+   $row = $("#member_table_body tr").length;
+   $row = $row + 1;
+   var randno = Math.floor((Math.random() * 1000) + 1);
+   var $rowno = $row + "" + randno;
+   $("#member_table_body tr:last").after(`
+      <tr id="mtng${$rowno}">
+         <td></td>
+         <td>
+               <select name="member[]" id="memberrow${$rowno}" class="form-control show-tick members" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                  <option value="">..Select Member..</option>
+                  ${members}
+               </select>
+         </td>
+         <td>
+               <select name="role[]" id="rolerow${$rowno}" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
+                  <option value="">..Select Member..</option>
+                  ${roles}
+               </select>
+         </td>
+         <td>
+               <button type="button" class="btn btn-danger btn-sm"  onclick=delete_member("mtng${$rowno}")>
+                  <span class="glyphicon glyphicon-minus"></span>
+               </button>
+         </td>
+      </tr>`);
+   numbering_member();
+}
+
+function delete_member(rowno) {
+   $("#" + rowno).remove();
+   numbering_member();
+}
+
+function numbering_member() {
+   $("#member_table_body tr").each(function (idx) {
+      $(this)
+         .children()
+         .first()
+         .html(idx + 1);
    });
-   setTimeout(function () { }, 2000);
 }
 
-function more(projid, opid) {
-   if (projid && opid) {
-      $.ajax({
-         url: process_url,
-         type: "post",
-         data: {
-            projid: projid,
-            opid: opid,
-            get_more: "get_more",
-         },
-         dataType: "html",
-         success: function (response) {
-            $("#moreinfo").html(response);
-         },
-      });
-   } else {
-      alert("Error please refresh the page");
-   }
+function add_row_checklist() {
+   $row = $("#checklist_table_body tr").length;
+   $row = $row + 1;
+   var randno = Math.floor((Math.random() * 1000) + 1);
+   var $rowno = $row + "" + randno;
+
+   $("#checklist_table_body tr:last").after(`
+   <tr id="cht${$rowno}">
+         <td></td>
+         <td>
+            <input type="text" name="question[]" id="questionrow0" placeholder="Enter Question" class="form-control" required />
+         </td>
+         <td>
+            <button type="button" class="btn btn-danger btn-sm"  onclick=delete_checklist("cht${$rowno}")>
+               <span class="glyphicon glyphicon-minus"></span>
+            </button>
+         </td>
+   </tr>`);
+   numbering_checklist();
 }
 
-function more_info(mapid) {
-   if (mapid) {
-      $.ajax({
-         url: process_url,
-         type: "get",
-         data: {
-            mapid: mapid,
-            more: "more",
-         },
-         dataType: "html",
-         success: function (response) {
-            $("#moreinfo").html(response);
-         },
-      });
-   } else {
-      alert("Error please refresh the page");
-   }
+function delete_checklist(rowno) {
+   $("#" + rowno).remove();
+   numbering_checklist();
 }
 
+function numbering_checklist() {
+   $("#checklist_table_body tr").each(function (idx) {
+      $(this)
+         .children()
+         .first()
+         .html(idx + 1);
+   });
+}

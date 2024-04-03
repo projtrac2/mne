@@ -221,19 +221,6 @@ if ($permission) {
                                         <input type="hidden" name="directorate_id" id="directorate_id" value="<?= $directorate_id ?>">
                                     <?php
                                     }
-                                    if ($program_type == 0) {
-                                    ?>
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <label for="" class="control-label">Link to Strategic Objective? *:</label>
-                                            <div class="form-line">
-                                                <input name="progstrategyobjective" type="radio" value="1" id="strat1" onchange="hide_strategicplan('1')" class="with-gap radio-col-green insp" required="required" />
-                                                <label for="strat1">YES</label>
-                                                <input name="progstrategyobjective" type="radio" value="0" id="strat2" onchange="hide_strategicplan('0')" class="with-gap radio-col-red insp" required="required" />
-                                                <label for="strat2">NO</label>
-                                            </div>
-                                        </div>
-                                    <?php
-                                    }
                                     $query_rsStrategicPlan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1 LIMIT 1");
                                     $query_rsStrategicPlan->execute();
                                     $row_rsStrategicPlan = $query_rsStrategicPlan->fetch();
@@ -258,55 +245,29 @@ if ($permission) {
                                     $financial_years = program_financial_years($syear, $endyear);
                                     $ind_financial_years = get_independent_financial_years();
                                     ?>
-                                    <div id="strategic_plan_div">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <label for="syear">Strategic Plan *:</label>
-                                            <div class="form-line">
-                                                <input type="text" name="plan" id="plan" value="<?= $plan ?>" class="form-control" disabled>
-                                            </div>
+                                    <input type="hidden" name="stratplanendyear" value="<?= $endyear ?>" id="stratplanendyear">
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="strat_div">
+                                        <label>Strategic Objective *:</label>
+                                        <div class="form-line">
+                                            <select name="strategic_objective" id="strategic_objective" class="form-control show-tick" onchange="get_strategy()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                <option value="">.... Select Strategic Objective ....</option>';
+                                                <?= $strategic_objective_options ?>
+                                            </select>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="syear">Strategic Plan Start Year *:</label>
-                                            <div class="form-line">
-                                                <input type="hidden" name="splan" value="<?= $spid ?>">
-                                                <input type="text" name="stratplanstartYear" id="stratplanstartYear" value="<?= $syear ?>" class="form-control" disabled>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="syear">Strategic Plan End Year *:</label>
-                                            <div class="form-line">
-                                                <input type="text" name="stratplanendyear" id="stratplanendyear" value="<?= $endyear ?>" class="form-control" disabled>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="syear">Strategic Plan Years *:</label>
-                                            <div class="form-line">
-                                                <input type="text" name="stratplanyears" id="stratplanyears" value="<?= $years ?>" class="form-control" disabled>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="strat_div">
-                                            <label>Strategic Objective *:</label>
-                                            <div class="form-line">
-                                                <select name="strategic_objective" id="strategic_objective" class="form-control show-tick" onchange="get_strategy()" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-                                                    <option value="">.... Select Strategic Objective ....</option>';
-                                                    <?= $strategic_objective_options ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                            <label>Strategy *:</label>
-                                            <div class="form-line">
-                                                <select name="progstrategy" id="progstrategy" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-                                                    <option value="">.... Select Strategy from list ....</option>
-                                                </select>
-                                            </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                        <label>Strategy *:</label>
+                                        <div class="form-line">
+                                            <select name="progstrategy" id="progstrategy" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+                                                <option value="">.... Select Strategy from list ....</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Program Start Year *:</label>
                                         <div class="form-line">
                                             <select name="syear" id="starting_year" onchange="get_workplan_header()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required="required">
-                                                <?= $program_type == 1 ? $financial_years : "" ?>
+                                                <?= $program_type == 1 ? $financial_years : $ind_financial_years ?>
                                             </select>
                                         </div>
                                     </div>

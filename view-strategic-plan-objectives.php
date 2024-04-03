@@ -2,6 +2,7 @@
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
+$strategicplanid = $_GET['plan'];
 
 $stplane = $_GET['plan'];
 require('includes/head.php');
@@ -34,14 +35,19 @@ if ($permission) {
 		
 		if (isset($_POST["kpi"])) {
 			$kpi = $_POST["kpi"];
-			$kpi_description = $_POST["kpi_description"];
 			$objid = $_POST['objid'];
 			$indid = $_POST['indicator'];
+			$weighting = $_POST['weighting'];
+			$data_source = $_POST['data_source'];
+			$frequency = $_POST['data_frequency'];
+			$initial_basevalue = $_POST['initial_basevalue'];
+			$responsible = $_POST['responsible'];
 			$current_date = date("Y-m-d");
+			$record_name = $data_source == 2 ? $_POST['record_name']: "";
 			
 			if($kpi == "addkpi"){
-				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(kpi_description, strategic_objective_id, outcome_indicator_id, created_by, date_created) VALUES (:kpi, :objid, :indid, :user, :dates)");
-				$query_insert_kpi->execute(array(":kpi" => $kpi_description, ":objid" => $objid, ":indid" => $indid, ":user" => $user_name, ":dates" => $current_date));
+				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(strategic_objective_id, outcome_indicator_id, weighting, data_source, record_name, data_frequency, initial_baseline, responsible, created_by, date_created) VALUES (:objid, :indid, :weighting, :data_source, :record_name, :frequency, :initial_basevalue, :responsible, :user, :dates)");
+				$result = $query_insert_kpi->execute(array(":objid" => $objid, ":indid" => $indid, ":weighting" => $weighting, ":data_source" => $data_source, ":record_name" => $record_name, ":frequency" => $frequency, ":initial_basevalue" => $initial_basevalue, ":responsible" => $responsible, ":user" => $user_name, ":dates" => $current_date));
 				$kpi_id = $db->lastInsertId();
 				
 				for($i=0; $i<$duration; $i++){
@@ -52,12 +58,41 @@ if ($permission) {
 					$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":year" => $year, ":target" => $target));
 					$target_id = $db->lastInsertId();
 					
-					for($j=0; $j<4; $j++){
-						$threshold = $_POST[$year.'threshold'][$j];
+					$threshold_1 = $_POST[$year.'_threshold_1'];
+					$threshold_2 = $_POST[$year.'_threshold_2'];
+					$threshold_3 = $_POST[$year.'_threshold_3'];
+					$threshold_4 = $_POST[$year.'_threshold_4'];
+				
+					$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_target_thresholds(kpi_id, kpi_target_id, threshold_1, threshold_2, threshold_3, threshold_4) VALUES (:kpi_id, :target_id, :threshold_1, :threshold_2, :threshold_3, :threshold_4)");
+					$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":target_id" => $target_id, ":threshold_1" => $threshold_1, ":threshold_2" => $threshold_2, ":threshold_3" => $threshold_3, ":threshold_4" => $threshold_4));
+				}
+				if($result){
+					$redirect_url = "view-strategic-plan-objectives?plan=" . $strategicplanid;
+					$msg = 'KPI Successfully added';
+					$results = "<script type=\"text/javascript\">
+						swal({
+							title: \"Success!\",
+							text: \" $msg\",
+							type: 'Success',
+							timer: 2000,
+							'icon':'success',
+						showConfirmButton: false });
+						setTimeout(function(){
+							window.location.href = '$redirect_url';
+						}, 2000);
+					</script>";
 					
-						$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_target_thresholds(kpi_id, tbl_kpi_target_id, threshold) VALUES (:kpi_id, :target_id, :threshold)");
-						$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":target_id" => $target_id, ":threshold" => $threshold));
-					}
+				}else{  
+					$msg = 'Error saving KPI details, please try again later!!';
+					$results = "<script type=\"text/javascript\">
+						swal({
+						title: \"Error!\",
+						text: \" $msg \",
+						icon: 'warning',
+						dangerMode: true,
+						timer: 5000,
+						showConfirmButton: false });
+					</script>";					
 				}
 			} else {
 				/* $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, outcome=:outcome, indicator=:indicator, baseline=:kpibaseline, target=:target, created_by=:user, date_created=:dates WHERE id='$objid'");
@@ -213,7 +248,7 @@ if ($permission) {
                                                 $query_objPrograms->execute(array(":objid"=>$objid));   
                                                 $totalRows_objPrograms = $query_objPrograms->rowCount();
 
-                                                $query_kpis = $db->prepare("SELECT id, kpi_description FROM tbl_kpi WHERE strategic_objective_id=:objid");	
+                                                $query_kpis = $db->prepare("SELECT id, indicator_name, weighting FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id WHERE strategic_objective_id=:objid");	
                                                 $query_kpis->execute(array(":objid"=>$objid));   
                                                 $totalRows_kpis = $query_kpis->rowCount();
 												?>
@@ -290,24 +325,27 @@ if ($permission) {
 												<?php if($totalRows_kpis > 0){ ?>
 													<tr class="objid <?=$objid?>" style="background-color:#cccccc">
 														<th></th>
-														<th colspan="3">KPI</th>
+														<th colspan="2">KPI</th>
+														<th>Weighting</th>
 														<th colspan="2">Performance</th>
 													</tr>
 													<?php 
 													$count_kpi=0;
 													while($rows = $query_kpis->fetch()){ 
 														$count_kpi++;
-														$kpi_id = $rows['id'];
-														$kpi_description = $rows['kpi_description'];
+														$kpi_id = $rows['id']; 
+														$kpi_description = $rows['indicator_name'];
+														$kpi_weighting = $rows['weighting'];
 														$kpi_performance = 10 . "%";
 														?>
 														<tr class="objid <?=$objid?>">
 															<td><?= $counter.".".$count_kpi ?></td>
-															<td colspan="3">
+															<td colspan="2">
 																<a data-toggle="modal" data-target="#kpi-modal-right" data-toggle-class="modal-open-aside" onclick="kpi_more_info(<?= $kpi_id ?>)" >
 																	<?= $kpi_description ?> 
 																</a>
 															</td>
+															<td><?= $kpi_weighting ?></td>
 															<td colspan="2"><?= $kpi_performance ?></td>
 														</tr>
 													<?php
@@ -410,19 +448,13 @@ if ($permission) {
 									<div id="result">
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<label>Strategic Objective:</label>
-											<div id="objective" class="form-control" style="height:auto; padding-bottom:10px; padding-top:10px; width:100%; color:#000;">
-											</div>
-										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<label>KPI Description:</label>
-											<div class="form-line">
-												<input type="text" name="kpi_description" id="kpi_description" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter a new KPI description" />
+											<div id="objective" class="form-control">
 											</div>
 										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 											<div class="form-inline">
-												<label for="">Link Outcome Indicator</label>
-												<select name="indicator" id="indicator" class="form-control require" onchange="riskseverity()" style="border:#CCC thin solid; border-radius:5px; width:100%" required>
+												<label for="">Link Outcome Indicator *:</label>
+												<select name="indicator" id="indicator" class="form-control require" onchange="get_measurement_unit()" style="width:100%;" required>
 													<option value="">.... Select Impact ....</option>
 													<?php
 													while ($row_outcome_indicator = $query_outcome_indicator->fetch()) {
@@ -436,7 +468,67 @@ if ($permission) {
 												</select>
 											</div>
 										</div>
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Unit of Measure *:</label>
+											<div id="unit" class="form-control">....</div>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Weighting *:</label>
+											<input type="number" name="weighting" id="weighting" class="form-control" required="required" placeholder="Enter KPI weight">
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Base Year Value (<span id="basevalue_id"></span>)*:</label>
+											<input type="number" name="initial_basevalue" id="initial_basevalue" class="form-control" required="required" placeholder="Enter the base year value">
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Data Collection Frequency *:</label>
+											<select name="data_frequency" id="data_frequency" class="form-control require" required>
+												<option value="">.... Select Frequency ....</option>
+												<?php
+                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE level > 2 AND status=1");	
+                                                $query_frequency->execute();   
+                                                
+												while ($row_frequency = $query_frequency->fetch()) {
+												?>
+													<font color="black">
+														<option value="<?php echo $row_frequency['fqid'] ?>"><?php echo $row_frequency['frequency'] ?></option>
+													</font>
+												<?php
+												}
+												?>
+											</select>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label for="">Responsible *:</label>
+											<select name="responsible" id="responsible" class="form-control require" required>
+												<option value="">.... Select Responsible Role ....</option>
+												<?php
+												$query_designation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE active=1 ");	
+												$query_designation->execute();
+												while ($row_designation = $query_designation->fetch()) {
+												?>
+													<font color="black">
+														<option value="<?php echo $row_designation['moid'] ?>"><?php echo $row_designation['designation'] ?></option>
+													</font>
+												<?php
+												}
+												?>
+											</select>
+										</div>
+										<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
+											<label>Source of data *:</label>
+											<select name="data_source" id="data_source" class="form-control require" onchange="get_record_type()" required>
+												<option value="">.... Select Data Source ....</option>
+												<font color="black">
+													<option value="1">Survey</option>
+													<option value="2">Records</option>
+												</font>
+											</select>
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="record_name" style="margin-bottom:10px">
+											
+										</div>
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
 											<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
 												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-list-alt" style="color:green" aria-hidden="true"></i> KPI Targets & Thresholds</legend>
 												<div class="table-responsive">
@@ -468,7 +560,7 @@ if ($permission) {
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td colspan="4">
-																		<input type="number" name="<?=$year?>target" id="strategy" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter <?=$fy?> Target Change in %ntage" />
+																		<input type="number" name="<?=$year?>target" id="strategy" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="Enter <?=$fy?> Target Change" />
 																	</td>
 																	<?php
 																}
@@ -485,16 +577,16 @@ if ($permission) {
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td>
-																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold1" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_1" id="<?=$year?>threshold1" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold2" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_2" id="<?=$year?>threshold2" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold3" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_3" id="<?=$year?>threshold3" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<td>
-																		<input type="number" name="<?=$year?>threshold[]" id="<?=$year?>threshold4" class="form-control" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder="%"/>
+																		<input type="number" name="<?=$year?>_threshold_4" id="<?=$year?>threshold4" class="form-control thresholds" style="height:35px; width:100%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required="required" placeholder=""/>
 																	</td>
 																	<?php
 																}

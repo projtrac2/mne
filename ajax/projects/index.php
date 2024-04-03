@@ -11,6 +11,7 @@ try {
         $projcode = $_POST['projcode'];
         $projname = $_POST['projname'];
         $projdesc = $_POST['projdescription'];
+        $asset = $_POST['project_asset'];
         $projimplmethod = $_POST['projimplmethod'];
         $projfscyear = $_POST['projfscyear1'];
         $projduration = $_POST['projduration1'];
@@ -42,11 +43,11 @@ try {
 
         if (isset($_POST['project_id']) && !empty($_POST['project_id'])) {
             $projid = $_POST['project_id'];
-            $insertSQL = $db->prepare("UPDATE `tbl_projects` SET projcode=:projcode, projname=:projname, projdesc=:projdesc, projfscyear=:projfscyear, projduration=:projduration,beneficiaries=:beneficiary,projimpact=:projimpact,projevaluation=:projevaluation, projcommunity=:projlevel1, projlga=:projlevel2,projcost=:projcost, projcategory=:projimplmethod,projstartdate=:projstartdate,projenddate=:projenddate, updated_by=:createdby, date_updated=:datecreated WHERE projid =:projid");
-            $result  = $insertSQL->execute(array(":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost"=>$projcost, ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated, ":projid" => $projid));
+            $insertSQL = $db->prepare("UPDATE `tbl_projects` SET projcode=:projcode, projname=:projname, projdesc=:projdesc, projfscyear=:projfscyear, projduration=:projduration,beneficiaries=:beneficiary,projimpact=:projimpact,asset=:asset,projevaluation=:projevaluation, projcommunity=:projlevel1, projlga=:projlevel2,projcost=:projcost, projcategory=:projimplmethod,projstartdate=:projstartdate,projenddate=:projenddate, updated_by=:createdby, date_updated=:datecreated WHERE projid =:projid");
+            $result  = $insertSQL->execute(array(":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost, ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated, ":projid" => $projid));
         } else {
-            $sql = $db->prepare("INSERT INTO `tbl_projects` (progid,key_unique, projcode, projname, projdesc, projtype, projfscyear, projduration,beneficiaries,projimpact,projevaluation, projcommunity, projlga,projcost,projcategory,projstartdate,projenddate, user_name, date_created) VALUES(:progid,:key_unique, :projcode, :projname,:projdesc, :projtype, :projfscyear, :projduration,:beneficiary, :projimpact,:projevaluation,:projlevel1, :projlevel2,:projcost, :projimplmethod, :projstartdate, :projenddate, :createdby, :datecreated)");
-            $result  = $sql->execute(array(":progid" => $progid, ":key_unique" => $key_unique, ":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projtype" => $projtype, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost"=>$projcost,  ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
+            $sql = $db->prepare("INSERT INTO `tbl_projects` (progid,key_unique, projcode, projname, projdesc, projtype, projfscyear, projduration,beneficiaries,projimpact,asset,projevaluation, projcommunity, projlga,projcost,projcategory,projstartdate,projenddate, user_name, date_created) VALUES(:progid,:key_unique, :projcode, :projname,:projdesc, :projtype, :projfscyear, :projduration,:beneficiary, :projimpact,:asset,:projevaluation,:projlevel1, :projlevel2,:projcost, :projimplmethod, :projstartdate, :projenddate, :createdby, :datecreated)");
+            $result  = $sql->execute(array(":progid" => $progid, ":key_unique" => $key_unique, ":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projtype" => $projtype, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost,  ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
             $projid = $result ?  $db->lastInsertId() : false;
         }
 
@@ -151,7 +152,7 @@ try {
         $output_duration = 0;
         $target = $_POST['project_target'];
         $budget = 0;
-        $output_financial_year =0;
+        $output_financial_year = 0;
         $unit_type = isset($_POST['unit_type']) && !empty($_POST['unit_type'])  ? $_POST['unit_type'] : 0;
         $mapping_type = $_POST['mapping_type'];
 

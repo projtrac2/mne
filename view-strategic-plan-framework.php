@@ -1,5 +1,5 @@
 <?php
-$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
 
@@ -14,7 +14,7 @@ if ($permission) {
         if (!$strategicPlan) {
             header("Location: view-strategic-plans.php");
         }
- 
+
         $strategicplan = $strategicPlan["plan"];
         $vision = $strategicPlan["vision"];
         $mission = $strategicPlan["mission"];

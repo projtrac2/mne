@@ -27,6 +27,9 @@ if ($permission) {
 				<h4 class="contentheader" style="color:white">
 					<span class="text-warning"> <?= $icon ?> </span>
 					<?= $pageTitle ?>
+					<div class="btn-group" style="float:right; padding-right:5px">
+						<input type="button" VALUE="Go Back" class="btn btn-warning pull-right" onclick="location.href='projects-issues'" id="btnback">
+					</div>
 				</h4>
 			</div>
 			<div class="row clearfix">
@@ -95,14 +98,11 @@ if ($permission) {
 												}elseif($issue_priority == 3){
 													$priority = "Low";
 												}
-																														
-												if($issue_areaid == 2){
-													$issue_area = "Scope";
-												}elseif($issue_areaid == 3){
-													$issue_area = "Schedule";
-												}else{
-													$issue_area = "Cost";
-												}
+			
+												$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issue_areaid");
+												$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));		
+												$rows_issue_area = $query_issue_area->fetch();
+												$issue_area = $rows_issue_area["issue_area"];
 
 												$duedate = strtotime($issuedate . "+ " . $time . " " . $units);
 												$actionnduedate = date("d M Y", $duedate);

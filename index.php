@@ -31,7 +31,6 @@ if (isset($_POST['sign-in'])) {
   $password = $_POST['password'];
   $user = $user_auth->get_user($email);
 
-
   //check if there are 3 attempts already
   if ($_SESSION['attempt'] == 3) {
     $_SESSION['errorMessage'] = 'Attempt limit reached';
@@ -45,20 +44,24 @@ if (isset($_POST['sign-in'])) {
       if ($user->first_login) {
         header("location: set-new-password.php");
       } else {
-
         if (isset($_GET['action'])) {
           $page_url = $_GET['action'];
           header("location: $page_url");
+          return;
         } else {
           $mail_otp_code = $user_auth->otp($email);
+          $mail_otp_code = true;
           if ($mail_otp_code) {
             header("location: otp.php?email=$email");
+            return;
+          } else {
+            $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
+            header("location:index.php");
+            return;
           }
         }
       }
     } else {
-
-
       //this is where we put our 3 attempt limit
       $_SESSION['attempt'] += 1;
       //set the time to allow login if third attempt is reach
@@ -66,6 +69,7 @@ if (isset($_POST['sign-in'])) {
         $_SESSION['attempt_again'] = time() + (5 * 60);
         //note 5*60 = 5mins, 60*60 = 1hr, to set to 2hrs change it to 2*60*60
       }
+
       $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
       header("location:index.php");
       return;
@@ -285,7 +289,7 @@ if (isset($_POST['sign-in'])) {
             <p>&nbsp;</p>
             <form action="" method="POST" class="form-signin" style="margin-bottom:10px" id="loginusers">
               <div style="width:100%; height:auto; background-color:#036">
-                <p><img src="<?php //$company_settings->floc; 
+                <p><img src="<?php //$company_settings->floc;
                               ?>" style="height:100px; width:230px; margin-top:10px" class="imgdim" /></p>
               </div>
               <br />
@@ -295,9 +299,9 @@ if (isset($_POST['sign-in'])) {
                 <div class='alert alert-danger'>
                   <p class="errormsg">
                     <img src="images/error.png" alt="errormsg" />
-                    <?php // $_SESSION["errorMessage"] 
+                    <?php // $_SESSION["errorMessage"]
                     ?>
-                    
+
                   </p>
                 </div>
               <?php

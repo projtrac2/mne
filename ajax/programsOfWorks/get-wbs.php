@@ -13,6 +13,8 @@ function index($duration, $start_year)
         $startYears[] =  [$m_start, $f_year_end];
         $start_year++;
     }
+
+
     $annually = [];
     for ($i = 0; $i < count($startYears); $i++) {
         $startFinancial = $startYears[$i][0];
@@ -25,33 +27,31 @@ function index($duration, $start_year)
     }
 
     $quarterly = [];
-    for ($i = 0; $i < count($annually); $i++) {
-        for ($t = 0; $t < count($annually[$i]); $t++) {
-            $startFinancial = $annually[$i][$t][0];
-            $endFinancial = $annually[$i][$t][1];
-            $startFinancialMidPoint = strtotime('+3 months -1 day', strtotime($startFinancial));
-            $date = date('Y-m-d', $startFinancialMidPoint);
-            $endFinancialMidPoint = strtotime('-3 months +2 day', strtotime($endFinancial));
-            $datetwo = date('Y-m-d', $endFinancialMidPoint);
-            $quarterly[] = [[$startFinancial, $date], [$datetwo, $endFinancial]];
-        }
+
+    // get end date
+    $l = $annually[count($annually) - 1][1][1];
+    // get start date
+    $s = $annually[0][0][0];
+    $sInc = $s;
+    while ($sInc <= $l) {
+        $start = $sInc;
+        $startFinancialMidPoint = strtotime('+3 months -1 day', strtotime($sInc));
+        $date = date('Y-m-d', $startFinancialMidPoint);
+        $quarterly[] = [$start, $date];
+        $sInc = date('Y-m-d', strtotime('+3 months', strtotime($sInc)));
     }
 
 
+    $startFinancial = $quarterly[0][0];
+    $endFinancial = $quarterly[count($quarterly) - 1][1];
     $monthly = [];
-    for ($i = 0; $i < count($quarterly); $i++) {
-        for ($t = 0; $t < count($quarterly[$i]); $t++) {
-            $startFinancial = $quarterly[$i][$t][0];
-            $endFinancial = $quarterly[$i][1][1];
-            while ($startFinancial <= $endFinancial) {
-                $startFinancialMidPoint = strtotime('+1 month -1 day', strtotime($startFinancial));
-                $date = date('Y-m-d', $startFinancialMidPoint);
-                $monthly[] = [$startFinancial, $date];
-                $startFinancial = date('Y-m-d', strtotime('+1 day', strtotime($date)));
-            }
-            break;
-        }
+    while ($startFinancial <= $endFinancial) {
+        $startFinancialMidPoint = strtotime('+1 month -1 day', strtotime($startFinancial));
+        $date = date('Y-m-d', $startFinancialMidPoint);
+        $monthly[] = [$startFinancial, $date];
+        $startFinancial = date('Y-m-d', strtotime('+1 day', strtotime($date)));
     }
+
 
     return array("startYears" => $startYears, "annually" => $annually, "quarterly" => $quarterly, "monthly" => $monthly);
 }
@@ -177,7 +177,7 @@ function filter_body($contractor_start, $contractor_end, $start_date, $end_date,
     return $table;
 }
 
-function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
+function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
 {
     global $db;
 
@@ -219,159 +219,110 @@ function get_annual_table($startYears, $site_id, $task_id, $frequency, $output_i
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            if ($implimentation_type == 1) {
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
+            $body .= '<td>';
+            if ($work_program) {
+                $body .=
+                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '
                 </button>';
-                }
-                $body .= '</td>';
             }
-            $body .= '</tr>';
+            $body .= '</td></tr>';
         }
     }
 
     return array('head' => $head, 'body' => $body);
 }
 
-function get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
+function get_semiannual_table($startYears, $annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
 {
     global $db;
     $head = $body = '';
+    $new_months = [];
     for ($i = 0; $i < count($annually); $i++) {
         for ($t = 0; $t < count($annually[$i]); $t++) {
             $start_date = $annually[$i][$t][0];
             $end_date = $annually[$i][$t][1];
-            $formated_date_start = date('d M Y', strtotime($start_date));
-            $formated_date_end = date('d M Y', strtotime($end_date));
-            $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
-            if ($response) {
-                $new_months[] = [[$start_date, $end_date]];
-                $head .= "<th>$formated_date_start / $formated_date_end Target</th>";
-            }
-        }
-    }
+            // $formated_date_start = date('d M Y', strtotime($start_date));
+            // $formated_date_end = date('d M Y', strtotime($end_date));
+            // $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
+            // if ($response) {
+            //     $new_months[] = [[$start_date, $end_date]];
+            //     $head .= "<th>$formated_date_start / $formated_date_end Target</th>";
+            // }
 
-    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
-    $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
-    $totalRows_rsTasks = $query_rsTasks->rowCount();
-    if ($totalRows_rsTasks > 0) {
-        $tcounter = 0;
-        while ($row_rsTasks = $query_rsTasks->fetch()) {
-            $tcounter++;
-            $task_name = $row_rsTasks['task'];
-            $subtask_id = $row_rsTasks['tkid'];
-            $unit =  $row_rsTasks['unit_of_measure'];
-            $unit_of_measure = get_unit_of_measure($unit);
-            $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
+            $task_details = get_task_dates($task_id, $site_id);
+            $task_start_date = !is_null($task_details['start_date']) ? $task_details['start_date'] : '';
+            $task_end_date =  !is_null($task_details['end_date']) ? $task_details['end_date'] : '';
 
-            $body .=
-                "<tr>
-                    <td style='width:5%'>$tcounter</td>
-                    <td style='width:40%'>$task_name</td>
-                    <td style='width:40%'>$unit_of_measure</td>";
-            for ($i = 0; $i < count($new_months); $i++) {
-                $start_date = $new_months[$i][0][0];
-                $end_date = $new_months[$i][0][1];
-                $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
-                $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
-            }
-
-            $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            if ($implimentation_type == 1) {
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
-                </button>';
+            if (
+                ($contractor_start >= $start_date && $contractor_start <= $end_date) ||
+                ($contractor_end >= $start_date && $contractor_end <= $end_date) ||
+                ($contractor_start <= $start_date && $contractor_end >= $start_date && $contractor_end >= $end_date)
+            ) {
+                if ($task_start_date != '' && $task_end_date != '') {
+                    if (
+                        ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                        ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                        ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                    ) {
+                        $new_months[] = [$start_date, $end_date];
+                    }
                 }
-                $body .= '</td>';
-            }
-            $body .= '</tr>';
-        }
-    }
-    return array('head' => $head, 'body' => $body);
-}
-
-function get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
-{
-    global $db;
-    $head = $body = '';
-    for ($i = 0; $i < count($quarterly); $i++) {
-        for ($t = 0; $t < count($quarterly[$i]); $t++) {
-            $start_date = $quarterly[$i][$t][0];
-            $end_date = $quarterly[$i][$t][1];
-            $formated_date_start = date('d M Y', strtotime($start_date));
-            $formated_date_end = date('d M Y', strtotime($end_date));
-            $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
-            if ($response) {
-                $new_months[] = [[$start_date, $end_date]];
-                $head .= "<th>$formated_date_start / $formated_date_end Target</th>";
             }
         }
     }
 
-    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
-    $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
-    $totalRows_rsTasks = $query_rsTasks->rowCount();
-    if ($totalRows_rsTasks > 0) {
-        $tcounter = 0;
-        while ($row_rsTasks = $query_rsTasks->fetch()) {
-            $tcounter++;
-            $task_name = $row_rsTasks['task'];
-            $subtask_id = $row_rsTasks['tkid'];
-            $unit =  $row_rsTasks['unit_of_measure'];
-            $unit_of_measure = get_unit_of_measure($unit);
-            $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
-            $body .=
-                "<tr>
-                    <td style='width:5%'>$tcounter</td>
-                    <td style='width:40%'>$task_name</td>
-                    <td style='width:40%'>$unit_of_measure</td>";
-            for ($i = 0; $i < count($new_months); $i++) {
-                $start_date = $new_months[$i][0][0];
-                $end_date = $new_months[$i][0][1];
-                $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
-                $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
-            }
 
-            $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            if ($implimentation_type == 1) {
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
-                </button>';
+    $tr_years = $tr_months = '';
+    for ($i = 0; $i < count($startYears); $i++) {
+        $spans = 0;
+        $task_start_date = $startYears[$i][0];
+        $task_end_date = $startYears[$i][1];
+
+        for ($t = 0; $t < count($new_months); $t++) {
+            $start_date = $new_months[$t][0];
+            $end_date = $new_months[$t][1];
+            if (
+                ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+            ) {
+                $spans++;
+            }
+        }
+
+        if ($spans != 0) {
+            $formated_head_start = date('Y', strtotime($task_start_date));
+            $formated_head_end = date('Y', strtotime($task_end_date));
+            $tr_years .= '<th colspan=' . $spans . '>' . $formated_head_start . ' / ' . $formated_head_end . '</th>';
+            for ($t = 0; $t < count($new_months); $t++) {
+                $start_date = $new_months[$t][0];
+                $end_date = $new_months[$t][1];
+                if (
+                    ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                    ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                    ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                ) {
+                    $formated_date_start = date('F', strtotime($start_date));
+                    $tr_months .= "<th>$start_date $end_date</th>";
                 }
-                $body .= '</td>';
             }
-            $body .= '</tr>';
         }
     }
-    return array('head' => $head, 'body' => $body);
-}
 
-function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
-{
-    global $db;
-    $head = $body = '';
-    for ($i = 0; $i < count($monthly); $i++) {
-        $start_date = $monthly[$i][0];
-        $end_date = $monthly[$i][1];
-        $formated_date_start = date('F', strtotime($start_date));
-        $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
-        if ($response) {
-            $new_months[] = [$start_date, $end_date];
-            $head .= "<th>$formated_date_start  Target</th>";
-        }
-    }
+    $head = '
+    <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">Subtask</th>
+        <th rowspan="2">Unit of Measure</th>
+        ' . $tr_years . '
+        <th rowspan="2">Action</th>
+    </tr>
+    <tr>
+    ' . $tr_months . '
+    </tr>';
+
 
     $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
     $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
@@ -394,30 +345,281 @@ function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id,
             for ($i = 0; $i < count($new_months); $i++) {
                 $start_date = $new_months[$i][0];
                 $end_date = $new_months[$i][1];
-
                 $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
                 $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
             }
 
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            if ($implimentation_type == 1) {
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
+            $body .= '<td>';
+            if ($work_program) {
+                $body .=
+                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '
                 </button>';
-                }
-                $body .= '</td>';
             }
-            $body .= '</tr>';
+            $body .= '</td></tr>';
         }
     }
     return array('head' => $head, 'body' => $body);
 }
 
-function get_weekly_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
+function get_quarterly_table($startYears, $quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+{
+    global $db;
+    $head = $body = '';
+    $new_months = [];
+    for ($i = 0; $i < count($quarterly); $i++) {
+        $start_date = $quarterly[$i][0];
+        $end_date = $quarterly[$i][1];
+
+        $task_details = get_task_dates($task_id, $site_id);
+        $task_start_date = !is_null($task_details['start_date']) ? $task_details['start_date'] : '';
+        $task_end_date =  !is_null($task_details['end_date']) ? $task_details['end_date'] : '';
+
+        if (
+            ($contractor_start >= $start_date && $contractor_start <= $end_date) ||
+            ($contractor_end >= $start_date && $contractor_end <= $end_date) ||
+            ($contractor_start <= $start_date && $contractor_end >= $start_date && $contractor_end >= $end_date)
+        ) {
+            if ($task_start_date != '' && $task_end_date != '') {
+                if (
+                    ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                    ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                    ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                ) {
+                    $new_months[] = [$start_date, $end_date];
+                }
+            }
+        }
+        // $formated_date_start = date('d M Y', strtotime($start_date));
+        // $formated_date_end = date('d M Y', strtotime($end_date));
+        // $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
+        // if ($response) {
+        //     $new_months[] = [$start_date, $end_date];
+        //     // $head .= "<th>$formated_date_start / $formated_date_end Target</th>";
+        // }
+    }
+
+    $tr_years = $tr_months = '';
+    for ($i = 0; $i < count($startYears); $i++) {
+        $spans = 0;
+        $task_start_date = $startYears[$i][0];
+        $task_end_date = $startYears[$i][1];
+
+        for ($t = 0; $t < count($new_months); $t++) {
+            $start_date = $new_months[$t][0];
+            $end_date = $new_months[$t][1];
+            if (
+                ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+            ) {
+                $spans++;
+            }
+        }
+
+        if ($spans != 0) {
+            $formated_head_start = date('Y', strtotime($task_start_date));
+            $formated_head_end = date('Y', strtotime($task_end_date));
+            $tr_years .= '<th colspan=' . $spans . '>' . $formated_head_start . ' / ' . $formated_head_end . '</th>';
+            for ($t = 0; $t < count($new_months); $t++) {
+                $start_date = $new_months[$t][0];
+                $end_date = $new_months[$t][1];
+                if (
+                    ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                    ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                    ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                ) {
+                    $formated_date_start = date('F', strtotime($start_date));
+                    $tr_months .= "<th>$start_date $end_date</th>";
+                }
+            }
+        }
+    }
+
+    $head = '
+    <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">Subtask</th>
+        <th rowspan="2">Unit of Measure</th>
+        ' . $tr_years . '
+        <th rowspan="2">Action</th>
+    </tr>
+    <tr>
+    ' . $tr_months . '
+    </tr>';
+
+    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
+    $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
+    $totalRows_rsTasks = $query_rsTasks->rowCount();
+    if ($totalRows_rsTasks > 0) {
+        $tcounter = 0;
+        while ($row_rsTasks = $query_rsTasks->fetch()) {
+            $tcounter++;
+            $task_name = $row_rsTasks['task'];
+            $subtask_id = $row_rsTasks['tkid'];
+            $unit =  $row_rsTasks['unit_of_measure'];
+            $unit_of_measure = get_unit_of_measure($unit);
+            $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
+            $body .=
+                "<tr>
+                    <td style='width:5%'>$tcounter</td>
+                    <td style='width:40%'>$task_name</td>
+                    <td style='width:40%'>$unit_of_measure</td>";
+            for ($i = 0; $i < count($new_months); $i++) {
+                $start_date = $new_months[$i][0];
+                $end_date = $new_months[$i][1];
+                $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
+                $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
+            }
+
+            $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
+            $body .= '<td>';
+            if ($work_program) {
+                $body .=
+                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '
+                </button>';
+            }
+            $body .= '</td></tr>';
+        }
+    }
+    return array('head' => $head, 'body' => $body);
+}
+
+function get_monthly_table($startYears, $monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
+{
+    global $db;
+    $head = $body = '';
+
+
+    $new_months = [];
+    for ($i = 0; $i < count($monthly); $i++) {
+        $start_date = $monthly[$i][0];
+        $end_date = $monthly[$i][1];
+
+        $task_details = get_task_dates($task_id, $site_id);
+        $task_start_date = !is_null($task_details['start_date']) ? $task_details['start_date'] : '';
+        $task_end_date =  !is_null($task_details['end_date']) ? $task_details['end_date'] : '';
+
+        if (
+            ($contractor_start >= $start_date && $contractor_start <= $end_date) ||
+            ($contractor_end >= $start_date && $contractor_end <= $end_date) ||
+            ($contractor_start <= $start_date && $contractor_end >= $start_date && $contractor_end >= $end_date)
+        ) {
+            if ($task_start_date != '' && $task_end_date != '') {
+                if (
+                    ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                    ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                    ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                ) {
+                    $new_months[] = [$start_date, $end_date];
+                }
+            }
+        }
+        // $response = filter_head($contractor_start, $contractor_end, $start_date, $end_date, $task_id, $site_id);
+        // if ($response) {
+        //     $new_months[] = [$start_date, $end_date];
+        //     $head .= "<th>$formated_date_start</th>";
+        // }
+    }
+
+
+
+    // get years
+    $tr_years = $tr_months = '';
+    for ($i = 0; $i < count($startYears); $i++) {
+        $spans = 0;
+        $task_start_date = $startYears[$i][0];
+        $task_end_date = $startYears[$i][1];
+
+        for ($t = 0; $t < count($new_months); $t++) {
+            $start_date = $new_months[$t][0];
+            $end_date = $new_months[$t][1];
+            if (
+                ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+            ) {
+                $spans++;
+            }
+        }
+
+
+        if ($spans != 0) {
+            $formated_head_start = date('Y', strtotime($task_start_date));
+            $formated_head_end = date('Y', strtotime($task_end_date));
+            $tr_years .= '<th colspan=' . $spans . '>' . $formated_head_start . ' / ' . $formated_head_end . '</th>';
+            // loop below insert here
+            for ($t = 0; $t < count($new_months); $t++) {
+                $start_date = $new_months[$t][0];
+                $end_date = $new_months[$t][1];
+                if (
+                    ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+                    ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+                    ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+                ) {
+                    $formated_date_start = date('F', strtotime($start_date));
+                    $tr_months .= "<th>$formated_date_start</th>";
+                }
+            }
+        }
+    }
+
+
+    $head = '
+    <tr>
+        <th rowspan="2">#</th>
+        <th rowspan="2">Subtask</th>
+        <th rowspan="2">Unit of Measure</th>
+        ' . $tr_years . '
+        <th rowspan="2">Action</th>
+    </tr>
+    <tr>
+    ' . $tr_months . '
+    </tr>';
+
+    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
+    $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
+    $totalRows_rsTasks = $query_rsTasks->rowCount();
+    if ($totalRows_rsTasks > 0) {
+        $tcounter = 0;
+        while ($row_rsTasks = $query_rsTasks->fetch()) {
+            $tcounter++;
+            $task_name = $row_rsTasks['task'];
+            $subtask_id = $row_rsTasks['tkid'];
+            $unit =  $row_rsTasks['unit_of_measure'];
+            $unit_of_measure = get_unit_of_measure($unit);
+            $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
+
+            $body .=
+                "<tr>
+                    <td style='width:5%'>$tcounter</td>
+                    <td style='width:40%'>$task_name</td>
+                    <td style='width:40%'>$unit_of_measure</td>";
+            for ($i = 0; $i < count($new_months); $i++) {
+                $start_date = $new_months[$i][0];
+                $end_date = $new_months[$i][1];
+                $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date, $frequency);
+                $body .= filter_body($contractor_start, $contractor_end, $start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 2);
+            }
+
+            $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
+            $body .= '<td style="width:10%">';
+            if ($work_program) {
+                $body .= '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '</button>';
+            }
+            $body .= '</td></tr>';
+        }
+    }
+    return array('head' => $head, 'body' => $body);
+}
+
+function get_weekly_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
 {
     global $db;
     $start_year = date('Y', strtotime($project_start_date));
@@ -474,25 +676,20 @@ function get_weekly_table($project_start_date, $project_end_date, $site_id, $tas
                 $body_year++;
             }
             $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-            if ($implimentation_type == 1) {
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
-                </button>';
-                }
-                $body .= '</td>';
+            $body .= '<td style="width:10%">';
+            if ($work_program) {
+                $body .= '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '</button>';
             }
-            $body .= '</tr>';
+            $body .= '</td></tr>';
         }
     }
 
     return array('head' => $head, 'body' => $body);
 }
 
-function get_daily_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type)
+function get_daily_table($project_start_date, $project_end_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end)
 {
     global $db;
     // gets the task start dates
@@ -555,7 +752,27 @@ function get_daily_table($project_start_date, $project_end_date, $site_id, $task
                 $y = "$date";
                 $frequency = 1;
                 $target = get_target($site_id, $task_id, $subtask_id, $con_task_start_date, $con_task_start_date, $frequency);
-                $body .= filter_body($con_task_start_date, $con_task_start_date, $con_task_start_date, $con_task_start_date, $target, $site_id, $task_id, $subtask_id, 2);
+                $achieved = get_achieved($site_id, $task_id, $subtask_id, $con_task_start_date, $con_task_start_date);
+                if ($exists) {
+                    if ($target && $achieved) {
+                        $body .= '<td style="width:15%">' . $target . '</td><td style="width:15%">' . $achieved . '</td>';
+                    }
+
+                    if ($target && !$achieved) {
+                        $body .= '<td style="width:15%">' . $target . '</td><td style="width:15%">' . 0 . '</td>';
+                    }
+
+                    if (!$target && $achieved) {
+                        $body .= '<td style="width:15%">' . 0 . '</td><td style="width:15%">' . $achieved . '</td>';
+                    }
+
+                    if (!$target && !$achieved) {
+                        $body .= '<td style="width:15%">' . 0 . '</td><td style="width:15%">' . 0 . '</td>';
+                    }
+                } else {
+                    $body .= '<td >N/A</td><td >N/A</td>';
+                }
+
                 $con_task_start_date = date('Y-m-d', strtotime('+1 day', strtotime($date)));
                 $counter++;
             }
@@ -587,64 +804,56 @@ if (isset($_GET['get_wbs'])) {
     $query_rsProjects->execute(array(":projid" => $projid));
     $row_rsProjects = $query_rsProjects->fetch();
     $totalRows_rsProjects = $query_rsProjects->rowCount();
-    $frequency = $action = '';
+    $frequency = '';
 
     $table_details = array('head' => '', 'colspan' => '', 'body' => '');
     if ($totalRows_rsProjects > 0) {
-        $min_date = $row_rsProjects['projstartdate'];
-        $max_date = $row_rsProjects['projenddate'];
+        $query_rsWorkBreakdown = $db->prepare("SELECT MIN(start_date) AS startdate,MAX(end_date) AS enddate FROM tbl_program_of_works WHERE projid=:projid");
+        $query_rsWorkBreakdown->execute(array(':projid' => $projid));
+        $row_rsWorkBreakdown = $query_rsWorkBreakdown->fetch();
+
+        $min_date = $row_rsWorkBreakdown['startdate'];
+        $max_date = $row_rsWorkBreakdown['enddate'];
         $frequency = $row_rsProjects['activity_monitoring_frequency'];
-        $implimentation_type = $row_rsProjects['projcategory'];
-        $contractor_start = $min_date;
-        $contractor_end = $max_date;
-        $action = '<th>Action</th>';
-        if ($implimentation_type == 2) {
-            $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
-            $query_rsTender->execute(array(":projid" => $projid));
-            $row_rsTender = $query_rsTender->fetch();
-            $totalRows_rsTender = $query_rsTender->rowCount();
-            if ($totalRows_rsTender > 0) {
-                $contractor_start = $row_rsTender['startdate'];
-                $contractor_end = $row_rsTender['enddate'];
+        $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
+        $query_rsTender->execute(array(":projid" => $projid));
+        $row_rsTender = $query_rsTender->fetch();
+        $totalRows_rsTender = $query_rsTender->rowCount();
+        $contractor_start = $end_date = '';
+        if ($totalRows_rsTender > 0) {
+            $contractor_start = $row_rsWorkBreakdown['startdate'];
+            $contractor_end = $row_rsWorkBreakdown['enddate'];
+
+            $date_details = get_duration($min_date, $max_date);
+            $details = index($date_details['duration'], $date_details['start_year'], $contractor_start, $contractor_end, $task_id, $site_id);
+            $startYears = $details['startYears'];
+            $annually = $details['annually'];
+            $quarterly = $details['quarterly'];
+            $monthly = $details['monthly'];
+            $frequency = 3;
+            if ($frequency == 6) {
+                $table_details = get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            } elseif ($frequency == 5) {
+                $table_details = get_semiannual_table($startYears, $annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            } else if ($frequency == 4) {
+                $table_details = get_quarterly_table($startYears, $quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            } else if ($frequency == 3) {
+                $table_details = get_monthly_table($startYears, $monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            } else if ($frequency == 2) {
+                $table_details = get_weekly_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
+            } else if ($frequency == 1) {
+                $table_details  = get_daily_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end);
             }
-            $action = '';
-        }
-
-
-        $date_details = get_duration($min_date, $max_date);
-        $details = index($date_details['duration'], $date_details['start_year'], $contractor_start, $contractor_end, $task_id, $site_id);
-        $startYears = $details['startYears'];
-        $annually = $details['annually'];
-        $quarterly = $details['quarterly'];
-        $monthly = $details['monthly'];
-
-
-
-        if ($frequency == 6) {
-            $table_details = get_annual_table($startYears, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
-        } elseif ($frequency == 5) {
-            $table_details = get_semiannual_table($annually, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
-        } else if ($frequency == 4) {
-            $table_details = get_quarterly_table($quarterly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
-        } else if ($frequency == 3) {
-            $table_details = get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
-        } else if ($frequency == 2) {
-            $table_details = get_weekly_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
-        } else if ($frequency == 1) {
-            $table_details  = get_daily_table($min_date, $max_date, $site_id, $task_id, $frequency, $output_id, $contractor_start, $contractor_end, $implimentation_type);
         }
     }
+
     $table =
         '<div class="table-responsive">
             <table class="table table-bordered js-basic-example dataTable" id="direct_table">
                 <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Subtask</th>
-                        <th>Unit of Measure</th>
-                        ' . $table_details['head'] . '
-                        ' . $action . '
-                    </tr>
+
+                ' . $table_details['head'] . '
+
                 </thead>
                 <tbody>
                 ' . $table_details['body'] . '

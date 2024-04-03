@@ -1,14 +1,13 @@
 const ajax_url = 'ajax/programs/index';
 
 $(document).ready(function () {
-    hide_strategicplan(details.linked_to_objective == 1 || details.program_type == 1 ? 1 : 0);
-  
-    if(details.edit == 1){
+    if (details.edit == 1) {
         $("#program_workplan_div").show();
     }
+
     hide_workplan(details.edit);
 
-    // check if the input has already been selected 
+    // check if the input has already been selected
     $(document).on("change", ".indicator", function (e) {
         var tralse = true;
         var select_funding_arr = [];
@@ -34,20 +33,6 @@ $(document).ready(function () {
         }
     });
 });
-
-function hide_strategicplan(param) {
-    $("#strategic_plan_div").hide();
-    $("#strategic_objective").removeAttr("required");
-    $("#progstrategy").removeAttr("required");
-    $("#starting_year").html(details.ind_financial_years);
-    if (param == '1') {
-        $("#strategic_plan_div").show();
-        $("#strategic_objective").attr("required", "required");
-        $("#progstrategy").attr("required", "required");
-        $("#starting_year").html(details.financial_years);
-    }
-    return;
-}
 
 function get_sections() {
     hide_workplan(0);
@@ -114,16 +99,15 @@ function get_workplan_header() {
     var program_starting_year = $("#starting_year").val();
     var strategic_plan_end_year = $("#stratplanendyear").val();
     var program_type = details.program_type;
-    let link_objective = program_type == '0' ? $('input[name="progstrategyobjective"]:checked').val() : '';
     hide_workplan(0);
 
     if (program_duration != "" || parseInt(program_duration) != 0) {
         program_duration = parseInt(program_duration);
-        if (link_objective == 1 || program_type == 1) {
+        if (program_type == 1) {
             program_starting_year = parseInt(program_starting_year);
             var program_end_year = program_starting_year + program_duration - 1;
             if (program_end_year <= strategic_plan_end_year) {
-                var containerH = `<tr> 
+                var containerH = `<tr>
                 <th rowspan="2">Indicator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                 <th rowspan="2">Output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
                 var content = `<tr>`;
@@ -139,7 +123,7 @@ function get_workplan_header() {
                         <button type="button" name="addprogramplus" id="addprogramplus" onclick="add_program_workplan()" class="btn btn-success btn-sm">
                             <span class="glyphicon glyphicon-plus"></span>
                         </button>
-                    </th> 
+                    </th>
                     </tr>`;
                 content += `<tr>`;
                 containerH += content;
@@ -150,29 +134,28 @@ function get_workplan_header() {
                 $("#program_duration").val("");
             }
         } else {
-            if (link_objective == 0) {
-                var containerH = `<tr> 
+            var containerH = `<tr>
                 <th rowspan="2">Indicator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                 <th rowspan="2">Output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-                var content = `<tr>`;
-                for (var i = 0; i < program_duration; i++) {
-                    var finyear = program_starting_year + 1;
-                    containerH += `<th colspan="2">${program_starting_year}/${finyear}</th><input type="hidden" id="output_year${i}" name="progyear[]" value="${program_starting_year}" />`;
-                    content += `<th>Target &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            var content = `<tr>`;
+            for (var i = 0; i < program_duration; i++) {
+                var finyear = program_starting_year + 1;
+                containerH += `<th colspan="2">${program_starting_year}/${finyear}</th><input type="hidden" id="output_year${i}" name="progyear[]" value="${program_starting_year}" />`;
+                content += `<th>Target &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
                             <th>Budget (ksh) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-                    program_starting_year++;
-                }
-                containerH +=
-                    `<th rowspan="2">
+                program_starting_year++;
+            }
+            containerH +=
+                `<th rowspan="2">
                     <button type="button" name="addprogramplus" id="addprogramplus" onclick="add_program_workplan();" class="btn btn-success btn-sm">
                         <span class="glyphicon glyphicon-plus"></span>
                     </button>
                 </th> </tr>`;
-                content += `<tr>`;
-                containerH += content;
-                hide_workplan(1);
-                $("#phead").append(containerH);
-            }
+            content += `<tr>`;
+            containerH += content;
+            hide_workplan(1);
+            $("#phead").append(containerH);
+
         }
     }
 }
@@ -198,8 +181,8 @@ function add_program_workplan() {
                 <select name="indicator[]" id="indicatorrow${$rowno}" onchange="get_indicator_details('row${$rowno}')" class="form-control selectOutput show-tick indicator"  style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
                     <option value="">... Select Indicator first ...</option>
                 </select>
-            </td> 
-            <td id="outputrow${$rowno}">  
+            </td>
+            <td id="outputrow${$rowno}">
             </td>
             `;
         for (var i = 0; i < years; i++) {

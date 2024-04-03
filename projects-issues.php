@@ -3,7 +3,7 @@ require('includes/head.php');
 if ($permission) {
 
     try {
-		$query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0' AND projstage = 10 AND p.projstatus<>5");
+		$query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, p.projstatus, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0'");
 		$query_rsProjects->execute();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 
@@ -51,8 +51,6 @@ if ($permission) {
                     <?= $icon ?>
                     <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
-                        <div class="btn-group" style="float:right">
-                        </div>
                     </div>
                 </h4>
             </div>
@@ -89,8 +87,8 @@ if ($permission) {
 												
 													$progid = $row_rsProjects['progid'];
 													$projsector = $row_rsProjects['projsector'];
+													$workflow_stage = $row_rsProjects['projstage'];
 													$department = $row_rsProjects['sector'];
-													$projstageid = $row_rsProjects['projstage'];
 
 													$query_projsector = $db->prepare("SELECT * FROM tbl_sectors WHERE stid = :sector");
 													$query_projsector->execute(array(":sector" => $projsector));
@@ -103,7 +101,7 @@ if ($permission) {
 													$totalRows_projteam = $query_projteam->rowCount();
 
 													$query_projstage = $db->prepare("SELECT stage FROM tbl_project_workflow_stage WHERE id = :projstageid");
-													$query_projstage->execute(array(":projstageid" => $projstageid));
+													$query_projstage->execute(array(":projstageid" => $workflow_stage));
 													$row_projstage = $query_projstage->fetch();
 													$projstage = $row_projstage['stage'];
 

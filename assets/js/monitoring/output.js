@@ -58,7 +58,7 @@ $(document).ready(function () {
 });
 
 
-function get_project_outputs(projid, record_type) {
+function get_project_outputs(projid, milestone_type) {
     $(".modal").each(function () {
         $(this).modal("hide");
         $(this)
@@ -68,7 +68,7 @@ function get_project_outputs(projid, record_type) {
     $("#tag-form-submit1").hide();
     hide_milestone_divs(false);
     $("#current_measure").val("");
-    $("#record_type").val(record_type);
+    $("#output_project_type").val(milestone_type);
     if (projid != "") {
         $("#projid").val(projid);
         $("#project_name").val(project_name);
@@ -78,7 +78,6 @@ function get_project_outputs(projid, record_type) {
             data: {
                 get_project_outputs: "get_project_outputs",
                 projid: projid,
-                record_type: record_type,
             },
             dataType: "json",
             success: function (response) {
@@ -99,7 +98,6 @@ function get_sites() {
     $("#subtask_table_body").html("");
     $("#current_measure").val("");
     hide_milestone_divs(false);
-    var record_type = $("#record_type").val();
     if (output_id != "") {
         $.ajax({
             type: "get",
@@ -107,15 +105,12 @@ function get_sites() {
             data: {
                 get_output_sites: "milestone",
                 output_id: output_id,
-                record_type: record_type,
             },
             dataType: "json",
             success: function (response) {
                 if (response.success) {
                     var output_type = response.output_type;
-                    var output_project_type = response.output_project_type;
                     $("#output_type").val(output_type);
-                    $("#output_project_type").val(output_project_type);
                     $("#site").html(response.sites);
                     var output_details = response.output_details;
                     $("#target").val(output_details.output_target);
@@ -150,7 +145,6 @@ function get_milestones() {
     var projid = $("#projid").val();
     var site_id = $("#site").val();
     var output_project_type = $("#output_project_type").val();
-    var record_type = $("#record_type").val();
     if (output_id != "") {
         if (output_project_type == "2") {
             hide_milestone_divs(true);
@@ -162,7 +156,6 @@ function get_milestones() {
                     projid: projid,
                     output_id: output_id,
                     site_id: site_id,
-                    record_type: record_type
                 },
                 dataType: "json",
                 success: function (response) {
@@ -198,7 +191,6 @@ function get_output_details() {
     var output_id = $("#output").val();
     var site_id = $("#site").val();
     var projid = $("#projid").val();
-    var record_type = $("#record_type").val();
     var milestone_id = $("#milestone").val() != "" ? $("#milestone").val() : 0;
     if (output_id != "" || site_id != "") {
         $.ajax({
@@ -210,7 +202,6 @@ function get_output_details() {
                 output_id: output_id,
                 site_id: site_id,
                 milestone_id: milestone_id,
-                record_type: record_type
             },
             dataType: "json",
             success: function (response) {

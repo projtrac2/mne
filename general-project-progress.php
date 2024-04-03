@@ -3,11 +3,9 @@ require('includes/head.php');
 if ($permission) {
     try {
         $workflow_stage = 9;
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1  ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1 AND  proj_substage <= 4  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
-
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-
         function get_role()
         {
             global $db;
@@ -100,12 +98,14 @@ if ($permission) {
                                                 $query_rsQuestions->execute(array(":projid" => $projid));
                                                 $totalRows_rsQuestions = $query_rsQuestions->rowCount();
 
+                                                $edit = $totalRows_rsTeamMembers == 0 ? 'false' : 'true';
+
                                                 $details = "{
                                                     projid:$projid,
                                                     projcode:'$projcode',
                                                     project_name:'$projname',
                                                     assign:$totalRows_rsTeamMembers,
-                                                    edit:$totalRows_rsQuestions ,
+                                                    edit:$edit,
                                                 }";
 
                                                 $counter++;
@@ -120,57 +120,77 @@ if ($permission) {
                                                 } else {
                                                     $activity_status = "Issue";
                                                 }
+
+                                                $responsible = true;
+
+                                                if ($responsible) {
                                         ?>
-                                                <tr>
-                                                    <td align="center"><?= $counter ?></td>
-                                                    <td><?= $projcode ?></td>
-                                                    <td><?= $projname ?></td>
-                                                    <td><?= date('Y M d') ?></td>
-                                                    <td><label class='label label-success'><?= $activity_status; ?></label></td>
-                                                    <td>
-                                                        <div class="btn-group">
-                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                Options <span class="caret"></span>
-                                                            </button>
-                                                            <ul class="dropdown-menu">
-                                                                <li>
-                                                                    <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
-                                                                        <i class="fa fa-file-text"></i> View More
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
-                                                                        <i class="fa fa-users"></i> <?= $activity ?> Commitee
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_hashed ?>">
-                                                                        <i class="fa fa-plus-square"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
-                                                                    </a>
-                                                                </li>
-                                                                <?php
-                                                                if ($sub_stage == 3) {
-                                                                ?>
+                                                    <tr>
+                                                        <td align="center"><?= $counter ?></td>
+                                                        <td><?= $projcode ?></td>
+                                                        <td><?= $projname ?></td>
+                                                        <td><?= date('Y M d') ?></td>
+                                                        <td><label class='label label-success'><?= $activity_status; ?></label></td>
+                                                        <td>
+                                                            <div class="btn-group">
+                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                    Options <span class="caret"></span>
+                                                                </button>
+                                                                <ul class="dropdown-menu">
                                                                     <li>
-                                                                        <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
-                                                                            <i class="fa fa-list"></i> Inspect
+                                                                        <a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
+                                                                            <i class="fa fa-file-text"></i> View More
                                                                         </a>
                                                                     </li>
-                                                                <?php
-                                                                }
-                                                                ?>
-                                                                <li>
-                                                                    <a href="project-reinspection.php?projid=<?= $projid_hashed ?>">
-                                                                        <i class="fa fa-list"></i> Reinspect
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" data-target="#assign_modal" id="addFormModalBtn" onclick="assign_committee(<?= $details ?>)">
+                                                                            <i class="fa fa-users"></i> <?= $activity ?> Commitee
+                                                                        </a>
+                                                                    </li>
+                                                                    <?php
+                                                                    if ($sub_stage >= 2) {
+                                                                    ?>
+                                                                        <?php
+                                                                        if ($sub_stage <= 3) {
+                                                                        ?>
+                                                                            <li>
+                                                                                <a href="./add-inspection-acceptance-checklist.php?projid=<?= $projid_hashed ?>">
+                                                                                    <i class="fa fa-plus-square"></i> <?= $totalRows_rsQuestions > 0 ? "Edit" : "Add" ?> Inspection Checklist
+                                                                                </a>
+                                                                            </li>
+                                                                            <?php
+                                                                            if ($sub_stage == 3) {
+                                                                            ?>
+                                                                                <li>
+                                                                                    <a type="button" href="project-inspection.php?projid=<?= $projid_hashed ?>">
+                                                                                        <i class="fa fa-list"></i> Inspect
+                                                                                    </a>
+                                                                                </li>
+                                                                            <?php
+                                                                            }
+                                                                        } else if ($sub_stage == 4) {
+                                                                            $query_issuedetails =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid AND status=1 AND issue_area=5");
+                                                                            $query_issuedetails->execute(array(":projid" => $projid));
+                                                                            $row_issuedetails = $query_issuedetails->rowCount();
+                                                                            if ($row_issuedetails > 0) {
+                                                                            ?>
+                                                                                <li>
+                                                                                    <a href="project-reinspection.php?projid=<?= $projid_hashed ?>">
+                                                                                        <i class="fa fa-list"></i> Re-inspect
+                                                                                    </a>
+                                                                                </li>
+                                                                    <?php
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                </ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                         <?php
+                                                }
                                             }
-                                            // }
                                         }
                                         ?>
                                     </tbody>
@@ -344,182 +364,8 @@ if ($permission) {
 require('includes/footer.php');
 ?>
 <script src="assets/js/projects/view-project.js"></script>
-
+<script src="assets/js/inspection/assign.js"></script>
 <script>
     const members = <?= json_encode(get_members()) ?>;
     const roles = <?= json_encode(get_role()) ?>;
-    var ajax_url1 = "ajax/inspection/general";
-
-    $(document).ready(function() {
-        $("#assign_responsible").submit(function(e) {
-            e.preventDefault();
-            $("#tag-form-submit-2").prop("disabled", true);
-            $.ajax({
-                type: "post",
-                url: ajax_url1,
-                data: $(this).serialize(),
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        success_alert("Record saved successfully");
-                    } else {
-                        error_alert("Record could not be saved successfully");
-                    }
-                    $("#tag-form-submit-2").prop("disabled", false);
-                    setTimeout(() => {
-                        location.reload(true);
-                    }, 3000);
-                }
-            });
-        });
-
-        $("#add_questions_form").submit(function(e) {
-            e.preventDefault();
-            $("#tag-form-submit-1").prop("disabled", true);
-            $.ajax({
-                type: "post",
-                url: ajax_url1,
-                data: $(this).serialize(),
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        success_alert("Record saved successfully");
-                    } else {
-                        error_alert("Record could not be saved successfully");
-                    }
-                    $("#tag-form-submit-2").prop("disabled", false);
-                    setTimeout(() => {
-                        location.reload(true);
-                    }, 3000);
-                }
-            });
-        });
-    });
-
-    function add_checklist(details) {
-        $("#checklist_projid").val(details.projid);
-        $("#projcode").html(details.projcode);
-        $("#projname").html(details.project_name);
-        if (details.edit > 0) {
-            $.ajax({
-                type: "GET",
-                url: ajax_url1,
-                data: {
-                    get_edit_questions: 'get_edit_questions',
-                    projid: details.projid,
-                },
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        $("#checklist_table_body").html(response.questions);
-                    } else {
-                        error_alert("Record could not be saved successfully");
-                    }
-                }
-            });
-        }
-    }
-
-    const assign_committee = (details) => {
-        $("#member_projid").val(details.projid);
-        $("#project_code").html(details.projcode);
-        $("#project_name").html(details.project_name);
-        if (details.edit > 0) {
-            $.ajax({
-                type: "GET",
-                url: ajax_url1,
-                data: {
-                    get_edit_members: 'get_edit_members',
-                    projid: details.projid,
-                },
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        $("#member_table_body").html(response.members);
-
-                    } else {
-                        error_alert("Record could not be saved successfully");
-                    }
-                }
-            });
-        }
-    }
-
-    function add_row_member() {
-        $row = $("#member_table_body tr").length;
-        $row = $row + 1;
-        var randno = Math.floor((Math.random() * 1000) + 1);
-        var $rowno = $row + "" + randno;
-        $("#member_table_body tr:last").after(`
-        <tr id="mtng${$rowno}">
-            <td></td>
-            <td>
-                <select name="member[]" id="memberrow${$rowno}" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
-                    <option value="">..Select Member..</option>
-                    ${members}
-                </select>
-            </td>
-            <td>
-                <select name="role[]" id="rolerow${$rowno}" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="true" required>
-                    <option value="">..Select Member..</option>
-                    ${roles}
-                </select>
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm"  onclick=delete_member("mtng${$rowno}")>
-                    <span class="glyphicon glyphicon-minus"></span>
-                </button>
-            </td>
-        </tr>`);
-        numbering_member();
-    }
-
-    function delete_member(rowno) {
-        $("#" + rowno).remove();
-        numbering_member();
-    }
-
-    function numbering_member() {
-        $("#member_table_body tr").each(function(idx) {
-            $(this)
-                .children()
-                .first()
-                .html(idx + 1);
-        });
-    }
-
-    function add_row_checklist() {
-        $row = $("#checklist_table_body tr").length;
-        $row = $row + 1;
-        var randno = Math.floor((Math.random() * 1000) + 1);
-        var $rowno = $row + "" + randno;
-
-        $("#checklist_table_body tr:last").after(`
-            <tr id="cht${$rowno}">
-                <td></td>
-                <td>
-                    <input type="text" name="question[]" id="questionrow0" placeholder="Enter Question" class="form-control" required />
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm"  onclick=delete_checklist("cht${$rowno}")>
-                        <span class="glyphicon glyphicon-minus"></span>
-                    </button>
-                </td>
-            </tr>`);
-        numbering_checklist();
-    }
-
-    function delete_checklist(rowno) {
-        $("#" + rowno).remove();
-        numbering_checklist();
-    }
-
-    function numbering_checklist() {
-        $("#checklist_table_body tr").each(function(idx) {
-            $(this)
-                .children()
-                .first()
-                .html(idx + 1);
-        });
-    }
 </script>

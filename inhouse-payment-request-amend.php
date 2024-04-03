@@ -1,8 +1,10 @@
 <?php
 require('includes/head.php');
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 if ($permission) {
     try {
-
         function get_unit_of_measure($unit)
         {
             global $db;
@@ -23,6 +25,36 @@ if ($permission) {
             return  $totalRows_rsRequestDetails > 0 ? $row_rsRequestDetails['no_of_units'] : '';
         }
 
+        if (isset($_POST['store_remarks'])) {
+            $due_date = date("Y-m-d", strtotime($_POST['due_date']));
+            $request_id = $_POST['request_id'];
+            $comments = $_POST['comments'];
+            $status = 1;
+            $stage = 1;
+            $date_requested = date("Y-m-d");
+            $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date, date_requested=:date_requested, status=:status, stage=:stage WHERE id=:request_id");
+            $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":request_id" => $request_id));
+
+            $sql = $db->prepare("INSERT INTO tbl_payment_request_comments (request_id,stage,status,comments,role,created_by,created_at) VALUES (:request_id,:stage,:status,:comments,:role,:created_by,:created_at)");
+            $result  = $sql->execute(array(":request_id" => $request_id, ":stage" => $stage, ":status" => 2, ":comments" => $comments, ":role" => "Request Owner", ":created_by" => $user_name, ":created_at" => $date_requested));
+
+            $msg = "Request created successfully";
+            $results = "<script type=\"text/javascript\">
+            swal({
+                    title: \"Success!\",
+                    text: \" $msg\",
+                    type: 'Success',
+                    timer: 2000,
+                    'icon':'success',
+                showConfirmButton: false });
+                setTimeout(function(){
+                    window.location.href = 'inhouse-payment-requests.php';
+                }, 2000);
+            </script>";
+        }
+
+
+        $remarks = $due_date = '';
         if (isset($_GET['request_id'])) {
             $encoded_request_id = $_GET['request_id'];
             $decode_request_id = base64_decode($encoded_request_id);
@@ -39,6 +71,8 @@ if ($permission) {
                 $projid = $rows_rsPayement_requests['projid'];
                 $purpose = $rows_rsPayement_requests['purpose'];
                 $request_id = $rows_rsPayement_requests['id'];
+                $due_date = $rows_rsPayement_requests['due_date'];
+
 
                 $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
                 $query_rsProjects->execute(array(":projid" => $projid));
@@ -50,13 +84,6 @@ if ($permission) {
                     $projname = $row_rsProjects['projname'];
                     $projcode = $row_rsProjects['projcode'];
                     $projcost = $row_rsProjects['projcost'];
-                    $project_stage = $row_rsProjects['projstage'];
-
-                    $query_rsStage =  $db->prepare("SELECT * FROM  tbl_project_workflow_stage WHERE priority=:priority");
-                    $query_rsStage->execute(array(":priority" => $project_stage));
-                    $rows_rsStage = $query_rsStage->fetch();
-                    $total_rsStage = $query_rsStage->rowCount();
-                    $stage = $total_rsStage > 0 ? $rows_rsStage['stage'] : "";
 ?>
                     <!-- start body  -->
                     <section class="content">
@@ -88,7 +115,6 @@ if ($permission) {
                                                         <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
                                                         <li class="list-group-item"><strong>Total Project Cost: </strong> Ksh. <?php echo number_format($projcost, 2); ?> </li>
                                                         <li class="list-group-item"><strong>Total Project Year Budget: </strong> Ksh. <?php echo number_format($projcost, 2); ?> </li>
-                                                        <li class="list-group-item"><strong>Project Stage: </strong><?= $stage; ?> </li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -204,19 +230,22 @@ if ($permission) {
                                                                                                     $table_counter = 0;
                                                                                                     while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
                                                                                                         $table_counter++;
-                                                                                                        $rmkid = $row_rsOther_cost_plan['id'];
+                                                                                                        $direct_cost_id = $row_rsOther_cost_plan['id'];
                                                                                                         $description = $row_rsOther_cost_plan['description'];
-                                                                                                        $financial_year = $row_rsOther_cost_plan['financial_year'];
                                                                                                         $unit = $row_rsOther_cost_plan['unit'];
-                                                                                                        $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                                                                        $units_no = $row_rsOther_cost_plan['units_no'];
-                                                                                                        $total_cost = $unit_cost * $units_no;
+                                                                                                        $unit_cost =  $units_no = 0;
 
-                                                                                                        $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-                                                                                                        $query_rsIndUnit->execute(array(":unit_id" => $unit));
-                                                                                                        $row_rsIndUnit = $query_rsIndUnit->fetch();
-                                                                                                        $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-                                                                                                        $unit_of_measure = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
+                                                                                                        $query_rsRequestDetails = $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE request_id=:request_id AND  direct_cost_id = :direct_cost_id");
+                                                                                                        $query_rsRequestDetails->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id));
+                                                                                                        $row_rsRequestDetails = $query_rsRequestDetails->fetch();
+                                                                                                        $totalRows_rsRequestDetails = $query_rsRequestDetails->rowCount();
+                                                                                                        if ($totalRows_rsRequestDetails > 0) {
+                                                                                                            $units_no = $row_rsRequestDetails['no_of_units'];
+                                                                                                            $unit_cost = $row_rsRequestDetails['unit_cost'];
+                                                                                                        }
+
+                                                                                                        $total_cost = $unit_cost * $units_no;
+                                                                                                        $unit_of_measure = get_unit_of_measure($unit);
                                                                                                 ?>
                                                                                                         <tr id="row">
                                                                                                             <td style="width:5%"><?= $table_counter ?></td>
@@ -334,13 +363,19 @@ if ($permission) {
                                                                                         $table_counter = 0;
                                                                                         while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
                                                                                             $table_counter++;
-                                                                                            $rmkid = $row_rsOther_cost_plan['id'];
+                                                                                            $direct_cost_id = $row_rsOther_cost_plan['id'];
                                                                                             $description = $row_rsOther_cost_plan['description'];
-                                                                                            $financial_year = $row_rsOther_cost_plan['financial_year'];
                                                                                             $unit = $row_rsOther_cost_plan['unit'];
-                                                                                            $unit_cost = $row_rsOther_cost_plan['unit_cost'];
-                                                                                            $units_no = $row_rsOther_cost_plan['units_no'];
-                                                                                            $total_cost = $unit_cost * $units_no;
+
+                                                                                            $unit_cost = $units_no = 0;
+                                                                                            $query_rsRequestDetails = $db->prepare("SELECT * FROM  tbl_payments_request_details WHERE request_id=:request_id AND  direct_cost_id = :direct_cost_id");
+                                                                                            $query_rsRequestDetails->execute(array(":request_id" => $request_id, ":direct_cost_id" => $direct_cost_id));
+                                                                                            $row_rsRequestDetails = $query_rsRequestDetails->fetch();
+                                                                                            $totalRows_rsRequestDetails = $query_rsRequestDetails->rowCount();
+                                                                                            if ($totalRows_rsRequestDetails > 0) {
+                                                                                                $units_no = $row_rsRequestDetails['no_of_units'];
+                                                                                                $unit_cost = $row_rsRequestDetails['unit_cost'];
+                                                                                            }
 
                                                                                             $unit_of_measure = get_unit_of_measure($unit);
                                                                                     ?>
@@ -384,8 +419,8 @@ if ($permission) {
                                         ?>
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <div class="btn-group" style="float:right">
-                                                <a type="button" data-toggle="modal" class="btn btn-primary" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $request_details ?>)">
-                                                    <i class="fa fa-plus"></i> Amend
+                                                <a type="button" data-toggle="modal" class="btn btn-success" id="moreItemModalBtn" data-target="#addFormModal" onclick="add_request_details(<?= $budget_line_details ?>)">
+                                                    <i class="fa fa-plus"></i> Add
                                                 </a>
                                             </div>
                                         </div>
@@ -395,11 +430,10 @@ if ($permission) {
                                                     <thead>
                                                         <tr>
                                                             <th style="width:5%"># </th>
-                                                            <th style="width:30%">Description </th>
-                                                            <th style="width:20%">No. of Units</th>
+                                                            <th style="width:40%">Description </th>
+                                                            <th style="width:25%">No. of Units</th>
                                                             <th style="width:10%">Unit Cost</th>
                                                             <th style="width:10%">Total Cost</th>
-                                                            <th style="width:5%">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -423,29 +457,10 @@ if ($permission) {
                                                         ?>
                                                                 <tr>
                                                                     <td style="width:5%"><?= $counter ?></td>
-                                                                    <td style="width:30%"><?= $description ?> </td>
-                                                                    <td style="width:20%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
+                                                                    <td style="width:40%"><?= $description ?> </td>
+                                                                    <td style="width:25%"><?= number_format($no_of_units, 2) . "  "  . $unit_of_measure ?></td>
                                                                     <td style="width:10%"><?= number_format($unit_cost, 2) ?></td>
                                                                     <td style="width:10%"><?= number_format(($no_of_units * $unit_cost), 2) ?></td>
-                                                                    <td style="width:5%">
-                                                                        <div class="btn-group">
-                                                                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                                Options <span class="caret"></span>
-                                                                            </button>
-                                                                            <ul class="dropdown-menu">
-                                                                                <li>
-                                                                                    <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="edit_item(<?= $request_id ?>,'<?= $sub_request_id ?>', '<?= htmlspecialchars($description) ?>')">
-                                                                                        <i class="fa fa-check"></i> Edit
-                                                                                    </a>
-                                                                                </li>
-                                                                                <li>
-                                                                                    <a type="button" onclick="destroy_item('<?= $description ?>','<?= $sub_request_id ?>','<?= $subtask_id ?>')">
-                                                                                        <i class="fa fa-check"></i> Delete
-                                                                                    </a>
-                                                                                </li>
-                                                                            </ul>
-                                                                        </div>
-                                                                    </td>
                                                                 </tr>
                                                         <?php
                                                             }
@@ -491,7 +506,42 @@ if ($permission) {
                                         }
                                     }
 
+                                    $query_rsComments = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE request_id=:request_id and created_by=:created_by");
+                                    $query_rsComments->execute(array(":request_id" => $request_id, ":created_by" => $user_name));
+                                    $totalRows_rsComments = $query_rsComments->rowCount();
+                                    $Rows_rsComments = $query_rsComments->fetch();
+                                    $remarks = $totalRows_rsComments > 0 ? $Rows_rsComments['comments'] : '';
+
                                     ?>
+                                    <fieldset class="scheduler-border" id="direct_cost">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i> Request Details
+                                        </legend>
+                                        <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                            <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                                <label class="control-label">Due Date <span id="impunit"></span>*:</label>
+                                                <div class="form-input">
+                                                    <input type="date" name="due_date" id="due_date" class="form-control" value="<?= $due_date ?>" required="required">
+                                                </div>
+                                            </div>
+                                            <div id="comment_section">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <label class="control-label">Remarks *:</label>
+                                                    <br>
+                                                    <div class="form-line">
+                                                        <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"><?= $remarks ?></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                <div class="col-md-12 text-center">
+                                                    <input type="hidden" name="request_id" value="<?= $request_id ?>">
+                                                    <input type="hidden" name="store_remarks" value="store_remarks">
+                                                    <button type="submit" class="btn btn-success">Request</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </fieldset>
                                 </div>
                             </div>
                         </div>
@@ -517,14 +567,13 @@ if ($permission) {
                                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="budgetline_div">
                                                                     <div class="table-responsive">
                                                                         <table class="table table-bordered">
-                                                                            <input type="hidden" name="task_id[]" id="task_id" value="0">
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th style="width:30%">Description </th>
                                                                                     <th style="width:15%">Unit</th>
-                                                                                    <th style="width:15%">Unit Cost</th>
-                                                                                    <th style="width:10%">No. of Units</th>
                                                                                     <th style="width:10%">Remaining Units</th>
+                                                                                    <th style="width:10%">No. of Units</th>
+                                                                                    <th style="width:15%">Unit Cost</th>
                                                                                     <th style="width:15%">Total Cost</th>
                                                                                     <th style="width:5%">
                                                                                         <button type="button" name="addplus" id="addplus_financier" onclick="add_budget_costline(0);" class="btn btn-success btn-sm">
@@ -564,9 +613,12 @@ if ($permission) {
                                         <div class="modal-footer">
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                 <input type="hidden" name="projid" id="project_id" value="<?= $projid ?>">
+                                                <input type="hidden" name="site_id" id="site_id" value="">
+                                                <input type="hidden" name="output_id" id="output_id" value="">
+                                                <input type="hidden" name="task_id" id="task_id" value="">
                                                 <input type="hidden" name="amount_requested" id="amount_requested" value="">
                                                 <input type="hidden" name="request_id" id="request_id" value="<?= $request_id ?>">
-                                                <input type="hidden" name="cost_type" id="cost_type" value="">
+                                                <input type="hidden" name="cost_type" id="cost_type" value="<?= $purpose ?>">
                                                 <input type="hidden" name="implementation_type" id="implementation_type" value="">
                                                 <input type="hidden" name="store" id="store" value="new">
                                                 <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">
@@ -609,7 +661,7 @@ require('includes/footer.php');
 <script>
     var ajax_url = "ajax/payments/amend";
     $(document).ready(function() {
-        $("#modal_form_submit").submit(function(e) {
+        $("#modal_form_submit1").submit(function(e) {
             e.preventDefault();
             var cost_type = $("#purpose1").val();
             $.ajax({
@@ -619,26 +671,25 @@ require('includes/footer.php');
                 dataType: "json",
                 success: function(response) {
                     if (response.success) {
-                        success_alert("Approved payment successfully");
+                        success_alert("Record created successfully");
                     } else {
-                        error_alert("Approval error !!");
+                        error_alert(" Error  occured please try again later!!");
                     }
 
-                    // $(".modal").each(function() {
-                    //     $(this).modal("hide");
-                    //     $(this)
-                    //         .find("form")
-                    //         .trigger("reset");
-                    // });
+                    $(".modal").each(function() {
+                        $(this).modal("hide");
+                        $(this)
+                            .find("form")
+                            .trigger("reset");
+                    });
 
-                    // setTimeout(() => {
-                    //     window.location.reload();
-                    // }, 3000);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
                 }
             });
         });
     });
-
 
 
     //function to put commas to the data
@@ -649,7 +700,6 @@ require('includes/footer.php');
         return val;
     }
 
-
     const add_request_details = (details) => {
         var projid = details.projid;
         var site_id = details.site_id;
@@ -657,6 +707,11 @@ require('includes/footer.php');
         var task_id = details.task_id;
         var cost_type = details.cost_type;
         var request_id = details.request_id;
+        $("#projid").val(projid);
+        $("#site_id").val(site_id);
+        $("#output_id").val(output_id);
+        $("#task_id").val(task_id);
+        $("#cost_type").val(cost_type);
 
         $.ajax({
             type: "get",
@@ -730,10 +785,117 @@ require('includes/footer.php');
                 total_amount = total_amount + parseFloat($(this).val());
             }
         });
-
-
         var percentage = ((total_amount / ceiling_amount) * 100);
         $(`#sub_total_amount`).val(commaSeparateNumber(total_amount));
         $(`#subtotal_percentage`).val(percentage);
+    }
+
+    // function to add new rowfor financiers
+    function add_budget_costline() {
+        var stage = $("#stage").val();
+        var purpose = $("#purpose1").val();
+        var result = false;
+        var task = '';
+        result = false;
+        var msg = "Please select a purpose first";
+        if (purpose != '') {
+            result = true;
+            if (stage == '10') {
+                if (purpose == 1) {
+                    task = $("#tasks").val();
+                    result = task != '' ? true : false;
+                    msg = task == '' ? "Please select a task first" : '';
+                }
+            }
+        }
+
+        if (result) {
+            $(`#e_removeTr`).remove(); //new change
+            $rowno = $(`#_budget_lines_values_table tr`).length;
+            $rowno += 1;
+            $rowno = $rowno;
+            $(`#_budget_lines_values_table tr:last`).after(`
+        <tr id="budget_line_cost_line${$rowno}">
+            <td>
+                <select name="direct_cost_id[]" id="description${$rowno}" data-id="${$rowno}" onchange="get_costline_details(${$rowno})" class="form-control show-tick description" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                    <option value="">.... Select from list ....</option>
+                </select>
+            </td>
+            <td id="unit${$rowno}"> </td>
+            <td>
+                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})">
+            </td>
+            <td>
+                <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" id="no_units${$rowno}">
+            </td>
+                <td>
+                <input type="hidden" name="h_no_units[]" id="h_no_units${$rowno}">
+                <input type="text" name="p_no_units[]" min="0" class="form-control " id="p_no_units${$rowno}" readonly>
+            </td>
+            <td>
+                    <input type="hidden" name="subtotal_amount[]" id="subtotal_amount${$rowno}" class="subamount sub" value="">
+                    <span id="subtotal_cost${$rowno}" style="color:red"></span>
+            </td>
+            <td style="width:2%">
+                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_budget_costline('budget_line_cost_line${$rowno}', '')">
+                    <span class="glyphicon glyphicon-minus"></span>
+                </button>
+            </td>
+        </tr>`);
+            get_budgetline_details($rowno, purpose);
+        } else {
+            error_alert(msg);
+        }
+    }
+
+    // function to delete financiers row
+    function delete_budget_costline(rowno) {
+        $("#" + rowno).remove();
+        var check = $(`#_budget_lines_values_table tr`).length;
+        if (check == 1) {
+            $(`#_budget_lines_values_table`).html(`
+        <tr></tr>
+            <tr id="e_removeTr" class="text-center">
+            <td colspan="7">Add Budgetline Costlines</td>
+        </tr>`);
+        }
+        calculate_subtotal();
+    }
+
+    function get_budgetline_details(rowno, task_id, cost_type) {
+        var projid = $("#project_id").val();
+        var output_id = $("#output").val();
+        var site_id = $("#site_id").val();
+        var task_id = $("#tasks").val();
+        var stage = $("#stage").val();
+        var cost_type = $("#implementation_type").val();
+        var purpose = $("#purpose1").val();
+
+        if (projid != "") {
+            $.ajax({
+                type: "get",
+                url: ajax_url,
+                data: {
+                    get_budgetline_info: "get_budgetline_info",
+                    projid: projid,
+                    output_id: output_id,
+                    site_id: site_id,
+                    task_id: task_id,
+                    stage: stage,
+                    purpose: purpose,
+                    cost_type: cost_type,
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        $(`#description${rowno}`).html(response.description);
+                    } else {
+                        console.log("Error please ensure that you use the correct project")
+                    }
+                }
+            });
+        } else {
+            console.log("Ensure you have the correct project");
+        }
     }
 </script>

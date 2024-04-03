@@ -82,15 +82,15 @@
 																if($number_monitored > 0){
 																	$average_risk_level = round($total_risk_monitored_level/$number_monitored);
 																
-																	if($average_risk_level > 0){
-																		$query_risk_level = $db->prepare("SELECT * FROM tbl_risk_severity WHERE digit=:average_risk_level");
+																	//if($average_risk_level > 0){
+																		/* $query_risk_level = $db->prepare("SELECT * FROM tbl_risk_severity WHERE digit=:average_risk_level");
 																		$query_risk_level->execute(array(":average_risk_level" =>$average_risk_level));
 																		$row_risk_level = $query_risk_level->fetch();
 																		$total_risk_level = $query_risk_level->rowCount();
 																		
 																		if($total_risk_level > 0){
 																			$risklevel = $row_risk_level["description"];
-																			$levelcolor = $row_risk_level["color"];
+																			$levelcolor = $row_risk_level["color"]; */
 																			if($average_risk_level >= 0 && $average_risk_level < 4){
 																				$risklevel = "Low";
 																				$levelcolor = "bg-green";
@@ -104,8 +104,8 @@
 																				$risklevel = "Extreme";
 																				$levelcolor = "bg-red";
 																			}
-																		}
-																	}
+																		//}
+																	//}
 																} else {
 																	$risklevel = "Not Determined";
 																	$levelcolor = "bg-grey";
@@ -133,7 +133,7 @@
 																			<ul class="dropdown-menu">
 																				<?php if($number_monitored > 0){ ?>
 																					<li>
-																						<a type="button" data-toggle="modal" data-target="#riskInfoModal" id="riskInfoModalBtn" onclick="risk_info(<?= $rskid ?>)">
+																						<a type="button" data-toggle="modal" data-target="#riskInfoModal" id="riskInfoModalBtn" onclick="risk_register_info(<?= $rskid ?>)">
 																							<i class="fa fa-info"></i> More Info
 																						</a>
 																					</li>
@@ -189,7 +189,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center" id="edit-modal-title"><i class="fa fa-info-circle" style="color:orange"></i> Define Risk</h4>
                     </div>
-                    <form class="form-horizontal" id="add_risk" action="" method="POST">
+                    <form class="form-horizontal" id="add_risk_register" action="" method="POST">
                         <div class="modal-body">
                             <fieldset class="scheduler-border">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Details </legend>

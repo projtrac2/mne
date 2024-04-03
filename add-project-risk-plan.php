@@ -55,7 +55,7 @@ if ($permission) {
                                                 $projcode = $row_rsProjects['projcode'];
                                                 $start_date = date('Y-m-d');
 
-                                                $query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_projrisk_categories c on c.catid=r.risk_category WHERE projid=:projid GROUP BY id");
+                                                $query_proj_risks = $db->prepare("SELECT * FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE projid=:projid GROUP BY r.id");
                                                 $query_proj_risks->execute(array(":projid" => $projid));
                                                 $totalRows_proj_risks = $query_proj_risks->rowCount();
 
