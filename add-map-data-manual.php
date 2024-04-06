@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-	try {
 		$d_site_id = isset($_GET['site_id']) ? base64_decode($_GET['site_id']) : "";
 		$d_state_id = isset($_GET['state_id']) ? base64_decode($_GET['state_id']) : "";
 		$output_id = isset($_GET['opid']) ? base64_decode($_GET['opid']) : "";
@@ -154,9 +155,7 @@ if ($permission) {
                     }, 3000);
             </script>";
 		}
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 
 	$projid_hashed = base64_encode("projid54321{$projid}");
 
@@ -327,7 +326,10 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 
+}
 require('includes/footer.php');
 ?>
 <script src="assets/js/map/manual.js"></script>

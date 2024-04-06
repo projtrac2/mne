@@ -1,26 +1,26 @@
 <?php
+try {
+	include_once 'projtrac-dashboard/resource/Database.php';
+	include_once 'projtrac-dashboard/resource/utilities.php';
 
-include_once 'projtrac-dashboard/resource/Database.php';
-include_once 'projtrac-dashboard/resource/utilities.php';
-
-if(isset($_POST['reqid'])) 
-{
-	$reqid = $_POST["reqid"];
-	//$progress = $_POST["scprog"];
-	$query_reqcomm = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE reqid='$reqid'");
-	$query_reqcomm->execute();
-	
-	while($reqcommdata = $query_reqcomm->fetch()){
-		$usernm = $reqcommdata["user"];
-		$cmdate = $reqcommdata["date"];
-		$comments =  strip_tags($reqcommdata['comments']);
-		$recommdate = strtotime($cmdate);
-		$commdate = date("d M Y",$recommdate);
+	if(isset($_POST['reqid'])) 
+	{
+		$reqid = $_POST["reqid"];
+		//$progress = $_POST["scprog"];
+		$query_reqcomm = $db->prepare("SELECT * FROM tbl_payment_request_comments WHERE reqid='$reqid'");
+		$query_reqcomm->execute();
 		
-		$query_commenter = $db->prepare("SELECT fullname FROM admin WHERE username='$usernm'");
-		$query_commenter->execute();
-		$row_commenter = $query_commenter->fetch();
-		$commenter = $row_commenter['fullname'];
+		while($reqcommdata = $query_reqcomm->fetch()){
+			$usernm = $reqcommdata["user"];
+			$cmdate = $reqcommdata["date"];
+			$comments =  strip_tags($reqcommdata['comments']);
+			$recommdate = strtotime($cmdate);
+			$commdate = date("d M Y",$recommdate);
+			
+			$query_commenter = $db->prepare("SELECT fullname FROM admin WHERE username='$usernm'");
+			$query_commenter->execute();
+			$row_commenter = $query_commenter->fetch();
+			$commenter = $row_commenter['fullname'];
 	
 		echo '
 			<div class="col-sm-12 inputGroupContainer" style="margin-top:10px">
@@ -50,5 +50,8 @@ if(isset($_POST['reqid']))
 			</div>
 		';
 	}
+}
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

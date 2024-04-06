@@ -1,4 +1,7 @@
 <?php 
+try {
+	//code...
+
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
@@ -34,5 +37,9 @@ if(isset($_POST['deptid']) && !empty($_POST['deptid'])){
 	}else{
 		echo '<option value="" style="color:red">No Projects Defined</option>';
 	}
+}
+
+} catch (\Throwable $th) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

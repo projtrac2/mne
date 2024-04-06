@@ -1,7 +1,8 @@
 <?php
+    try {       
+
 include 'includes/head.php';
 if ($permission) {   
-    try {       
 		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "financierstatusfrm")) {
 
 			$fnid = $_POST['fnid'];
@@ -115,9 +116,7 @@ if ($permission) {
 		} else {
 			$status =  "Inactive";
 		}
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 	?>
     <!-- start body  -->
     <section class="content">
@@ -286,6 +285,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>	

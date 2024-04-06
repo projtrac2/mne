@@ -1,7 +1,8 @@
 <?php 
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
 
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
@@ -81,16 +82,7 @@ if ($permission) {
             $rows_projects = $query_projects->fetch();
             $level2 = explode(",", $rows_projects['projlga']);
         }
-    } catch (PDOException $ex) {
-
-        function flashMessage($flashMessages)
-        {
-            return $flashMessages;
-        }
-
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-        echo $result;
-    }
+   
 ?>
     <style>
         #links a {
@@ -315,7 +307,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 

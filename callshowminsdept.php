@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 	//include_once 'projtrac-dashboard/resource/session.php';
 	include_once 'projtrac-dashboard/resource/Database.php';
 	include_once 'projtrac-dashboard/resource/utilities.php';
@@ -88,6 +91,9 @@
 			echo '<option value="">... Station Not Defined ...</option>';
 		}
     }
-
+} catch (\PDOException $th) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+	
+}
 ?>
  

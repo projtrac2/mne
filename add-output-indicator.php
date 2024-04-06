@@ -1,4 +1,6 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
@@ -6,7 +8,6 @@ if ($permission) {
 	$pageTitle = "Add Output Indicator";
 
 	$measurement_units = get_measurement_units();
-	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -75,10 +76,7 @@ if ($permission) {
 						</script>";
 			}
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<script src="assets/ckeditor/ckeditor.js"></script>
 	<!-- start body  -->
@@ -298,7 +296,9 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 

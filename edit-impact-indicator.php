@@ -1,4 +1,6 @@
 <?php
+	try {
+
 $decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php");
 $indid_array = explode("impid", $decode_indid);
 $ind = $indid_array[1];
@@ -12,7 +14,6 @@ if ($permission) {
 	require('functions/measurement-unit.php');
 	require('functions/calculationmethods.php');
 
-	try {
 		$strategic_plan = get_strategic_plan();
 		$currentYear = get_current_year();
 		$data_sources = get_data_sources();
@@ -178,9 +179,7 @@ if ($permission) {
 				}
 			}
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<script src="assets/ckeditor/ckeditor.js"></script>
 
@@ -611,7 +610,9 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="assets/js/indicators/indicators.js"></script>

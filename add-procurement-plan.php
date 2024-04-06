@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $output_id = 0;
         $site_id = 0;
         if (isset($_GET['output_id']) && isset($_GET['site_id'])) {
@@ -95,9 +96,7 @@ if ($permission) {
                     }, 2000);
             </script>";
         }
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -280,6 +279,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

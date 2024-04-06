@@ -1,7 +1,8 @@
     <?php
     require('includes/head.php');
+    try {
+
     if ($permission && (isset($_GET['output_id']) && !empty($_GET["output_id"]))) {
-        try {
             $decode_output_id = (isset($_GET['output_id']) && !empty($_GET["output_id"])) ? base64_decode($_GET['output_id']) : "";
             $output_id_array = explode("projid54321", $decode_output_id);
             $output_id = $output_id_array[1];
@@ -349,12 +350,14 @@
                 $results =  restriction();
                 echo $results;
             }
-        } catch (PDOException $ex) {
-            $results = flashMessage("An error occurred: " . $ex->getMessage());
-        }
+       
     } else {
         $results =  restriction();
         echo $results;
+    }
+
+    } catch (PDOException $ex) {
+        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
     }
 
     require('includes/footer.php');

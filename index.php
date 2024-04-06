@@ -5,6 +5,9 @@ include "Models/Auth.php";
 include "Models/Company.php";
 require 'Models/Email.php';
 
+try {
+  //code...
+
 session_start();
 
 if (isset($_SESSION['MM_Username'])) header("location:dashboard.php");
@@ -89,12 +92,7 @@ if (isset($_POST['sign-in'])) {
   <title>Result-Based Monitoring &amp; Evaluation System</title>
   <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.css" />
   <style>
-    body {
-      background-image: url('./images/back-14.jpg');
-      background-repeat: no-repeat;
-      background-size: 100% 100%;
-      min-height: 100vh;
-    }
+    
 
     .m-footer {
       text-align: center;
@@ -132,6 +130,14 @@ if (isset($_POST['sign-in'])) {
       font-size: 16px;
     }
 
+    .m-email {
+          color:black; padding: 1.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        }
+
+        .m-password {
+          color:black; padding: 1.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        }
+
     @media only screen and (max-height: 600px) {
 
       /* CSS rules for extra small devices */
@@ -165,6 +171,118 @@ if (isset($_POST['sign-in'])) {
         padding-top: 10vh;
       }
     }
+
+    /* Extra small devices (phones, 600px and down) */
+    @media only screen and (max-width: 600px) {
+      body {
+        background-image: url('./images/main-4.jpg');
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        min-height: 100vh;
+      }
+
+      .m-padding {
+        padding-top: 10vh;
+        background-color: red;
+
+      }
+      .m-email {
+          color:black; padding: 2.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        }
+
+        .m-password {
+          color:black; padding: 1.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        }
+     
+
+    }
+
+  /* Small devices (portrait tablets and large phones, 600px and up) */
+  @media only screen and (min-width: 600px) {
+    body {
+        background-image: url('./images/main-4.jpg');
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        min-height: 100vh;
+      }
+
+      .m-padding {
+        padding-top: 20vh;
+        text-align: center;
+      }
+
+      /* .m-email {
+          color:black; padding: 1.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        }
+
+        .m-password {
+          color:black; padding: 1.6vw !important; border-radius: 5px !important; border: none; width: 70%; font-size: 30px !important;
+        } */
+  }
+
+  /* Medium devices (landscape tablets, 768px and up) */
+  @media only screen and (min-width: 768px) {
+    body {
+      background-image: url('./images/main-4.jpg');
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      min-height: 100vh;
+    }
+
+    .m-padding {
+      padding-top: 20vh;
+    }
+  }
+
+  /* Large devices (laptops/desktops, 992px and up) */
+  @media only screen and (min-width: 992px) {
+    body {
+        background-image: url('./images/back-14.jpg');
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        min-height: 100vh;
+      }
+
+      .m-padding {
+        padding-top: 2vh;
+      }
+
+      .m-email {
+          color:black; padding: 0.6vw; border-radius: 5px; border: none; width: 40%; font-size: 16px;
+        }
+
+        .m-password {
+          color:black; padding: 0.6vw; border-radius: 10px; border: none; width: 40%; font-size: 16px;
+        }
+  }
+
+  /* Extra large devices (large laptops and desktops, 1200px and up) */
+  @media only screen and (min-width: 1200px) {
+    body {
+          background-image: url('./images/back-14.jpg');
+          background-repeat: no-repeat;
+          background-size: 100% 100%;
+          min-height: 100vh;
+        }
+
+        .m-padding {
+          padding-top: 2vh;
+          text-align: left;
+        }
+
+        .btn-flex {
+          display: flex; gap: 2vw;
+        }
+
+        .m-email {
+          color:black; padding: 0.6vw !important; border-radius: 5px !important; border: none; width: 40%; font-size: 18px !important;
+        }
+
+        .m-password {
+          color:black; padding: 0.6vw !important; border-radius: 5px !important; border: none; width: 40%; font-size: 18px !important;
+        }
+  }
+    
   </style>
   <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.css" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -176,35 +294,40 @@ if (isset($_POST['sign-in'])) {
 <body>
   <div class="container">
     <div class="row">
-      <div class="col-md-4 m-padding">
-        <div style="margin-bottom: 6vh;">
+      <div class="col-md-4 col-sm-12 m-padding">
+        <div style="margin-bottom: 6vh;" class="m-bg">
           <img src="./images/logo-proj.png" alt="" srcset="" width="500">
         </div>
 
+       
         <div style="margin-bottom: 4vh;">
           <h4 style="color: #003366;">Login to mne</h4>
           <!-- <p style="color: black;">Check email for otp code!</p> -->
         </div>
+
+        <div class="glass-bg-resp">
         <form method="POST" id="loginusers">
           <div style="margin-bottom: 4vh;">
-            <input name="email" type="email" id="email" placeholder="Email" style="color:black; padding: 0.6vw; border-radius: 5px; border: none; width: 40%; font-size: 16px;" required>
+            <input class="m-email" name="email" type="email" id="email" placeholder="Email"  required>
             <p style="color: #dc2626;"></p>
           </div>
 
           <div style="margin-bottom: 4vh;">
-            <input name="password" type="password" id="password" placeholder="Password" style="color:black; padding: 0.6vw; border-radius: 5px; border: none; width: 40%; font-size: 16px;" required>
+            <input class="m-password" name="password" type="password" id="password" placeholder="Password"  required>
             <p style="color: #dc2626;"></p>
           </div>
 
           <input type="hidden" name="sign-in" value="sign-in">
 
-          <div style="display: flex; gap: 2vw;">
+          <div class="btn-flex" >
             <button id="submit-btn" type="button" style="background-color: #22c55e; color: white; border: none; padding-left: 2vw; padding-right: 2vw; padding-top: 0.5vw; padding-bottom: 0.5vw; font-size: 14px; font-weight: 600; letter-spacing: 1px; border-radius: 5px;">Sign In</button>
             <a href="forgot-password.php"><button type="button" style="background-color: transparent; color: white; border: 1.5px solid #003366; padding-left: 2vw; padding-right: 2vw; padding-top: 0.5vw; padding-bottom: 0.5vw; font-size: 14px; font-weight: 600; letter-spacing: 1px; border-radius: 5px;">Forgot Password</button></a>
           </div>
         </form>
+        </div>
+        
       </div>
-      <div class="col-md-8">
+      <div class="col-lg-8 col-md-8 col-sm-12">
 
       </div>
     </div>
@@ -279,52 +402,8 @@ if (isset($_POST['sign-in'])) {
 
 </html>
 
-<!-- <p>&nbsp;</p>
-  <div class="container-fluid">
-    <div class="row-fluid">
-      <div class="span12">
-        <div align="center">
-          <div class="container-fluid1" id="content_area_cell">
-            <h3 align="center" class="contenttitles">ProjTrac Monitoring, Evaluation, And Reporting System</h3>
-            <p>&nbsp;</p>
-            <form action="" method="POST" class="form-signin" style="margin-bottom:10px" id="loginusers">
-              <div style="width:100%; height:auto; background-color:#036">
-                <p><img src="<?php //$company_settings->floc;
-                              ?>" style="height:100px; width:230px; margin-top:10px" class="imgdim" /></p>
-              </div>
-              <br />
-              <?php
-              // if (isset($_SESSION["errorMessage"])) {
-              ?>
-                <div class='alert alert-danger'>
-                  <p class="errormsg">
-                    <img src="images/error.png" alt="errormsg" />
-                    <?php // $_SESSION["errorMessage"]
-                    ?>
-
-                  </p>
-                </div>
-              <?php
-              // }
-              // unset($_SESSION["errorMessage"]);
-              ?>
-              <p>
-                <input name="email" type="email" class="input-block-level" id="username" placeholder="Enter your email address" required />
-                <label for="password"></label>
-                <input name="password" type="password" class="input-block-level" id="password" placeholder="Enter your password" required />
-              </p>
-              <p>
-                <input name="submit" type="submit" class="loginbutton" id="submit" value="Sign In" />
-              </p>
-              <a href="forgot-password.php">Forgot your password?</a>
-            </form>
-            <p>&nbsp;</p>
-          </div>
-        </div>
-        <p>&nbsp;</p>
-      </div>
-    </div>
-  </div>
-  <?php
-  //include_once "includes/login-footer.php";
-  ?> -->
+<?php 
+} catch (\PDOException $th) {
+  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
 
         $status_array = array(
             'all' => array("status" => ''),
@@ -585,9 +586,7 @@ if ($permission) {
         $budget_expenditure = budget_vs_expenditure_per_year();
         $totalannualbdg = json_encode($budget_expenditure['totalannualbdg']);
         $totalannualexp = json_encode($budget_expenditure['totalannualexp']);
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <style>
         .highcharts-figure,
@@ -931,6 +930,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (\PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 require('includes/footer.php');
 ?>

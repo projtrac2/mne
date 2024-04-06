@@ -205,6 +205,7 @@ class Auth
             // store this details in db
             $opt_stmt = $this->db->prepare('UPDATE users SET otp=:otp, expires_at=:expires_at WHERE email=:email');
             $otp_result = $opt_stmt->execute([":otp" => $otp, ":expires_at" => $expires_at, ":email" => $email]);
+
             if ($otp_result) {
                 $mail_response = $this->send_mail($user->userid, $user->fullname, $user->email, 3, 27, '', $otp);
             }

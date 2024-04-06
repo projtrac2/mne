@@ -1,4 +1,7 @@
 <?php
+try {
+   //code...
+
 require('includes/head.php');
 $page_id = isset($_GET['page_id']) & !empty($_GET['page_id']) ? $_GET['page_id'] : "";
 
@@ -248,7 +251,9 @@ if ($permission && $page_id != "") {
    $results =  restriction();
    echo $results;
 }
-
+} catch (\PDOException $th) {
+   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="general-settings/js/fetch-page-actions.js"></script>

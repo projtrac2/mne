@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $query_rsUsers =  $db->prepare("SELECT * FROM tbl_projteam2 t inner join tbl_users u on u.pt_id=t.ptid WHERE u.username = '$username'");
         $query_rsUsers->execute();
         $row_rsUsers = $query_rsUsers->fetch();
@@ -14,9 +15,7 @@ if ($permission) {
         $query_rsTaskCert =  $db->prepare("SELECT tbl_projects.*, tbl_projmembers.ptid, tbl_task.tkid, tbl_task.task, tbl_task.taskbudget AS taskbudget, tbl_task.inspectionscore, tbl_task.description, tbl_task.responsible, tbl_task.sdate AS stdate, tbl_task.edate AS endate FROM tbl_projects  LEFT JOIN tbl_task ON tbl_projects.projid=tbl_task.projid LEFT JOIN tbl_projmembers ON tbl_projects.projid=tbl_projmembers.projid WHERE tbl_projects.deleted='0' AND tbl_task.paymentstatus = '0' AND tbl_task.inspectionstatus = '1' AND tbl_projects.projcategory = '1' AND tbl_task.status LIKE '%Completed Task%'");
         $query_rsTaskCert->execute();
         $Rows_rsTaskCert = $query_rsTaskCert->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -234,6 +233,8 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>

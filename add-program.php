@@ -1,4 +1,5 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
     $program_type = isset($_GET['program_type']) ? $_GET['program_type'] : '';
@@ -353,6 +354,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

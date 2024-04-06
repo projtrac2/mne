@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-  try {
 
     if (isset($_GET['projid'])) {
       $projid = $_GET['projid'];
@@ -79,10 +80,7 @@ if ($permission) {
         $result[] = $totalRows_rsChecklist > 0 ? true : false;
       } while ($row_rsTask_info = $query_rsTask_info->fetch());
     }
-  } catch (PDOException $ex) {
-    // $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($ex->getMessage());
-  }
+  
 ?>
   <style media="screen">
     #links a {
@@ -429,6 +427,10 @@ if ($permission) {
 } else {
   $results =  restriction();
   echo $results;
+}
+
+} catch (PDOException $ex) {
+  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

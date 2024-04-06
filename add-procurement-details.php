@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-  try {
     if (isset($_GET['prj'])) {
       $hash = $_GET['prj'];
       $decode_projid = base64_decode($hash);
@@ -329,10 +330,7 @@ if ($permission) {
         project_name:'$projname',
         sub_stage:'$project_sub_stage',
     }";
-  } catch (PDOException $ex) {
-    $result = "An error occurred: " . $ex->getMessage();
-    print($result);
-  }
+  
 ?>
   <!-- start body  -->
   <section class="content">
@@ -1077,6 +1075,11 @@ if ($permission) {
   $results =  restriction();
   echo $results;
 }
+
+} catch (PDOException $ex) {
+  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
 require('includes/footer.php');
 ?>
 

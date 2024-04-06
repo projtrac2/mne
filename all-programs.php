@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $sql_ind_projects = $db->prepare("SELECT * FROM `tbl_projects` p left join `tbl_programs` g on g.progid=p.progid WHERE program_type=0 and p.deleted='0'");
         $sql_ind_projects->execute();
         $totalRows_ind_projects = $sql_ind_projects->rowCount();
@@ -111,9 +112,7 @@ if ($permission) {
         $source_categories = get_source_categories();
         $partner_roles  = get_partner_roles();
         $partners  = get_partners();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -608,6 +607,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
@@ -92,9 +93,7 @@ if ($permission) {
             }
             return !in_array(false, $results) ? true : false;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -222,6 +221,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

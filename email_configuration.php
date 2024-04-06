@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 require('includes/head.php');
 if ($permission) {
 	$emailsetting = $db->query("select * from `tbl_email_settings`")->fetch();
@@ -161,7 +164,9 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/indicator-details.js"></script>

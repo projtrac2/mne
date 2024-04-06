@@ -1,8 +1,9 @@
 <?php  
+  try {
+
 require('includes/head.php'); 
 
 if ($permission) {
-  try {
     $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=2 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
 	$query_baseline_survey->execute(array(":user_name" => $user_name));
 	
@@ -12,15 +13,7 @@ if ($permission) {
     }
 	//$rows = $query_baseline_survey->fetch();
     $count_baseline_survey = $query_baseline_survey->rowCount();
-  } catch (PDOException $ex) {
-    function flashMessage($err)
-    {
-      return $err;
-    }
 
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    print($result);
-  }
 ?>
   <!-- start body  -->
   <section class="content">
@@ -152,7 +145,9 @@ if ($permission) {
   $results =  restriction();
   echo $results;
 }
-
+} catch (PDOException $th) {
+  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 

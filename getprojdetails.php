@@ -5,19 +5,25 @@ include_once "system-labels.php";
 
 function get_financiers($projid){
 	// query project financier
-    global $db;
-	$query_financiers =  $db->prepare("SELECT *, f.financier AS funder,t.description FROM tbl_myprojfunding m inner join tbl_financiers f ON f.id=m.financier inner join tbl_financier_type t on t.id=m.sourcecategory WHERE projid = :projid ORDER BY amountfunding desc");
-	$query_financiers->execute(array(":projid" => $projid));
-	$row_financiers = $query_financiers->fetchAll();
-	$totalRows_financiers = $query_financiers->rowCount();
+	try {
+		global $db;
+		$query_financiers =  $db->prepare("SELECT *, f.financier AS funder,t.description FROM tbl_myprojfunding m inner join tbl_financiers f ON f.id=m.financier inner join tbl_financier_type t on t.id=m.sourcecategory WHERE projid = :projid ORDER BY amountfunding desc");
+		$query_financiers->execute(array(":projid" => $projid));
+		$row_financiers = $query_financiers->fetchAll();
+		$totalRows_financiers = $query_financiers->rowCount();
 
-    if($totalRows_financiers > 0){
-        return $row_financiers; 
-    }else{
-        return false;
-    }	
+		if($totalRows_financiers > 0){
+			return $row_financiers; 
+		}else{
+			return false;
+		}	
+	} catch (\PDOException $th) {
+		customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+	}
 }
 
+
+try {
 if (isset($_POST['prjid'])) {
     $projid = $_POST["prjid"];
     $query_Projdetails = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' AND projid='$projid'");
@@ -51,93 +57,96 @@ if (isset($_POST['prjid'])) {
     $query_PrjRisk->execute();
 
     echo '
-<div class="table-responsive">
-	<font color="#174082">
-		<table class="table table-bordered" style="width:100%"  align="center">
-			<tr style="background-color:skyblue; color:white">
-				<th>Project Code</th>
-				<th colspan="3">Project Name</th>
-			</tr>
-			<tr>
-				<td>' . $row_projdetails['projcode'] . '</td>
-				<td colspan="3">' . $row_projdetails['projname'] . '</td>
-			</tr>
-			<tr style="background-color:skyblue; color:white">
-				<th colspan="2">Project ' . $ministrylabel . '</th>
-				<th colspan="2">Project ' . $departmentlabel . '</th>
-			</tr>
-			<tr>
-				<td colspan="2">' . $row_ProjSector['sector'] . '</td>
-				<td colspan="2">' . $row_ProjDept['sector'] . '</td>
-			</tr>
-
-			<tr style="background-color:skyblue; color:white">
-				<th colspan="4">Project Description</th>
-			</tr>
-			<tr>
-				<td colspan="4">' . $row_projdetails['projdesc'] . '</td>
-			</tr>
-			<tr style="background-color:skyblue; color:white">
-				<th colspan="4">Expected Project Outcome:</th>
-			</tr>
-			<tr>
-				<td colspan="4">Outputs</td>
-			</tr>
-			<tr style="background-color:skyblue; color:white">
-				<th colspan="4">Project Assumptions</th>
-			</tr>';
-			$sn = 0;
-			while ($row_PrjRisk = $query_PrjRisk->fetch()) {
-				$sn = $sn + 1;
-				echo '
+	<div class="table-responsive">
+		<font color="#174082">
+			<table class="table table-bordered" style="width:100%"  align="center">
+				<tr style="background-color:skyblue; color:white">
+					<th>Project Code</th>
+					<th colspan="3">Project Name</th>
+				</tr>
 				<tr>
-					<td colspan="4">' . $sn . '. ' . $row_PrjRisk['category'] . '</td>
-				</tr>';
-			}
+					<td>' . $row_projdetails['projcode'] . '</td>
+					<td colspan="3">' . $row_projdetails['projname'] . '</td>
+				</tr>
+				<tr style="background-color:skyblue; color:white">
+					<th colspan="2">Project ' . $ministrylabel . '</th>
+					<th colspan="2">Project ' . $departmentlabel . '</th>
+				</tr>
+				<tr>
+					<td colspan="2">' . $row_ProjSector['sector'] . '</td>
+					<td colspan="2">' . $row_ProjDept['sector'] . '</td>
+				</tr>
 
-			echo '
-			<tr style="background-color:skyblue; color:white">
-				<th>Output</th>
-				<th>Indicator</th>
-				<th>Baseline</th>
-				<th>Target</th>
-			</tr>
-			<tr>';
-				// <td>' . $row_PrjDet['output'] . '</td>
-				// <td>' . $row_PrjDet['indicator'] . '</td>
-				// <td>' . $row_PrjDet['baseline'] . '</td>
-				// <td>' . $row_PrjDet['target'] . '</td>
-			echo '
-			</tr>
-			<tr style="background-color:skyblue; color:white">
-				<th>Funding Source</th>
-				<th>Funder Name</th>
-				<th>Funding Amount</th>
-				<th>Currency</th>
-			</tr>';
-			$nm = 0;
-			
-			$financiers = get_financiers($projid);
-			foreach ($financiers as $row_PrjFund) {
-				$nm = $nm + 1;
-				//$srcid = $row_PrjFund["sourceid"];
-				$source = $row_PrjFund["description"];
-				$funder = $row_PrjFund["funder"];
-				$currency = "$";
-				if(!empty($row_PrjFund['currency'])){
-					$currency = $row_PrjFund['currency'];
+				<tr style="background-color:skyblue; color:white">
+					<th colspan="4">Project Description</th>
+				</tr>
+				<tr>
+					<td colspan="4">' . $row_projdetails['projdesc'] . '</td>
+				</tr>
+				<tr style="background-color:skyblue; color:white">
+					<th colspan="4">Expected Project Outcome:</th>
+				</tr>
+				<tr>
+					<td colspan="4">Outputs</td>
+				</tr>
+				<tr style="background-color:skyblue; color:white">
+					<th colspan="4">Project Assumptions</th>
+				</tr>';
+				$sn = 0;
+				while ($row_PrjRisk = $query_PrjRisk->fetch()) {
+					$sn = $sn + 1;
+					echo '
+					<tr>
+						<td colspan="4">' . $sn . '. ' . $row_PrjRisk['category'] . '</td>
+					</tr>';
 				}
 
 				echo '
-				<tr>
-					<td>' . $nm . '. ' . $source . '</td>
-					<td>' . $funder . '</td>
-					<td>' . $row_PrjFund['amountfunding'] . '</td>
-					<td>' . $currency . '</td>
+				<tr style="background-color:skyblue; color:white">
+					<th>Output</th>
+					<th>Indicator</th>
+					<th>Baseline</th>
+					<th>Target</th>
+				</tr>
+				<tr>';
+					// <td>' . $row_PrjDet['output'] . '</td>
+					// <td>' . $row_PrjDet['indicator'] . '</td>
+					// <td>' . $row_PrjDet['baseline'] . '</td>
+					// <td>' . $row_PrjDet['target'] . '</td>
+				echo '
+				</tr>
+				<tr style="background-color:skyblue; color:white">
+					<th>Funding Source</th>
+					<th>Funder Name</th>
+					<th>Funding Amount</th>
+					<th>Currency</th>
 				</tr>';
-			}
-			echo '
-		</table>
-	</font>
-</div>'; 
+				$nm = 0;
+				
+				$financiers = get_financiers($projid);
+				foreach ($financiers as $row_PrjFund) {
+					$nm = $nm + 1;
+					//$srcid = $row_PrjFund["sourceid"];
+					$source = $row_PrjFund["description"];
+					$funder = $row_PrjFund["funder"];
+					$currency = "$";
+					if(!empty($row_PrjFund['currency'])){
+						$currency = $row_PrjFund['currency'];
+					}
+
+					echo '
+					<tr>
+						<td>' . $nm . '. ' . $source . '</td>
+						<td>' . $funder . '</td>
+						<td>' . $row_PrjFund['amountfunding'] . '</td>
+						<td>' . $currency . '</td>
+					</tr>';
+				}
+				echo '
+			</table>
+		</font>
+	</div>'; 
+	}
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

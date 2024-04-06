@@ -1,7 +1,8 @@
 <?php 
+    try {
+
 require('includes/head.php');
 if ($permission) { 
-    try {
         $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
         $query_allcategories->execute();
         $rows_allcategories = $query_allcategories->fetch();
@@ -49,9 +50,7 @@ if ($permission) {
 
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
 
     <!-- start body  -->
@@ -142,7 +141,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 

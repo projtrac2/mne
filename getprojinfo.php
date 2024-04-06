@@ -1,4 +1,5 @@
 <?php
+try {
 include('dbconnection.php');
 
 if(isset($_POST['req']) && $_POST['req']=='1') 
@@ -129,5 +130,9 @@ echo '<form class="well form-horizontal" action="./post_hmo_details" method="pos
 ';
 
 }
+}
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

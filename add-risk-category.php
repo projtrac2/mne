@@ -1,8 +1,9 @@
 <?php
+    try {
+
 $riskid = (isset($_GET['risk'])) ? base64_decode($_GET['risk']) : "";
 require('includes/head.php');
 if ($permission) { 
-    try {
         $action = "Add";
         $button = "Add";
         $actionName = "MM_insert";
@@ -125,9 +126,7 @@ if ($permission) {
                 </script>";
             }
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 ?>
 
     <!-- start body  -->
@@ -193,6 +192,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

@@ -3,6 +3,12 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+function customErrorHandler($errno, $errstr, $errfile, $errline)
+{
+	$message = "Error: [$errno] $errstr - $errfile:$errline";
+	error_log($message . PHP_EOL, 3, "error_log.log");
+}
+
 function get_current_url_tests()
 {
     $path = $_SERVER['REQUEST_URI'];

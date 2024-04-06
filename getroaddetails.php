@@ -1,4 +1,6 @@
 <?php
+try {
+	//code...
 
 	//include_once 'projtrac-dashboard/resource/session.php';
 	include_once 'projtrac-dashboard/resource/Database.php';
@@ -76,5 +78,7 @@
                 </div>
             ';
 	}
-
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
