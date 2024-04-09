@@ -1,4 +1,8 @@
 <?php
+
+try {
+	//code...
+
 	$query_levelministry = $db->prepare("SELECT label, label_plural FROM tbl_terminologies WHERE name='ministry'");
 	$query_levelministry->execute();
 	$rows_levelministry = $query_levelministry->fetch();
@@ -30,4 +34,7 @@
 	$level3labelplural = $rows_level3["label_plural"];
 	
 	//$uppercase = strtoupper($ministrylabel);
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

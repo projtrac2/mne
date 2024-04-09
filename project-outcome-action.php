@@ -1,9 +1,9 @@
 <?php
+try{
 
 //include_once 'projtrac-dashboard/resource/session.php';
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';	
-try{
 	$valid['success'] = array('success' => false, 'messages' => array());
 	if(isset($_POST["edititem"])){
 		$code =$_POST['editCode'];
@@ -42,7 +42,7 @@ try{
 		echo json_encode($valid);
 	}
 
-}catch (PDOException $ex){
-    // $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $ex->getMessage();
+}catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
 }

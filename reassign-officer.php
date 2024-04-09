@@ -1,9 +1,9 @@
 <?php 
+try {
+
 $results  ='';
 require 'authentication.php';
 
-try {
-     
 
     if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "assignofficerform")) {
         $officer = $_POST["officer"];
@@ -75,10 +75,7 @@ try {
     $query_rsProjects->execute();
     $row_rsProjects = $query_rsProjects->fetch();
     $count_rsProjects = $query_rsProjects->rowCount();
-} catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    print($result);
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -360,3 +357,12 @@ try {
 </body>
 
 </html>
+
+<?php 
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+
+}
+
+?>

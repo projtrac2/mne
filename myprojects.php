@@ -1,15 +1,14 @@
 <?php
+	try {
+
 require('includes/head.php');
 include_once('projects-functions.php');
 
 if ($permission) {
-	try {
 		$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' AND projstage = 9 AND (projstatus=4 OR projstatus=11) ORDER BY projid DESC");
 		$query_rsProjects->execute();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -210,6 +209,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script type="text/javascript">

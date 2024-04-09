@@ -414,8 +414,7 @@ try{
 			</div>
 		</div>
 		<?php
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

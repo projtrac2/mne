@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $accesslevel = "";
         if (($user_designation < 5)) {
             $accesslevel = "";
@@ -175,9 +176,7 @@ if ($permission) {
         }
 
         $_SESSION['back_url'] = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- 0 - implementation 1) Pending assig commitee 2) Pending Checklist 3) Pending Inspection 4) Issues 5) Complete 6) Closed -->
     <!-- start body  -->
@@ -674,6 +673,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script type="text/javascript">

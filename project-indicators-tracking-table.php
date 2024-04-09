@@ -1,8 +1,9 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
 	$rows_count = 0;
-	try {
 		function projfy()
 		{
 			global $db;
@@ -97,10 +98,7 @@ if ($permission) {
 		$rows_count = $sql->rowCount();
 
 		include_once('system-labels.php');
-	} catch (PDOException $ex) {
-		// $result = flashMessage("An error occurred: " .$ex->getMessage());
-		print($ex->getMessage());
-	}
+	
 ?>
 	<style>
 		.modal-lg {
@@ -487,6 +485,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script type="text/javascript">
 	function CallRiskAction(id) {

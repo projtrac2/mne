@@ -1,8 +1,8 @@
 <?php
+try {
 
 require 'authentication.php';
 
-try {
 
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
@@ -24,10 +24,7 @@ try {
 	$query_rsPuM = $db->prepare("SELECT m.* FROM tbl_projects p INNER JOIN tbl_monitoring m ON m.projid=p.projid WHERE p.projid = :projid ORDER BY m.dateadded DESC");
 	$query_rsPuM->execute(array(":projid" => $projid));
 	$row_rsPuM = $query_rsPuM->fetch();
-} catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	echo $result;
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -176,8 +173,9 @@ try {
 
 	.bar {
 		background: #CDDC39;
-		width: <?php echo $percent2; ?>%;
+		width: '<?php echo $percent2; ?>%';
 		height:24px;
+		border-radius: 0px;
 		-moz-border-radius: 0px;
 		-webkit-border-radius: 0px;
 	}
@@ -296,7 +294,7 @@ try {
 	.cornflowerblue {
 		background-color: CornflowerBlue;
 		box-shadow:inset 0px 0px 6px 2px rgba(255,255,255,.3);
-		width: <?php echo $percent2; ?>%;
+		width: '<?php echo $percent2; ?>%';
 	}
 
 	.carrot {
@@ -509,3 +507,10 @@ try {
 </body>
 
 </html>
+
+<?php 
+} catch (PDOException $ex) {
+	$result = flashMessage("An error occurred: " . $ex->getMessage());
+	echo $result;
+}
+?>

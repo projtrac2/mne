@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 session_start();
 $_SESSION = array();
 if (ini_get("session.use_cookies")) {
@@ -10,3 +13,7 @@ if (ini_get("session.use_cookies")) {
 }
 session_destroy();
 header("location:index.php");
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}

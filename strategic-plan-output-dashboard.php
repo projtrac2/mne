@@ -1,7 +1,8 @@
 <?php 
+try{
+
 require 'authentication.php';
 
-try{
 
 	
  
@@ -209,9 +210,9 @@ try{
 	$dtset3 = json_encode($dataset3);
 	$dtset4 = json_encode($dataset4);
 }
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
+catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
 }
 ?>
 <!DOCTYPE html>

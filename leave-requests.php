@@ -1,8 +1,9 @@
 <?php
+	try {
+
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		if ($designation == 6) {
 			$where = " WHERE t.ministry = $department_id AND t.department=$section_id";
 		} elseif ($designation == 7) {
@@ -14,9 +15,7 @@ if ($permission) {
 		$query_leave_request = $db->prepare("SELECT l.*, tt.title, t.fullname, t.floc, u.userid, c.leavename, t.directorate, t.designation FROM tbl_employee_leave l inner join users u on u.userid=l.employee inner join tbl_projteam2 t on t.ptid=u.pt_id inner join tbl_titles tt on tt.id=t.title inner join tbl_employees_leave_categories c on c.id=l.leavecategory $where ORDER BY l.id ASC");
 		$query_leave_request->execute();
 		$totalRows_leave_request = $query_leave_request->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	} ?>
+	 ?>
 
 	<!-- start body  -->
 	<section class="content">
@@ -130,4 +129,8 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

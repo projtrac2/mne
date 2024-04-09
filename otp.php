@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 require 'vendor/autoload.php';
 require 'Models/Connection.php';
 include "Models/Auth.php";
@@ -288,5 +291,7 @@ if (isset($_POST['resend']) && $_POST['resend'] == "resend otp") {
         </div>
     </div>
     <?php
-    // include_once "includes/login-footer.php";
+    } catch (\PDOException $th) {
+        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    }
     ?> -->

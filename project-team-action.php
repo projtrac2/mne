@@ -1,4 +1,7 @@
 <?php  
+try {
+	//code...
+
 include_once "controller.php";
 function send_email($projid, $user_id, $profession_id)
 {
@@ -472,4 +475,9 @@ if (isset($_POST['more'])) {
 			</div>
 		</div>
 	</fieldset> ';
+}
+
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

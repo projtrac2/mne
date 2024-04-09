@@ -1,8 +1,8 @@
 <?php 
+try{
 
 require 'authentication.php';
 
-try{
 
 	
 
@@ -68,11 +68,7 @@ try{
 	  }
 	}
 	$queryString_rsMyP = sprintf("&totalRows_rsMyP=%d%s", $totalRows_rsMyP, $queryString_rsMyP);
-}
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -402,3 +398,9 @@ $.ajax({
 </body>
 
 </html>
+<?php 
+}
+catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

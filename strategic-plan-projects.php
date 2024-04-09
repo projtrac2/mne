@@ -1,4 +1,6 @@
 <?php
+	try {
+
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : "";
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
@@ -6,7 +8,6 @@ $stplane = $_GET['plan'];
 
 require('includes/head.php');
 if ($permission) {
-	try {
 		// get project risks
 		$query_strategic_plan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE id=:stplan");
 		$query_strategic_plan->execute(array(":stplan" => $stplan));
@@ -96,9 +97,7 @@ if ($permission) {
 
 		$source_categories = get_source_categories();
 		$partner_roles  = get_partner_roles();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -397,6 +396,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

@@ -1,4 +1,6 @@
 <?php
+	try {
+
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -7,7 +9,6 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 include_once('projects-functions.php');
 if ($permission) {
-	try {
 		$query_rsMyP = $db->prepare("SELECT *, projstartdate AS sdate, projenddate AS edate FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -144,10 +145,7 @@ if ($permission) {
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
 		$rate_balance = 100 - $rate;
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<!-- start body  -->
 	<link rel="stylesheet" href="css/highcharts.css">
@@ -396,6 +394,11 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 
 

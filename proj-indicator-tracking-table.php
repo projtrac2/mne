@@ -1,7 +1,8 @@
 <?php
+try {
+
 require 'authentication.php';
 
-try {
 
 	if (isset($_GET["projid"]) && !empty($_GET["projid"])) {
 		$projid = $_GET["projid"];
@@ -27,10 +28,7 @@ try {
 			$years = $years + 1;
 		}
 	}
-} catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	print($ex->getMessage());
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -306,3 +304,10 @@ try {
 </body>
 
 </html>
+
+<?php 
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
+?>

@@ -322,14 +322,8 @@ try {
 	</div>
 
 <?php
-} catch (PDOException $ex) {
-	function  flashMessage($data)
-	{
-		return $data;
-	}
-
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	print($ex->getMessage());
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 ?>

@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 // update status
 include './includes/permission.php';
 
@@ -55,4 +58,8 @@ if (isset($update_title_status) && isset($title_id)) {
     } else {
         echo json_encode(false);
     }
+}
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

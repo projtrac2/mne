@@ -143,9 +143,8 @@ try{
 	$query_rsriskcategory->execute();
 	$totalrows_rsriskcategory = $query_rsriskcategory->rowCount();
 
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
 }
 ?>
 

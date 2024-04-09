@@ -1,11 +1,9 @@
 <?php
+try {
 
 require 'authentication.php';
 
-try {
 
-	
- 
 
 	if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 		$progid = $_GET["prg"];
@@ -45,10 +43,7 @@ try {
 	$query_rsRiskCategories->execute();
 	$row_rsRiskCategories = $query_rsRiskCategories->fetch();
 	$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
-} catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	print($ex->getMessage());
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -320,3 +315,13 @@ try {
 </body>
 
 </html>
+
+<?php 
+
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
+
+
+?>

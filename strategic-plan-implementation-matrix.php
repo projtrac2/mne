@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
@@ -329,6 +332,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script>
 	function update_total(indicator_id) {

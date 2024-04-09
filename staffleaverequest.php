@@ -1,4 +1,6 @@
 <?php
+try {
+	//code...
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -35,5 +37,9 @@ if(isset($_POST['leaveid']))
 		<input type="hidden" name="catid" id="catid" value="'.$leaveid.'"/>
 		<input type="hidden" name="remleavedays" id="catid" value="'.$row_rsLeaveDays["totaldays"].'"/>
 	';
+}
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
 }
 ?>

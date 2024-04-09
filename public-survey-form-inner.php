@@ -1,5 +1,10 @@
 <form method="POST" name="submitevalfrm" id="survey" action="" enctype="multipart/form-data" autocomplete="off">
 	<?php
+
+	try {
+		//code...
+	
+
 	if(isset($_GET['fm']) && !empty($_GET['fm'])){
 		$query_proj = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
 		$query_proj->execute(array(":projid" => $projid));
@@ -462,5 +467,10 @@
 		</div>
 	<?php
 	}
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+
+}
 	?>
 </form>	

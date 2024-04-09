@@ -398,7 +398,6 @@ try {
    $mpdf->WriteHTML($body, \Mpdf\HTMLParserMode::HTML_BODY);
    $mpdf->SetFooter('Uasin Gishu County {PAGENO}');
    $mpdf->Output();
-} catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $result;
+} catch (PDOException $th) {
+   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

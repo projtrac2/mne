@@ -1,4 +1,7 @@
  <?php
+ try {
+	//code...
+
 //Include database configuration file
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -23,5 +26,8 @@ if(isset($_POST["ind_code"]) && !empty($_POST["ind_code"])){
 	elseif($rowsnum == 0){
 		echo "C";
 	}
+}
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

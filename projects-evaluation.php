@@ -1,12 +1,9 @@
 <?php 
+try{
 
 require 'authentication.php';
 
-try{
 
-	
- 
-	
 	$query_evaluation= $db->prepare("SELECT *, e.id as evalid FROM tbl_projects p inner join tbl_projects_evaluation e on e.itemid=p.projid inner join tbl_project_evaluation_types t on t.sequence=e.evaluation_type WHERE projevaluate=1 AND evaluation_type=4 AND status=0 ORDER BY e.id ASC");
 	$query_evaluation->execute();	
 	$count_evaluation = $query_evaluation->rowCount();
@@ -24,11 +21,7 @@ try{
 	$count_evaluated = $query_evaluated->rowCount();
 	
 	
-}
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -332,3 +325,12 @@ catch (PDOException $ex){
 </body>
 
 </html>
+
+<?php 
+
+}
+catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

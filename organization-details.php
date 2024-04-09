@@ -1,8 +1,9 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$query_setting = $db->prepare("select * from `tbl_company_settings`");
 		$query_setting->execute();
 		$setting = $query_setting->fetch();
@@ -99,9 +100,7 @@ if ($permission) {
 					}, 2000);
 				</script>";
 		}
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<script src="assets/ckeditor/ckeditor.js"></script>
 	<!-- start body  -->
@@ -262,4 +261,8 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

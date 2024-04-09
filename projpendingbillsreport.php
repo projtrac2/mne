@@ -3,7 +3,6 @@
 require 'authentication.php';
 
 try{	
-		
 	
 	if (isset($_GET['srcfyear'])) {
 	  $pfscyr_rsUpP = $_GET['srcfyear'];
@@ -295,8 +294,7 @@ try{
 	
 
 }catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
 }
 ?>
 

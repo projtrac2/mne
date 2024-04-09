@@ -198,9 +198,8 @@ try{
 	}
 
 }
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
+catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
 }
 
 ?>

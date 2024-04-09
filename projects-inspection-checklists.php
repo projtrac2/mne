@@ -7,9 +7,7 @@ try {
 	$query_rsProjects->execute();
 	$row_rsProjects = $query_rsProjects->fetch();
 	$totalRows_rsProjects = $query_rsProjects->rowCount();
-} catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " .$ex->getMessage()); 
-}
+
 
 ?>
 <!DOCTYPE html>
@@ -286,3 +284,10 @@ try {
 </body>
 
 </html>
+
+
+<?php 
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+}
+?>

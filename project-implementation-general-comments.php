@@ -1,4 +1,5 @@
 <?php
+try {
 $pageName = "Project Implementation General Comments";
 $replacement_array = array(
   'planlabel' => "CIDP",
@@ -11,7 +12,6 @@ $pageTitle = $planlabelplural;
 
 if ($permission) {
   $pageTitle = "Project Implementation General Comments";
-  try {
     $editFormAction = $_SERVER['PHP_SELF'];
     if (isset($_SERVER['QUERY_STRING'])) {
       $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -28,9 +28,7 @@ if ($permission) {
 		$projname = $row_rsTPList['projname'];
 		$projcode = $row_rsTPList['projcode'];
     }
-  } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
-  }
+  
 ?>
   <!-- Light Gallery Plugin Js -->
   <link href="assets-1/projtrac-dashboard/plugins/light-gallery/css/lg-transitions.min.css">
@@ -193,6 +191,11 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 <!-- Light Gallery Plugin Js -->
 <script src="projtrac-dashboard/plugins/light-gallery/js/lightgallery-all.js"></script>

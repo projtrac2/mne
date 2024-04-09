@@ -1,11 +1,12 @@
 <?php
+try{
+
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 	
 $current_date = date("Y-m-d");
 $current_date_time = date("Y-m-d H:m:s");
 
-try{
 	if(isset($_POST['type']) && $_POST['type']=='cost'){
 		$issueid = $_POST['issueid'];
 		$projid = $_POST['projid'];
@@ -155,7 +156,6 @@ try{
 	}
 
 }catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

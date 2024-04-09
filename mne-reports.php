@@ -1,14 +1,13 @@
 <?php
+	try {
+
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$query_mne_projects = $db->prepare("SELECT * FROM tbl_projects where projstage > 7");
 		$query_mne_projects->execute();
 		$count_mne_projects = $query_mne_projects->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 
 	<!-- start body  -->
@@ -116,4 +115,8 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

@@ -1,9 +1,7 @@
-<?php  
-require 'authentication.php';
-
+<?php 
 try{	
-		
-	
+
+require 'authentication.php';
 
 	if (isset($_GET['srcsct'])) {
 	  $colsct_rsUpP = $_GET['srcsct'];

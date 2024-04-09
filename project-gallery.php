@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-	try {
 		$decode_photoid = (isset($_GET['photo']) && !empty($_GET["photo"])) ? base64_decode($_GET['photo']) : "";
 		$photoid_array = explode("projid54321", $decode_photoid);
 		$photoid = $photoid_array[1];
@@ -18,9 +19,7 @@ if ($permission) {
 			$projname = $row_project['projname'];
 			$projectid = base64_encode("projid54321{$projid}"); 
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
    <style>
       /* .gallery-item {
@@ -101,6 +100,10 @@ if ($permission) {
    echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.0.0-beta.3/lightgallery.umd.js"></script>

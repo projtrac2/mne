@@ -1,9 +1,9 @@
 <?php
+try {
 
 require('includes/head.php');
 
 if ($permission) {
-    try {
 
         if (isset($_POST['store'])) {
             $projid = $_POST['projid'];
@@ -481,14 +481,16 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 } else {
     $results =  restriction();
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script src="assets/js/inspection/reinspection.js" defer></script>

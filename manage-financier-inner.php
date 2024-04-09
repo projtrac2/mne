@@ -1,3 +1,8 @@
+<?php
+try {
+	//code...
+
+?>
 <!--<div class="clearfix m-b-20">
     <div class="content" style="margin-top:-10px">-->		
 		<div class="header">
@@ -183,3 +188,8 @@
 		</div>
 <!--	</div>
 </div> -->
+<?php
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

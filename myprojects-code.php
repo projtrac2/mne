@@ -332,8 +332,7 @@ try {
 <?php
 		} while ($row_rsMyP = $query_rsMyP->fetch());
 	}
-} catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	echo $result;
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

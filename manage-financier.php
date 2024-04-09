@@ -1,8 +1,9 @@
 <?php 
+try {
+
 $pageName = "Manage Financier";
 require('includes/head.php');
 require('includes/header.php');
-try {
     if (isset($_GET['fn'])) {
         $hash = $_GET['fn'];
         $decode_fndid = base64_decode($hash);
@@ -15,9 +16,7 @@ try {
     $query_financier = $db->prepare("SELECT * FROM tbl_financiers WHERE id=:fn");
     $query_financier->execute(array(":fn" => $fn));
     $row_financier = $query_financier->fetch();
-} catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
-}
+
 
 ?>
 
@@ -202,4 +201,8 @@ try {
 </div>
 <?php
 require('includes/footer.php');
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

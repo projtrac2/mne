@@ -1,7 +1,8 @@
 <?php
+try {
+
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
-try {
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
 		$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -428,7 +429,8 @@ try {
 <?php
 	}
 
-} catch (PDOException $e) {
-    echo 'Error: ' . $e->getMessage();
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+
 }
 ?>

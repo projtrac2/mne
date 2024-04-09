@@ -1,4 +1,6 @@
 <?php
+try {
+
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: project-mne-details?proj=".$_GET['proj']);
 $decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: project-mne-details?proj=".$_GET['proj']);
 $projid_array = explode("projid54321", $decode_projid);
@@ -11,7 +13,6 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$query_project = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_project->execute(array(":projid" => $projid));
 		$row_project = $query_project->fetch();
@@ -77,10 +78,7 @@ if ($permission) {
 			$achieved[] = $targetachieved;
 			$targeted[] = $optarget;
 		} while ($month != $last);
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<!-- JQuery Nestable Css -->
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
@@ -291,6 +289,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <!-- Jquery Nestable -->

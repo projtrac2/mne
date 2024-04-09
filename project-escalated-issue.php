@@ -1,4 +1,6 @@
 <?php
+try {
+
 $decode_issue = (isset($_GET['issue']) && !empty($_GET["issue"])) ? base64_decode($_GET['issue']) : header("Location: projects-escalated-issues");
 $issueid_array = explode("issueid254", $decode_issue);
 $issueid = $issueid_array[1];
@@ -6,7 +8,6 @@ require('PHPMailer/PHPMailerAutoload.php');
 require('includes/head.php'); 
 
 if ($permission) {
-    try {
 		
 		if ((isset($_POST["issueid"])) && !empty($_POST["issueid"])) {
 			/* echo $_POST["issueid"]."; ".$_POST["projstatuschange"];
@@ -964,9 +965,7 @@ if ($permission) {
 		$query_rsTender->execute();		
 		$row_rsTender = $query_rsTender->fetch();
 		$totalRows_rsTender = $query_rsTender->rowCount();		
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+  
 	?>
     <!-- start body  --><script type="text/javascript">
 	$(document).ready(function(){		
@@ -1716,6 +1715,10 @@ require('includes/footer.php');
 } */
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 	
 </body>

@@ -1,14 +1,13 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$query_conclEvaluation = $db->prepare("SELECT p.projid, p.projname, c.variable_category AS cat, c.date_created AS date, c.id, i.indicator_name, c.survey_type, c.formkey FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON c.projid=p.projid inner join tbl_indicator i on i.indid=c.indid GROUP BY c.formkey ORDER BY c.id ASC");
 		$query_conclEvaluation->execute();
 		$count_conclEvaluation = $query_conclEvaluation->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 
 	<!-- start body  -->
@@ -177,4 +176,8 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

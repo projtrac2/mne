@@ -1,3 +1,10 @@
+<?php 
+
+try {
+	//code...
+
+?>
+
 <div class="row clearfix">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="card" style="padding:5px">
@@ -103,3 +110,9 @@
         </div>
     </div>
 </div>
+
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

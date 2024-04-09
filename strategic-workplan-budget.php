@@ -1,8 +1,8 @@
 <?php 
+try{	
 
 require 'authentication.php';
 
-try{	
 		
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
@@ -89,9 +89,9 @@ try{
 	$q4startdate = "04-01";
 	$q4enddate = "06-30";
 
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
 }
 ?>
 <!DOCTYPE html>

@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-	try {
 		//get financial years 
 		$year = date("Y");
 		$month = date("m");
@@ -21,9 +22,7 @@ if ($permission) {
 		$gadpyr_rows_count = $query_gadpyr->rowCount();
 
 		$currentdatetime = date("Y-m-d H:i:s");
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -523,6 +522,11 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 
 <script src="general-settings/js/fetch-programs.js"></script>

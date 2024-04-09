@@ -1,7 +1,7 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
-	try {
 
 		$currentPage = $_SERVER["PHP_SELF"];
 		$projisd = $_GET['issueid'];
@@ -174,10 +174,7 @@ if ($permission) {
 
 		include_once('projects-functions.php');
 		$percent2 =  get_project_percentage($projid);
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		print($result);
-	}
+	
 ?>
 	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="assets/css/style.css">
@@ -496,6 +493,11 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 <script>
 	$(document).on('change', ':file', function(e) {

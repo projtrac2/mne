@@ -1,3 +1,8 @@
+<?php 
+try {
+	//code...
+
+?>
 <div class="body">
     <div class="table-responsive">
 		<ul class="nav nav-tabs" style="font-size:14px">
@@ -325,3 +330,8 @@
 		<!-- /.modal -->
 	</div>
 </div>
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

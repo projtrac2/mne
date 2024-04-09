@@ -3,8 +3,6 @@ require 'authentication.php';
 
 try{		
 	
-	
- 
 	$query_rsTask =  $db->prepare("SELECT tbl_task.*, tbl_projects.progid AS Progid, tbl_projects.projid AS Prjid, tbl_projects.projname AS projname, tbl_projects.projstatus AS projstatus, tbl_projects.projcost AS projcost, tbl_projects.projcommunity, tbl_projects.projlga, tbl_projects.projstate  FROM tbl_projects INNER JOIN tbl_task ON tbl_projects.projid=tbl_task.projid WHERE tbl_projects.deleted='0' AND tbl_projects.projcategory = '1' AND tbl_task.status NOT LIKE '%Completed Task%'  AND tbl_task.status NOT LIKE 'Cancelled Task' AND tbl_task.status NOT LIKE 'On Hold Task' AND tbl_task.status NOT LIKE 'Pending Task' AND tbl_task.paymentstatus='0'");
 	$query_rsTask->execute();		
 	$Rows_rsTask = $query_rsTask->rowCount();
@@ -25,10 +23,7 @@ try{
 	$row_rsUsers = $query_rsUsers->fetch();
 	$totalRows_rsUsers = $query_rsUsers->rowCount();
 
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -799,3 +794,11 @@ p { line-height: 1.5em; }
 </body>
 
 </html>
+
+<?php 
+
+}catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

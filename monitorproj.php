@@ -1,7 +1,37 @@
-<?php  
-require 'authentication.php';
+<?php 
+
+function risk_category_select_box($db,$projid,$opdetailsid)
+{ 
+	$risk = '';
+	$query_allrisks = $db->prepare("SELECT C.rskid, C.category FROM tbl_projrisk_categories C INNER JOIN tbl_output_risks R ON C.rskid=R.rskid where R.projid = :projid and R.outputid = :opid and R.type=3 ORDER BY R.id ASC");
+	$query_allrisks->execute(array(":projid" => $projid, ":opid" => $opdetailsid));
+	$rows_allrisks = $query_allrisks->fetchAll();
+	foreach($rows_allrisks as $row)
+	{
+		$risk .= '<option value="'.$row["rskid"].'">'.$row["category"].'</option>';
+	}
+	return $risk;
+}
+
+function incrementalHash($len = 5){
+	$charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	$base = strlen($charset);
+	$result = '';
+
+	$now = explode(' ', microtime())[1];
+	while ($now >= $base){
+	  $i = $now % $base;
+	  $result = $charset[$i] . $result;
+	  $now /= $base;
+	}
+
+	return substr($result, -5);
+}
 
 try{	
+
+require 'authentication.php';
+
 		
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
@@ -301,18 +331,7 @@ try{
 	$query_rsProjRisk->execute();		
 	$totalRows_rsProjRisk = $query_rsProjRisk->rowCount();
 	
-	function risk_category_select_box($db,$projid,$opdetailsid)
-	{ 
-		$risk = '';
-		$query_allrisks = $db->prepare("SELECT C.rskid, C.category FROM tbl_projrisk_categories C INNER JOIN tbl_output_risks R ON C.rskid=R.rskid where R.projid = :projid and R.outputid = :opid and R.type=3 ORDER BY R.id ASC");
-		$query_allrisks->execute(array(":projid" => $projid, ":opid" => $opdetailsid));
-		$rows_allrisks = $query_allrisks->fetchAll();
-		foreach($rows_allrisks as $row)
-		{
-			$risk .= '<option value="'.$row["rskid"].'">'.$row["category"].'</option>';
-		}
-		return $risk;
-	}
+	
 
 	$queryString_rsMyP = "";
 	if (!empty($_SERVER['QUERY_STRING'])) {
@@ -330,26 +349,11 @@ try{
 	}
 	$queryString_rsMyP = sprintf("&totalRows_rsMyP=%d%s", $totalRows_rsMyP, $queryString_rsMyP);
 						
-	function incrementalHash($len = 5){
-	  $charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	  $base = strlen($charset);
-	  $result = '';
-
-	  $now = explode(' ', microtime())[1];
-	  while ($now >= $base){
-		$i = $now % $base;
-		$result = $charset[$i] . $result;
-		$now /= $base;
-	  }
-	  return substr($result, -5);
-	}
+	
 
 	$pmtid = incrementalHash();
 	
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -496,6 +500,7 @@ try{
 		width:100%;
 		height:25px;
 		border:1px solid #CCCCCC;
+		border-radius: 0px;
 		-moz-border-radius: 0px;
 		-webkit-border-radius: 0px;
 		margin-bottom:30px;
@@ -504,8 +509,9 @@ try{
 
 	.bar {
 		background: #CDDC39;
-		width: <?php echo $percent2; ?>%;
-		height:24px;
+		width: '<?php echo $percent2; ?>%';
+		height: 24px;
+		border-radius: 0px;
 		-moz-border-radius: 0px;
 		-webkit-border-radius: 0px;
 	}
@@ -624,7 +630,7 @@ try{
 	.cornflowerblue {
 		background-color: CornflowerBlue;
 		box-shadow:inset 0px 0px 6px 2px rgba(255,255,255,.3);
-		width: <?php echo $percent2; ?>%;
+		width: '<?php echo $percent2; ?>%';
 	}
 
 	.carrot {
@@ -881,3 +887,11 @@ try{
 </body>
 
 </html>
+
+<?php 
+
+}catch (PDOException $ex){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

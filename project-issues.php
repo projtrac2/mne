@@ -1,4 +1,6 @@
 <?php
+try {
+
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -7,7 +9,6 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$query_projdetails = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
 		$query_projdetails->execute(array(":projid" => $projid));
 		$row_projdetails = $query_projdetails->fetch();
@@ -64,10 +65,7 @@ if ($permission) {
 			$rows_count = $sql->rowCount();
 			return ($rows_count > 0) ? $row['status'] : "";
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		print($result);
-	}
+	
 ?>
 	<!-- JQuery Nestable Css -->
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
@@ -442,6 +440,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>
