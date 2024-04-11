@@ -15,8 +15,6 @@ try {
         $projimplmethod = $_POST['projimplmethod'];
         $projfscyear = $_POST['projfscyear1'];
         $projduration = $_POST['projduration1'];
-        $key_unique = $_POST['key_unique'];
-        $beneficiary = $_POST['beneficiary'];
         $projcost = $_POST['project_budget'];
         $impact = isset($_POST['impact'])  ? $_POST['impact'] : 0;
 
@@ -43,14 +41,13 @@ try {
 
         if (isset($_POST['project_id']) && !empty($_POST['project_id'])) {
             $projid = $_POST['project_id'];
-            $insertSQL = $db->prepare("UPDATE `tbl_projects` SET projcode=:projcode, projname=:projname, projdesc=:projdesc, projfscyear=:projfscyear, projduration=:projduration,beneficiaries=:beneficiary,projimpact=:projimpact,asset=:asset,projevaluation=:projevaluation, projcommunity=:projlevel1, projlga=:projlevel2,projcost=:projcost, projcategory=:projimplmethod,projstartdate=:projstartdate,projenddate=:projenddate, updated_by=:createdby, date_updated=:datecreated WHERE projid =:projid");
-            $result  = $insertSQL->execute(array(":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost, ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated, ":projid" => $projid));
+            $insertSQL = $db->prepare("UPDATE `tbl_projects` SET projcode=:projcode, projname=:projname, projdesc=:projdesc, projfscyear=:projfscyear, projduration=:projduration,projimpact=:projimpact,asset=:asset,projevaluation=:projevaluation, projcommunity=:projlevel1, projlga=:projlevel2,projcost=:projcost, projcategory=:projimplmethod,projstartdate=:projstartdate,projenddate=:projenddate, updated_by=:createdby, date_updated=:datecreated WHERE projid =:projid");
+            $result  = $insertSQL->execute(array(":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost, ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated, ":projid" => $projid));
         } else {
-            $sql = $db->prepare("INSERT INTO `tbl_projects` (progid,key_unique, projcode, projname, projdesc, projtype, projfscyear, projduration,beneficiaries,projimpact,asset,projevaluation, projcommunity, projlga,projcost,projcategory,projstartdate,projenddate, user_name, date_created) VALUES(:progid,:key_unique, :projcode, :projname,:projdesc, :projtype, :projfscyear, :projduration,:beneficiary, :projimpact,:asset,:projevaluation,:projlevel1, :projlevel2,:projcost, :projimplmethod, :projstartdate, :projenddate, :createdby, :datecreated)");
-            $result  = $sql->execute(array(":progid" => $progid, ":key_unique" => $key_unique, ":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projtype" => $projtype, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":beneficiary" => $beneficiary, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost,  ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
+            $sql = $db->prepare("INSERT INTO `tbl_projects` (progid, projcode, projname, projdesc, projtype, projfscyear, projduration,projimpact,asset,projevaluation, projcommunity, projlga,projcost,projcategory,projstartdate,projenddate, user_name, date_created) VALUES(:progid, :projcode, :projname,:projdesc, :projtype, :projfscyear, :projduration, :projimpact,:asset,:projevaluation,:projlevel1, :projlevel2,:projcost, :projimplmethod, :projstartdate, :projenddate, :createdby, :datecreated)");
+            $result  = $sql->execute(array(":progid" => $progid, ":projcode" => $projcode, ":projname" => $projname, ":projdesc" => $projdesc, ":projtype" => $projtype, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":projimpact" => $impact, ":asset" => $asset, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projcost" => $projcost,  ":projimplmethod" => $projimplmethod, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
             $projid = $result ?  $db->lastInsertId() : false;
         }
-
 
         if ($projid) {
             $sql = $db->prepare("DELETE FROM `tbl_project_sites` WHERE projid=:projid");
@@ -64,87 +61,59 @@ try {
                     $count_sites = count($site_ids);
                     for ($j = 0; $j < $count_sites; $j++) {
                         $site = $site_ids[$j];
-                        $sql = $db->prepare("INSERT INTO `tbl_project_sites`(unique_key,projid,state_id,site) VALUES(:unique_key,:projid,:state_id,:site)");
-                        $result  = $sql->execute(array(":unique_key" => $key_unique, ":projid" => $projid, ":state_id" => $state_id, ":site" => $site));
+                        $sql = $db->prepare("INSERT INTO `tbl_project_sites`(projid,state_id,site) VALUES(:projid,:state_id,:site)");
+                        $result  = $sql->execute(array(":projid" => $projid, ":state_id" => $state_id, ":site" => $site));
                     }
                 }
             }
             $msg = true;
-        }
-        echo json_encode(array("projid" => $projid, "success" => $msg));
-    }
 
-    if (isset($_POST['insert_project_financiers'])) {
-        $type = false;
-        $projid = $_POST['project_id'];
-        $key_unique = $_POST['key_unique'];
-        $progid = $_POST['progid'];
-        $datecreated = date("Y-m-d");
 
-        $sql = $db->prepare("DELETE FROM `tbl_projfunding` WHERE projid=:projid");
-        $results = $sql->execute(array(':projid' => $projid));
 
-        if (isset($_POST['amountfunding'])) {
-            for ($i = 0; $i < count($_POST['amountfunding']); $i++) {
-                $sourcecatergory = $_POST['finance'][$i];
-                $amountfunding = $_POST['amountfunding'][$i];
-                $sql = $db->prepare("INSERT INTO `tbl_projfunding`(progid, projid, sourcecategory, amountfunding, created_by, date_created) VALUES(:progid, :projid, :sourcecatergory, :amountfunding, :created_by, :date_created)");
-                $result  = $sql->execute(array(":progid" => $progid, ":projid" => $projid, ":sourcecatergory" => $sourcecatergory, ":amountfunding" => $amountfunding, ":created_by" => $user_name, ":date_created" => $datecreated));
-                $type = $result ? true : false;
-            }
-        }
-        echo json_encode(array("success" => $type));
-    }
+            $sql = $db->prepare("DELETE FROM `tbl_files` WHERE projid=:projid");
+            $results = $sql->execute(array(':projid' => $projid));
 
-    if (isset($_POST['insert_project_files'])) {
-        $projid = $_POST['project_id'];
-        $progid = $_POST['progid'];
-        $datecreated = date("Y-m-d");
-
-        $type = false;
-        $msg = "";
-
-        if (isset($_POST['attachmentpurpose'])) {
-            $countP = count($_POST["attachmentpurpose"]);
-            $stage = 1;
-            for ($cnt = 0; $cnt < $countP; $cnt++) {
-                if (!empty($_FILES['pfiles']['name'][$cnt])) {
-                    $purpose = $_POST["attachmentpurpose"][$cnt];
-                    $filename = basename($_FILES['pfiles']['name'][$cnt]);
-                    $ext = substr($filename, strrpos($filename, '.') + 1);
-                    if (($ext != "exe") && ($_FILES["pfiles"]["type"][$cnt] != "application/x-msdownload")) {
-                        $newname = time() . '_' . $projid . "_" . $stage . "_" . $filename;
-                        $filepath = "../../uploads/main-project/" . $newname;
-                        if (!file_exists($filepath)) {
-                            if (move_uploaded_file($_FILES['pfiles']['tmp_name'][$cnt], $filepath)) {
-                                $fname = $newname;
-                                $mt = $filepath;
-                                $filecategory = "Project Planning";
-                                $qry1 = $db->prepare("INSERT INTO tbl_files (projid, projstage, filename, ftype, floc, fcategory, reason, uploaded_by, date_uploaded) VALUES (:projid, :stage, :filename, :ftype, :floc,:fcategory,:reason,:uploaded_by, :date_uploaded)");
-                                $results =  $qry1->execute(array(":projid" => $projid, ":stage" => $stage, ":filename" => $filename, ":ftype" => $ext, ":floc" => $mt, ":fcategory" => $filecategory, ":reason" => $purpose, ":uploaded_by" => $user_name, ":date_uploaded" => $datecreated));
-                                if ($results) {
-                                    $type = true;
-                                    $msg =  "Successfully uploaded files";
+            if (isset($_POST['attachmentpurpose'])) {
+                $countP = count($_POST["attachmentpurpose"]);
+                $stage = 1;
+                for ($cnt = 0; $cnt < $countP; $cnt++) {
+                    if (!empty($_FILES['pfiles']['name'][$cnt])) {
+                        $purpose = $_POST["attachmentpurpose"][$cnt];
+                        $filename = basename($_FILES['pfiles']['name'][$cnt]);
+                        $ext = substr($filename, strrpos($filename, '.') + 1);
+                        if (($ext != "exe") && ($_FILES["pfiles"]["type"][$cnt] != "application/x-msdownload")) {
+                            $newname = time() . '_' . $projid . "_" . $stage . "_" . $filename;
+                            $filepath = "../../uploads/main-project/" . $newname;
+                            if (!file_exists($filepath)) {
+                                if (move_uploaded_file($_FILES['pfiles']['tmp_name'][$cnt], $filepath)) {
+                                    $fname = $newname;
+                                    $mt = $filepath;
+                                    $filecategory = "Project Planning";
+                                    $qry1 = $db->prepare("INSERT INTO tbl_files (projid, projstage, filename, ftype, floc, fcategory, reason, uploaded_by, date_uploaded) VALUES (:projid, :stage, :filename, :ftype, :floc,:fcategory,:reason,:uploaded_by, :date_uploaded)");
+                                    $results =  $qry1->execute(array(":projid" => $projid, ":stage" => $stage, ":filename" => $filename, ":ftype" => $ext, ":floc" => $mt, ":fcategory" => $filecategory, ":reason" => $purpose, ":uploaded_by" => $user_name, ":date_uploaded" => $datecreated));
+                                    if ($results) {
+                                        $type = true;
+                                        $msg =  "Successfully uploaded files";
+                                    } else {
+                                        $msg =  "Error uploading files";
+                                    }
                                 } else {
-                                    $msg =  "Error uploading files";
+                                    $msg =  "file culd not be  allowed";
                                 }
                             } else {
-                                $msg =  "file culd not be  allowed";
+                                $msg = 'File you are uploading already exists, try another file!!';
                             }
                         } else {
-                            $msg = 'File you are uploading already exists, try another file!!';
+                            $msg = 'This file type is not allowed, try another file!!';
                         }
-                    } else {
-                        $msg = 'This file type is not allowed, try another file!!';
                     }
                 }
             }
         }
-        echo json_encode(array("success" => $type, "msg" => $msg));
+        echo json_encode(array("projid" => $projid, "success" => $msg));
     }
 
     if (isset($_POST['store_data'])) {
-        $unique_key = $_POST['key_unique'];
         $progid = $_POST['progid'];
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];
@@ -163,8 +132,8 @@ try {
 
         $last_id = 0;
         if ($totalRows_rsOutput == 0) {
-            $sql = $db->prepare("INSERT INTO `tbl_project_details`(unique_key, progid, projid, outputid, indicator,output_start_year, duration, budget, total_target,unit_type) VALUES(:unique_key,:progid, :projid, :output, :indicator,:output_start_year, :outputduration, :budget,:outputTarget,:unit_type)");
-            $result  = $sql->execute(array(":unique_key" => $unique_key, ":progid" => $progid, ":projid" => $projid, ":output" => $output_id, ":indicator" => $indicator_id, ":output_start_year" => $output_financial_year, ":outputduration" => $output_duration, ":budget" => $budget, ":outputTarget" => $target, ":unit_type" => $unit_type));
+            $sql = $db->prepare("INSERT INTO `tbl_project_details`(progid, projid, outputid, indicator,output_start_year, duration, budget, total_target,unit_type) VALUES(:progid, :projid, :output, :indicator,:output_start_year, :outputduration, :budget,:outputTarget,:unit_type)");
+            $result  = $sql->execute(array(":progid" => $progid, ":projid" => $projid, ":output" => $output_id, ":indicator" => $indicator_id, ":output_start_year" => $output_financial_year, ":outputduration" => $output_duration, ":budget" => $budget, ":outputTarget" => $target, ":unit_type" => $unit_type));
             $last_id = $db->lastInsertId();
         } else {
             $sql = $db->prepare("UPDATE  tbl_project_details SET output_start_year=:output_start_year, duration=:output_duration, budget=:budget, total_target=:target, unit_type=:unit_type WHERE projid=:projid AND indicator=:indicator");
@@ -191,8 +160,8 @@ try {
                 $target = isset($_POST['units']) && !empty(['units']) ? $_POST['units'][$i] : 0;
                 $output_site = isset($_POST['site']) && !empty(['site']) ? $_POST['site'][$i] : 0;
                 $sequence = isset($_POST['sequence']) && !empty(['sequence']) ? $_POST['sequence'][$i] : 0;
-                $sql = $db->prepare("INSERT INTO `tbl_output_disaggregation`(unique_key,projid,outputid,outputstate,output_site,sequence,total_target) VALUES(:unique_key,:projid,:output,:outputstate,:output_site,:sequence,:target)");
-                $result = $sql->execute(array(":unique_key" => $unique_key, ":projid" => $projid, ":output" => $last_id, ":outputstate" => $state, ":output_site" => $output_site, ":sequence" => $sequence, ":target" => $target));
+                $sql = $db->prepare("INSERT INTO `tbl_output_disaggregation`(projid,outputid,outputstate,output_site,sequence,total_target) VALUES(:projid,:output,:outputstate,:output_site,:sequence,:target)");
+                $result = $sql->execute(array(":projid" => $projid, ":output" => $last_id, ":outputstate" => $state, ":output_site" => $output_site, ":sequence" => $sequence, ":target" => $target));
             }
         }
 
@@ -201,8 +170,8 @@ try {
                 $state = 0;
                 $target = isset($_POST['units']) && !empty(['units']) ? $_POST['units'][$i] : 1;
                 $output_site = isset($_POST['site']) && !empty(['site']) ? $_POST['site'][$i] : 0;
-                $sql = $db->prepare("INSERT INTO `tbl_output_disaggregation`(unique_key,projid,outputid,outputstate,output_site,total_target) VALUES(:unique_key,:projid,:output,:outputstate,:output_site,:target)");
-                $result = $sql->execute(array(":unique_key" => $unique_key, ":projid" => $projid, ":output" => $last_id, ":outputstate" => $state, ":output_site" => $output_site, ":target" => $target));
+                $sql = $db->prepare("INSERT INTO `tbl_output_disaggregation`(projid,outputid,outputstate,output_site,total_target) VALUES(:projid,:output,:outputstate,:output_site,:target)");
+                $result = $sql->execute(array(":projid" => $projid, ":output" => $last_id, ":outputstate" => $state, ":output_site" => $output_site, ":target" => $target));
             }
         }
 
@@ -473,7 +442,6 @@ try {
         $progid = $_GET['progid'];
         $projid = $_GET['projid'];
         $indicator_id = $_GET['indicator_id'];
-        $unique_key = $_GET['unique_key'];
 
         $query_Output = $db->prepare("SELECT * FROM tbl_project_details WHERE indicator =:indicator AND projid=:projid");
         $query_Output->execute(array(":indicator" => $indicator_id, ":projid" => $projid));
@@ -488,8 +456,8 @@ try {
             $output_budget = $row_rsOutput['budget'];
             $output_target = $row_rsOutput['total_target'];
 
-            $query_Output_details = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid = :outputid AND unique_key = :unique_key ");
-            $query_Output_details->execute(array(":outputid" => $outputid, ":unique_key" => $unique_key));
+            $query_Output_details = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE outputid = :outputid");
+            $query_Output_details->execute(array(":outputid" => $outputid));
             $row_rsOutput_details = $query_Output_details->fetchAll();
 
             $query_Output_dissaggregation = $db->prepare("SELECT * FROM tbl_output_disaggregation_values WHERE output_id = :outputid AND projid = :projid ");

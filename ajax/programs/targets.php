@@ -13,7 +13,6 @@ try {
             $progname = $row_program["progname"];
             $duration = $row_program["years"];
             $start_year = $row_program["syear"];
-
             $month =  date('m');
             if ($month >= 7 && $month <= 12) {
                 $currentYear = date('Y') + 1;
@@ -28,7 +27,7 @@ try {
                 $program_end_year  = $program_start_year + 1;
                 $thead_1  .= '<th colspan="4" class="text-center">' . $program_start_year . '/' . $program_end_year . '</th> <input type="hidden" name="progyear[]" value="' . $program_start_year . '" />';
                 $thead_2 .= '<th colspan="4" class="text-center">Target</th>';
-				$thead_3 .= '<th class="text-center">Q1</th><th class="text-center">Q2</th><th class="text-center">Q3</th><th class="text-center">Q4</th>';
+                $thead_3 .= '<th class="text-center">Q1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th class="text-center">Q2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th class="text-center">Q3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th class="text-center">Q4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>';
                 $program_start_year++;
             }
 
@@ -75,10 +74,10 @@ try {
 
                         $table_body  .= '
                         <input type="hidden" name="program_start_year' . $outputid . '[]" value="' . $program_start_year . '">
-                        <td><input type="number" min="0" id="optarget" value="' . $targetQ1 . '" class="form-control" name="optargetq1' . $outputid . '[]" size="40"></td>
-                        <td><input type="number" min="0" id="optarget" value="' . $targetQ2 . '" class="form-control" name="optargetq2' . $outputid . '[]" size="10"></td>
-                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ3 . '" class="form-control" name="optargetq3' . $outputid . '[]" size="30"></td>
-                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ4 . '" class="form-control" name="optargetq4' . $outputid . '[]" size="100"></td>';
+                        <td><input type="number" min="0" id="optarget" value="' . $targetQ1 . '" class="form-control" name="optargetq1' . $outputid . '[]" size="40">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td><input type="number" min="0" id="optarget" value="' . $targetQ2 . '" class="form-control" name="optargetq2' . $outputid . '[]" size="10">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ3 . '" class="form-control" name="optargetq3' . $outputid . '[]" size="30">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td><input type="number" min="0" id="opbudget" value="' . $targetQ4 . '" class="form-control" name="optargetq4' . $outputid . '[]" size="100">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>';
                         $program_start_year++;
                     }
 

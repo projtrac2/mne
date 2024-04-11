@@ -61,14 +61,15 @@ if ($permission) {
 
     function clear_tables($projid, $files)
     {
-      global $db;
-      $projstage = 3;
-
+      global $db, $workflow_stage;
       $sql = $db->prepare("DELETE FROM tbl_tenderdetails WHERE projid=:projid ");
       $result1 = $sql->execute(array(':projid' => $projid));
 
-      $query_rsTender_Files = $db->prepare("SELECT * FROM tbl_files WHERE projid=:projid AND projstage=3");
-      $query_rsTender_Files->execute(array(":projid" => $projid));
+      $sql = $db->prepare("DELETE FROM tbl_contract_guarantees WHERE projid=:projid ");
+      $result1 = $sql->execute(array(':projid' => $projid));
+
+      $query_rsTender_Files = $db->prepare("SELECT * FROM tbl_files WHERE projid=:projid AND projstage=:workflow_stage");
+      $query_rsTender_Files->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
       $totalRows_rsTender_Files = $query_rsTender_Files->rowCount();
 
       if ($totalRows_rsTender_Files > 0) {
@@ -79,8 +80,8 @@ if ($permission) {
             if (file_exists("$file_name")) {
               unlink("$file_name");
             }
-            $sql = $db->prepare("DELETE FROM tbl_files WHERE projid=:projid AND projstage=:projstage");
-            $result2 = $sql->execute(array(':projid' => $projid, ':projstage' => $projstage));
+            $sql = $db->prepare("DELETE FROM tbl_files WHERE projid=:projid AND projstage=:workflow_stage");
+            $result2 = $sql->execute(array(':projid' => $projid, ':workflow_stage' => $workflow_stage));
           }
         }
       }
@@ -93,8 +94,8 @@ if ($permission) {
       $user_name = $_POST['user_name'];
       $datecreated = date("Y-m-d");
       $existing_files = isset($_POST['attached_files']) ? $_POST['attached_files'] : "";
-      $existing_files != "" ?  clear_tables($projid, $existing_files) : "";
-
+      // $existing_files != "" ?: "";
+      clear_tables($projid, $existing_files);
       if (isset($_POST['contractrefno']) && !empty($_POST['contractrefno'])) {
         $evaluation = date('Y-m-d', strtotime($_POST['tenderevaluationdate']));
         $award = date('Y-m-d', strtotime($_POST['tenderawarddate']));
@@ -113,8 +114,11 @@ if ($permission) {
         $date_created = date("Y-m-d");
 
         $insertSQL = $db->prepare("INSERT INTO `tbl_tenderdetails` (`projid`, `contractrefno`, `tenderno`, `tendertitle`,`tendertype`, `tendercat`, `tenderamount`, `procurementmethod`, `evaluationdate`, `awarddate`, `notificationdate`, `signaturedate`, `startdate`, `enddate`, `financialscore`, `technicalscore`, `contractor`, `comments`,`cost_variation`, `created_by`,`date_created`) VALUES( :projid, :contractrefno, :tenderno, :tendertitle, :tendertype, :tendercat, :tenderamount, :procurementmethod, :evaluationdate, :awarddate, :notificationdate, :signaturedate, :startdate, :enddate, :financialscore, :technicalscore, :contractor, :comments,:cost_variation, :created_by, :date_created)");
+
         $insertSQL->execute(array(":projid" => $projid, ":contractrefno" => $contractrefno, ":tenderno" => $_POST['tenderno'], ":tendertitle" => $tendertitle, ":tendertype" => $tendertype, ":tendercat" => $tendercat, ":tenderamount" => $tenderamount, ":procurementmethod" => $procurementmethod, ":evaluationdate" => $evaluation, ":awarddate" => $award, ":notificationdate" => date('Y-m-d', strtotime($_POST['tendernotificationdate'])), ":signaturedate" => date('Y-m-d', strtotime($_POST['tendersignaturedate'])), ":startdate" => date('Y-m-d', strtotime($_POST['tenderstartdate'])), ":enddate" => date('Y-m-d', strtotime($_POST['tenderenddate'])), ":financialscore" => $financialscore, ":technicalscore" => $technicalscore, ":contractor" => $projcontractor, ":comments" => $comments, ":cost_variation" => $cost_variation, ":created_by" => $user_name, ":date_created" => $date_created));
         $last_id = $db->lastInsertId();
+
+
         //--------------------------------------------------------------------------
         // 1)Update project and add tender info
         //--------------------------------------------------------------------------
@@ -141,7 +145,7 @@ if ($permission) {
           $myUser = $user_name;
           $count = count($_POST["attachmentpurpose"]);
           if ($count > 0) {
-            $filestage = 4;
+            $filestage = $workflow_stage;
             $filecategory = 0;
             for ($cnt = 0; $cnt < $count; $cnt++) {
               if (!empty($_FILES['tenderfile']['name'][$cnt])) {
@@ -210,7 +214,6 @@ if ($permission) {
               $payment_phase_id = $db->lastInsertId();
               $total_milestone = count($_POST['milestone_name' . $row]);
               $count_mile[] = $_POST['milestone_name' . $row];
-              var_dump($_POST['milestone_name' . $row]);
               for ($j = 0; $j < $total_milestone; $j++) {
                 $milestone = $_POST['milestone_name' . $row][$j];
                 $insertSQL = $db->prepare("INSERT INTO `tbl_project_payment_plan_details` (projid, payment_plan_id, milestone_id, created_by, created_at) VALUES(:projid,:payment_plan_id, :milestone_id, :created_by, :created_at)");

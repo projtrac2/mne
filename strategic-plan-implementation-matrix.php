@@ -1,5 +1,5 @@
 <?php
-$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
 
@@ -33,7 +33,7 @@ if ($permission) {
 						try {
 							$strategicPlan = get_splan($stplan);
 							if (!$strategicPlan) {
-								// redirect back to strategic plan  
+								// redirect back to strategic plan
 								// header("Location: view-strategic-plans.php");
 							} else {
 								$plan = $strategicPlan["plan"];
@@ -81,7 +81,7 @@ if ($permission) {
 								<a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
 								<a href="view-kra.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
 								<a href="view-strategic-plan-objectives.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
-                                <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a>
+                                <!-- <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a> -->
 								<a href="view-program.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
 								<a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
 								<a href="" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px" disabled>Implementation Matrix</a>
@@ -271,11 +271,11 @@ if ($permission) {
 																							$year = $spfnyear + $k;
 																							$targetraw = get_strategic_plan_yearly_target($indid, $year);
 																							$basevalue = get_strategic_plan_yearly_baseline($indid, $year);
-																							
+
 
 																							//if (!empty($targetraw)) {
 																								$target = get_strategic_plan_yearly_target($indid, $year);
-																								
+
 																								echo '
 																								<td style="color: black;" class="text-center bg-lime"><font color="#f7070b"><strong>' . $basevalue . '</strong></font></td>
 																								<td style="color: black;" class="text-center bg-lime">' . number_format($target) . '</td>';

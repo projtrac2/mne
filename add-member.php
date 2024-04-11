@@ -32,7 +32,7 @@ if ($permission) {
         $notification_type_id = 7;
         $priority = 1;
         $page_url = "index.php";
-        $token = $mail->get_auth_token($fullname, $email, $password);
+        $token = $mail->get_auth_token($fullname, $email, $password, '');
         $notification = $mail->get_notifications($priority, $notification_group_id);
         $notification_id = $notification->id;
         return $mail->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
@@ -582,7 +582,7 @@ if ($permission) {
                                                 <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
                                                 <input name="user_id" type="hidden" id="user_id" value="<?php echo $row_rsAdm['adm_id']; ?>" />
                                                 <input name="submit" type="submit" class="btn btn-success" id="submit" value="<?php echo $mbraction . " Member"; ?>" />
-                                                <a href="view-members" type="button" class="btn btn-warning" >Cancel</a>
+                                                <a href="view-members" type="button" class="btn btn-warning">Cancel</a>
                                                 <input type="hidden" name="<?php echo $formname ?>" value="<?php echo $formvalue; ?>" />
                                             </div>
                                         </div>
@@ -835,7 +835,7 @@ if ($permission) {
                                             <div class="form-line" align="center" style="padding-top:15px">
                                                 <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
                                                 <input name="submit" type="submit" class="btn btn-success" id="submit" value="<?php echo $mbraction . " Member"; ?>" />
-                                                <a href="view-members" type="button" class="btn btn-warning" >Cancel</a>
+                                                <a href="view-members" type="button" class="btn btn-warning">Cancel</a>
                                                 <input type="hidden" name="<?php echo $formname ?>" value="<?php echo $formvalue; ?>" />
                                             </div>
                                         </div>

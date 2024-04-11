@@ -91,7 +91,7 @@ if ($permission) {
             $output = $totalRows_rsOutput > 0 ? true : false;
             $outcome = true;
             if ($projevaluation == 1) {
-                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid");
                 $sql->execute(array(":projid" => $projid));
                 $rows_count = $sql->rowCount();
                 $outcome = $rows_count > 0 ? true : false;
@@ -99,7 +99,7 @@ if ($permission) {
 
             $impact = true;
             if ($projimpact == 1) {
-                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+                $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid");
                 $sql->execute(array(":projid" => $projid));
                 $row_count = $sql->rowCount();
                 $impact = $row_count > 0 ? true : false;
@@ -434,7 +434,7 @@ if ($permission) {
                                                                     <td><?= $sn ?> </td>
                                                                     <td><?= $projname ?> </td>
                                                                     <td><?= $projcost ?> </td>
-                                                                    <td><?= $projfscyear ?> </td>
+                                                                    <td><?= $projfscyear  ?></td>
                                                                     <td><?= $projduration ?> </td>
                                                                     <td><?= $projstatus ?> </td>
                                                                     <td>
@@ -479,7 +479,7 @@ if ($permission) {
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Program Quarterly Targets</h4>
                 </div>
-                <div class="modal-body" style="max-height:450px; overflow:auto;">
+                <div class="modal-body">
                     <div class="div-result">
                         <form class="form-horizontal" id="quarterlyTargetsForm" action="" method="POST">
                             <br />

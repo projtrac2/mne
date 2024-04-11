@@ -44,7 +44,7 @@ if ($permission) {
                                     <a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
                                     <a href="view-kra.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
                                     <a href="view-strategic-plan-objectives.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
-                                    <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a>
+                                    <!-- <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a> -->
                                     <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
                                     <a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
                                     <a href="strategic-plan-implementation-matrix.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Implementation Matrix</a>
@@ -88,9 +88,9 @@ if ($permission) {
                                                         $project_section = $row_rsProgram['projdept'];
                                                         $project_directorate = $row_rsProgram['directorate'];
                                                         $created_by = $row_rsProgram['createdby'];
-                                                        $progid_hashed = base64_encode("progid54321{$itemId}"); 
+                                                        $progid_hashed = base64_encode("progid54321{$itemId}");
 
-                                                        
+
                                                         if ($spid == NULL) {
                                                             $progttype = 'Independent';
                                                         } else {
@@ -101,7 +101,7 @@ if ($permission) {
                                                         $projduration = $row_rsProgram['years'] . " Years";
                                                         $projsyear = $row_rsProgram['syear'];
 
-                                                        //get financial years 
+                                                        //get financial years
                                                         $query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year WHERE yr='$projsyear'");
                                                         $query_rsYear->execute();
                                                         $row_rsYear = $query_rsYear->fetch();
@@ -115,7 +115,7 @@ if ($permission) {
                                                         $totalRows_rsBudget = $query_rsBudget->rowCount();
                                                         $progbudget = number_format($row_rsBudget['budget'], 2);
 
-                                                        //get project department 
+                                                        //get project department
                                                         $progdepart = $row_rsProgram['projdept'];
                                                         $query_rsDepart = $db->prepare("SELECT stid,sector FROM tbl_sectors WHERE stid='$progdepart' ");
                                                         $query_rsDepart->execute();
@@ -131,23 +131,23 @@ if ($permission) {
                                                         $projsbudget = ($count_projsbudget > 0) ? $row_projsbudget['budget'] : 0;
                                                         $projectscount = ($count_projsbudget > 0) ? $row_projsbudget['projectscount'] : 0;
                                                         $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
- 
+
 
                                                         $query_projs =  $db->prepare("SELECT projid FROM tbl_projects WHERE  progid='$itemId'");
                                                         $query_projs->execute();
                                                         $totalRows_projs = $query_projs->rowCount();
 
 
-                                                        $projectscount = ""; 
+                                                        $projectscount = "";
                                                         if ($totalRows_projs > 0) {
                                                             $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
                                                         } else {
                                                             $projectscount = '<a href="#"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
                                                         }
 
-                                                        
+
                                                         $filter_department = view_record($project_department, $project_section, $project_directorate);
-                                                        if ($filter_department) { 
+                                                        if ($filter_department) {
                                                             $sn++;
                                                 ?>
                                                             <tr>
@@ -194,9 +194,9 @@ if ($permission) {
                                                             </tr>
                                                 <?php
                                                         }
-                                                    } // /while 
+                                                    } // /while
 
-                                                } // if num_rows 
+                                                } // if num_rows
                                                 ?>
                                             </tbody>
                                         </table>
@@ -237,4 +237,4 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-<script src="assets/js/programs/view-programs.js"></script> 
+<script src="assets/js/programs/view-programs.js"></script>

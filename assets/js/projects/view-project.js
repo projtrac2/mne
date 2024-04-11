@@ -76,9 +76,6 @@ function project_info(projid = null) {
     }
 }
 
-
-
-
 function add_to_adp(details) {
     swal({
         title: "Are you sure?",

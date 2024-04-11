@@ -82,15 +82,17 @@ $(document).ready(function () {
 
 function hide_milestone_type() {
     var val = $("#milestone_type").val();
+    $("#milestone_data_task_based").hide();
+    $("#milestone_data_output_based").hide();
+    $("#milestone_table_body").html(`<tr></tr><tr id="hideinfo1" align="center"><td colspan="5">Add Outputs!!</td></tr>`);
+    $("#milestone_task_table_body").html(`<tr></tr><tr id="hideinfo2" align="center"><td colspan="3">Add Outputs!!</td></tr>`);
+
     if (val == 1) {
         $("#milestone_data_task_based").show();
         $("#milestone_data_output_based").hide();
     } else if (val == 2) {
         $("#milestone_data_task_based").hide();
         $("#milestone_data_output_based").show();
-    } else {
-        $("#milestone_data_task_based").hide();
-        $("#milestone_data_output_based").hide();
     }
 }
 

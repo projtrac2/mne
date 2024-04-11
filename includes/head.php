@@ -1,5 +1,7 @@
 <?php
 include_once "includes/permission.php";
+include_once "includes/project-status.php";
+include_once "includes/project-progress.php";
 // include_once 'includes/email.php';
 ?>
 <!DOCTYPE html>

@@ -35,7 +35,6 @@ if ($permission) {
             $projcategory = $row_rsProgjects['projcategory'];
             $projstatus = $row_rsProgjects['projstatus'];
             $projimpact = $row_rsProgjects['projimpact'];
-            $key_unique = $row_rsProgjects['key_unique'];
             $projstartdate = $row_rsProgjects['projstartdate'];
             $projenddate = $row_rsProgjects['projenddate'];
         }
@@ -248,8 +247,7 @@ if ($permission) {
 
                                             </div>
                                             <div class="modal-footer">
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                                                    <input type="hidden" name="key_unique" id="key_unique" value="<?= $key_unique ?>">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center"> 
                                                     <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                                     <input type="hidden" name="progid" id="program_id" value="<?= $progid ?>">

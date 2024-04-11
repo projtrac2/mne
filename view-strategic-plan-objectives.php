@@ -1,12 +1,12 @@
-<?php 
-$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
+<?php
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
 $strategicplanid = $_GET['plan'];
 
 $stplane = $_GET['plan'];
 require('includes/head.php');
-if ($permission) { 
+if ($permission) {
 	require('functions/strategicplan.php');
     // delete edit add_strategy add_program
     try {
@@ -21,18 +21,18 @@ if ($permission) {
         $datecreated = $strategicPlan["date_created"];
         $spstatus  = $strategicPlan['current_plan'];
         $strategic_plan_objectives = get_strategic_plan_objectives($stplan);
-		
-		$query_active_strategic_plan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");	
-		$query_active_strategic_plan->execute();   
+
+		$query_active_strategic_plan = $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");
+		$query_active_strategic_plan->execute();
 		$rows_active_strategic_plan = $query_active_strategic_plan->fetch();
 		$spid = $rows_active_strategic_plan["id"];
 		$duration = $rows_active_strategic_plan["years"];
 		$start_year = $rows_active_strategic_plan["starting_year"];
-		
-		$query_outcome_indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND active='1'");	
-		$query_outcome_indicator->execute();   
-		
-		
+
+		$query_outcome_indicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND active='1'");
+		$query_outcome_indicator->execute();
+
+
 		if (isset($_POST["kpi"])) {
 			$kpi = $_POST["kpi"];
 			$objid = $_POST['objid'];
@@ -44,25 +44,25 @@ if ($permission) {
 			$responsible = $_POST['responsible'];
 			$current_date = date("Y-m-d");
 			$record_name = $data_source == 2 ? $_POST['record_name']: "";
-			
+
 			if($kpi == "addkpi"){
 				$query_insert_kpi = $db->prepare("INSERT INTO tbl_kpi(strategic_objective_id, outcome_indicator_id, weighting, data_source, record_name, data_frequency, initial_baseline, responsible, created_by, date_created) VALUES (:objid, :indid, :weighting, :data_source, :record_name, :frequency, :initial_basevalue, :responsible, :user, :dates)");
 				$result = $query_insert_kpi->execute(array(":objid" => $objid, ":indid" => $indid, ":weighting" => $weighting, ":data_source" => $data_source, ":record_name" => $record_name, ":frequency" => $frequency, ":initial_basevalue" => $initial_basevalue, ":responsible" => $responsible, ":user" => $user_name, ":dates" => $current_date));
 				$kpi_id = $db->lastInsertId();
-				
+
 				for($i=0; $i<$duration; $i++){
 					$year = $start_year + $i;
 					$target = $_POST[$year.'target'];
-					
+
 					$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_targets(kpi_id, year, target) VALUES (:kpi_id, :year, :target)");
 					$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":year" => $year, ":target" => $target));
 					$target_id = $db->lastInsertId();
-					
+
 					$threshold_1 = $_POST[$year.'_threshold_1'];
 					$threshold_2 = $_POST[$year.'_threshold_2'];
 					$threshold_3 = $_POST[$year.'_threshold_3'];
 					$threshold_4 = $_POST[$year.'_threshold_4'];
-				
+
 					$query_insert_target = $db->prepare("INSERT INTO tbl_kpi_target_thresholds(kpi_id, kpi_target_id, threshold_1, threshold_2, threshold_3, threshold_4) VALUES (:kpi_id, :target_id, :threshold_1, :threshold_2, :threshold_3, :threshold_4)");
 					$query_insert_target->execute(array(":kpi_id" => $kpi_id, ":target_id" => $target_id, ":threshold_1" => $threshold_1, ":threshold_2" => $threshold_2, ":threshold_3" => $threshold_3, ":threshold_4" => $threshold_4));
 				}
@@ -81,8 +81,8 @@ if ($permission) {
 							window.location.href = '$redirect_url';
 						}, 2000);
 					</script>";
-					
-				}else{  
+
+				}else{
 					$msg = 'Error saving KPI details, please try again later!!';
 					$results = "<script type=\"text/javascript\">
 						swal({
@@ -92,13 +92,13 @@ if ($permission) {
 						dangerMode: true,
 						timer: 5000,
 						showConfirmButton: false });
-					</script>";					
+					</script>";
 				}
 			} else {
 				/* $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, outcome=:outcome, indicator=:indicator, baseline=:kpibaseline, target=:target, created_by=:user, date_created=:dates WHERE id='$objid'");
 				$resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":outcome" => $outcome, ":indicator" => $indicator, ":kpibaseline" => $kpibaseline, ":target" => $outcometarget, ":user" => $user, ":dates" => $current_date)); */
 			}
-			
+
 		}
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
@@ -106,7 +106,7 @@ if ($permission) {
 	?>
 <style>
 .container{
-     
+
      margin-top:100px;
  }
 .modal.fade .modal-bottom,
@@ -206,7 +206,7 @@ if ($permission) {
                                     <a href="view-strategic-plan-framework.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:4px"><?= $planlabel ?> Details</a>
                                     <a href="view-kra.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Key Results Area</a>
                                     <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Strategic Objectives</a>
-                                    <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a>
+                                    <!-- <a href="portfolios.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Portfolios</a> -->
                                     <a href="view-program.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Programs</a>
                                     <a href="strategic-plan-projects.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px"><?= $planlabel ?> Projects</a>
                                     <a href="strategic-plan-implementation-matrix.php?plan=<?php echo $stplane; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Implementation Matrix</a>
@@ -240,16 +240,16 @@ if ($permission) {
 
                                                 $objective_strategy = get_strategic_objectives_strategy($objid);
                                                 $objective_programs = strategic_objective_programs($objid);
-                                                
-                                                $total_strategies = ($objective_strategy) ? count($objective_strategy) : 0; 
+
+                                                $total_strategies = ($objective_strategy) ? count($objective_strategy) : 0;
 												$objectiveid = base64_encode("obj321{$objid}");
 
-                                                $query_objPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE program_type=1 AND strategic_obj=:objid");	
-                                                $query_objPrograms->execute(array(":objid"=>$objid));   
+                                                $query_objPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE program_type=1 AND strategic_obj=:objid");
+                                                $query_objPrograms->execute(array(":objid"=>$objid));
                                                 $totalRows_objPrograms = $query_objPrograms->rowCount();
 
-                                                $query_kpis = $db->prepare("SELECT id, indicator_name, weighting FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id WHERE strategic_objective_id=:objid");	
-                                                $query_kpis->execute(array(":objid"=>$objid));   
+                                                $query_kpis = $db->prepare("SELECT id, indicator_name, weighting FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id WHERE strategic_objective_id=:objid");
+                                                $query_kpis->execute(array(":objid"=>$objid));
                                                 $totalRows_kpis = $query_kpis->rowCount();
 												?>
                                                 <tr>
@@ -329,11 +329,11 @@ if ($permission) {
 														<th>Weighting</th>
 														<th colspan="2">Performance</th>
 													</tr>
-													<?php 
+													<?php
 													$count_kpi=0;
-													while($rows = $query_kpis->fetch()){ 
+													while($rows = $query_kpis->fetch()){
 														$count_kpi++;
-														$kpi_id = $rows['id']; 
+														$kpi_id = $rows['id'];
 														$kpi_description = $rows['indicator_name'];
 														$kpi_weighting = $rows['weighting'];
 														$kpi_performance = 10 . "%";
@@ -342,7 +342,7 @@ if ($permission) {
 															<td><?= $counter.".".$count_kpi ?></td>
 															<td colspan="2">
 																<a data-toggle="modal" data-target="#kpi-modal-right" data-toggle-class="modal-open-aside" onclick="kpi_more_info(<?= $kpi_id ?>)" >
-																	<?= $kpi_description ?> 
+																	<?= $kpi_description ?>
 																</a>
 															</td>
 															<td><?= $kpi_weighting ?></td>
@@ -363,7 +363,7 @@ if ($permission) {
             </div>
     </section>
     <!-- end body  -->
-	
+
     <!-- Start Add Strategy Modal -->
     <div class="modal fade" id="editItemModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -409,7 +409,7 @@ if ($permission) {
         <!-- /modal-dailog -->
     </div>
     <!-- End Add Strategy Modal -->
-	
+
     <!-- Start View KPI Details Modal -->
     <div id="kpi-modal-right" class="modal fade" data-backdrop="true">
 		<div class="modal-dialog modal-right modal-lg w-xl">
@@ -430,7 +430,7 @@ if ($permission) {
 		</div>
 	</div>
     <!-- End View KPI Details Modal -->
-	
+
     <!-- Start Add KPI Modal -->
     <div class="modal fade" id="addKPIModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -485,9 +485,9 @@ if ($permission) {
 											<select name="data_frequency" id="data_frequency" class="form-control require" required>
 												<option value="">.... Select Frequency ....</option>
 												<?php
-                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE level > 2 AND status=1");	
-                                                $query_frequency->execute();   
-                                                
+                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE level > 2 AND status=1");
+                                                $query_frequency->execute();
+
 												while ($row_frequency = $query_frequency->fetch()) {
 												?>
 													<font color="black">
@@ -503,7 +503,7 @@ if ($permission) {
 											<select name="responsible" id="responsible" class="form-control require" required>
 												<option value="">.... Select Responsible Role ....</option>
 												<?php
-												$query_designation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE active=1 ");	
+												$query_designation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE active=1 ");
 												$query_designation->execute();
 												while ($row_designation = $query_designation->fetch()) {
 												?>
@@ -526,7 +526,7 @@ if ($permission) {
 											</select>
 										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="record_name" style="margin-bottom:10px">
-											
+
 										</div>
 										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
 											<fieldset class="scheduler-border" style="background-color:#edfcf1; border-radius:3px">
@@ -539,7 +539,7 @@ if ($permission) {
 																<?php
 																for($i=0; $i<$duration; $i++){
 																	$year = $start_year + $i;
-																	$endyear = $year+1; 
+																	$endyear = $year+1;
 																	$fy = $year."/".$endyear;
 																	?>
 																	<th colspan="4" class="text-center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?=$fy?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
@@ -556,7 +556,7 @@ if ($permission) {
 																<?php
 																for($i=0; $i<$duration; $i++){
 																	$year = $start_year + $i;
-																	$endyear = $year+1; 
+																	$endyear = $year+1;
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td colspan="4">
@@ -573,7 +573,7 @@ if ($permission) {
 																<?php
 																for($i=0; $i<$duration; $i++){
 																	$year = $start_year + $i;
-																	$endyear = $year+1; 
+																	$endyear = $year+1;
 																	$fy = $year."/".$endyear;
 																	?>
 																	<td>

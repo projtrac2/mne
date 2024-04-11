@@ -1,26 +1,12 @@
 <?php
 require('includes/head.php');
-
 if ($permission) {
-    function generate_key($str_length)
-    {
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-        $pass = array();
-        $alphaLength = strlen($alphabet) - 1;
-        for ($i = 0; $i < $str_length; $i++) {
-            $n = rand(0, $alphaLength);
-            $pass[] = $alphabet[$n];
-        }
-        return implode($pass);
-    }
-
     $program_type = $planid = $progid = $projid = $projcode = $projname = $projdescription = $projtype = $projendyear = "";
     $projbudget = $projfscyear = $projduration = $projevaluation = $projimpact  = $projimpact = $asset = "";
     $project_budget = 0;
     $projcommunity = $projlga = $projlocation = "";
     $projcategory = $projstatus = "";
     $progname =  $program_start_date = $program_end_date =  $program_duration = $projectendYearDate = $target_beneficiaries = "";
-    $key_unique = generate_key(10);
 
     if (isset($_GET['projid'])) {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
@@ -49,7 +35,6 @@ if ($permission) {
             $projcategory = $row_rsProgjects['projcategory'];
             $projstatus = $row_rsProgjects['projstatus'];
             $projimpact = $row_rsProgjects['projimpact'];
-            $key_unique = $row_rsProgjects['key_unique'];
             $target_beneficiaries = $row_rsProgjects['beneficiaries'];
             $project_budget = $row_rsProgjects['projcost'];
             $asset = $row_rsProgjects['asset'];
@@ -243,27 +228,6 @@ if ($permission) {
     $row_rsFile = $query_rsFile->fetch();
     $totalRows_rsFile = $query_rsFile->rowCount();
 
-    if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprojectfrm")) {
-        $planid = $_POST['planid'];
-        $program_type =  $_POST['program_type'];
-        $strategicplanid = base64_encode("strplan1{$planid}");
-        $redirect_url = ($program_type == 1) ? "strategic-plan-projects.php?plan=" . $strategicplanid : "all-programs";
-        $msg = 'Project Successfully Added';
-        $results = "<script type=\"text/javascript\">
-            swal({
-                title: \"Success!\",
-                text: \" $msg\",
-                type: 'Success',
-                timer: 2000,
-                'icon':'success',
-            showConfirmButton: false });
-            setTimeout(function(){
-                window.location.href = '$redirect_url';
-            }, 2000);
-        </script>";
-    }
-
-
     $query_rsSites =  $db->prepare("SELECT state_id FROM tbl_project_sites WHERE projid =:projid GROUP BY state_id");
     $query_rsSites->execute(array(":projid" => $projid));
     $totalRows_rsSites = $query_rsSites->rowCount();
@@ -291,32 +255,8 @@ if ($permission) {
                 </div>
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                     <div class="card">
-                        <div class="card-header">
-                            <div class="stepwizard" style="margin-bottom:15px">
-                                <div class="stepwizard-row setup-panel bg-light-blue" style="margin-top:10px">
-                                    <div class="stepwizard-step">
-                                        <a href="#step-1" type="button" data-toggle="tab" class="btn btn-primary btn-circle">
-                                            <i class="fa fa-info-circle" aria-hidden="true"></i>
-                                        </a>
-                                        <p>Project Details</p>
-                                    </div>
-                                    <div class="stepwizard-step">
-                                        <a href="#step-3" type="button" data-toggle="tab" class="btn btn-default btn-circle disabled">
-                                            <i class="fa fa-bullseye fa-3x" aria-hidden="true"></i>
-                                        </a>
-                                        <p>Documents</p>
-                                    </div>
-                                    <div class="stepwizard-step">
-                                        <a href="#step-4" type="button" data-toggle="tab" onclick="display_finish()" class="btn btn-default btn-circle disabled">
-                                            <i class="fa fa-bullseye fa-3x" aria-hidden="true"></i>
-                                        </a>
-                                        <p>Finish</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="body">
-                            <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+                            <fieldset class="scheduler-border" style="padding:10px">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">ADD PROJECT DETAILS</legend>
                                 <form role="form" id="project_details" action="" method="post" autocomplete="off" enctype="multipart/form-data">
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
@@ -376,7 +316,7 @@ if ($permission) {
                                         </div>
                                     </div>
                                     <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-                                        <label for="projduration">Project Duration (Days) *:</label>(<span id="projdurationmsg" style="color:darkgoldenrod"><?= $program_duration ?></span>)
+                                        <label for="projduration">Project Duration (Days) *:</label>
                                         <div class="form-input">
                                             <input type="number" name="projduration1" min="0" value="<?= $projduration ?>" onkeyup="project_duration_validate()" onchange="project_duration_validate()" id="projduration1" placeholder="Enter" class="form-control" required>
                                         </div>
@@ -390,11 +330,6 @@ if ($permission) {
                                         <label for="project_budget">Project Budget *:<span class="text-danger">(Ksh. <?= number_format($program_budget) ?>)</span></label>
                                         <input type="number" name="project_budget" min="1" id="project_budget" value="<?= $project_budget ?>" onchange="calculate_project_budget()" onkeyup="calculate_project_budget()" class="form-control" required>
                                         <input type="hidden" name="program_budget_ceiling" id="program_budget_hidden" value="<?= $program_budget ?>">
-                                        <span id="" style="color:red"></span>
-                                    </div>
-                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                        <label for="beneficiary">Target Beneficiaries *:</label>
-                                        <input type="text" name="beneficiary" id="beneficiary" value="<?= $target_beneficiaries ?>" class="form-control">
                                         <span id="" style="color:red"></span>
                                     </div>
                                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
@@ -442,22 +377,8 @@ if ($permission) {
                                             <label for="project_sites2">NO</label>
                                         </div>
                                     </div>
-                                    <script>
-                                        function calculate_project_budget() {
-                                            var project_budget = $("#project_budget").val();
-                                            var program_budget = $("#program_budget_hidden").val();
-                                            if (program_budget != '' && project_budget != '') {
-                                                program_budget = parseFloat(program_budget);
-                                                project_budget = parseFloat(project_budget);
-                                                if (project_budget > 0 && program_budget > 0) {
-                                                    if (project_budget > program_budget) {
-                                                        $('#project_budget').val("");
-                                                        error_alert("You cannot exceed program budget");
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    </script>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    </div>
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Project <?= $level1label ?>*:</label>
                                         <div class="form-line">
@@ -466,6 +387,7 @@ if ($permission) {
                                             </select>
                                         </div>
                                     </div>
+
                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                         <label class="control-label">Project <?= $level2label ?>*:</label>
                                         <div class="form-line">
@@ -585,32 +507,82 @@ if ($permission) {
                                         </fieldset>
                                     </div>
 
-                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                        <ul class="list-inline text-center">
-                                            <li><button class="btn btn-success btn-sm" id="project_details_id" type="submit"><?= $totalRows_rsSites > 0 ? "Edit" : "Save" ?></button></li>
-                                        </ul>
-                                        <ul class="list-inline pull-right">
-                                            <input type="hidden" name="key_unique" id="p_key_unique" value="<?= $key_unique ?>">
-                                            <input type="hidden" name="project_id" id="project_id" class="project_id" value="<?= $projid ?>">
-                                            <input type="hidden" name="sites_list" id="sites_list" class="sites_list">
-                                            <input type="hidden" name="insert_project" id="insert_project">
-                                            <li><button class="btn btn-primary nextBtn btn-sm " type="button">Next</button> </li>
-                                        </ul>
-                                    </div>
-                                </form>
-                            </fieldset>
-                            <fieldset class="scheduler-border row setup-content" id="step-3">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FILES</legend>
-                                <form role="form" id="files_details" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                    <?php
-                                    if ($totalRows_rsFile > 0) {
-                                    ?>
-                                        <div class="row clearfix " id="rowcontainerrow">
+                                    <fieldset class="scheduler-border">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FILES</legend>
+                                        <?php
+                                        if ($totalRows_rsFile > 0) {
+                                        ?>
+                                            <div class="row clearfix " id="rowcontainerrow">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <div class="card">
+                                                        <div class="header">
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                                <h5 style="color:#FF5722"><strong> FILES </strong></h5>
+                                                            </div>
+                                                        </div>
+                                                        <div class="body">
+                                                            <div class="body table-responsive">
+                                                                <table class="table table-bordered" style="width:100%">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="width:2%">#</th>
+                                                                            <th style="width:68%">Purpose</th>
+                                                                            <th style="width:28%">Attachment</th>
+                                                                            <th style="width:2%">
+                                                                                Delete
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody id="attachment_table">
+                                                                        <?php
+                                                                        $counter = 0;
+                                                                        do {
+                                                                            $pdfname = $row_rsFile['filename'];
+                                                                            $filecategory = $row_rsFile['fcategory'];
+                                                                            $ext = $row_rsFile['ftype'];
+                                                                            $filepath = $row_rsFile['floc'];
+                                                                            $fid = $row_rsFile['fid'];
+                                                                            $attachmentPurpose = $row_rsFile['reason'];
+                                                                            $counter++;
+                                                                        ?>
+                                                                            <tr id="mtng<?= $fid ?>">
+                                                                                <td>
+                                                                                    <?= $counter ?>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <?= $attachmentPurpose ?>
+                                                                                    <input type="hidden" name="fid[]" id="fid" class="" value="<?= $fid  ?>">
+                                                                                    <input type="hidden" name="ef[]" id="t" class="eattachment_purpose" value="<?= $attachmentPurpose  ?>">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <?= $pdfname ?>
+                                                                                    <input type="hidden" name="adft[]" id="fid" class="eattachment_file" value="<?= $pdfname  ?>">
+                                                                                </td>
+                                                                                <td>
+                                                                                    <button type="button" class="btn btn-danger btn-sm" onclick='delete_attachment("mtng<?= $fid ?>")'>
+                                                                                        <span class="glyphicon glyphicon-minus"></span>
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        <?php
+                                                                        } while ($row_rsFile = $query_rsFile->fetch());
+                                                                        ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php
+                                        }
+                                        ?>
+                                        <div class="row clearfix " id="">
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <div class="card">
                                                     <div class="header">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                            <h5 style="color:#FF5722"><strong> FILES </strong></h5>
+                                                            <h5 style="color:#FF5722"><strong> Add new file/s </strong></h5>
                                                         </div>
                                                     </div>
                                                     <div class="body">
@@ -619,47 +591,22 @@ if ($permission) {
                                                                 <thead>
                                                                     <tr>
                                                                         <th style="width:2%">#</th>
-                                                                        <th style="width:68%">Purpose</th>
-                                                                        <th style="width:28%">Attachment</th>
+                                                                        <th style="width:68%">Attachment</th>
+                                                                        <th style="width:28%">Purpose</th>
                                                                         <th style="width:2%">
-                                                                            Delete
+                                                                            <button type="button" name="addplus1" onclick="add_row_files_edit();" title="Add another document" class="btn btn-success btn-sm">
+                                                                                <span class="glyphicon glyphicon-plus">
+                                                                                </span>
+                                                                            </button>
                                                                         </th>
                                                                     </tr>
                                                                 </thead>
-                                                                <tbody id="attachment_table">
-                                                                    <?php
-                                                                    $counter = 0;
-                                                                    do {
-                                                                        $pdfname = $row_rsFile['filename'];
-                                                                        $filecategory = $row_rsFile['fcategory'];
-                                                                        $ext = $row_rsFile['ftype'];
-                                                                        $filepath = $row_rsFile['floc'];
-                                                                        $fid = $row_rsFile['fid'];
-                                                                        $attachmentPurpose = $row_rsFile['reason'];
-                                                                        $counter++;
-                                                                    ?>
-                                                                        <tr id="mtng<?= $fid ?>">
-                                                                            <td>
-                                                                                <?= $counter ?>
-                                                                            </td>
-                                                                            <td>
-                                                                                <?= $attachmentPurpose ?>
-                                                                                <input type="hidden" name="fid[]" id="fid" class="" value="<?= $fid  ?>">
-                                                                                <input type="hidden" name="ef[]" id="t" class="eattachment_purpose" value="<?= $attachmentPurpose  ?>">
-                                                                            </td>
-                                                                            <td>
-                                                                                <?= $pdfname ?>
-                                                                                <input type="hidden" name="adft[]" id="fid" class="eattachment_file" value="<?= $pdfname  ?>">
-                                                                            </td>
-                                                                            <td>
-                                                                                <button type="button" class="btn btn-danger btn-sm" onclick='delete_attachment("mtng<?= $fid ?>")'>
-                                                                                    <span class="glyphicon glyphicon-minus"></span>
-                                                                                </button>
-                                                                            </td>
-                                                                        </tr>
-                                                                    <?php
-                                                                    } while ($row_rsFile = $query_rsFile->fetch());
-                                                                    ?>
+                                                                <tbody id="meetings_table_edit">
+                                                                    <tr></tr>
+                                                                    <tr id="add_new_file" class="text-c
+                                                                enter">
+                                                                        <td colspan="4"> Add file </td>
+                                                                    </tr>
                                                                 </tbody>
                                                             </table>
                                                         </div>
@@ -667,183 +614,19 @@ if ($permission) {
                                                 </div>
                                             </div>
                                         </div>
-                                    <?php
-                                    }
-                                    ?>
-                                    <div class="row clearfix " id="">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <div class="card">
-                                                <div class="header">
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                        <h5 style="color:#FF5722"><strong> Add new file/s </strong></h5>
-                                                    </div>
-                                                </div>
-                                                <div class="body">
-                                                    <div class="body table-responsive">
-                                                        <table class="table table-bordered" style="width:100%">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th style="width:2%">#</th>
-                                                                    <th style="width:68%">Attachment</th>
-                                                                    <th style="width:28%">Purpose</th>
-                                                                    <th style="width:2%">
-                                                                        <button type="button" name="addplus1" onclick="add_row_files_edit();" title="Add another document" class="btn btn-success btn-sm">
-                                                                            <span class="glyphicon glyphicon-plus">
-                                                                            </span>
-                                                                        </button>
-                                                                    </th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="meetings_table_edit">
-                                                                <tr></tr>
-                                                                <tr id="add_new_file" class="text-c
-                                                                enter">
-                                                                    <td colspan="4"> Add file </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    </fieldset>
+
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <ul class="list-inline text-center">
-                                            <input type="hidden" name="insert_project_files" id="insert_project_files">
-                                            <input type="hidden" name="key_unique" id="p_key_unique" value="<?= $key_unique ?>">
-                                            <input type="hidden" name="project_id" id="project_files" class="project_id" value="<?= $projid ?>">
-                                            <input type="hidden" name="files_id" id="files_id" class="files_id" value="<?= $projid != "" ? 1 : "" ?>">
-                                            <input type="hidden" name="progid" id="file_progid" value="<?= $progid ?>">
-                                            <li><button class="btn btn-success btn-sm" id="project_details_id" type="submit"><?= $projid != "" ? "Edit" : "Save" ?></button></li>
+                                            <li>
+                                                <input type="hidden" name="project_id" id="project_id" value="<?= $projid != '' ? $projid : ''; ?>">
+                                                <input type="hidden" name="redirect_url" id="redirect_url" value="<?= ($program_type == 1) ? " strategic-plan-projects.php?plan=" . $strategicplanid : " all-programs"; ?>">
+                                                <input type="hidden" name="insert_project" value="insert_project">
+                                                <button class="btn btn-success btn-sm" id="project_details_id" type="submit">
+                                                    <?= $totalRows_rsSites > 0 ? "Edit" : "Save" ?>
+                                                </button>
+                                            </li>
                                         </ul>
-                                        <ul class="list-inline pull-right">
-                                            <li><button type="button" class="btn btn-warning prev-step">Previous</button></li>
-                                            <li><button class="btn btn-primary nextBtn btn-sm" onclick="display_finish()" type="button">Next</button> </li>
-                                        </ul>
-                                    </div>
-                                </form>
-                            </fieldset>
-                            <fieldset class="scheduler-border row setup-content" id="step-4">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FINISH</legend>
-                                <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                    <div class="row clearfix " id="">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <div class="card">
-                                                <div class="body">
-                                                    <div class="row">
-                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                            <fieldset class="scheduler-border">
-                                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">1.0) Project Details</legend>
-                                                                <div class="table-responsive">
-                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th width="5%">#</th>
-                                                                                <th width="35%">Field</th>
-                                                                                <th width="60%">Value</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td>1</td>
-                                                                                <td>Programe Name</td>
-                                                                                <td id="progs"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>2</td>
-                                                                                <td>Project Code</td>
-                                                                                <td id="projcodes"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>3</td>
-                                                                                <td>Project Name</td>
-                                                                                <td id="projName"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>6</td>
-                                                                                <td>Implementation Method</td>
-                                                                                <td id="implementation"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>7</td>
-                                                                                <td>Financial Year </td>
-                                                                                <td id="projfscyears"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>9</td>
-                                                                                <td>Project Duration </td>
-                                                                                <td id="projdurations"></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>10</td>
-                                                                                <td>Evaluation Required?</td>
-                                                                                <td id="projeval"></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                                <div class="table-responsive">
-                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th width="20%"><?= $level1label ?>/s</th>
-                                                                                <th width="20%"><?= $level2label ?>/s</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <tr>
-                                                                                <td id="projcommunitys"></td>
-                                                                                <td id="projlgas"></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </fieldset>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row clearfix " id="">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <div class="card">
-                                                <div class="body">
-                                                    <div class="row">
-                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                            <fieldset class="scheduler-border">
-                                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">4.0) Files</legend>
-                                                                <div class="table-responsive">
-                                                                    <table summary="This table shows how to create responsive tables using Bootstrap's default functionality" class="table table-bordered table-hover">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th width="5%">#</th>
-                                                                                <th width="35%">Attachment Purpose</th>
-                                                                                <th width="60%">File Name</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody id="files_attached">
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </fieldset>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row clearfix " id="">
-                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                            <ul class="list-inline text-center">
-                                                <input type="hidden" name="MM_insert" value="addprojectfrm">
-                                                <input type="hidden" name="username" value="<?= $user_name ?>">
-                                                <input type="hidden" name="program_type" value="<?= $program_type ?>">
-                                                <input type="hidden" name="planid" value="<?= $planid ?>">
-                                                <li><button type="button" class="btn btn-warning prev-step">Previous</button></li>
-                                                <li><button class="btn btn-success" id="submit_project" type="submit"><?= $projid != "" ? "Edit" : "Save" ?></button></li>
-                                            </ul>
-                                        </div>
                                     </div>
                                 </form>
                             </fieldset>
