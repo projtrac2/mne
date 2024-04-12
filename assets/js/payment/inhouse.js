@@ -2,7 +2,7 @@ const ajax_url = 'ajax/payments/index';
 
 
 $(document).ready(function () {
-    $("#modal_form_submit1").submit(function (e) {
+    $("#modal_form_submit").submit(function (e) {
         e.preventDefault();
         var cost_type = $("#purpose1").val();
         $.ajax({
@@ -39,27 +39,25 @@ $(document).ready(function () {
             data: $(this).serialize(),
             dataType: "json",
             success: function (response) {
-
-                console.log(response);
                 if (response.success) {
                     success_alert("Request created successfully");
                 } else {
                     error_alert("Request error !!");
                 }
-                // $(".modal").each(function () {
-                //     $(this).modal("hide");
-                //     $(this)
-                //         .find("form")
-                //         .trigger("reset");
-                // });
+                $(".modal").each(function () {
+                    $(this).modal("hide");
+                    $(this)
+                        .find("form")
+                        .trigger("reset");
+                });
 
-                // setTimeout(() => {
-                //     if (cost_type == '1') {
-                //         window.location.reload();
-                //     } else {
-                //         window.location.href = response.items_url;
-                //     }
-                // }, 3000);
+                setTimeout(() => {
+                    if (cost_type == '1') {
+                        window.location.reload();
+                    } else {
+                        window.location.href = response.items_url;
+                    }
+                }, 3000);
             }
         });
     });

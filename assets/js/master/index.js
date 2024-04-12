@@ -15,7 +15,7 @@ $(document).ready(function () {
                     error_alert("Sorry record could not be saved");
                 }
                 $(".modal").each(function () {
-                    $(this).modal("hide"); 
+                    $(this).modal("hide");
                 });
                 setTimeout(() => {
                     window.location.reload(true);

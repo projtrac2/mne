@@ -2,27 +2,6 @@ const url = "ajax/strategicplan/strategic-objectives";
 
 $(document).ready(function () {			
 	$(".objid").hide();
-    $("#addEvaluationForm").submit(function (e) {
-        e.preventDefault();
-        $("#tag-evaluation-form-submit").prop("disabled", true);
-        $.ajax({
-            type: "post",
-            url: url,
-            data: $(this).serialize(),
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    success_alert(response.message);
-                } else {
-                    error_alert(response.message);
-                }
-                $("#tag-evaluation-form-submit").prop("disabled", false);
-                setTimeout(() => {
-                    location.reload(true);
-                }, 1000);
-            }
-        });
-    });
 });
 
 function objective_kpi(objid) {
@@ -30,11 +9,9 @@ function objective_kpi(objid) {
 	if ( clicked == 0 ){
 		$("." + objid).show();
 		clicks = clicked + 1;
-		$('#action' + objid).html('<i class="fa fa-angle-double-down text-success" aria-hidden="true"></i> Collapse KPIs');		
 	}else{
 		$("." + objid).hide();
 		clicks = clicked - 1;
-		$('#action' + objid).html('<i class="fa fa-angle-double-right text-primary" aria-hidden="true"></i> View KPIs');
 	}
 	
 	$('#clicked').val(clicks);
@@ -352,63 +329,4 @@ function kpi_more_info(kpi_id) {
 			$('#kpi_details').html(data.kpi_more_details_body);
 		}
 	});
-}
-
-function kpi_score_details(kpi_id) {
-	$.ajax({
-		type: 'get',
-		url: url,
-		data: {
-			get_kpi_score_details: 1,
-			kpi_id: kpi_id
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#kpi_details').html(data.kpi_more_details_body);
-		}
-	});
-}
-
-function kpi_evaluation(kpi_id) {
-	$('#kpi_id').val(kpi_id);
-	$.ajax({
-		type: 'get',
-		url: url,
-		data: {
-			get_kpi_evaluation_details: 1,
-			kpi_id: kpi_id
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#kpi').html(data.kpi);
-			$('#unit').html(data.unit);
-		}
-	});
-}
-
-function get_measurement_unit() {
-	var indid = $("#indicator").val();
-	$.ajax({
-		type: 'get',
-		url: url,
-		data: {
-			get_indicator_measurement_unit: 1,
-			indid: indid
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#unit').html(data.unit);
-			$('#basevalue_id').html(data.unit);
-			$('.thresholds').attr('placeholder',data.threshold_placeholder);
-		}
-	});
-}
-
-function get_record_type() {
-	var data_source = $("#data_source").val();
-	if( data_source == 2 ) {
-		$('#record_name').html('<label>Name of the Record *:</label><input type="text" name="record_name" class="form-control require" required placeholder="Indicate the record/s where to get the data">');
-	} else {
-		$('#record_name').html('');
-	}
 }

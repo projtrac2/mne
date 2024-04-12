@@ -16,111 +16,62 @@ $(document).ready(function () {
    google.charts.setOnLoadCallback(chartdraw);
 });
 
-// get financial year to
-function get_to_financial_years() {
-   var financial_year_from_id = $("#financial_year_from_id").val();
-   var level_one_id = $("#level_one_id").val();
-   var level_two_id = $("#level_two_id").val();
-   // if (financial_year_from_id != "") {
-      $.ajax({
-         type: "get",
-         url: ajax_url,
-         data: {
-            get_to_financial_year: "get_to_financial_year",
-            financial_year_from_id: financial_year_from_id,
-            level_one_id: level_one_id,
-            level_two_id: level_two_id
-         },
-         dataType: "json",
-         success: function (response) {
-            if (response.success) {
-               $("#financial_year_to_id").html(response.financial_years);
-               set_details(response.project_details, response.dashboard_projects_url);
-
-            } else {
-               error_alert("Sorry could not find any financial years")
-            }
-         },
-      });
-   // }
-}
 
 // get level 2
 function get_level_two() {
    var level_one_id = $("#level_one_id").val();
-   var financial_year_from_id = $("#financial_year_from_id").val();
-   // if (level_one_id != "") {
-      $.ajax({
-         type: "get",
-         url: ajax_url,
-         data: {
-            get_level2: "get_level2",
-            financial_year_from_id: financial_year_from_id,
-            level_one_id: level_one_id
-         },
-         dataType: "json",
-         success: function (response) {
-            if (response.success) {
-               $("#level_two_id").html(response.level_two);
-               set_details(response.project_details, response.dashboard_projects_url);
-
-            } else {
-               error_alert("Sorry could not find any level two")
-            }
-         },
-      });
-   // }
+   $.ajax({
+      type: "get",
+      url: ajax_url,
+      data: {
+         get_level2: "get_level2",
+         level_one_id: level_one_id
+      },
+      dataType: "json",
+      success: function (response) {
+         if (response.success) {
+            $("#level_two_id").html(response.level_two);
+            set_details(response.project_details, response.dashboard_projects_url);
+         } else {
+            error_alert("Sorry could not find any level two");
+         }
+      },
+   });
 }
 
 // get details
 function get_project_details() {
-   var financial_year_from_id = $("#financial_year_from_id").val();
-   var financial_year_to_id = $("#financial_year_to_id").val();
    var level_one_id = $("#level_one_id").val();
    var level_two_id = $("#level_two_id").val();
-   // if (financial_year_from_id != "") {
    $.ajax({
       type: "get",
       url: ajax_url,
       data: {
          get_project_details: "get_project_details",
-         financial_year_from_id: financial_year_from_id,
-         financial_year_to_id: financial_year_to_id,
          level_one_id: level_one_id,
          level_two_id: level_two_id
       },
       dataType: "json",
       success: function (response) {
          if (response.success) {
-            $("#financial_year_to_id").html(response.financial_years);
             set_details(response.project_details, response.dashboard_projects_url);
-
          } else {
             error_alert("Sorry could not find any financial years")
          }
       },
    });
-   // }
 }
 
 function set_details(details, projects_link) {
-   $("#total").html(details.all);
-   $("#complete").html(details.complete);
-   $("#on_track").html(details.on_track);
-   $("#pending").html(details.pending);
-   $("#behind_schedule").html(details.behind_schedule);
-   $("#awaiting_procurement").html(details.awaiting_procurement);
-   $("#on_hold").html(details.on_hold);
-   $("#cancelled").html(details.cancelled);
+   $("#pre_investment").html(details.stage_one);
+   $("#planned").html(details.stage_two);
+   $("#ongoing").html(details.stage_three);
+   $("#complete").html(details.stage_four);
 
-   $("#total_link").attr("href", `view-dashboard-projects.php?prjstatus=all${projects_link}`);
-   $("#complete_link").attr("href", `view-dashboard-projects.php?prjstatus=complete${projects_link}`);
-   $("#on_track_link").attr("href", `view-dashboard-projects.php?prjstatus=on-track${projects_link}`);
-   $("#pending_link").attr("href", `view-dashboard-projects.php?prjstatus=pending${projects_link}`);
-   $("#behind_schedule_link").attr("href", `view-dashboard-projects.php?prjstatus=behind-schedule${projects_link}`);
-   $("#awaiting_procurement_link").attr("href", `view-dashboard-projects.php?prjstatus=awaiting-procurement${projects_link}`);
-   $("#on_hold_link").attr("href", `view-dashboard-projects.php?prjstatus=on-hold${projects_link}`);
-   $("#cancelled_link").attr("href", `view-dashboard-projects.php?prjstatus=cancelled${projects_link}`);
+   $("#stage_one").attr("href", `view-dashboard-projects.php?stage=1${projects_link}`);
+   $("#stage_two").attr("href", `view-dashboard-projects.php?stage=2${projects_link}`);
+   $("#stage_three").attr("href", `view-dashboard-projects.php?stage=3${projects_link}`);
+   $("#stage_four").attr("href", `view-dashboard-projects.php?stage=4${projects_link}`);
 }
 
 

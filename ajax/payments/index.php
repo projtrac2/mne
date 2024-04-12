@@ -593,6 +593,7 @@ try {
          } else {
             $data = get_requested_items($request_id);
          }
+
          $financiers = get_financiers($request_id);
       }
 

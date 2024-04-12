@@ -70,7 +70,7 @@ $(document).ready(function () {
 
 function add_project_issues(projid, project_name) {
     if (projid != '') {
-        $("#projid").val(projid);
+        $("#issue_projid").val(projid);
         $("#project_name").html(project_name);
         $.ajax({
             type: "get",
@@ -219,7 +219,8 @@ function number_table() {
 //filter the expected output  cannot be selected twice issue_type
 function adjustscope() {
     var issue_type = $("#issue_area").val();
-    var projid = $("#projid").val();
+    var projid = $("#issue_projid").val();
+	console.log("projid: " + projid);
     if (projid != '') {
         $.ajax({
             type: "POST",

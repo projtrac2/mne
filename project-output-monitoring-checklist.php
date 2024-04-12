@@ -102,7 +102,6 @@ if ($permission) {
                                                 $projcode = $row_rsProjects['projcode'];
                                                 $progress = number_format(calculate_project_progress($projid, $implementation), 2);
                                                 $projstatus = $row_rsProjects['projstatus'];
-                                                $projectid = base64_encode("projid54321{$projid}");
 
                                                 $start_date = date('Y-m-d');
                                                 $projduration =  $row_rsProjects['projduration'];
@@ -162,13 +161,13 @@ if ($permission) {
                                                     }
 
                                                     $counter++;
-                                        ?>
+													?>
                                                     <tr>
                                                         <td align="center"><?= $counter ?></td>
                                                         <td><?= $projcode ?></td>
                                                         <td>
                                                             <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
-                                                                <a href="myprojectdash.php?proj=<?php echo $projectid; ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
+                                                                <a href="myprojectdash.php?proj=<?php echo $projid_hashed; ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
                                                             </div>
                                                         </td>
                                                         <td><?= $project_start_date ?></td>
@@ -203,7 +202,7 @@ if ($permission) {
                                                                         }
                                                                         ?>
                                                                         <li>
-                                                                            <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues(<?= $projid ?>, '<?= htmlspecialchars($projname) ?>')">
+                                                                            <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues('<?= $projid_hashed ?>', '<?= htmlspecialchars($projname) ?>')">
                                                                                 <i class="fa fa-exclamation-triangle text-danger"></i> Issues
                                                                             </a>
                                                                         </li>
@@ -275,7 +274,7 @@ if ($permission) {
                                         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
                                             <div class="form-inline">
                                                 <label for="">Issue Area</label>
-                                                <select name="issue_area" id="issue_area" class="form-control topic" onchange="adjustscope(<?= $projid ?>)" data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+                                                <select name="issue_area" id="issue_area" class="form-control topic" onchange="adjustscope('<?= $projid_hashed ?>')" data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
                                                     <option value="" selected="selected" class="selection">... Select Issue Area...</option>
                                                     <?php
                                                     $query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE type=1 AND active = 1");
@@ -378,7 +377,7 @@ if ($permission) {
                                 <div class="modal-footer">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                         <input type="hidden" name="store_checklists" id="store_checklists" value="store_checklists">
-                                        <input type="hidden" name="projid" id="projid">
+                                        <input type="hidden" name="projid" id="issue_projid">
                                         <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
                                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                     </div>

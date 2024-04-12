@@ -1,15 +1,23 @@
 <?php
 include_once '../controller.php';
-$status_array = array(
-	'all' => array("status" => ''),
-	'complete' => array("status" => 5),
-	'on_track' => array("status" => 4),
-	'pending' => array("status" => 3),
-	'behind_schedule' => array("status" => 11),
-	'awaiting_procurement' => array("status" => 1),
-	'on_hold' => array("status" => 6),
-	'cancelled' => array("status" => 2),
-);
+
+
+function get_access_level()
+{
+	global $user_designation, $user_department, $user_section, $user_directorate;
+	$access_level = "";
+	if (($user_designation < 5)) {
+		$access_level = "";
+	} elseif ($user_designation == 5) {
+		$access_level = " AND g.projsector=$user_department";
+	} elseif ($user_designation == 6) {
+		$access_level = " AND g.projsector=$user_department AND g.projdept=$user_section";
+	} elseif ($user_designation > 6) {
+		$access_level = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
+	}
+	return $access_level;
+}
+
 
 if (isset($_POST['get_indicator'])) {
 	$department_id = $_POST['department'];
@@ -30,56 +38,50 @@ if (isset($_POST['get_indicator'])) {
 	echo $input;
 }
 
-function widgets($where, $level_one_id, $level_two_id)
+
+function widgets($stage, $level_one_id, $level_two_id)
 {
-	global $status_array, $db;
-	$widgets = array();
-	foreach ($status_array as $key => $project_status) {
-		$status = $project_status['status'];
-		$status_string = $status != '' ? " AND projstatus=$status" : '';
+	global $db;
+	$access_level =	get_access_level();
+	$where = "";
+	if ($stage == 1) {
+		$where = "p.projstage=0";
+	} else if ($stage == 2) {
+		$where = "p.projstage >= 1 AND p.projstage < 8";
+	} else if ($stage == 3) {
+		$where = "p.projstage >= 8 AND p.projstage <= 9";
+	} else if ($stage == 4) {
+		$where = "p.projstage = 10";
+	}
 
-		$query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 and p.deleted = '0' $status_string $where ");
-		$query_rsprojects->execute();
-		$allprojects = $query_rsprojects->rowCount();
+	$where .= $access_level;
+	$query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE  $where ");
+	$query_rsprojects->execute();
+	$allprojects = $query_rsprojects->rowCount();
 
+	$counter = 0;
+	if ($level_one_id != "") {
 		if ($allprojects > 0) {
-			if ($level_one_id != null) {
-				$count_projects = 0;
-				while ($row_projects = $query_rsprojects->fetch()) {
-					$projcommunity = explode(",", $row_projects['projcommunity']);
-					$projlga = explode(",", $row_projects['projlga']);
-					if ($level_two_id != null) {
-						$count_projects += (in_array($level_two_id, $projlga)) ?  1 : 0;
-					} else {
-						$count_projects += (in_array($level_one_id, $projcommunity)) ? 1 : 0;
-					}
+			while ($all_projects = $query_rsprojects->fetch()) {
+				$level_one_ids = explode(",", $all_projects['projcommunity']);
+				if ($level_two_id != '') {
+					$level_two_ids = explode(",", $all_projects['projlga']);
+					$counter += in_array($level_two_id, $level_two_ids) ? 1 : 0;
+				} else {
+					$counter += in_array($level_one_id, $level_one_ids) ? 1 : 0;
 				}
-				$widgets[$key] = $count_projects;
-			} else {
-				$widgets[$key] = $allprojects;
 			}
 		} else {
-			$widgets[$key] = 0;
+			$counter += 0;
 		}
+	} else {
+		$counter = $allprojects;
 	}
-	return $widgets;
+
+	return $counter;
 }
 
-function get_access_level()
-{
-	global $user_designation, $user_department, $user_section, $user_directorate;
-	$access_level = "";
-	if (($user_designation < 5)) {
-		$access_level = "";
-	} elseif ($user_designation == 5) {
-		$access_level = " AND g.projsector=$user_department";
-	} elseif ($user_designation == 6) {
-		$access_level = " AND g.projsector=$user_department AND g.projdept=$user_section";
-	} elseif ($user_designation > 6) {
-		$access_level = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
-	}
-	return $access_level;
-}
+
 
 if (isset($_GET['get_to_financial_year'])) {
 	$financial_year_from_id = !empty($_GET['financial_year_from_id']) ? $_GET['financial_year_from_id']  : "";
@@ -106,8 +108,6 @@ if (isset($_GET['get_to_financial_year'])) {
 }
 
 if (isset($_GET['get_level2'])) {
-	$financial_year_from_id = !empty($_GET['financial_year_from_id']) ? $_GET['financial_year_from_id']  : "";
-	$financial_year_to_id = !empty($_GET['financial_year_to_id']) ? $_GET['financial_year_to_id']  : "";
 	$level_one_id = !empty($_GET['level_one_id']) ? $_GET['level_one_id']  : "";
 	$level_two_id = !empty($_GET['level_two_id']) ? $_GET['level_two_id'] : "";
 
@@ -118,30 +118,22 @@ if (isset($_GET['get_level2'])) {
 		$data .= '<option value="' . $row['id'] . '"> ' . $row['state'] . '</option>';
 	}
 
-	$dashboard_projects_url = "&projfyfrom=$financial_year_from_id&projfyto=$financial_year_to_id&projscounty=$level_one_id&projward=$level_two_id&btn_search=FILTER";
-	$access_level = get_access_level();
-	$sql = $access_level;
-	if (!empty($financial_year_from_id)) {
-		$sql .= !empty($financial_year_to_id) ?  " AND p.projfscyear >= $financial_year_from_id AND p.projfscyear <= $financial_year_to_id" : " AND p.projfscyear >= $financial_year_from_id";
-	}
-
-	$widget_array = widgets($sql, $level_one_id, $level_two_id);
+	$dashboard_projects_url = "&projscounty=$level_one_id&projward=$level_two_id&btn_search=FILTER";
+	$widget_array['stage_one'] = widgets(1, $level_one_id, $level_two_id);
+	$widget_array['stage_two'] = widgets(2, $level_one_id, $level_two_id);
+	$widget_array['stage_three'] = widgets(3, $level_one_id, $level_two_id);
+	$widget_array['stage_four'] = widgets(4, $level_one_id, $level_two_id);
 	echo json_encode(array("success" => true, "dashboard_projects_url" => $dashboard_projects_url, "level_two" => $data, "project_details" => $widget_array));
 }
 
 if (isset($_GET['get_project_details'])) {
-	$financial_year_from_id = !empty($_GET['financial_year_from_id']) ? $_GET['financial_year_from_id']  : "";
-	$financial_year_to_id = !empty($_GET['financial_year_to_id']) ? $_GET['financial_year_to_id']  : "";
 	$level_one_id = !empty($_GET['level_one_id']) ? $_GET['level_one_id']  : "";
 	$level_two_id = !empty($_GET['level_two_id']) ? $_GET['level_two_id'] : "";
-	$access_level = get_access_level();
-	$dashboard_projects_url = "&projfyfrom=$financial_year_from_id&projfyto=$financial_year_to_id&projscounty=$level_one_id&projward=$level_two_id&btn_search=FILTER";
-	$sql = $access_level;
-	if (!empty($financial_year_from_id)) {
-		$sql .= !empty($financial_year_to_id) ?  " AND p.projfscyear >= $financial_year_from_id AND p.projfscyear <= $financial_year_to_id" : " AND p.projfscyear >= $financial_year_from_id";
-	}
-
-	$widget_array = widgets($sql, $level_one_id, $level_two_id);
+	$dashboard_projects_url = "&projscounty=$level_one_id&projward=$level_two_id&btn_search=FILTER";
+	$widget_array['stage_one'] = widgets(1, $level_one_id, $level_two_id);
+	$widget_array['stage_two'] = widgets(2, $level_one_id, $level_two_id);
+	$widget_array['stage_three'] = widgets(3, $level_one_id, $level_two_id);
+	$widget_array['stage_four'] = widgets(4, $level_one_id, $level_two_id);
 	echo json_encode(array("success" => true, "dashboard_projects_url" => $dashboard_projects_url, "project_details" => $widget_array));
 }
 

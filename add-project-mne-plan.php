@@ -105,6 +105,8 @@ if ($permission) {
                                                 <li class="list-group-item"><strong> Start Date: </strong><?php $projstartdate; ?> </li>
                                                 <li class="list-group-item"><strong> End Date: </strong> <?= $projenddate ?> </li>
                                                 <input type="hidden" name="myprojid" id="myprojid" value="<?= $projid ?>">
+                                                <input type="hidden" name="key_unique" id="key_unique" value="<?= $projid ?>">
+
                                             </ul>
                                         </div>
                                     </div>
@@ -373,6 +375,7 @@ if ($permission) {
                                                     </div>
                                                     <div class="modal-footer">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                                            <input type="hidden" name="key_unique" id="key_unique" value="<?= $key_unique ?>">
                                                             <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                             <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                                             <input type="hidden" name="progid" id="program_id" value="<?= $progid ?>">

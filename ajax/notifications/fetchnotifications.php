@@ -10,29 +10,19 @@ try {
             $query_rsAlerts = $db->prepare("SELECT * FROM tbl_notification_status WHERE user_id=:user_id AND  seen=0 AND notification_type_id=3 ");
             $query_rsAlerts->execute(array(":user_id" => $user_name));
             $totalRows_rsAlerts = $query_rsAlerts->rowCount();
+
             $alerts = '';
             if ($totalRows_rsAlerts > 0) {
                 while ($row_rsAlerts = $query_rsAlerts->fetch()) {
-                    $title = $row_rsAlerts['title'];
-                    $id = $row_rsAlerts['id'];
                     $alerts .= '
                     <li class="body">
-                        <a href="javascript:void(0);" onclick="load_notification_alert(' . $id . ')">' . $title . '</a>
+                        <a href="javascript:void(0);">Testing Alerts</a>
                     </li>';
                 }
             }
         }
-        echo json_encode(array("success" => true, "total_alerts" => $totalRows_rsAlerts, "alerts" => $alerts));
-    }
 
-    if (isset($_GET['get_alert'])) {
-        $alert_id = $_GET['alert_id'];
-        $query_rsAlerts = $db->prepare("SELECT * FROM tbl_notification_status WHERE user_id=:user_id  AND id=:alert_id ");
-        $query_rsAlerts->execute(array(":user_id" => $user_name, ":alert_id" => $alert_id));
-        $row_rsAlerts = $query_rsAlerts->fetch();
-        $totalRows_rsAlerts = $query_rsAlerts->rowCount();
-        $success = $totalRows_rsAlerts > 0 ?  true : false;
-        return json_encode(array("success" => $success, "alert" => $row_rsAlerts));
+        echo json_encode(array("success" => true, "total_alerts" => $totalRows_rsAlerts, "alerts" => $alerts));
     }
 
 

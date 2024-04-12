@@ -270,7 +270,6 @@ if ($permission) {
     </section>
 
 <?php
-
 } else {
     $results =  restriction();
     echo $results;

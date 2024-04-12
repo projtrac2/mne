@@ -38,11 +38,14 @@ try {
 		$row_owner = $query_owner->fetch();
 		$monitor = $row_owner["title"] . '.' . $row_owner["fullname"];
 		
+		$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issue_areaid");
+		$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));		
+		$rows_issue_area = $query_issue_area->fetch();
+		$issue_area = $rows_issue_area["issue_area"];
+		
 		$issues_scope = '';
 		$textclass = "";
-		if($issue_areaid == 2){
-			$issue_area = "Scope";
-			
+		if($issue_areaid == 2){			
 			$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 							
 			$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
@@ -97,8 +100,6 @@ try {
 				}
 			}
 		}elseif($issue_areaid == 3){
-			$issue_area = "Schedule";
-			
 			$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 			
 			$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
@@ -148,8 +149,7 @@ try {
 					</tr>';
 				}
 			}
-		}else{
-			$issue_area = "Cost";
+		}elseif($issue_areaid == 4){
 			
 			$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 			
@@ -252,20 +252,22 @@ try {
 				<label for="">Date Recorded</label>
 				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height:35px; width:98%">'.$issuedate.'</div>
 			</div>
-		</div>
-		
-		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-			<div class="table-responsive">
-				<table class="table table-bordered table-striped table-hover js-basic-example">
-					<thead>
-						<h4 class="text-primary">Issue Details:</h4>
-					</thead>
-					<tbody>
-						' . $issues_scope . '
-					</tbody>
-				</table>
-			</div>
 		</div>';
+		
+		if($issue_areaid != 1){
+			$issue_more_info .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="table-responsive">
+					<table class="table table-bordered table-striped table-hover js-basic-example">
+						<thead>
+							<h4 class="text-primary">Issue Details:</h4>
+						</thead>
+						<tbody>
+							' . $issues_scope . '
+						</tbody>
+					</table>
+				</div>
+			</div>';
+		}
 		
 		if($issue_status_id > 0){
 			if($issue_status_id == 2){			
@@ -601,6 +603,95 @@ try {
 				</div>
 			</fieldset>
 		</diV>';
+	}
+		
+	if(isset($_GET['get_issue_more_details'])){
+		$projid = $_GET['projid'];
+		$issueid = $_GET['issueid'];
+		
+        $query_project_issue =  $db->prepare("SELECT c.category, i.issue_description, i.issue_area, p.description AS issue_impact, i.issue_priority, i.date_created, i.status, i.projid, i.recommendation, i.closing_remarks, i.date_updated, i.date_closed FROM tbl_projrisk_categories c left join tbl_projissues i on c.catid = i.risk_category left join tbl_risk_impact p on p.digit=i.issue_impact WHERE i.id=:issueid");
+		$query_project_issue->execute(array(":issueid" =>$issueid));
+		$row_project_issue = $query_project_issue->fetch();
+		
+		$issue = $row_project_issue["issue_description"];
+		$category = $row_project_issue["category"];
+		$status = $row_project_issue["status"];
+		$issue_priority = $row_project_issue["issue_priority"];
+		$resolution = $row_project_issue["recommendation"];
+		$closing_remarks = $row_project_issue["closing_remarks"];
+		$issue_areaid = $row_project_issue["issue_area"];
+		$issue_impact = $row_project_issue["issue_impact"];
+																	
+		if($issue_areaid == 2){
+			$issue_area = "Scope";
+		}elseif($issue_areaid == 3){
+			$issue_area = "Schedule";
+		}elseif($issue_areaid == 4){
+			$issue_area = "Cost";
+		}else{
+			$issue_area = "Others";
+		}
+												
+		if($issue_priority == 1){
+			$priority = "High";
+		}elseif($issue_priority == 2){
+			$priority = "Medium";
+		}elseif($issue_priority == 3){
+			$priority = "Low";
+		}
+						
+		$risk_list ='
+		<input type="hidden" value="0" id="clicked">		
+		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+			<div class="form-inline">
+				<label for="">Issue Description</label>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$issue.'</div>
+			</div>
+		</div>		
+		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+			<div class="form-inline">
+				<label for="">Issue Area</label>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$issue_area.'</div>
+			</div>
+		</div>
+		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+			<div class="form-inline">
+				<label for="">Issue Category</label>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$category.'</div>
+			</div>
+		</div>	
+		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+			<div class="form-inline">
+				<label for="">Issue Impact</label>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$issue_impact.'</div>
+			</div>
+		</div>	
+		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+			<div class="form-inline">
+				<label for="">Issue Priority</label>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$priority.'</div>
+			</div>
+		</div>';
+		
+		if($status > 0){		
+			$risk_list .='<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+				<div class="form-inline">
+					<label for="">Resolution</label>
+					<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$resolution.'</div>
+				</div>
+			</div>';
+		}
+		
+		if($status == 7){
+			$risk_list .='<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+				<div class="form-inline">
+					<label for="">Closing Remarks</label>
+					<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$closing_remarks.'</div>
+				</div>
+			</div>';
+		}
+					
+        echo json_encode(["issue_more_info_body" => $risk_list]);
 	}
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

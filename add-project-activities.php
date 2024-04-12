@@ -6,6 +6,12 @@ if ($permission) {
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+        $query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE active = 1");
+        $query_risk_impact->execute();
+
+        $query_risk_categories = $db->prepare("SELECT * FROM tbl_projrisk_categories");
+        $query_risk_categories->execute();
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
@@ -134,6 +140,11 @@ if ($permission) {
                                                                     <?php
                                                                     }
                                                                     ?>
+																	<li>
+																		<a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues('<?= $projid_hashed ?>', '<?= htmlspecialchars($projname) ?>')">
+																			<i class="fa fa-exclamation-triangle text-danger"></i> Issues
+																		</a>
+																	</li>
                                                                 </ul>
                                                             </div>
                                                         </td>
@@ -206,6 +217,164 @@ if ($permission) {
             <!-- /modal-content -->
         </div>
     </div>
+	
+
+    <!-- start issues modal  -->
+    <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#03A9F4">
+                    <h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> PROJECT ISSUES</span></h3>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12">
+                        <ul class="list-group">
+                            <li class="list-group-item list-group-item list-group-item-action active">Project : <span id="project_name"></span> </li>
+                        </ul>
+                    </div>
+                    <div class="card-header">
+                        <ul class="nav nav-tabs" style="font-size:14px">
+                            <li class="active">
+                                <a data-toggle="tab" href="#home"><i class="fa fa-pencil bg-orange" aria-hidden="true"></i> Record Issue &nbsp;<span class="badge bg-orange">|</span></a>
+                            </li>
+                            <li>
+                                <a data-toggle="tab" href="#menu1"><i class="fa fa-eye bg-blue" aria-hidden="true"></i> View Issues &nbsp;<span class="badge bg-blue">|</span></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content">
+                        <div id="home" class="tab-pane fade in active">
+                            <form class="form-horizontal" id="add_items" action="" method="POST">
+                                <fieldset class="scheduler-border" id="specification_issues">
+                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                        <i class="fa fa-exclamation-circle" aria-hidden="true"></i> New Issue
+                                    </legend>
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
+                                            <div class="form-inline">
+                                                <label for="">Issue Description</label>
+                                                <input name="issue_description" type="text" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:100%" placeholder="Describe the issue" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+                                            <div class="form-inline">
+                                                <label for="">Issue Area</label>
+                                                <div class="form-control" style="border:#CCC thin solid; border-radius:5px; width:100%">Others</div>
+                                                <input name="issue_area" type="hidden" value="1">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+                                            <div class="form-inline">
+                                                <label for="">Issue Impact</label>
+                                                <select name="issue_impact" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+                                                    <option value="">.... Select impact ....</option>
+                                                    <?php
+                                                    while ($row_risk_impact = $query_risk_impact->fetch()) {
+                                                    ?>
+                                                        <font color="black">
+                                                            <option value="<?php echo $row_risk_impact['id'] ?>"><?php echo $row_risk_impact['description'] ?></option>
+                                                        </font>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+                                            <div class="form-inline">
+                                                <label for="">Issue Priority</label>
+                                                <select name="issue_priority" class="form-control topic" data-live-search="true" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+                                                    <option value="" selected="selected" class="selection">... Select Issue Priority ...</option>
+                                                    <option value="1" class="selection">High</option>
+                                                    <option value="2" class="selection">Medium</option>
+                                                    <option value="3" class="selection">Low</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" style="margin-bottom:10px">
+                                            <div class="form-inline">
+                                                <label for="">Risk Category</label>
+                                                <select name="risk_category" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" required>
+                                                    <option value="">.... Select Risk Category ....</option>
+                                                    <?php
+                                                    while ($row_risk_categories = $query_risk_categories->fetch()) {
+                                                    ?>
+                                                        <font color="black">
+                                                            <option value="<?php echo $row_risk_categories['catid'] ?>"><?php echo $row_risk_categories['category'] ?></option>
+                                                        </font>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div id="issue_type">
+                                        </div>
+                                    </div>
+                                    <!-- Task Checklist Questions -->
+                                </fieldset>
+                                <fieldset class="scheduler-border">
+                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                        <i class="fa fa-paperclip" aria-hidden="true"></i> Attachments
+                                    </legend>
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width:2%">#</th>
+                                                            <th style="width:40%">Attachment</th>
+                                                            <th style="width:58%">Attachment Purpose</th>
+                                                            <th style="width:2%"><button type="button" name="addplus" onclick="add_attachment();" title="Add another document" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span></button></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="attachments_table">
+                                                        <tr>
+                                                            <td>1</td>
+                                                            <td>
+                                                                <input type="file" name="monitorattachment[]" id="monitorattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" />
+                                                            </td>
+                                                            <td>
+                                                                <input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control" placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" />
+                                                            </td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                <div class="modal-footer">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                        <input type="hidden" name="store_checklists" id="store_checklists" value="store_checklists">
+                                        <input type="hidden" name="projid" id="issue_projid">
+                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                                    </div>
+                                </div> <!-- /modal-footer -->
+                            </form>
+                        </div>
+                        <div id="menu1" class="tab-pane fade">
+                            <div id="previous_issues">
+                                <h4 class="text-danger">No records found!!</h4>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <!-- /modal-footer -->
+
+            </div> <!-- /modal-content -->
+        </div> <!-- /modal-dailog -->
+    </div>
+    <!-- end issues modal  -->
 <?php
 } else {
     $results =  restriction();
@@ -218,5 +387,6 @@ require('includes/footer.php');
 <script>
     const redirect_url = "add-project-activities.php";
 </script>
+<script src="assets/js/monitoring/issues.js"></script>
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/master/index.js"></script>

@@ -1616,6 +1616,7 @@ if ($permission) {
         </div>
     </section>
     <!-- end body  -->	
+<script src="assets/js/issues/index.js"></script>
 <?php
 } else {
     $results =  restriction();
@@ -1623,100 +1624,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-?>
-<script src="assets/js/issues/index.js"></script>
-
-	<!-- Modal Issue Response -->
-	<div class="modal fade" id="escalationActionModal" role="dialog">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#795548">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3 class="modal-title" align="center"><font color="#FFF">PROJECT RISK RESPONSE</font></h3>
-				</div>
-				<form class="tagForm" action="escalationresponse" method="post" id="escalation-response-form" enctype="multipart/form-data" autocomplete="off">
-					<div class="modal-body">
-						<div class="row clearfix">
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<div class="card">
-									<div class="body">
-										<div class="table-responsive" style="background:#eaf0f9">
-											<div id="riskresponse">
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-				
-					</div>
-					<div class="modal-footer">
-						<div class="col-md-4">
-						</div>
-						<div class="col-md-4" align="center">
-							<input name="save" type="submit" class="btn btn-success waves-effect waves-light" id="tag-form-submit" value="Save" />
-							<button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
-							<input type="hidden" name="username" id="username" value="<?php echo $username; ?>"/>
-							<input type="hidden" name="stchange" value="1"/>
-						</div>
-						<div class="col-md-4">
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-    <!-- #END# Modal Issue Response -->	
-	
-	<!-- Modal Project Constrain Parameters -->
-	<div class="modal fade" id="parChangeModal" role="dialog">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header" style="background-color:#795548">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h3 class="modal-title" align="center"><font color="#FFF">PARAMETERS CHANGES</font></h3>
-				</div>
-				<form class="tagForm" action="parameterschange" method="post" id="par-change-form" enctype="multipart/form-data" autocomplete="off">
-					<div class="modal-body">
-						<div class="row clearfix">
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<div class="card">
-									<div class="body">
-										<div class="table-responsive" style="background:#eaf0f9">
-											<div id="parameterschange">
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-				
-					</div>
-					<div class="modal-footer">
-						<div class="col-md-3">
-						</div>
-						<div class="col-md-6" align="center">
-							<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
-							<button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
-							<input type="hidden" name="username" id="username" value="<?php echo $username; ?>"/>
-							<input type="hidden" name="stchange" value="1"/>
-						</div>
-						<div class="col-md-3">
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-    <!-- #END# Modal Project Constrain Parameters -->
-<?php
-/* } else {
-    $results =  restriction();
-    echo $results;
-} */
-
-require('includes/footer.php');
-?>
-	
+?>	
 </body>
 </html>

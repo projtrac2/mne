@@ -69,90 +69,8 @@ $(document).ready(function () {
             }
         });
     });
-	
-	//Add Risk to Risk Register
-    $("#add_risk_register").submit(function (e) {
-        e.preventDefault();
-        $("#add_risk_form_submit").prop("disabled", true);
-        $.ajax({
-            type: "post",
-            url: ajax_url,
-            data: $(this).serialize(),
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    success_alert(response.message);
-                } else {
-                    error_alert(response.message);
-                }
-                $("#add_risk_form_submit").prop("disabled", false);
-                setTimeout(() => {
-                    location.reload(true);
-                }, 1000);
-            }
-        });
-    });
 });
 
-
-//edit register risk
-function edit_register_risk(riskid) {
-	if (riskid != '' || riskid != null) {
-		$.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-					edit_register_risk: 1,
-					riskid: riskid
-				},
-            dataType: "json",
-            success: function (response) {
-				$('#edit-modal-title').html('<i class="fa fa-info-circle" style="color:orange"></i> Edit Risk');
-				$('#risk_details').html(response.register_risk_detail);
-				$('#riskid').val(response.riskid);
-				$('#save_risk').val("edit_risk");
-            }
-        });
-	}
-};
-
-// delete register risk
-function destroy_register_risk(riskid) {
-    if (riskid != "") {
-        swal({
-            title: "Are you sure?",
-            text: "Once deleted, you will not be able to recover the record!",
-            icon: "warning",
-            buttons: true,
-            dangerMode: true,
-        })
-            .then((willDelete) => {
-                if (willDelete) {
-                    $.ajax({
-                        type: "post",
-                        url: ajax_url,
-                        data: {
-                            destroy_register_risk: 1,
-                            riskid: riskid
-                        },
-                        dataType: "json",
-                        success: function (response) {
-                            if (response.success) {
-                                success_alert("Record deleted successfully");
-                            } else {
-                                error_alert("Could not delete the record");
-                            }
-                            setTimeout(() => {
-                                location.reload(true);
-                            }, 1000);
-                        }
-                    });
-                } else {
-                    swal("You have cancelled action!");
-                }
-            });
-    }
-}
 
 //filter the expected output  cannot be selected twice
 function riskstrategy() {
@@ -231,24 +149,6 @@ function risk_monitor_severity() {
 	}
 }
 
-function risk_register_info(riskid) {
-	if (riskid != '' || riskid != null) {
-		$.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-					risk_register_more_info: "risk_register_more_info",
-					riskid: riskid
-				},
-            dataType: "json",
-            success: function (response) {
-				$('#risk_more_info').html(response.risk_more_info_body);
-				$('#risk_measures').html(response.risk_measures);
-            }
-        });
-	}
-}
-
 function risk_info(riskid) {
 	if (riskid != '' || riskid != null) {
 		$.ajax({
@@ -261,7 +161,6 @@ function risk_info(riskid) {
             dataType: "json",
             success: function (response) {
 				$('#risk_more_info').html(response.risk_more_info_body);
-				$('#risk_measures').html(response.risk_measures);
             }
         });
 	}
@@ -405,76 +304,11 @@ function riskmonitor(riskid) {
 				},
             dataType: "json",
             success: function (response) {
-				console.log(response.monitored_risk_id);
 				$('#risk_monitoring').html(response.risk_more_info_body);
 				$('#risk_monitoring_measures').html(response.risk_measures);
 				$('#risk_level').html(response.risk_level);
-				$('#monitored_risk_id').val(response.monitored_risk_id);
+				$('#risk_id').val(riskid);
             }
         });
 	}
 };
-
-function risks_more_info(projid, likelihood, impact, level) {
-	$.ajax({
-		type: 'get',
-		url: 'ajax/risk/index',
-		data: {
-			get_risk_more_info: 1,
-			projid: projid,
-			likelihood: likelihood,
-			impact: impact, 
-			level: level
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#risks_details').html(data.risk_more_details_body);
-		}
-	});
-}
-
-function issue_more_info(projid, issueid) {
-	$.ajax({
-		type: 'get',
-		url: 'ajax/issuesandrisks/index',
-		data: {
-			get_issue_more_details: 1,
-			projid: projid,
-			issueid: issueid
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#issue_details').html(data.issue_more_info_body);
-		}
-	});
-}
-
-
-function monitoredrisks(riskid) {
-	var clicked = $("#clicked").val();
-	if ( clicked == 0 ){
-		$("." + riskid).show();
-		clicks = clicked + 1;
-	}else{
-		$("." + riskid).hide();
-		clicks = clicked - 1;
-	}
-	
-	$('#clicked').val(clicks);
-};
-
-function category_risks() {
-	var cat_id = $("#risk_category").val();	
-	$.ajax({
-		type: 'get',
-		url: 'ajax/risk/index',
-		data: {
-			get_category_risks: 1,
-			cat_id: cat_id
-		},
-		dataType: "json",
-		success: function(data) {
-			$('#risk_id').html(data.category_risks);
-		}
-	});
-}

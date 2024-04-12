@@ -3,19 +3,6 @@ require('includes/head.php');
 if ($permission) {
     try {
 
-        $status_array = array(
-            'all' => array("status" => ''),
-            'complete' => array("status" => 5),
-            'on-track' => array("status" => 4),
-            'pending' => array("status" => 3),
-            'behind-schedule' => array("status" => 11),
-            'awaiting-procurement' => array("status" => 1),
-            'on-hold' => array("status" => 6),
-            'cancelled' => array("status" => 2),
-        );
-
-        // include_once('./includes/dashboard-functions.php');
-
         $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
         $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
         $financial_year_from = $financial_year_to = $level_one_id = $level_two_id = '';
@@ -23,6 +10,7 @@ if ($permission) {
         {
             global $user_designation, $user_department, $user_section, $user_directorate;
             $access_level = "";
+
             if (($user_designation < 5)) {
                 $access_level = "";
             } elseif ($user_designation == 5) {
@@ -34,33 +22,7 @@ if ($permission) {
             }
             return $access_level;
         }
-
-        function get_financial_from_years($financial_year_from)
-        {
-            global $db;
-            $financial_years = '';
-            $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year");
-            $projfy->execute();
-            while ($row = $projfy->fetch()) {
-                $selected = $row['id'] == $financial_year_from ? "selected" : "";
-                $financial_years .= '<option value="' . $row['id'] . '" ' . $selected . '>' . $row['year'] . '</option>';
-            }
-            return $financial_years;
-        }
-
-        function get_financial_to_years($financial_year_from, $financial_year_to)
-        {
-            global $db;
-            $projfy = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id >= :financial_year_from");
-            $projfy->execute(array(":financial_year_from" => $financial_year_from));
-            $financial_years = "";
-            while ($row = $projfy->fetch()) {
-                $selected = $row['id'] == $financial_year_to ? "selected" : "";
-                $financial_years .= '<option value="' . $row['id'] . '" ' . $selected . '>' . $row['year'] . '</option>';
-            }
-
-            return $financial_years;
-        }
+        $access_level = get_access_level();
 
         function departments()
         {
@@ -76,22 +38,6 @@ if ($permission) {
                 }
             }
             return json_encode($departments);
-        }
-
-        function get_subcounty($sector_id)
-        {
-            global $db;
-            $query_rsComm = $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY state ASC");
-            $query_rsComm->execute();
-            $totalRows_rsComm = $query_rsComm->rowCount();
-            $sectors = '';
-            if ($totalRows_rsComm > 0) {
-                while ($row_rsComm = $query_rsComm->fetch()) {
-                    $selected = $row_rsComm['id'] == $sector_id ? "selected" : "";
-                    $sectors .= '<option value="' . $row_rsComm['stid'] . '" ' . $selected . '>' . $row_rsComm['sector'] . '</option>';
-                }
-            }
-            return $sectors;
         }
 
         function get_level_one($level_one_id)
@@ -123,19 +69,6 @@ if ($permission) {
                 }
             }
             return $level_ones;
-        }
-
-        function get_level_two($level_one_id, $level_two_id)
-        {
-            global $db;
-            $projward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:level_one_id ORDER BY state ASC");
-            $projward->execute(array(":level_one_id" => $level_one_id));
-            $level_two_locations = '';
-            while ($row = $projward->fetch()) {
-                $selected = $row['id'] == $level_two_id ? "selected" : "";
-                $level_two_locations .= '<option value="' . $row['id'] . '" ' . $selected . '>' . $row['state'] . '</option>';
-            }
-            return $level_two_locations;
         }
 
         function project_cost_vs_department_distribution($where)
@@ -263,7 +196,6 @@ if ($permission) {
             $data_no_arr .= ']';
             return $data_no_arr;
         }
-
 
         function get_risk_levels()
         {
@@ -526,47 +458,29 @@ if ($permission) {
             return array("financial_years" => $financial_years, "years" => $years);
         }
 
-        function widgets($where, $level_one_id, $level_two_id)
+        function widgets($stage)
         {
-            global $status_array, $db;
-            $widgets = array();
-            foreach ($status_array as $key => $project_status) {
-                $status = $project_status['status'];
-                $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 and p.deleted = '0' $where ");
-                if ($status != '') {
-                    $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 and p.deleted = '0' AND p.projstatus='$status' $where ");
-                }
-                $query_rsprojects->execute();
-                $allprojects = $query_rsprojects->rowCount();
-
-                if ($allprojects > 0) {
-                    if ($level_one_id != null) {
-                        $count_projects = 0;
-                        while ($row_projects = $query_rsprojects->fetch()) {
-                            $projcommunity = explode(",", $row_projects['projcommunity']);
-                            $projlga = explode(",", $row_projects['projlga']);
-                            if ($level_two_id != null) {
-                                $count_projects += (in_array($level_two_id, $projlga)) ?  1 : 0;
-                            } else {
-                                $count_projects += (in_array($level_one_id, $projcommunity)) ? 1 : 0;
-                            }
-                        }
-                        $widgets[$key] = $count_projects;
-                    } else {
-                        $widgets[$key] = $allprojects;
-                    }
-                } else {
-                    $widgets[$key] = 0;
-                }
+            global $db, $access_level;
+            $where = "";
+            if ($stage == 1) {
+                $where = "p.projstage=0";
+            } else if ($stage == 2) {
+                $where = "p.projstage >= 1 AND p.projstage < 8";
+            } else if ($stage == 3) {
+                $where = "p.projstage >= 8 AND p.projstage <= 9";
+            } else if ($stage == 4) {
+                $where = "p.projstage = 10";
             }
-            return $widgets;
+            $where .= $access_level;
+            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE  $where ");
+            $query_rsprojects->execute();
+            $allprojects = $query_rsprojects->rowCount();
+            return $allprojects;
         }
 
         $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
         $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
         $financial_year_from = $financial_year_to = $level_one_id = $level_two_id = '';
-        $widget_data = widgets("", null, null);
-        $access_level = get_access_level();
         $budget_data =  project_cost_vs_department_distribution($access_level);
         $tender_cost = projects_cost_vs_tender_category($access_level);
         $tender_projects = projects_vs_tender_category($access_level);
@@ -585,217 +499,151 @@ if ($permission) {
         $budget_expenditure = budget_vs_expenditure_per_year();
         $totalannualbdg = json_encode($budget_expenditure['totalannualbdg']);
         $totalannualexp = json_encode($budget_expenditure['totalannualexp']);
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+
 ?>
-    <style>
-        .highcharts-figure,
-        .highcharts-data-table table {
-            min-width: 310px;
-            max-width: 800px;
-            margin: 1em auto;
-        }
+        <style>
+            .highcharts-figure,
+            .highcharts-data-table table {
+                min-width: 310px;
+                max-width: 800px;
+                margin: 1em auto;
+            }
 
-        .highcharts-data-table table {
-            font-family: Verdana, sans-serif;
-            border-collapse: collapse;
-            border: 1px solid #ebebeb;
-            margin: 10px auto;
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
-        }
+            .highcharts-data-table table {
+                font-family: Verdana, sans-serif;
+                border-collapse: collapse;
+                border: 1px solid #ebebeb;
+                margin: 10px auto;
+                text-align: center;
+                width: 100%;
+                max-width: 500px;
+            }
 
-        .highcharts-data-table caption {
-            padding: 1em 0;
-            font-size: 1.2em;
-            color: #555;
-        }
+            .highcharts-data-table caption {
+                padding: 1em 0;
+                font-size: 1.2em;
+                color: #555;
+            }
 
-        .highcharts-data-table th {
-            font-weight: 600;
-            padding: 0.5em;
-        }
+            .highcharts-data-table th {
+                font-weight: 600;
+                padding: 0.5em;
+            }
 
-        .highcharts-data-table td,
-        .highcharts-data-table th,
-        .highcharts-data-table caption {
-            padding: 0.5em;
-        }
+            .highcharts-data-table td,
+            .highcharts-data-table th,
+            .highcharts-data-table caption {
+                padding: 0.5em;
+            }
 
-        .highcharts-data-table thead tr,
-        .highcharts-data-table tr:nth-child(even) {
-            background: #f8f8f8;
-        }
+            .highcharts-data-table thead tr,
+            .highcharts-data-table tr:nth-child(even) {
+                background: #f8f8f8;
+            }
 
-        .highcharts-data-table tr:hover {
-            background: #f1f7ff;
-        } 
-    </style>
-    <!-- Morris Chart Css-->
-    <link href="projtrac-dashboard/plugins/morrisjs/morris.css" rel="stylesheet" />
-    <link rel="stylesheet" href="assets/custom css/dashboard.css">
+            .highcharts-data-table tr:hover {
+                background: #f1f7ff;
+            }
+        </style>
+        <!-- Morris Chart Css-->
+        <link href="projtrac-dashboard/plugins/morrisjs/morris.css" rel="stylesheet" />
+        <link rel="stylesheet" href="assets/custom css/dashboard.css">
 
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?= $pageTitle ?>
-                    <?php
-                    // var_dump($issue_status);
-                    ?>
-                    <div class="btn-group" style="float:right">
+        <!-- start body  -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <?= $icon ?>
+                        <?= $pageTitle ?>
+                        <?php
+                        // var_dump($issue_status);
+                        ?>
                         <div class="btn-group" style="float:right">
+                            <div class="btn-group" style="float:right">
+                            </div>
                         </div>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- ============================================================== -->
-                            <!-- Start Page Content -->
-                            <!-- ============================================================== -->
-                            <div class="card" style="margin-bottom:10px">
-                                <div class="header">
-                                    <h2>Projects Status</h2>
-                                    <div class="row clearfix" style="margin-bottom:-20px">
-                                        <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="">
-                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-                                                <select name="financial_year_from_id" id="financial_year_from_id" onchange="get_to_financial_years()" class="form-control show-tick " data-live-search="true" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
-                                                    <option value="" selected="selected">Select Financial Year From</option>
-                                                    <?= get_financial_from_years($financial_year_from) ?>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-                                                <select name="financial_year_to_id" id="financial_year_to_id" onchange="get_project_details()" class="form-control show-tick" data-live-search="false" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
-                                                    <option value="" selected="selected">Select To Financial Year</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-                                                <select name="level_one_id" id="level_one_id" onchange="get_level_two()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="true">
-                                                    <option value="">Select <?= $level1label ?></option>
-                                                    <?= get_level_one($level_one_id) ?>
-                                                </select>
-                                            </div>
-                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
-                                                <select name="level_two_id" id="level_two_id" class="form-control show-tick " onchange="get_project_details()" style="border:#CCC thin solid; border-radius:5px;" data-live-search="true">
-                                                    <option value="">Select <?= $level2label ?></option>
-                                                </select>
-                                            </div>
-                                        </form>
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="body">
+                                <!-- ============================================================== -->
+                                <!-- Start Page Content -->
+                                <!-- ============================================================== -->
+                                <div class="card" style="margin-bottom:10px">
+                                    <div class="header">
+                                        <h2>Projects Status</h2>
+                                        <div class="row clearfix" style="margin-bottom:-20px">
+                                            <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="">
+                                                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                                    <select name="level_one_id" id="level_one_id" onchange="get_level_two()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="true">
+                                                        <option value="">Select <?= $level1label ?></option>
+                                                        <?= get_level_one($level_one_id) ?>
+                                                    </select>
+                                                </div>
+                                                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                                    <select name="level_two_id" id="level_two_id" class="form-control show-tick " onchange="get_project_details()" style="border:#CCC thin solid; border-radius:5px;" data-live-search="true">
+                                                        <option value="">Select <?= $level2label ?></option>
+                                                    </select>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="body">
-                                    <!-- Widgets -->
-                                    <div class="row clearfix">
+                                    <div class="body">
+                                        <!-- Widgets -->
                                         <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href="view-dashboard-projects.php?prjstatus=all&<?php echo $allprojectsurl; ?>" id="total_link">
-                                                <div class="info-box bg-deep-purple hover-expand-effect">
+                                            <a href='view-dashboard-projects.php?stage=1&<?php echo $allprojectsurl; ?>' id="stage_one">
+                                                <div class="info-box bg-grey hover-expand-effect">
                                                     <div class="icon">
-                                                        <i class="material-icons">playlist_add_check</i>
+                                                        <i class="material-icons">hourglass_empty</i>
                                                     </div>
                                                     <div class="content">
-                                                        <div class="text" style="font-size:16px;">Total</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['all']; ?>" data-speed="1000" data-fresh-interval="20" id="total"><?php echo $widget_data['all']; ?></div>
+                                                        <div class="text" style="font-size:13px;">Pre-Investment</div>
+                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(1); ?>" data-speed="1000" data-fresh-interval="20" id="pre_investment"><?php echo widgets(1); ?></div>
                                                     </div>
                                                 </div>
                                             </a>
                                         </div>
                                         <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=complete&<?php echo $allprojectsurl; ?>' id="complete_link">
+                                            <a href="view-dashboard-projects.php?stage=2&<?php echo $allprojectsurl; ?>" id="stage_two">
+                                                <div class="info-box bg-brown hover-expand-effect">
+                                                    <div class="icon">
+                                                        <i class="material-icons">report_problem</i>
+                                                    </div>
+                                                    <div class="content">
+                                                        <div class="text" style="font-size:16px;">Planned</div>
+                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(2); ?>" data-speed="1000" data-fresh-interval="20" id="planned"><?php echo widgets(2); ?></div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                            <a href='view-dashboard-projects.php?stage=3&<?php echo $allprojectsurl; ?>' id="stage_three">
+                                                <div class="info-box bg-blue hover-expand-effect">
+                                                    <div class="icon">
+                                                        <i class="material-icons">timeline</i>
+                                                    </div>
+                                                    <div class="content">
+                                                        <div class="text" style="font-size:16px;">On-Going</div>
+                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(3); ?>" data-speed="1000" data-fresh-interval="20" id="ongoing"><?php echo widgets(3); ?></div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                            <a href='view-dashboard-projects.php?prjstatus=complete&<?php echo $allprojectsurl; ?>' id="stage_four">
                                                 <div class="info-box bg-light-green hover-expand-effect">
                                                     <div class="icon">
                                                         <i class="material-icons">verified_user</i>
                                                     </div>
                                                     <div class="content">
                                                         <div class="text" style="font-size:16px;">Completed</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['complete']; ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo $widget_data['complete']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=on-track&<?php echo $allprojectsurl; ?>' id="on_track_link">
-                                                <div class="info-box bg-blue hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">timeline</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">On-Track</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['on-track']; ?>" data-speed="1000" data-fresh-interval="20" id="on_track"><?php echo $widget_data['on-track']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=pending&<?php echo $allprojectsurl; ?>' id="pending_link">
-                                                <div class="info-box bg-orange hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">schedule</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">Pending</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['pending']; ?>" data-speed="1000" data-fresh-interval="20" id="pending"><?php echo $widget_data['pending']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=behind-schedule&<?php echo $allprojectsurl; ?>' id="behind_schedule_link">
-                                                <div class="info-box bg-red hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">help</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">Behind Schedule</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['behind-schedule']; ?>" data-speed="1000" data-fresh-interval="20" id="behind_schedule"><?php echo $widget_data['behind-schedule']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=awaiting-procurement&<?php echo $allprojectsurl; ?>' id="awaiting_procurement_link">
-                                                <div class="info-box bg-grey hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">hourglass_empty</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:13px;">Awaiting Procurement</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['awaiting-procurement']; ?>" data-speed="1000" data-fresh-interval="20" id="awaiting_procurement"><?php echo $widget_data['awaiting-procurement']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href="view-dashboard-projects.php?prjstatus=on-hold&<?php echo $allprojectsurl; ?>" id="on_hold_link">
-                                                <div class="info-box bg-pink hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">pan_tool</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">On-Hold</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['on-hold']; ?>" data-speed="1000" data-fresh-interval="20" id="on_hold"><?php echo $widget_data['on-hold']; ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href="view-dashboard-projects.php?prjstatus=cancelled&<?php echo $allprojectsurl; ?>" id="cancelled_link">
-                                                <div class="info-box bg-brown hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">report_problem</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">Cancelled</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo $widget_data['cancelled']; ?>" data-speed="1000" data-fresh-interval="20" id="cancelled"><?php echo $widget_data['cancelled']; ?></div>
+                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(4); ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo widgets(4); ?></div>
                                                     </div>
                                                 </div>
                                             </a>
@@ -896,7 +744,20 @@ if ($permission) {
                                     </div>
                                 </div>
                                 <!-- #END# Bar Chart -->
+                                <!-- Bar Chart -->
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div class="card" style="margin-bottom:-10px">
+                                        <div class="header">
+                                            <h2 style="margin:5px">Projects Contract Guarantees</h2>
+                                        </div>
+                                        <div class="body">
+                                            <div id="project_contract_guarantees" style="width: 100%; height: 400px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- #END# Bar Chart -->
                             </div>
+
                             <!-- ============================================================== -->
                             <!-- End PAge Content -->
                             <!-- ============================================================== -->
@@ -904,30 +765,34 @@ if ($permission) {
                     </div>
                 </div>
             </div>
-    </section>
-    <!-- end body  -->
+        </section>
+        <!-- end body  -->
 
-    <!-- Chart JS -->
-    <script src="assets/plugins/echarts/echarts-all.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
+        <!-- Chart JS -->
+        <script src="assets/plugins/echarts/echarts-all.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
 
-    <!-- ChartJs -->
-    <script src="projtrac-dashboard/plugins/chartjs/Chart.bundle.js"></script>
+        <!-- ChartJs -->
+        <script src="projtrac-dashboard/plugins/chartjs/Chart.bundle.js"></script>
 
-    <!-- Sparkline Chart Plugin Js -->
-    <script src="projtrac-dashboard/plugins/jquery-sparkline/jquery.sparkline.js"></script>
-    <script src="https://www.gstatic.com/charts/loader.js"></script>
+        <!-- Sparkline Chart Plugin Js -->
+        <script src="projtrac-dashboard/plugins/jquery-sparkline/jquery.sparkline.js"></script>
+        <script src="https://www.gstatic.com/charts/loader.js"></script>
 
-    <!-- Morris Plugin Js -->
-    <script src="projtrac-dashboard/plugins/raphael/raphael.min.js"></script>
+        <!-- Morris Plugin Js -->
+        <script src="projtrac-dashboard/plugins/raphael/raphael.min.js"></script>
 
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+        <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/modules/export-data.js"></script>
+        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+        <script src="https://code.highcharts.com/modules/heatmap.js"></script>
 
 <?php
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+        var_dump($ex);
+    }
 } else {
     $results =  restriction();
     echo $results;
@@ -954,3 +819,5 @@ require('includes/footer.php');
     let tender_projects = <?= $tender_projects ?>;
     let tender_cost = <?= $tender_cost ?>;
 </script>
+
+project_contract_guarantees

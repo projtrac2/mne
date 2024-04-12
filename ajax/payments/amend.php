@@ -129,11 +129,6 @@ try {
                         <input type="hidden" name="subtotal_amount[]" id="subtotal_amount' . $counter . '" class="subamount sub" value="' . $subtotal_cost . '">
                         <span id="subtotal_cost' . $counter . '" style="color:red">' . number_format($subtotal_cost, 2) . '</span>
                     </td>
-                    <td>
-                        <button type="button" class="btn btn-danger btn-sm" id="delete" onclick="delete_budget_costline(\'budget_line_cost_line' . $counter . '\', \'\')">
-                            <span class="glyphicon glyphicon-minus"></span>
-                        </button>
-                    </td>
                 </tr>';
             }
         }

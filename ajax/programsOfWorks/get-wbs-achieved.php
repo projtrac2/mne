@@ -24,7 +24,7 @@ function index($duration, $start_year)
     }
 
     $quarterly = [];
-
+        
     // get end date
     $l = $annually[count($annually) - 1][1][1];
     // get start date
@@ -395,7 +395,7 @@ function get_monthly_table($monthly, $site_id, $task_id, $frequency, $output_id,
                     <td style='width:5%'>$tcounter</td>
                     <td style='width:40%'>$task_name</td>
                     <td style='width:40%'>$unit_of_measure</td>";
-
+                
             for ($i = 0; $i < count($new_months); $i++) {
                 $start_date = $new_months[$i][0];
                 $end_date = $new_months[$i][1];
@@ -641,7 +641,7 @@ if (isset($_GET['get_wbs'])) {
 
     $table =
         '<div class="table-responsive">
-        <table style="width:100%" class="tables-' . $site_id . $task_id . ' table-bordered js-basic-example dataTable" id="direct_table">
+        <table style="width:100%" class="tables-'. $site_id . $task_id .' table-bordered js-basic-example dataTable" id="direct_table">
             <thead>
                 <tr>
                     <th rowspan="2">#</th>
