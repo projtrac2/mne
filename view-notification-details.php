@@ -1,17 +1,15 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
     $notification_group_id = $_GET['notification_group_id'];
     $notification_id = 0;
-    try {
         $query_rsNotification_group = $db->prepare("SELECT * FROM tbl_notification_groups  WHERE id=:notification_group_id");
         $query_rsNotification_group->execute(array(":notification_group_id" => $notification_group_id));
         $totalRows_rsNotification_group = $query_rsNotification_group->rowCount();
         $rows_rsNotification_group = $query_rsNotification_group->fetch();
         $notification_group = $rows_rsNotification_group['area'];
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -320,6 +318,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script src="assets/js/notifications/index.js"></script>

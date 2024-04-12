@@ -1,8 +1,9 @@
 <?php
+try {
+
 include 'includes/head.php';
 if ($permission) {
 
-	try {
 		$query_owner = $db->prepare("SELECT *, f.id as fnid, t.type as ftype, t.id as fid FROM tbl_financiers f inner join tbl_funding_type t ON t.id=f.type WHERE t.id=1 OR t.id=2 ORDER BY f.id ASC");
 		$query_owner->execute();
 		$totalRows_owner = $query_owner->rowCount();
@@ -10,9 +11,7 @@ if ($permission) {
 		$query_rsfinancier = $db->prepare("SELECT *, f.id as fnid, t.type as ftype, t.id as fid FROM tbl_financiers f inner join tbl_funding_type t ON t.id=f.type WHERE t.id <> 1 AND t.id <> 2 ORDER BY f.id ASC");
 		$query_rsfinancier->execute();
 		$totalRows_rsfinancier = $query_rsfinancier->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -324,6 +323,10 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

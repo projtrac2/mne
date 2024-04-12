@@ -1,4 +1,6 @@
 <?php
+try { 
+
 //include_once 'projtrac-dashboard/resource/session.php';
 
 include_once 'projtrac-dashboard/resource/Database.php';
@@ -11,7 +13,6 @@ if (!isset($_SESSION)) {
 
 require 'authentication.php';
 
-try { 
 	if (isset($_GET['indcode'])) {
 		$indcode_rsUpP = $_GET['indcode'];
 	}
@@ -102,9 +103,8 @@ try {
 	
 	
 	
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>
 

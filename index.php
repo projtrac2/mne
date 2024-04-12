@@ -5,7 +5,7 @@ include "Models/Auth.php";
 include "Models/Company.php";
 require 'Models/Email.php';
 
-try {
+
   //code...
 
 session_start();
@@ -402,8 +402,3 @@ if (isset($_POST['sign-in'])) {
 
 </html>
 
-<?php 
-} catch (\PDOException $th) {
-  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-?>

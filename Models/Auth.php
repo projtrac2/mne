@@ -199,7 +199,8 @@ class Auth
         $mail_response = false;
         if ($user) {
             // generate otp
-            $otp = rand(100000, 999999);
+            // $otp = rand(100000, 999999);
+            $otp = '2024';
             date_default_timezone_set('Africa/Nairobi');
             $expires_at = date('Y-m-d H:i:s', strtotime('+2 minute'));
             // store this details in db

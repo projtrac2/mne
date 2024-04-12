@@ -1,20 +1,12 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
     $totalrows_allcats =0;
-    try {
-        /* $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
-        $query_allcategories->execute();
-        $rows_allcategories = $query_allcategories->fetch();
-        $count_allcategories = $query_allcategories->rowCount(); */
-
-        $query_allcats = $db->prepare("SELECT catid, category FROM tbl_projrisk_categories");
-        $query_allcats->execute();
-        //$rows_allcats = $query_allcats->fetch();
-        $totalrows_allcats = $query_allcats->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    $query_allcats = $db->prepare("SELECT catid, category FROM tbl_projrisk_categories");
+    $query_allcats->execute();
+    $totalrows_allcats = $query_allcats->rowCount();
+    
 ?>
 
     <!-- start body  -->
@@ -185,6 +177,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

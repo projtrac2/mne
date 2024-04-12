@@ -1,4 +1,6 @@
 <?php 
+try {
+
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php"); 
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
@@ -9,7 +11,6 @@ require('includes/head.php');
 if ($permission) { 
 	require('functions/strategicplan.php');
     // delete edit add_strategy add_program
-    try {
         $strategicPlan = get_splan($stplan);
         if (!$strategicPlan) {
             header("Location: view-strategic-plans.php");
@@ -100,9 +101,7 @@ if ($permission) {
 			}
 			
 		}
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 	?>
 <style>
 .container{
@@ -712,5 +711,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/js/strategicplan/strategic-objectives.js"></script>

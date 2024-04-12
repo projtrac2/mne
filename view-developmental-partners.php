@@ -1,18 +1,17 @@
 <?php
+try { 
+
 $Id = 9;
 $subId =30;
  $pageName ="Developmental Partners"; 
  require('includes/head.php');
  require('includes/header.php'); 
 
-try { 
     $query_rsfinancier = $db->prepare("SELECT * FROM tbl_partners ORDER BY ptnid ASC");
     $query_rsfinancier->execute();	
     $row_rsfinancier = $query_rsfinancier->fetch();
     $totalRows_rsfinancier = $query_rsfinancier->rowCount(); 
-} catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " .$ex->getMessage());
-}   
+ 
 
 ?>
 
@@ -97,4 +96,8 @@ try {
 
 <?php
     require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}  
 ?>

@@ -1,5 +1,9 @@
  <!-- start body  -->
+<?php 
+try {
+    //code...
 
+?>
  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
      <div class="card">
          <div class="header">
@@ -140,7 +144,11 @@
      </div> <!-- /modal-dailog -->
  </div>
  <!-- End add item -->
-
+<?php 
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>
  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
  <script>
      // sweet alert notifications

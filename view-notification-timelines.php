@@ -1,8 +1,8 @@
 <?php
+    try {
 require('includes/head.php');
 if ($permission) {
     $notification_id = $_GET['notification_id'];
-    try {
         $query_rsNotifications = $db->prepare("SELECT * FROM tbl_notifications  WHERE id=:notification_id");
         $query_rsNotifications->execute(array(":notification_id" => $notification_id));
         $Rows_rsNotifications = $query_rsNotifications->fetch();
@@ -10,9 +10,7 @@ if ($permission) {
 
         $notification_group_id = $totalRows_rsNotifications > 0 ? $Rows_rsNotifications['notification_group_id'] : '';
         $notification = $totalRows_rsNotifications > 0 ? $Rows_rsNotifications['notification'] : '';
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 ?>
     <!-- start body  -->
     <section class="content">
@@ -161,6 +159,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script src="assets/js/notifications/index.js"></script>

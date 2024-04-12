@@ -1,0 +1,2 @@
+Error: [42S02] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'projtrac_webiste.setting' doesn't exist - C:\Users\peter\Documents\projtrac-work\mne\Models\Company.php:23
+Error: [42S02] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'projtrac_webiste.setting' doesn't exist - C:\Users\peter\Documents\projtrac-work\mne\Models\Company.php:23

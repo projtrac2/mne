@@ -14,7 +14,29 @@ $(document).ready(function () {
 
    google.charts.setOnLoadCallback(drawChart);
    google.charts.setOnLoadCallback(chartdraw);
+   google.charts.setOnLoadCallback(chartdraws);
+
 });
+
+function chartdraws() {
+   var guarantees_data = google.visualization.arrayToDataTable([
+      ['Contract Guarantees', 'Amount'],
+      ['Expired', contract_guarantees_expired],
+      ['Expiring', contract_guarantees_expiring],
+      ['Healthy',  contract_guarantees_healthy],
+  ]);
+   var options = {
+       title: 'Contract guarantees (Percentage)',
+       is3D: true,
+       slices: {
+         0: { color: 'red' },
+         1: { color: 'orange' },
+         2: { color: 'green' },
+       }
+   };
+   var chart = new google.visualization.PieChart(document.getElementById('proj_guarantees'));
+   return chart.draw(guarantees_data, options);
+}
 
 // get financial year to
 function get_to_financial_years() {

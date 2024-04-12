@@ -1,4 +1,5 @@
 <?php
+try {
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : "";
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $spid = $stplanid_array[1];
@@ -6,13 +7,10 @@ $stplan = $stplanid_array[1];
 $stplane = $_GET['plan'];
 require('includes/head.php');
 if ($permission) {
-    try {
         $sql = $db->prepare("SELECT * FROM `tbl_programs` WHERE program_type=1 AND strategic_plan =:spid ORDER BY `syear`,`progid` ASC");
         $sql->execute(array(":spid" => $spid));
         $rows_count = $sql->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -236,5 +234,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/js/programs/view-programs.js"></script> 

@@ -389,6 +389,47 @@ if ($permission) {
         $currfinyear = $current_year . "/" . $nextyear;
         $prevfinyear = $last_year . "/" . $current_year;
 
+        function contractGuarantees() 
+        {
+            global $db;
+            $guarantees_expired = [];
+            $guarantees_expiring = [];
+            $guarantees_healthy = [];
+            $guarantees_stmt = $db->prepare('SELECT * FROM tbl_contract_guarantees');
+            $guarantees_stmt->execute();
+            $guarantees_obj = $guarantees_stmt->fetchAll(PDO::FETCH_OBJ);
+
+            foreach ($guarantees_obj as $key => $guarantee) {
+                $start_date = $guarantee->start_date;
+                $end_date = date('Y-m-d', strtotime("+$guarantee->duration days", strtotime($start_date)));
+                $today = date('Y-m-d');
+                $thirty_days = date('Y-m-d', strtotime("+30 days", strtotime($today)));
+                // expired
+                if ($today >= $end_date) {
+                    array_push($guarantees_expired, $guarantee);
+                }
+                // expiring
+
+                $date_differences = date_diff(date_create($end_date), date_create($thirty_days));
+                $is_expiring = (int) $date_differences->format("%a");
+                if ($is_expiring <= 30) {
+                    array_push($guarantees_expiring, $guarantee);
+                }
+                // healthy
+                $end_date = date('Y-m-d', strtotime("+$guarantee->duration days", strtotime($start_date)));
+                $date_difference = date_diff(date_create($end_date), date_create($thirty_days));
+                $is_healthy = (int) $date_difference->format("%a");
+                if ($is_healthy >= 30 && $today <= $end_date) {
+                    array_push($guarantees_healthy, $guarantee);
+                }
+            }
+
+            return [
+                'expired' => count($guarantees_expired), 
+                'expiring' => count($guarantees_expiring),
+                'healthy' => count($guarantees_healthy)
+            ];
+        }
 
         function current_financial_year($currentfinyear)
         {
@@ -586,7 +627,11 @@ if ($permission) {
         $budget_expenditure = budget_vs_expenditure_per_year();
         $totalannualbdg = json_encode($budget_expenditure['totalannualbdg']);
         $totalannualexp = json_encode($budget_expenditure['totalannualexp']);
-    
+
+        $contract_guarantees = contractGuarantees();
+        $contract_guarantees_expired = $contract_guarantees['expired'];
+        $contract_guarantees_expiring = $contract_guarantees['expiring'];
+        $contract_guarantees_healthy = $contract_guarantees['healthy'];
 ?>
     <style>
         .highcharts-figure,
@@ -895,6 +940,17 @@ if ($permission) {
                                     </div>
                                 </div>
                                 <!-- #END# Bar Chart -->
+
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                    <div class="card" style="margin-bottom:-10px">
+                                        <div class="header">
+                                            <h2 style="margin:5px">Projects Guarantees</h2>
+                                        </div>
+                                        <div class="body">
+                                            <div id="proj_guarantees" style="width:100%; height:400px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <!-- ============================================================== -->
                             <!-- End PAge Content -->
@@ -925,7 +981,6 @@ if ($permission) {
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <script src="https://code.highcharts.com/modules/heatmap.js"></script>
-
 <?php
 } else {
     $results =  restriction();
@@ -955,4 +1010,14 @@ require('includes/footer.php');
     let issue_status = <?= $issue_status ?>;
     let tender_projects = <?= $tender_projects ?>;
     let tender_cost = <?= $tender_cost ?>;
+
+    
+
+    let contract_guarantees_expired = Number(<?= $contract_guarantees_expired ?>);
+    let contract_guarantees_expiring = Number(<?= $contract_guarantees_expiring ?>);
+    let contract_guarantees_healthy = Number(<?= $contract_guarantees_healthy ?>);
+    
+    
+
+
 </script>

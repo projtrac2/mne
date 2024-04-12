@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 require('includes/head.php');
 require('functions/indicator.php');
 require('functions/department.php');
@@ -120,6 +123,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script src="assets/js/notifications/index.js"></script>

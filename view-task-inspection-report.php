@@ -1,8 +1,8 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
     $pageTitle = "Task Inspection Report";
-    try {
         $task_name = $projname = $projcode = $projstatus = $locationName = '';
         if (isset($_GET['task_id'])) {
             $task_id = base64_decode(htmlspecialchars(trim($_GET['task_id'])));
@@ -23,9 +23,7 @@ if ($permission) {
                 $projcode = $row_rsTPList['projcode'];
             }
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
 
     <!-- start body  -->
@@ -277,4 +275,8 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

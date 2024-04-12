@@ -1,4 +1,5 @@
 <?php
+try {
 $decode_objid = (isset($_GET['obj']) && !empty($_GET["obj"])) ? base64_decode($_GET['obj']) : header("Location: view-strategic-plan-objectives.php?obj=" . $_GET['obj']);
 $objid_array = explode("obj321", $decode_objid);
 $objid = $objid_array[1];
@@ -6,12 +7,9 @@ $obj = $_GET['obj'];
 require('includes/head.php');
 if ($permission) {
     require('functions/programs.php');
-    try {
         $strategic_plan_programs = get_programs(3, $objid);
         $total_strategic_plan_programs = ($strategic_plan_programs) ? count($strategic_plan_programs) : 0;
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 ?>
     <style>
         .modal-lg {
@@ -159,5 +157,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?> 
 <script src="assets/js/programs/view-programs.js"></script> 

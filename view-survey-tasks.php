@@ -1,7 +1,7 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
-	try {
 		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$progid = $_GET["prg"];
 		}
@@ -46,10 +46,7 @@ if ($permission) {
 		$query_rsRiskCategories->execute();
 		$row_rsRiskCategories = $query_rsRiskCategories->fetch();
 		$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
-	} catch (PDOException $ex) {
-		// $result = flashMessage("An error occurred: " .$ex->getMessage());
-		print($ex->getMessage());
-	}
+	
 ?>
 	<style>
 		.modal-lg {
@@ -236,6 +233,11 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 <script src="general-settings/js/fecth-selected-baseline-tasks-items.js"></script>
 <script type="text/javascript">
