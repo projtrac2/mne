@@ -18,11 +18,13 @@ $(document).ready(function () {
 
 });
 
+
+
 function chartdraws() {
    var guarantees_data = google.visualization.arrayToDataTable([
       ['Contract Guarantees', 'Amount'],
       ['Expired', contract_guarantees_expired],
-      ['Expiring', contract_guarantees_expiring],
+      ['About to expire', contract_guarantees_expiring],
       ['Healthy',  contract_guarantees_healthy],
   ]);
    var options = {
@@ -34,7 +36,18 @@ function chartdraws() {
          2: { color: 'green' },
        }
    };
+
+   function selectHandler() {
+      var selectedItem = chart.getSelection()[0];
+      if (selectedItem) {
+         var topping = guarantees_data.getValue(selectedItem.row, 0);
+         window.location.href = `/guarantees-chart-selection.php?data=${topping}`;
+      }
+   }
+
+   
    var chart = new google.visualization.PieChart(document.getElementById('proj_guarantees'));
+   google.visualization.events.addListener(chart, 'select', selectHandler);
    return chart.draw(guarantees_data, options);
 }
 
