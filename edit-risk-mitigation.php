@@ -1,9 +1,10 @@
 <?php
+try {
+
 $mtid = (isset($_GET['mtid'])) ? base64_decode($_GET['mtid']) : "";
 require('includes/head.php');
 if ($permission) { 
 
-try {
     $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
     $query_allcategories->execute();
     $rows_allcategories = $query_allcategories->fetch();
@@ -61,9 +62,7 @@ try {
 
         echo $results;
     }
-} catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-}
+
 ?>
 
 <!-- start body  -->
@@ -141,6 +140,8 @@ try {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>

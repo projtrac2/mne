@@ -1,9 +1,10 @@
 <?php
+try {
+
 require 'PHPMailer/PHPMailerAutoload.php';
 
 $mail = new PHPMailer;
 
-try {
     //Server settings
     //$mail->SMTPDebug = 2;                                       // Enable verbose debug output
     $mail->isSMTP();                                            // Set mailer to use SMTP
@@ -43,6 +44,6 @@ try {
 
     $mail->send();
     //echo 'Message has been sent';
-} catch (Exception $e) {
-    echo "Message could not be sent. Mailer Error:" .$ex->getMessage();
+} catch (Exception $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

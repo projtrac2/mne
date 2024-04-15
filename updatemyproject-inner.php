@@ -1,3 +1,8 @@
+<?php 
+try {
+	//code...
+
+?>
 <div class="body" style="margin-top:5px">
 	<div class="stepwizard">
 		<div class="stepwizard-row setup-panel">
@@ -784,6 +789,14 @@
 		</fieldset>
 	</form>
 </div>
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>
+
+
+
 <script>
 $(document).ready(function () {
     $("#form").validate({

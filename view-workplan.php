@@ -1,7 +1,8 @@
 <?php
+	try {
+
 require('includes/head.php');
 if ($permission) {
-	try {
 		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$progid = $_GET["prg"];
 		}
@@ -34,9 +35,7 @@ if ($permission) {
 		$query_rsRiskCategories->execute();
 		$row_rsRiskCategories = $query_rsRiskCategories->fetch();
 		$totalRows_rsRiskCategories = $query_rsRiskCategories->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -125,5 +124,9 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/custom js/fetch-workplan.js"></script>

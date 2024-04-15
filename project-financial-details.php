@@ -1,7 +1,8 @@
 <?php
+try {
+
 require 'authentication.php';
 
-try {
 	if (isset($_GET['projid'])) {
 		$myprojectid_rsMyP = $_GET['projid'];
 	}
@@ -208,10 +209,7 @@ try {
 		}
 	}
 	$queryString_rsMyP = sprintf("&totalRows_rsMyP=%d%s", $totalRows_rsMyP, $queryString_rsMyP);
-} catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	echo $result;
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -346,8 +344,9 @@ try {
 
 	.bar {
 		background: #CDDC39;
-		width: <?php echo $percent2; ?>%;
+		width: '<?php echo $percent2; ?>%';
 		height:24px;
+		border-radius: 0px;
 		-moz-border-radius: 0px;
 		-webkit-border-radius: 0px;
 	}
@@ -466,7 +465,7 @@ try {
 	.cornflowerblue {
 		background-color: CornflowerBlue;
 		box-shadow:inset 0px 0px 6px 2px rgba(255,255,255,.3);
-		width: <?php echo $percent2; ?>%;
+		width: '<?php echo $percent2; ?>%';
 	}
 
 	.carrot {
@@ -716,3 +715,9 @@ p { line-height: 1.5em; }
 </body>
 
 </html>
+
+<?php 
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

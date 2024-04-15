@@ -1,4 +1,6 @@
 <?php
+try {
+
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
@@ -9,7 +11,6 @@ require('includes/head.php');
 if ($permission) {
     require('functions/strategicplan.php');
     // delete edit add_strategy add_program
-    try {
         $strategicPlan = get_splan($stplan);
         if (!$strategicPlan) {
             header("Location: view-strategic-plans.php");
@@ -96,14 +97,29 @@ if ($permission) {
             } else {
                 /* $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, outcome=:outcome, indicator=:indicator, baseline=:kpibaseline, target=:target, created_by=:user, date_created=:dates WHERE id='$objid'");
 				$resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":outcome" => $outcome, ":indicator" => $indicator, ":kpibaseline" => $kpibaseline, ":target" => $outcometarget, ":user" => $user, ":dates" => $current_date)); */
-            }
-        }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
-?>
-    <style>
-        .container {
+			}
+
+		}
+
+	?>
+<style>
+.container{
+
+     margin-top:100px;
+ }
+.modal.fade .modal-bottom,
+.modal.fade .modal-left,
+.modal.fade .modal-right,
+.modal.fade .modal-top {
+    position: fixed;
+    z-index: 1055;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    max-width: 100%
+}
 
             margin-top: 100px;
         }
@@ -713,5 +729,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/js/strategicplan/strategic-objectives.js"></script>

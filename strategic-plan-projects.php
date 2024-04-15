@@ -1,13 +1,13 @@
 <?php
+	try {
 
+$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : "";
+$stplanid_array = explode("strplan1", $decode_stplanid);
+$stplan = $stplanid_array[1];
+$stplane = $_GET['plan'];
 
 require('includes/head.php');
-if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
-	$decode_stplanid =  base64_decode($_GET['plan']);
-	$stplanid_array = explode("strplan1", $decode_stplanid);
-	$stplan = $stplanid_array[1];
-	$stplane = $_GET['plan'];
-	try {
+if ($permission) {
 		// get project risks
 		$query_strategic_plan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE id=:stplan");
 		$query_strategic_plan->execute(array(":stplan" => $stplan));
@@ -48,7 +48,6 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
 
 		$source_categories = get_source_categories();
 		$partner_roles  = get_partner_roles();
-
 ?>
 		<!-- start body  -->
 		<section class="content">
@@ -313,16 +312,17 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
 		</div>
 		<!-- End Adjust Financial Year -->
 
-<?php
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+<?php 
 } else {
 	$results =  restriction();
 	echo $results;
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

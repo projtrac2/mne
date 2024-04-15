@@ -1,8 +1,8 @@
 <?php 
+try{
 
 require 'authentication.php';
 
-try{
 
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
@@ -115,10 +115,7 @@ try{
 	$row_topics = $query_topics->fetch();
 	$totalRows_topics = $query_topics->rowCount();
 	
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -479,3 +476,9 @@ try{
 </body>
 
 </html>
+
+<?php
+}catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

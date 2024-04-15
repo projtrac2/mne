@@ -1,4 +1,6 @@
 <?php
+	try {
+
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -6,7 +8,6 @@ $original_projid = $_GET['proj'];
 
 require('includes/head.php');
 if ($permission) {
-	try {
 		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -43,10 +44,7 @@ if ($permission) {
 			$planed_amount =  !is_null($row_rsDirect_cost_plan['amount']) ? $row_rsDirect_cost_plan['amount'] : 0;
 			return $planed_amount;
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
 	<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
@@ -622,6 +620,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

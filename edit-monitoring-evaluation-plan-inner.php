@@ -1,3 +1,8 @@
+<?php 
+try {
+    //code...
+
+?>
 <section class="content" style="margin-top:-20px; padding-bottom:0px">
     <div class="container-fluid">
         <div class="row clearfix" style="margin-top:10px">
@@ -570,3 +575,10 @@
     </div>
     <!-- /modal-dailog -->
 </div>
+
+<?php 
+
+} catch (\PDOException $th) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}                                                   
+?>

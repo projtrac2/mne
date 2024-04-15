@@ -1,4 +1,6 @@
 <?php
+try {
+	//code...
 
 
 	function get_project_percentage($projid)
@@ -322,3 +324,7 @@
 		}
 		return $averageprogress;
 	}
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}

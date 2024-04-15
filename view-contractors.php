@@ -1,9 +1,10 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
 
-    try {
         if ((isset($_GET["del"])) && ($_GET["del"] == "1")) {
             if (isset($_GET['ctid'])) {
                 $contrid = $_GET['ctid'];
@@ -43,9 +44,7 @@ if ($permission) {
 
         $query_rsContrList->execute();
         $totalRows_rsContrList = $query_rsContrList->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+  
 ?>
 
     <!-- start body  -->
@@ -178,4 +177,9 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>

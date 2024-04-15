@@ -1,11 +1,11 @@
 <?php
+    try {
 
 $stplan = (isset($_GET['stplan'])) ? base64_decode($_GET['stplan']) : header("Location:view-strategic-plans.php");
 $stplane = base64_encode($stplan);
 require('includes/head.php');
 require('functions/strategicplan.php');
 if ($permission) {
-    try {
         $strategicPlan = get_strategic_plan_by_id($stplan);
         if (!$strategicPlan) {
             header("Location: view-strategic-plans.php");
@@ -76,10 +76,7 @@ if ($permission) {
                 echo $results;
             }
         }
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-        echo $result;
-    }
+
 ?>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet" />
     <!-- start body  -->
@@ -223,7 +220,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>

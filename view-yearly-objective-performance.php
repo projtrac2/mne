@@ -1,4 +1,8 @@
 <?php
+
+try {
+	//code...
+
 $replacement_array = array(
 	'planlabel' => "CIDP",
 	'plan_id' => base64_encode(6),
@@ -545,6 +549,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script>
 	function remarks(indicator) {

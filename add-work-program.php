@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
 
         function get_unit_of_measure($unit)
         {
@@ -415,14 +416,14 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 } else {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 

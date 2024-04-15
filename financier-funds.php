@@ -1,9 +1,10 @@
 <?php 
+try {
+
 $pageName = "Financiers";
 require('includes/head.php');
 require('includes/header.php');
 
-try {
 	if (isset($_GET['fn'])) {
 		$hash = $_GET['fn'];
 		$decode_fndid = base64_decode($hash);
@@ -19,10 +20,7 @@ try {
 	$query_rsDonorGrant->execute(array(":fn" => $fn));
 	$row_rsDonorGrant = $query_rsDonorGrant->fetch();
 	$totalRows_rsDonorGrant = $query_rsDonorGrant->rowCount();
-} catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	print($result);
-}
+
 ?>
 
 <div class="header">
@@ -125,5 +123,8 @@ try {
 <script src="general-settings/js/fetch-funding.js"></script>
 
 <?php
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>

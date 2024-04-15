@@ -1,3 +1,8 @@
+<?php 
+try {
+	//code...
+
+?>
 		<div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader"><i class="fa fa-bar-chart" aria-hidden="true"></i> ISSUE ASSESSMENT REPORT </h4>
@@ -197,3 +202,12 @@
 				</div>
 			</div>
 		</div>
+
+<?php 
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
+
+?>

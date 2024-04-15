@@ -1,4 +1,8 @@
+<?php 
+try {
+	//code...
 
+?>
                         <div class="header">
                             <h4><i class="fa fa-list" aria-hidden="true"></i> INDICATORS REFERENCE SHEET</h4>
                         </div>
@@ -169,6 +173,14 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <!-- Start Item Delete -->
+
+<?php 
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>
 
 <!-- End add item -->
 <script src="assets/custom js/fetch-selected-indicators.js"></script> 

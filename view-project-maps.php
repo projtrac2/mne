@@ -1,7 +1,7 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
-   try {
       if (isset($_GET['projid']) && !empty($_GET['projid'])) {
          $projid  = $_GET['projid'];
          $query_rsTPList = $db->prepare("SELECT projname, projcode, projmapping FROM tbl_projects WHERE projid=:projid");
@@ -34,9 +34,7 @@ if ($permission) {
          echo $results;
          return;
       }
-   } catch (PDOException $ex) {
-      $result = flashMessage("An error occurred: " . $ex->getMessage());
-   }
+   
 ?>
    <!-- start body  -->
    <section class="content">
@@ -141,6 +139,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>
@@ -296,7 +298,6 @@ require('includes/footer.php');
       request.send(body);
    }
 
-   function doNothing() {}
 
    const static_markers = function() {
       google.maps.event.trigger(map, "resize");

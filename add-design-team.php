@@ -1,7 +1,9 @@
 <?php 
-require('includes/head.php');
+try {
+
 if ($permission) {
-    try {
+
+require('includes/head.php');
         $edit = false;
         $design_id = isset($_GET['design_id']) ? base64_decode($_GET['design_id']) : "";
         $site_id = isset($_GET['site_id']) ? base64_decode($_GET['site_id']) : "";
@@ -34,9 +36,7 @@ if ($permission) {
                 send_email($projid, $ptid, $roleid);
             }
         }
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -303,6 +303,10 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

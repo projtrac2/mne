@@ -1,4 +1,6 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
@@ -6,7 +8,6 @@ if ($permission) {
 	$month = date("m");
 	$currentYear = ($month > 6 && $month < 13) ? date("Y") : date("Y") - 1;
 
-	try {
 		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$progid = $_GET["prg"];
 		}
@@ -66,9 +67,7 @@ if ($permission) {
 		$source_categories = get_source_categories();
 		$partner_roles  = get_partner_roles();
 		$partners  = get_partners();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -860,6 +859,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 require('includes/head.php');
 $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
 if ($permission && $decode_progid != "") {
@@ -254,6 +257,9 @@ if ($permission && $decode_progid != "") {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (\PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 require('includes/footer.php');
 ?>

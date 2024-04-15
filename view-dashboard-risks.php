@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $risk_level = $_GET['risk_level'];
         $risk_impact = $_GET['impact'];
         $risk_likelihood = $_GET['likelihood'];
@@ -24,9 +25,7 @@ if ($permission) {
         $query_risk_likelihood->execute(array(":risk_likelihood" => $risk_likelihood));
         $row_risks_likelihood= $query_risk_likelihood->fetch();
 		$risk_likelihood_description = $row_risks_likelihood["description"];
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
 <style>
 .container{
@@ -241,5 +240,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/js/risk/index.js"></script>

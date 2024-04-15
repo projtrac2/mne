@@ -1,4 +1,7 @@
-<?php				
+<?php	
+try {
+	//code...
+
 				if($projectStatus =="Cancelled" || $projectStatus =="On Hold"){	
 				?>
 					<table width="98%" border="0" cellspacing="0" cellpadding="0">
@@ -131,3 +134,7 @@
 			  
 				<?php
 				}
+
+			} catch (\PDOException $th) {
+				customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+			}

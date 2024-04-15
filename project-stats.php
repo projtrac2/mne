@@ -1,8 +1,9 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		$currentPage = $_SERVER["PHP_SELF"];
 
 		$projid = $_GET['projid'];
@@ -192,10 +193,7 @@ if ($permission) {
 		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
 		$percent2 = round($prjprogress, 2);
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -334,6 +332,11 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
 ?>
 <script type="text/javascript">
 	$(document).ready(function() {

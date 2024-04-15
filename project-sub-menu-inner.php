@@ -1,4 +1,7 @@
 <?php
+try {
+    //code...
+
 $query_submenu =  $db->prepare("SELECT * FROM tbl_inner_menu WHERE parent=0 ORDER BY id ASC");
 $query_submenu->execute();		
 $count_submenu = $query_submenu->rowCount();
@@ -221,5 +224,13 @@ $count_submenu = $query_submenu->rowCount();
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <!-- End Item Delete -->
+
+<?php 
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>
 
 <script src="general-settings/js/fetch-sub-menu.js"></script>

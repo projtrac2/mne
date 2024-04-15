@@ -1,7 +1,8 @@
 <?php 
+	try {
+
 require('includes/head.php'); 
 if ($permission) {
-	try {
 
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -402,16 +403,7 @@ if ($permission) {
 				$typeName = $row_outcome['outcome'];
 			}
 		}
-	} catch (PDOException $ex) {
-
-		function flashMessage($flashMessages)
-		{
-			return $flashMessages;
-		}
-
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -565,7 +557,9 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
+} catch (PDOException $ex) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/indicator-details.js"></script>

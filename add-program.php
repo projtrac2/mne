@@ -1,4 +1,5 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
     $decode_stplanid =   base64_decode($_GET['plan']);
@@ -203,6 +204,9 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

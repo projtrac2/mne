@@ -1,4 +1,7 @@
-    <section class="content" style="margin-top:-20px; padding-bottom:0px">
+<?php 
+try {
+?>
+	<section class="content" style="margin-top:-20px; padding-bottom:0px">
         <div class="container-fluid">
             <div class="block-header">          
 				<h4>      
@@ -38,7 +41,6 @@
 								<?php } ?>
 								<?php //if($totalRows_rsTender == 0 && $projcategory == '2'){?>
 									<!--<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px;  margin-left:-9px">Funding</a>
-									<?php// }else{?>
 									<a href="myprojectfunding?projid=<?php //echo $row_rsMyP['projid']; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Funding</a>-->
 								<?php //} ?>
 								<?php if($totalRows_rsTender == 0 && $projcategory == '2'){?>
@@ -209,3 +211,11 @@
             <!-- #END# Advanced Form Example With Validation -->
         </div>
     </section>
+
+<?php 
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

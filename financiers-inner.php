@@ -1,3 +1,8 @@
+<?php 
+try {
+	//code...
+
+?>
 		<div class="header">
 			<div style="color:#333; width:100%; height:30px; padding-top:5px; padding-left:2px">
 				<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:-3px">
@@ -108,3 +113,9 @@
 		</div>
 		<!--	</div>
 </div> -->
+
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

@@ -1,8 +1,8 @@
 <?php 
+try{
 
 require 'authentication.php';
 
-try{
 
 		
 	$query_issues = $db->prepare("SELECT tbl_projects.projid, projname, projstatus, projcommunity, projlga, projstate, count(id) AS issues FROM tbl_projissues INNER JOIN tbl_projects ON tbl_projects.projid=tbl_projissues.projid INNER JOIN tbl_projrisk_categories ON tbl_projrisk_categories.rskid=tbl_projissues.risk_category WHERE tbl_projects.deleted='0' GROUP BY tbl_projects.projid");
@@ -10,11 +10,7 @@ try{
 	$count_issues = $query_issues->rowCount();
 	
 	
-}
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -304,3 +300,13 @@ catch (PDOException $ex){
 </body>
 
 </html>
+
+<?php 
+
+}
+catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
+
+?>

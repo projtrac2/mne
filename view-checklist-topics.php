@@ -1,11 +1,13 @@
 <?php  
+    try{
+
     require('includes/head.php'); 
     require('functions/inspection.php');
-    try{
         // get al active topics 
         $topics = get_inpectection_checklist_topics(); 
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " .$ex->getMessage()); 
+    } catch (PDOException $th) {
+        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
     } 
 ?> 
 <div class="card-header">

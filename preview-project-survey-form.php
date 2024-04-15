@@ -1,8 +1,9 @@
 <?php 
+try {
+
 require('includes/head.php');
 if ($permission) {
 
-    try {
         if (isset($_GET['resultstypeid']) && !empty($_GET['resultstypeid'])) {
             $resultstype = $_GET['resultstype'];
             $encoded_resultsid = $_GET['resultstypeid'];
@@ -90,16 +91,7 @@ if ($permission) {
             }
         }
 		$pageTitle = "Survey Form Preview";
-    } catch (PDOException $ex) {
-
-        function flashMessage($flashMessages)
-        {
-            return $flashMessages;
-        }
-
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-        echo $result;
-    }
+   
 ?>
     <!-- start body  -->
     <section class="content">
@@ -304,4 +296,8 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

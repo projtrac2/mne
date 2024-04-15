@@ -1,7 +1,8 @@
 <?php
+	try {
+
 require('includes/head.php');
 if ($permission) {
-	try {
 
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -134,10 +135,7 @@ if ($permission) {
 							</script>";
 			}
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+	
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -574,6 +572,8 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>

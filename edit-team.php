@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 // if ($permission) {
-try {
     $edit = false;
     $project_team_stage = 9;
     $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : header("Location: view-mne-plan.php");
@@ -25,10 +26,7 @@ try {
         $project_sub_stage = $row_rsProjects['proj_substage'];
     }
     $approval_stage = ($sub_stage  >= 2) ? true : false;
-} catch (PDOException $ex) {
-    $result = "An error occurred: " . $ex->getMessage();
-    var_dump($result);
-}
+
 ?>
 <!-- start body  -->
 <section class="content">
@@ -432,6 +430,9 @@ try {
 //     $results =  restriction();
 //     echo $results;
 // }
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 <script>

@@ -1,4 +1,6 @@
 <?php
+try {
+	//code...
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -154,5 +156,9 @@ if(isset($_POST['rskid']) && !empty($_POST['rskid']))
 			<input type="hidden" name="projid" value="'.$projid.'"/>
 			<input type="hidden" name="issueid" value="'.$rskid.'"/>
 		</div>';
+}
+
+} catch (\Throwable $th) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

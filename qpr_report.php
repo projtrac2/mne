@@ -1,4 +1,5 @@
 <?php 
+try {
 
 //include_once 'projtrac-dashboard/resource/session.php';
 
@@ -9,7 +10,6 @@ require_once __DIR__ . '../../vendor/autoload.php';
 
 // $id = (isset($_GET['report'])) ? base64_decode($_GET['report']) : header("location:dashboard.php");
 $id = 1;
-try {
     $query_rsConclusion = $db->prepare("SELECT * FROM `tbl_qapr_report_conclusion` WHERE id='$id'");
     $query_rsConclusion->execute();
     $Rows_rsConclusion = $query_rsConclusion->fetch();
@@ -274,7 +274,7 @@ try {
     } else {
         header('location: dashboard.php');
     }
-} catch (PDOException $ex) {
+} catch (PDOException $th) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());
     echo $result;
 }

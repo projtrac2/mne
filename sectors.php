@@ -1,8 +1,9 @@
 <?php
+try {
+
 require('includes/head.php');
 
 if ($permission) {
-    try {
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
             $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -146,10 +147,7 @@ if ($permission) {
         $query_rsAllSectors = $db->prepare("SELECT stid,sector FROM tbl_sectors WHERE deleted='0' and parent='0' ORDER BY sector ASC");
         $query_rsAllSectors->execute();
         $row_rsAllSectors = $query_rsAllSectors->fetch();
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-        print($result);
-    }
+    
 ?>
 
     <!-- start body  -->
@@ -331,4 +329,9 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+
+}
 ?>

@@ -161,7 +161,7 @@ try{
 	if(isset($_POST['coststatus']) && $_POST['coststatus']==1){
 		$projid = $_POST['projid'];
 		$issueid = $_POST['issueid'];
-		$currentdate = date['Y-m-d'];
+		$currentdate = $date['Y-m-d'];
 		
 		$query_projcat =  $db->prepare("SELECT projcategory, date_updated FROM tbl_projects WHERE projid = '$projid'");
 		$query_projcat->execute();		
@@ -379,7 +379,6 @@ try{
 	}
 
 }catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

@@ -1,7 +1,8 @@
 <?php
+try {
+
     require('includes/head.php');
     if ($permission) {
-        try {
             $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
             $projid_array = explode("projrisk047", $decode_projid);
             $projid = $projid_array[1];
@@ -73,9 +74,7 @@
 					return $y;
 				}
 			}
-        } catch (PDOException $ex) {
-            $results = flashMessage("An error occurred: " . $ex->getMessage());
-        }
+       
     ?>
         <section class="content">
             <div class="container-fluid">
@@ -542,6 +541,11 @@
     }
 
     require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
     ?>
 
     <script>

@@ -1,10 +1,10 @@
 <?php
+    try {
 require('includes/head.php');
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 if ($permission) {
-    try {
         function get_unit_of_measure($unit)
         {
             global $db;
@@ -645,15 +645,17 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+  
 } else {
     $results =  restriction();
     echo $results;
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <!-- <script src="assets/js/payment/amend.js"></script> -->
 

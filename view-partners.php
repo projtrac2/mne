@@ -1,13 +1,11 @@
 <?php
+ try {
 include 'includes/head.php';
 if ($permission) {
-    try {
         $query_rspartner = $db->prepare("SELECT * FROM tbl_partners");
         $query_rspartner->execute();
         $totalRows_rspartner = $query_rspartner->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -146,6 +144,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script>
     function update_partner_status(partner_id, status_text, success, status) {

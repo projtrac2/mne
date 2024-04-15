@@ -1,8 +1,9 @@
 <?php
+    try {        
+
 require('functions/strategicplan.php');
 require('includes/head.php');
 if ($permission) {
-    try {        
 		if (isset($_GET["staff"]) && !empty($_GET["staff"])) {
 			$encoded_userid = $_GET["staff"];
 			$decode_userid = base64_decode($encoded_userid);
@@ -111,9 +112,7 @@ if ($permission) {
 		
         $query_rsOtherEMployees =  $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid<>'$ptid' AND availability=1 AND disabled=0".$level);
         $query_rsOtherEMployees->execute();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 ?>
 
     <!-- start body  -->
@@ -343,6 +342,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script type="text/javascript">

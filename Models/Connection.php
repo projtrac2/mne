@@ -1,5 +1,7 @@
 <?php
 
+
+
 class Connection
 {
    private $server = "mysql:host=localhost;dbname=mne";

@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         function get_end_year()
         {
             global $db;
@@ -57,10 +58,7 @@ if ($permission) {
                 </script>";
             }
         }
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-        echo $result;
-    }
+    
 ?>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet" />
     <!-- start body  -->
@@ -170,7 +168,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>

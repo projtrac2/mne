@@ -1,3 +1,8 @@
+<?php 
+try {
+    //code...
+
+?>
 <div class="row clearfix">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="card">
@@ -363,7 +368,7 @@
                     <div class="table-responsive">
                         <table width="100%" border="1" cellspacing="0" cellpadding="0" style="border:#EEE thin solid">
                                 <thead>
-                                    <tr id="" style="padding-left:10px background-color:light-blue">
+                                    <tr id="" style="padding-left:10px; background-color:light-blue;">
                                         <td width="3%" height="35"><div align="center"><strong id="colhead">#</strong></div></td>
                                         <td width="18%"><strong id="colhead">&nbsp;&nbsp;Full Name</strong></td>
                                         <td width="13%"><strong id="colhead">&nbsp;&nbsp;Designation</strong></td>
@@ -422,3 +427,10 @@
         </div>
     </div>
 </div>
+<?php 
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

@@ -1,22 +1,17 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
-        function get_access_level()
-        {
-            global $user_designation, $user_department, $user_section, $user_directorate;
-            $access_level = "";
-
-            if (($user_designation < 5)) {
-                $access_level = "";
-            } elseif ($user_designation == 5) {
-                $access_level = " AND g.projsector=$user_department";
-            } elseif ($user_designation == 6) {
-                $access_level = " AND g.projsector=$user_department AND g.projdept=$user_section";
-            } elseif ($user_designation > 6) {
-                $access_level = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
-            }
-            return $access_level;
+        $accesslevel = "";
+        if (($user_designation < 5)) {
+            $accesslevel = "";
+        } elseif ($user_designation == 5) {
+            $accesslevel = " AND g.projsector=$user_department";
+        } elseif ($user_designation == 6) {
+            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section";
+        } elseif ($user_designation > 6) {
+            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
         }
 
         function widgets($stage, $level_one_id, $level_two_id, $program_type)
@@ -78,7 +73,6 @@ if ($permission) {
         }
 
         $_SESSION['back_url'] = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
-
 ?>
         <!-- start body  -->
         <section class="content">
@@ -275,7 +269,7 @@ if ($permission) {
                                                                     <td width="10%" style="padding-right:0px; padding-left:0px">
                                                                         <strong> <?= "Activities"  ?></strong>
                                                                         <br />
-                                                                        <br /> 
+                                                                        <br />
                                                                         <?= $status  ?>
                                                                         <br />
                                                                         <strong>
@@ -571,16 +565,16 @@ if ($permission) {
                 </div>
             </div>
         </div>
-<?php
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-        var_dump($ex);
-    }
+<?php 
 } else {
     $results =  restriction();
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script type="text/javascript">

@@ -1,8 +1,8 @@
 <?php
-
+try {
 /**
  * @return AllRoles
- * @tables == tbl_project_team_roles
+ * @table == tbl_partner_roles
  */
 $stmt_project_roles = $db->prepare('SELECT * FROM tbl_partner_roles');
 $stmt_project_roles->execute();
@@ -173,7 +173,13 @@ foreach ($roles as $key => $role) {
         </div> <!-- /modal-dailog -->
     </div>
     <!-- End edit item -->
-<?php } ?>
+<?php 
+} 
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>
 
 <script>
     $('.save-new-btn').on('click', (e) => {

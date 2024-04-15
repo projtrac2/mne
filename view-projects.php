@@ -1,8 +1,8 @@
 <?php
+try {
 require('includes/head.php');
 
 if ($permission) {
-	try {
 
 		if (isset($_GET["progid"]) && !empty($_GET["progid"])) {
 			$progid = base64_decode($_GET["progid"]);
@@ -80,10 +80,7 @@ if ($permission) {
 		$row_strategic_plan = $query_strategic_plan->fetch();
 		$currentplan = $row_strategic_plan["plan"];
 		$currentplanid = $row_strategic_plan["id"];
-	} catch (PDOException $ex) {
-		// $result = flashMessage("An error occurred: " .$ex->getMessage());
-		print($ex->getMessage());
-	}
+	
 ?>
 	<style>
 		.modal-lg {
@@ -231,6 +228,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script type="text/javascript">
 	function CallRiskAction(id) {

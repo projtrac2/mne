@@ -1,4 +1,9 @@
-    <section class="content" style="margin-top:-20px; padding-bottom:0px">
+<?php 
+try {
+	//code...
+
+?>
+	<section class="content" style="margin-top:-20px; padding-bottom:0px">
         <div class="container-fluid">
             <div class="block-header bg-brown" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader"><i class="fa fa-columns" aria-hidden="true"></i> <font color="#CDDC39"><?=$strategicplan?></font> Strategic Plans</h4>
@@ -223,3 +228,8 @@
             <!-- #END# Advanced Form Example With Validation -->
         </div>
     </section>
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

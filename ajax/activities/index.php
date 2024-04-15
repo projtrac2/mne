@@ -352,7 +352,6 @@ try {
         $results = $sql->execute(array(':milestone_id' => $milestone_id, ":output_id" => $output_id));
         echo json_encode(array("success" => true, "milestone" => "Deleted successfully"));
     }
-} catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

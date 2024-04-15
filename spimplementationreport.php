@@ -1,6 +1,9 @@
 
 
 <?php
+try {
+    //code...
+
 $stplan = (isset($_GET['plan'])) ? $_GET['plan'] : header("Location: view-strategic-plans.php");
 
 // Require composer autoload
@@ -206,3 +209,7 @@ if ($totalRows_sector > 0) {
 $mpdf->WriteHTML($body);
 $mpdf->SetFooter('Uasin Gishu County {PAGENO}');
 $mpdf->Output();
+
+} catch (\PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+}

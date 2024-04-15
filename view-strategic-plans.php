@@ -1,9 +1,9 @@
 <?php
+try {
 require('functions/strategicplan.php');
 require('includes/head.php');
 // echo update_strategic_plan();
 if ($permission) {
-   try {
       $strategicPlans = get_strategic_plans();
       $currentPlan = get_current_strategic_plan();
       $planyrs = 1;
@@ -13,9 +13,7 @@ if ($permission) {
          $syear = $currentPlan["starting_year"];
          $eyear = $syear + $planyrs;
       }
-   } catch (PDOException $ex) {
-      $result = flashMessage("An error occurred: " . $ex->getMessage());
-   }
+   
 ?>
 
    <!-- start body  -->
@@ -160,6 +158,10 @@ if ($permission) {
    echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script>
    function delete_plan(planid) {

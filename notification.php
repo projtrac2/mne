@@ -1,4 +1,6 @@
 <?php
+try {
+    //code...
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
@@ -96,3 +98,7 @@ function update_projects_status()
     }
 }
 update_projects_status();
+
+} catch (\Exception $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}

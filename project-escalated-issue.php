@@ -1,17 +1,18 @@
 <?php
+try {
+
 $decode_issue = (isset($_GET['issue']) && !empty($_GET["issue"])) ? base64_decode($_GET['issue']) : header("Location: projects-escalated-issues");
 $issueid_array = explode("issueid254", $decode_issue);
 $issueid = $issueid_array[1];
-require('PHPMailer/PHPMailerAutoload.php');	
-require('includes/head.php'); 
+require('PHPMailer/PHPMailerAutoload.php');
+require('includes/head.php');
 
 if ($permission) {
-    try {
-		
+
 		if ((isset($_POST["issueid"])) && !empty($_POST["issueid"])) {
 			/* echo $_POST["issueid"]."; ".$_POST["projstatuschange"];
 			return; */
-			if (isset($_POST["projstatuschange"]) && $_POST["projstatuschange"] == "Continue"){	
+			if (isset($_POST["projstatuschange"]) && $_POST["projstatuschange"] == "Continue"){
 				$projissue = $_POST["issueid"];
 				$projid = $_POST["projid"];
 				$comments = $_POST["comments"];
@@ -19,10 +20,10 @@ if ($permission) {
 				$status = 1;
 				$actiondate = date("Y-m-d");
 				$changedon = date("Y-m-d H:i:s");
-				
-				$insertSQL = $db->prepare("Update tbl_projissues SET recommendation=:comments, status=:status, closed_by=:user, date_closed=:date WHERE id=:projissue");	
+
+				$insertSQL = $db->prepare("Update tbl_projissues SET recommendation=:comments, status=:status, closed_by=:user, date_closed=:date WHERE id=:projissue");
 				$results = $insertSQL->execute(array(':comments' => $comments, ':status' => $status, ':user' => $user_name, ':date' => $actiondate, ':projissue' => $projissue));
-						
+
 				if($results){
 					if(!empty($_FILES['attachment']['name'])) {
 						$filecategory = "Issue";
@@ -33,18 +34,18 @@ if ($permission) {
 						$ext = substr($filename, strrpos($filename, '.') + 1);
 						if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload")){
 							$newname=$projid."-".$projissue."-".$filename;
-							$filepath="uploads/projissue/".$newname;       
+							$filepath="uploads/projissue/".$newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
 								if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 									//successful upload
-									$fname = $newname;	
+									$fname = $newname;
 									$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 									$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-								}	
+								}
 							}
-							else{ 
+							else{
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
 									swal({
@@ -55,9 +56,9 @@ if ($permission) {
 									timer: 5000,
 									showConfirmButton: false });
 								</script>";
-							} 		  
+							}
 						}
-						else{  
+						else{
 							$msg = 'This file type is not allowed, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -68,9 +69,9 @@ if ($permission) {
 								timer: 5000,
 								showConfirmButton: false });
 							</script>";
-						}		
+						}
 					}
-					else{  
+					else{
 						$msg = 'Please attach a file and try again!!';
 						$results = "<script type=\"text/javascript\">
 							swal({
@@ -82,38 +83,38 @@ if ($permission) {
 							showConfirmButton: false });
 						</script>";
 					}
-			
+
 					$query_details =  $db->prepare("SELECT projname, i.created_by FROM tbl_projects p left join tbl_projissues i on i.projid=p.projid WHERE i.id =:projissue");
-					$query_details->execute(array(':projissue' => $projissue));		
+					$query_details->execute(array(':projissue' => $projissue));
 					$row_details = $query_details->fetch();
 					if($row_details){
 						$projectname = $row_details["projname"];
 						$owner = $row_details["created_by"];
-						
+
 						$query_userowner =  $db->prepare("SELECT fullname, tt.title AS title, t.email AS email FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title WHERE userid = :owner");
 						$query_userowner->execute(array(':owner' => $owner));
 						$row = $query_userowner->fetch();
-						
+
 						$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-						$query_url->execute();		
+						$query_url->execute();
 						$row_url = $query_url->fetch();
 						$url = $row_url["main_url"];
 						$org = $row_url["company_name"];
-						$org_email = $row_url["email_address"];													
-							
-						// Comments link back to the system 
+						$org_email = $row_url["email_address"];
+
+						// Comments link back to the system
 						$issuemessage = "The committee has decided to ignore the issue and allow the project <strong>TO CONTINUE</strong>. Please proceed to close the issue";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
 						$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
-						 
-						$receipient = $row["email"];	
-						$fullname = $row['title'].".".$row['fullname'];			
-				
+
+						$receipient = $row["email"];
+						$fullname = $row['title'].".".$row['fullname'];
+
 						$message = ' Dear ' . $fullname . ',
 						<p><br>'.$issuemessage.'</p>';
 						$title = $subject;
 						$receipientName = $fullname;
-						
+
 						include("assets/processor/email-body.php");
 						include("assets/processor/email-conf-settings.php");
 					}
@@ -142,25 +143,25 @@ if ($permission) {
 				$reason = "Project Committee Action: ".$subject;
 				$issuemessage = "The committee has decided to put the issue and the project <strong>ON HOLD</strong> based on the below reasons:";
 				//$catid =$last_id;
-				
+
 				$query_userowner =  $db->prepare("SELECT projid, userid, ptid, fullname, tt.title, t.email AS email FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title left join tbl_projissues i on i.created_by=u.userid WHERE i.id=:issueid");
 				$query_userowner->execute(array(":issueid" => $projissue));
 				$row = $query_userowner->fetch();
 				$projid = $row["projid"];
-		
+
 				$query_project =  $db->prepare("SELECT projcategory, projstatus FROM tbl_projects where projid=:projid");
-				$query_project->execute(array(":projid" => $projid));		
+				$query_project->execute(array(":projid" => $projid));
 				$row_project = $query_project->fetch();
 				$projcategory = $row_project["projcategory"];
 				$origstatus = $row_project["projstatus"];
-				
+
 				$insertquery = $db->prepare("INSERT INTO tbl_proj_status_change_reason (projid, issue_id, status, reason, created_by, date_created) VALUES (:projid, :issue_id, :status, :reason, :user, :date)");
 				$results = $insertquery->execute(array(':projid' => $projid, ':issue_id' => $projissue, ':status' => $origstatus, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-				
+
 				if($results){
 					$insertSQL = $db->prepare("INSERT INTO tbl_projissue_comments (projid, issueid, issue_status, comments, created_by, date_created) VALUES (:projid, :issueid, :issue_status, :comments, :user, :date)");
 					$insertSQL->execute(array(':projid' => $projid, ':issueid' => $projissue, ':issue_status' => $issue_status, ':comments' => $comments, ':user' => $user_name, ':date' => $actiondate));
-							
+
 					if(!empty($_FILES['attachment']['name'])) {
 						$filecategory = "Issue";
 						//Check if the file is JPEG image and it's size is less than 350Kb
@@ -169,19 +170,19 @@ if ($permission) {
 
 						if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload"))  {
 							$newname=$projid."-".$projissue."-".$filename;
-							$filepath="uploads/projissue/".$newname;       
+							$filepath="uploads/projissue/".$newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
 								if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 									//successful upload
-									$fname = $newname;	
-									
+									$fname = $newname;
+
 									$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 									$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-								}	
+								}
 							}
-							else{ 
+							else{
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
 									swal({
@@ -192,9 +193,9 @@ if ($permission) {
 									timer: 5000,
 									showConfirmButton: false });
 								</script>";
-							} 		  
+							}
 						}
-						else{  
+						else{
 							$msg = 'This file type is not allowed, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -205,49 +206,49 @@ if ($permission) {
 								timer: 5000,
 								showConfirmButton: false });
 							</script>";
-						}		
+						}
 					}
-					
+
 					$newstatus = 6;
 					$updateQuery = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus, projchangedstatus=:projchangedstatus WHERE projid=:projid");
 					$updated = $updateQuery->execute(array(':projstatus' => $newstatus, ':projchangedstatus' => $origstatus, ':projid' => $projid));
-				
-					if($assessment == 1){		
+
+					if($assessment == 1){
 						$projeval = " <br><strong>Please NOTE Issue Assessment/Evaluation is required for this project</strong>";
 					}
-				
+
 					$status = 2;
 					$insertSQL = $db->prepare("UPDATE tbl_projissues SET status = :status, assessment = :assessment WHERE projid = :projid AND id = :issueid");
 					$update_results = $insertSQL->execute(array(':status' => $status, ':assessment' => $assessment, ':projid' => $projid, ':issueid' => $projissue));
-					
+
 					$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-					$query_url->execute();		
+					$query_url->execute();
 					$row_url = $query_url->fetch();
 					$url = $row_url["main_url"];
 					$org = $row_url["company_name"];
-					$org_email = $row_url["email_address"];	
-				
+					$org_email = $row_url["email_address"];
+
 					if($update_results){
-						$owner = $row["userid"];							
-							
-						// Comments link back to the system 
+						$owner = $row["userid"];
+
+						// Comments link back to the system
 						$issuemessage = "After enough deliberation, the committee has decided to put the project <strong>ON HOLD</strong> based on the issue weight.<br>";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
 						$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">More Details</a>';
-						 
-						$receipient = $row["email"];	
-						$fullname = $row['title'].".".$row['fullname'];			
-				
+
+						$receipient = $row["email"];
+						$fullname = $row['title'].".".$row['fullname'];
+
 						$message = ' Dear ' . $fullname . ',
-						<p><br>'.$issuemessage.'</p> 
+						<p><br>'.$issuemessage.'</p>
 						<p>Please make the necessary arrangements as advised. </p>';
 						$title = $subject;
 						$receipientName = $fullname;
-						
+
 						include("assets/processor/email-body.php");
 						include("assets/processor/email-conf-settings.php");
 					}
-				
+
 					$msg = 'Project has successfully been put On Hold!!';
 					$results = "<script type=\"text/javascript\">
 						swal({
@@ -264,7 +265,7 @@ if ($permission) {
 				}
 			}
 			elseif (isset($_POST["projstatuschange"]) && $_POST["projstatuschange"] == "Cancelled"){
-					
+
 				$projissue = $_POST["issueid"];
 				$projid = $_POST["projid"];
 				$comments = $_POST["comments"];
@@ -274,19 +275,19 @@ if ($permission) {
 				$actiondate = date("Y-m-d");
 				$changedon = date("Y-m-d H:i:s");
 
-				$update_sql = $db->prepare("Update tbl_projects SET projstatus=:projstatus, updated_by=:user, date_updated=:date WHERE projid=:projid");	
+				$update_sql = $db->prepare("Update tbl_projects SET projstatus=:projstatus, updated_by=:user, date_updated=:date WHERE projid=:projid");
 				$update_results = $update_sql->execute(array(':projstatus' => $projstatus, ':user' => $user_name, ':date' => $actiondate, ':projid' => $projid));
-			
+
 				if($update_results){
 					$query_all_issues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
 					$query_all_issues->execute(array(':projid' => $projid));
-					
-					while($all_issues = $query_all_issues->fetch()){		
+
+					while($all_issues = $query_all_issues->fetch()){
 						$issue_id = $all_issues["id"];
-						$insertSQL = $db->prepare("Update tbl_projissues SET recommendation=:comments, status=:status, closed_by=:user, date_closed=:date WHERE id=:issue_id");	
+						$insertSQL = $db->prepare("Update tbl_projissues SET recommendation=:comments, status=:status, closed_by=:user, date_closed=:date WHERE id=:issue_id");
 						$results = $insertSQL->execute(array(':comments' => $comments, ':status' => $issuestatus, ':user' => $user_name, ':date' => $actiondate, ':issue_id' => $issue_id));
 					}
-					
+
 					if(!empty($_FILES['attachment']['name'])) {
 						$filecategory = "Issue";
 						$reason = "Project Committee Action: ".$subject;
@@ -295,19 +296,19 @@ if ($permission) {
 						$ext = substr($filename, strrpos($filename, '.') + 1);
 						if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload"))  {
 							$newname=$projid."-".$projissue."-".$filename;
-							$filepath="uploads/projissue/".$newname;       
+							$filepath="uploads/projissue/".$newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
 								if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 									//successful upload
-									$fname = $newname;	
-									
+									$fname = $newname;
+
 									$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 									$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-								}	
+								}
 							}
-							else{ 
+							else{
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
 									swal({
@@ -318,9 +319,9 @@ if ($permission) {
 									timer: 5000,
 									showConfirmButton: false });
 								</script>";
-							} 		  
+							}
 						}
-						else{  
+						else{
 							$msg = 'This file type is not allowed, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -333,44 +334,44 @@ if ($permission) {
 							</script>";
 						}
 					}
-					
+
 					$query_details =  $db->prepare("SELECT projname, i.created_by FROM tbl_projects p left join tbl_projissues i on i.projid=p.projid WHERE i.id =:projissue");
-					$query_details->execute(array(':projissue' => $projissue));		
+					$query_details->execute(array(':projissue' => $projissue));
 					$row_details = $query_details->fetch();
 					if($row_details){
 						$projectname = $row_details["projname"];
 						$owner = $row_details["created_by"];
-						
+
 						$query_userowner =  $db->prepare("SELECT fullname, tt.title AS title, t.email AS email FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title WHERE userid = :owner");
 						$query_userowner->execute(array(':owner' => $owner));
 						$row = $query_userowner->fetch();
-						
+
 						$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-						$query_url->execute();		
+						$query_url->execute();
 						$row_url = $query_url->fetch();
 						$url = $row_url["main_url"];
 						$org = $row_url["company_name"];
-						$org_email = $row_url["email_address"];								
-						
-						// Comments link back to the system 
+						$org_email = $row_url["email_address"];
+
+						// Comments link back to the system
 						$issuemessage = "After enough deliberation, the committee has decided to cancel the project based on the issue weight.<br>";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
-						
+
 						$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
-						 
-						$receipient = $row["email"];	
-						$fullname = $row['title'].".".$row['fullname'];			
-				
+
+						$receipient = $row["email"];
+						$fullname = $row['title'].".".$row['fullname'];
+
 						$message = ' Dear ' . $fullname . ',
-						<p><br>'.$issuemessage.'</p> 
+						<p><br>'.$issuemessage.'</p>
 						<p>Please make the necessary arrangements as advised. </p>';
 						$title = $subject;
 						$receipientName = $fullname;
-						
+
 						include("assets/processor/email-body.php");
 						include("assets/processor/email-conf-settings.php");
 					}
-					
+
 					$msg = 'Project successfully cancelled!!';
 					$results = "<script type=\"text/javascript\">
 						swal({
@@ -395,17 +396,17 @@ if ($permission) {
 				$user = $_POST["user_name"];
 				$projadjustment = $_POST["projadjustment"];
 				$actiondate = date("Y-m-d");
-				
+
 				$query_project_details =  $db->prepare("SELECT date_created FROM tbl_projissue_comments WHERE projid=:projid and issueid=:issueid");
-				$query_project_details->execute(array(":projid" => $projid, ":issueid" => $projissue));		
+				$query_project_details->execute(array(":projid" => $projid, ":issueid" => $projissue));
 				$row_project_details = $query_project_details->fetch();
 				$onhold_date = date_create($row_project_details["date_created"]);
 				$today = date_create($actiondate);
 				$diff=date_diff($onhold_date,$today);
 				$onhold_days = $diff->format("%a days");
-				
+
 				$query_project_adjustments =  $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid=:projid and issueid=:issueid");
-				$query_project_adjustments->execute(array(":projid" => $projid, ":issueid" => $projissue));		
+				$query_project_adjustments->execute(array(":projid" => $projid, ":issueid" => $projissue));
 				while($row_project_adjustments = $query_project_adjustments->fetch()){
 					$issue_area = $row_project_adjustments["issue_area"];
 					$pw_id = $row_project_adjustments["pw_id"];
@@ -413,48 +414,48 @@ if ($permission) {
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
-						
+
 						$sub_task_duration = $row_project_adjustments["duration"];
 						$new_duration = $sub_task_duration + $timeline;
 						$sub_task_program_end_date = $row_project_adjustments["end_date"];
 						$date=date_create($sub_task_program_end_date);
 						date_add($date,date_interval_create_from_date_string($onhold_days));
 						$new_end_date=date_format($date,"Y-m-d");
-						
+
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
 					} elseif($issue_area == 3){
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
-						
+
 						$sub_task_duration = $row_project_adjustments["duration"];
 						$new_duration = $sub_task_duration + $timeline;
 						$sub_task_program_end_date = $row_project_adjustments["end_date"];
 						$date=date_create($sub_task_program_end_date);
 						date_add($date,date_interval_create_from_date_string($onhold_days));
 						$new_end_date=date_format($date,"Y-m-d");
-						
+
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
 					} elseif($issue_area == 4){
 						$cost = $row_project_adjustments["cost"];
 					}
-				
-					
+
+
 				}
-				
+
 				//issuestatus = 1 is continue; 2 is on-hold; 3 is restore; 4 is approve; 5 is restore and approve; 6 is cancel; 7 is close
 
 				$issuestatus = 5;
-				
+
 				$update_issue = $db->prepare("UPDATE tbl_projissues SET status=:status WHERE projid=:projid and id=:issueid");
 				$results = $update_issue->execute(array(':status' => $issuestatus, ':projid' => $projid, ':issueid' => $projissue));
-				
-				if($results){		
+
+				if($results){
 					$insertSQL = $db->prepare("INSERT INTO tbl_projissue_comments (projid, issueid, issue_status, comments, created_by, date_created) VALUES (:projid, :issueid, :issue_status, :comments, :user, :date)");
-					$insertSQL->execute(array(':projid' => $projid, ':issueid' => $projissue, ':issue_status' => $issue_status, ':comments' => $comments, ':user' => $user_name, ':date' => $actiondate));					
-							
+					$insertSQL->execute(array(':projid' => $projid, ':issueid' => $projissue, ':issue_status' => $issue_status, ':comments' => $comments, ':user' => $user_name, ':date' => $actiondate));
+
 					if(!empty($_FILES['attachment']['name'])) {
 						$filecategory = "Issue Resolution";
 						$reason = "Project Committee Action: ".$subject;
@@ -463,19 +464,19 @@ if ($permission) {
 						$ext = substr($filename, strrpos($filename, '.') + 1);
 						if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload"))  {
 							$newname=$projid."-".$projissue."-".$filename;
-							$filepath="uploads/projissue/".$newname;       
+							$filepath="uploads/projissue/".$newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
 								if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 									//successful upload
-									$fname = $newname;	
-									
+									$fname = $newname;
+
 									$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 									$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-								}	
+								}
 							}
-							else{ 
+							else{
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
 									swal({
@@ -486,9 +487,9 @@ if ($permission) {
 									timer: 5000,
 									showConfirmButton: false });
 								</script>";
-							} 		  
+							}
 						}
-						else{  
+						else{
 							$msg = 'This file type is not allowed, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -501,7 +502,7 @@ if ($permission) {
 							</script>";
 						}
 					}
-					else{  
+					else{
 						$msg = 'No attachmennt!!';
 						$results = "<script type=\"text/javascript\">
 							swal({
@@ -513,48 +514,48 @@ if ($permission) {
 							showConfirmButton: false });
 						</script>";
 					}
-					
+
 					$query_details =  $db->prepare("SELECT projname, projchangedstatus, i.issue_description, i.created_by FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid WHERE i.id = '$projissue'");
-					$query_details->execute();		
+					$query_details->execute();
 					$row_details = $query_details->fetch();
 					$projectname = $row_details["projname"];
 					$issue = $row_details["issue_description"];
 					$project_previous_status = $row_details["projchangedstatus"];
 					$created_by = $row_details["created_by"];
-							
+
 					$update_project = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE projid=:projid");
 					$updated = $update_project->execute(array(':projstatus' => $project_previous_status, ':projid' => $projid));
-								
-					if($updated){						
+
+					if($updated){
 						$query_userowner =  $db->prepare("SELECT fullname, tt.title AS title, t.email AS email FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title WHERE userid = :owner");
 						$query_userowner->execute(array(':owner' => $created_by));
 						$row = $query_userowner->fetch();
 						$totalrows_userowner = $query_userowner->rowCount();
-						
+
 						$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-						$query_url->execute();		
+						$query_url->execute();
 						$row_url = $query_url->fetch();
 						$url = $row_url["main_url"];
 						$org = $row_url["company_name"];
-						$org_email = $row_url["email_address"];	
+						$org_email = $row_url["email_address"];
 
-						if($totalrows_userowner > 0 ){	
-							// Comments link back to the system 
+						if($totalrows_userowner > 0 ){
+							// Comments link back to the system
 							$issuemessage = "The committee has restored the project and approved the request. Please proceed to close the issue.";
 							$encrypted_issue = base64_encode("projid54321{$projissue}");
 							$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
-							 
-							$receipient = $row["email"];	
-							$fullname = $row['title'].".".$row['fullname'];			
-					
+
+							$receipient = $row["email"];
+							$fullname = $row['title'].".".$row['fullname'];
+
 							$message = ' Dear ' . $fullname . ',
 							<p><br>'.$issuemessage.'</p>';
 							$title = $subject;
 							$receipientName = $fullname;
-							
+
 							include("assets/processor/email-body.php");
 							include("assets/processor/email-conf-settings.php");
-							
+
 							$msg = 'Record successfully saved';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -571,7 +572,7 @@ if ($permission) {
 						}
 					}
 				}
-				
+
 			}
 			elseif (isset($_POST["projstatuschange"]) && $_POST["projstatuschange"] == "Restore"){
 				$projissue = $_POST["issueid"];
@@ -584,37 +585,37 @@ if ($permission) {
 				$changedon = date("Y-m-d H:i:s");
 
 				$query_project_details =  $db->prepare("SELECT date_created FROM tbl_projissue_comments WHERE projid=:projid and issueid=:issueid");
-				$query_project_details->execute(array(":projid" => $projid, ":issueid" => $projissue));		
+				$query_project_details->execute(array(":projid" => $projid, ":issueid" => $projissue));
 				$row_project_details = $query_project_details->fetch();
 				$onhold_date = date_create($row_project_details["date_created"]);
 				$today = date_create($actiondate);
 				$diff=date_diff($onhold_date,$today);
 				$onhold_days = $diff->format("%a days");
-				
+
 				$query_program_of_works =  $db->prepare("SELECT id, end_date FROM tbl_program_of_works WHERE projid=:projid and status<>5");
-				$query_program_of_works->execute(array(":projid" => $projid));		
+				$query_program_of_works->execute(array(":projid" => $projid));
 				while($row_program_of_works = $query_program_of_works->fetch()){
 					$sub_task_program_id = $row_program_of_works["id"];
 					$sub_task_program_end_date = $row_program_of_works["end_date"];
 					$date=date_create($sub_task_program_end_date);
 					date_add($date,date_interval_create_from_date_string($onhold_days));
 					$new_end_date=date_format($date,"Y-m-d");
-					
+
 					$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET end_date=:new_end_date WHERE id=:sub_task_program_id");
 					$update_program_of_works->execute(array(':new_end_date' => $new_end_date, ':sub_task_program_id' => $sub_task_program_id));
 				}
-				
+
 				//issuestatus = 1 is continue; 2 is on-hold; 3 is restore; 4 is adjust; 5 is restore and adjust; 6 is cancel; 7 is close
 
 				$issuestatus = 3;
-				
+
 				$update_issue = $db->prepare("UPDATE tbl_projissues SET status=:status WHERE projid=:projid and id=:issueid");
 				$results = $update_issue->execute(array(':status' => $issuestatus, ':projid' => $projid, ':issueid' => $projissue));
-				
-				if($results){		
+
+				if($results){
 					$insertSQL = $db->prepare("INSERT INTO tbl_projissue_comments (projid, issueid, issue_status, comments, created_by, date_created) VALUES (:projid, :issueid, :issue_status, :comments, :user, :date)");
 					$insertSQL->execute(array(':projid' => $projid, ':issueid' => $projissue, ':issue_status' => $issue_status, ':comments' => $comments, ':user' => $user_name, ':date' => $actiondate));
-			
+
 					if(!empty($_FILES['attachment']['name'])) {
 						$filecategory = "Issue Resolution";
 						$reason = "Project Committee Action: ".$subject;
@@ -623,19 +624,19 @@ if ($permission) {
 						$ext = substr($filename, strrpos($filename, '.') + 1);
 						if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload"))  {
 							$newname=$projid."-".$projissue."-".$filename;
-							$filepath="uploads/projissue/".$newname;       
+							$filepath="uploads/projissue/".$newname;
 							//Check if the file with the same name already exists in the server
 							if (!file_exists($filepath)) {
 								//Attempt to move the uploaded file to it's new place
 								if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 									//successful upload
-									$fname = $newname;	
-									
+									$fname = $newname;
+
 									$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 									$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-								}	
+								}
 							}
-							else{ 
+							else{
 								$msg = 'File you are uploading already exists, try another file!!';
 								$results = "<script type=\"text/javascript\">
 									swal({
@@ -646,9 +647,9 @@ if ($permission) {
 									timer: 5000,
 									showConfirmButton: false });
 								</script>";
-							} 		  
+							}
 						}
-						else{  
+						else{
 							$msg = 'This file type is not allowed, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -661,7 +662,7 @@ if ($permission) {
 							</script>";
 						}
 					}
-					else{  
+					else{
 						$msg = 'No attachmennt!!';
 						$results = "<script type=\"text/javascript\">
 							swal({
@@ -673,48 +674,48 @@ if ($permission) {
 							showConfirmButton: false });
 						</script>";
 					}
-			
+
 					$query_details =  $db->prepare("SELECT projname, projchangedstatus, i.issue_description, i.created_by FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid WHERE i.id = '$projissue'");
-					$query_details->execute();		
+					$query_details->execute();
 					$row_details = $query_details->fetch();
 					$projectname = $row_details["projname"];
 					$issue = $row_details["issue_description"];
 					$project_previous_status = $row_details["projchangedstatus"];
 					$created_by = $row_details["created_by"];
-						
+
 					$update_project = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE projid=:projid");
 					$updated = $update_project->execute(array(':projstatus' => $project_previous_status, ':projid' => $projid));
-							
+
 					if($updated){
 						$query_userowner =  $db->prepare("SELECT userid, ptid, fullname, tt.title, t.email AS email FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title WHERE userid='$created_by'");
 						$query_userowner->execute();
 						$rows = $query_userowner->fetch();
 						$totalrows_userowner = $query_userowner->rowCount();
-						
+
 						$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-						$query_url->execute();		
+						$query_url->execute();
 						$row_url = $query_url->fetch();
 						$url = $row_url["main_url"];
 						$org = $row_url["company_name"];
-						$org_email = $row_url["email_address"];	
+						$org_email = $row_url["email_address"];
 
 						if($totalrows_userowner > 0 ){
-							// Comments link back to the system 
+							// Comments link back to the system
 							$issuemessage = "The committee has restored the project, please proceed to close the issue.";
 							$encrypted_issue = base64_encode("issueid254{$projissue}");
 							$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
-							 
-							$receipient = $rows["email"];	
-							$fullname = $rows['title'].".".$rows['fullname'];			
-					
+
+							$receipient = $rows["email"];
+							$fullname = $rows['title'].".".$rows['fullname'];
+
 							$message = ' Dear ' . $fullname . ',
 							<p><br>'.$issuemessage.'</p>';
 							$title = $subject;
 							$receipientName = $fullname;
-							
+
 							include("assets/processor/email-body.php");
 							include("assets/processor/email-conf-settings.php");
-							
+
 							$msg = 'Project restored successfully!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -730,7 +731,7 @@ if ($permission) {
 							</script>";
 						}
 					}
-					
+
 				}
 			}elseif (isset($_POST["projstatuschange"]) && $_POST["projstatuschange"] == "Approved"){
 				$projissue = $_POST["issueid"];
@@ -740,10 +741,10 @@ if ($permission) {
 				$user = $_POST["user_name"];
 				$actiondate = date("Y-m-d");
 				$changedon = date("Y-m-d H:i:s");
-				
+
 				$issuemessage = "The committee has approved your request, please proceed to close the issue.";
-				
-						
+
+
 				if(!empty($_FILES['attachment']['name'])) {
 					$filecategory = "Issue Resolution";
 					$reason = "Project Committee Action: ".$subject;
@@ -752,19 +753,19 @@ if ($permission) {
 					$ext = substr($filename, strrpos($filename, '.') + 1);
 					if (($ext != "exe") && ($_FILES["attachment"]["type"] != "application/x-msdownload"))  {
 						$newname=$projid."-".$projissue."-".$filename;
-						$filepath="uploads/projissue/".$newname;       
+						$filepath="uploads/projissue/".$newname;
 						//Check if the file with the same name already exists in the server
 						if (!file_exists($filepath)) {
 							//Attempt to move the uploaded file to it's new place
 							if(move_uploaded_file($_FILES['attachment']['tmp_name'],$filepath)) {
 								//successful upload
-								$fname = $newname;	
-								
+								$fname = $newname;
+
 								$queryinsert = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, `date_uploaded`) VALUES (:projid, :stage, :fname, :ext, :filepath, :filecat, :reason, :user, :date)");
 								$queryinsert->execute(array(':projid' => $projid, ':stage' => $projissue, ':fname' => $fname, ':ext' => $ext, ':filepath' => $filepath, ':filecat' => $filecategory, ':reason' => $reason, ':user' => $user_name, ':date' => $actiondate));
-							}	
+							}
 						}
-						else{ 
+						else{
 							$msg = 'File you are uploading already exists, try another file!!';
 							$results = "<script type=\"text/javascript\">
 								swal({
@@ -775,9 +776,9 @@ if ($permission) {
 								timer: 5000,
 								showConfirmButton: false });
 							</script>";
-						} 		  
+						}
 					}
-					else{  
+					else{
 						$msg = 'This file type is not allowed, try another file!!';
 						$results = "<script type=\"text/javascript\">
 							swal({
@@ -790,7 +791,7 @@ if ($permission) {
 						</script>";
 					}
 				}
-				else{  
+				else{
 					$msg = 'No attachmennt!!';
 					$results = "<script type=\"text/javascript\">
 						swal({
@@ -802,9 +803,9 @@ if ($permission) {
 						showConfirmButton: false });
 					</script>";
 				}
-				
+
 				$query_project_adjustments =  $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid=:projid and issueid=:issueid");
-				$query_project_adjustments->execute(array(":projid" => $projid, ":issueid" => $projissue));		
+				$query_project_adjustments->execute(array(":projid" => $projid, ":issueid" => $projissue));
 				while($row_project_adjustments = $query_project_adjustments->fetch()){
 					$issue_area = $row_project_adjustments["issue_area"];
 					$pw_id = $row_project_adjustments["pw_id"];
@@ -812,83 +813,83 @@ if ($permission) {
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
-						
+
 						$sub_task_duration = $row_project_adjustments["duration"];
 						$new_duration = $sub_task_duration + $timeline;
 						$sub_task_program_end_date = $row_project_adjustments["end_date"];
 						$date=date_create($sub_task_program_end_date);
 						date_add($date,date_interval_create_from_date_string($onhold_days));
 						$new_end_date=date_format($date,"Y-m-d");
-						
+
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
 					} elseif($issue_area == 3){
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
-						
+
 						$sub_task_duration = $row_project_adjustments["duration"];
 						$new_duration = $sub_task_duration + $timeline;
 						$sub_task_program_end_date = $row_project_adjustments["end_date"];
 						$date=date_create($sub_task_program_end_date);
 						date_add($date,date_interval_create_from_date_string($onhold_days));
 						$new_end_date=date_format($date,"Y-m-d");
-						
+
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
 					} elseif($issue_area == 4){
 						$cost = $row_project_adjustments["cost"];
 					}
-				
-					
+
+
 				}
-				
+
 				//issuestatus = 1 is continue; 2 is on-hold; 3 is restore; 4 is adjust; 5 is restore and adjust; 6 is cancel; 7 is close
 
 				$issuestatus = 4;
-				
+
 				$updateQuery = $db->prepare("UPDATE tbl_projissues SET status=:status, recommendation=:comments WHERE projid=:projid and id=:issueid");
 				$updatest = $updateQuery->execute(array(':status' => $issuestatus, ':comments' => $comments, ':projid' => $projid, ':issueid' => $projissue));
-			
+
 				$query_details =  $db->prepare("SELECT projname, i.issue_description, i.created_by FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid WHERE i.id = '$projissue'");
-				$query_details->execute();		
+				$query_details->execute();
 				$row_details = $query_details->fetch();
 				$projectname = $row_details["projname"];
 				$issue = $row_details["issue_description"];
 				$created_by = $row_details["created_by"];
-						
+
 				$query_userowner =  $db->prepare("SELECT userid, ptid, fullname, tt.title, t.email AS email, designation FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid left join tbl_titles tt on tt.id=t.title WHERE userid='$created_by'");
 				$query_userowner->execute();
 				$rows = $query_userowner->fetchAll();
 				$totalrows_userowner = $query_userowner->rowCount();
-				
+
 				$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-				$query_url->execute();		
+				$query_url->execute();
 				$row_url = $query_url->fetch();
 				$url = $row_url["main_url"];
 				$org = $row_url["company_name"];
-				$org_email = $row_url["email_address"];	
+				$org_email = $row_url["email_address"];
 
 				if($totalrows_userowner > 0 ){
 					foreach($rows as $row){
-						$iowner = $row["userid"];	
-						// Comments link back to the system 
+						$iowner = $row["userid"];
+						// Comments link back to the system
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
 						$details_link = '<a href="'.$url.'my-project-issues?proj='.$encrypted_issue.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
-						 
-						$receipient = $row["email"];	
-						$fullname = $row['title'].".".$row['fullname'];			
-				
+
+						$receipient = $row["email"];
+						$fullname = $row['title'].".".$row['fullname'];
+
 						$message = ' Dear ' . $fullname . ',
 						<p><br>'.$issuemessage.'</p>';
 						$title = $subject;
 						$receipientName = $fullname;
-						
+
 						include("assets/processor/email-body.php");
 						include("assets/processor/email-conf-settings.php");
-						
+
 					}
-					
+
 					$msg = 'Request successfully approved';
 					$results = "<script type=\"text/javascript\">
 						swal({
@@ -907,10 +908,10 @@ if ($permission) {
 		}
 
 		$query_issue_details =  $db->prepare("SELECT p.projid, projname, projstatus, projcategory, i.issue_description, i.issue_area, c.category as category, s.description as impact, i.issue_priority, i.recommendation, i.created_by, i.date_created, i.status FROM tbl_projissues i inner join tbl_projrisk_categories c on c.catid=i.risk_category inner join tbl_projects p on p.projid=i.projid inner join tbl_risk_impact s on s.id=i.issue_impact where i.id=:issueid");
-		$query_issue_details->execute(array(":issueid" => $issueid));		
+		$query_issue_details->execute(array(":issueid" => $issueid));
 		$rows_issue_details = $query_issue_details->fetch();
 		$totalrows_issue_details = $query_issue_details->rowCount();
-		
+
 		if($rows_issue_details){
 			$projid = $rows_issue_details["projid"];
 			$projname = $rows_issue_details["projname"];
@@ -926,13 +927,13 @@ if ($permission) {
 			$date_created = $rows_issue_details["date_created"];
 			$analysisrecm = $rows_issue_details["recommendation"];
 			$daterecorded = date("d M Y",strtotime($rows_issue_details["date_created"]));
-			
+
 			$query_issue_owner =  $db->prepare("SELECT d.title, fullname FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles d on d.id=t.title where userid=:created_by");
-			$query_issue_owner->execute(array(":created_by" => $created_by));		
+			$query_issue_owner->execute(array(":created_by" => $created_by));
 			$rows_issue_owner = $query_issue_owner->fetch();
-			
+
 			$issue_owner = $rows_issue_owner["title"].'.'.$rows_issue_owner["fullname"];
-			
+
 			if($issue_priorityid == 1){
 				$issue_priority = "High";
 			}elseif($issue_priorityid == 2){
@@ -940,37 +941,35 @@ if ($permission) {
 			}elseif($issue_priorityid == 3){
 				$issue_priority = "Low";
 			}
-			
+
 			$query_issue_area =  $db->prepare("SELECT * FROM tbl_issue_areas WHERE id=:issue_areaid");
-			$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));		
+			$query_issue_area->execute(array(":issue_areaid" => $issue_areaid));
 			$rows_issue_area = $query_issue_area->fetch();
 			$issue_area = $rows_issue_area["issue_area"];
 		}
 
 		$query_project_members =  $db->prepare("SELECT t.ptid, t.fullname, t.email, t.phone, t.availability, d.title, r.role FROM tbl_projmembers m left join users u on u.userid=m.responsible left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles d on d.id=t.title left join tbl_project_team_roles r on r.id=m.role where projid=:projid and team_type=4");
-		$query_project_members->execute(array(":projid" => $projid));		
-		
-		$style = 'style="padding:8px; border:#CCC thin solid; border-radius:5px"';	
+		$query_project_members->execute(array(":projid" => $projid));
+
+		$style = 'style="padding:8px; border:#CCC thin solid; border-radius:5px"';
 
 		$query_rsSDate =  $db->prepare("SELECT projstartdate FROM tbl_projects where projid='$projid'");
-		$query_rsSDate->execute();		
+		$query_rsSDate->execute();
 		$row_rsSDate = $query_rsSDate->fetch();
-				
+
 		$projstartdate = $row_rsSDate["projstartdate"];
 		//$start_date = date_format($projstartdate, "Y-m-d");
 		$current_date = date("Y-m-d");
-				
+
 		$query_rsTender =  $db->prepare("SELECT * FROM tbl_tenderdetails where projid='$projid'");
-		$query_rsTender->execute();		
+		$query_rsTender->execute();
 		$row_rsTender = $query_rsTender->fetch();
-		$totalRows_rsTender = $query_rsTender->rowCount();		
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+		$totalRows_rsTender = $query_rsTender->rowCount();
+
 	?>
     <!-- start body  --><script type="text/javascript">
-	$(document).ready(function(){		
-		
+	$(document).ready(function(){
+
 		$('#impact').on('change',function(){
 			var statusID = $(this).val();
 			var projID = $("#projid").val();
@@ -1009,7 +1008,7 @@ if ($permission) {
 			  <h4 class="modal-title"><font color="#000000">PROJECT STATUS CHANGE REASON(S)</font></h4>
 			</div>
 			<div class="modal-body" id="formcontent">
-			
+
 			</div>
 		  </div>
 		</div>
@@ -1087,19 +1086,19 @@ if ($permission) {
 													<?php if($issue_areaid == 1){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
-																<?php											
+																<?php
 																$textclass = "text-primary";
 																$issues_scope = "";
 																$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
-																			
+
 																$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
 																$query_site_id->execute(array(":issueid" => $issueid));
-														
+
 																$sites = 0;
 																while ($rows_site_id = $query_site_id->fetch()) {
 																	$sites++;
 																	$site_id = $rows_site_id['site_id'];
-																	
+
 																	if($site_id==0){
 																		$allsites = '
 																		<thead>
@@ -1111,17 +1110,17 @@ if ($permission) {
 																		$query_site->execute(array(":site_id" => $site_id));
 																		$row_site = $query_site->fetch();
 																		$site = $row_site['site'];
-																	
+
 																		$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
 																				<th colspan="5">Site '.$sites.': '.$site.'</th>
 																			</tr>';
 																	}
-															
+
 																	$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id ".$leftjoin." left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
 																	$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
-																
+
 																	$issues_scope .= $allsites.'
 																		<tr class="adjustments '.$site_id.'" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
@@ -1155,19 +1154,19 @@ if ($permission) {
 													<?php } elseif ($issue_areaid == 2){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
-																<?php											
+																<?php
 																$textclass = "text-primary";
 																$issues_scope = "";
 																$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
-																			
+
 																$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
 																$query_site_id->execute(array(":issueid" => $issueid));
-														
+
 																$sites = 0;
 																while ($rows_site_id = $query_site_id->fetch()) {
 																	$sites++;
 																	$site_id = $rows_site_id['site_id'];
-																	
+
 																	if($site_id==0){
 																		$allsites = '
 																		<thead>
@@ -1179,17 +1178,17 @@ if ($permission) {
 																		$query_site->execute(array(":site_id" => $site_id));
 																		$row_site = $query_site->fetch();
 																		$site = $row_site['site'];
-																	
+
 																		$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
 																				<th colspan="5">Site '.$sites.': '.$site.'</th>
 																			</tr>';
 																	}
-															
+
 																	$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id ".$leftjoin." left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
 																	$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
-																
+
 																	$issues_scope .= $allsites.'
 																		<tr class="adjustments '.$site_id.'" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
@@ -1223,19 +1222,19 @@ if ($permission) {
 													<?php } elseif($issue_areaid == 3){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
-																<?php											
+																<?php
 																$textclass = "text-primary";
 																$issues_scope = "";
 																$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
-																			
+
 																$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
 																$query_site_id->execute(array(":issueid" => $issueid));
-														
+
 																$sites = 0;
 																while ($rows_site_id = $query_site_id->fetch()) {
 																	$sites++;
 																	$site_id = $rows_site_id['site_id'];
-																	
+
 																	if($site_id==0){
 																		$allsites = '
 																		<thead>
@@ -1247,18 +1246,18 @@ if ($permission) {
 																		$query_site->execute(array(":site_id" => $site_id));
 																		$row_site = $query_site->fetch();
 																		$site = $row_site['site'];
-																	
+
 																		$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
 																				<th colspan="3">Site '.$sites.': '.$site.'</th>
 																			</tr>';
 																	}
-															
-																	
+
+
 																	$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id ".$leftjoin." left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
 																	$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
-																
+
 																	$issues_scope .= $allsites.'
 																		<tr class="adjustments '.$site_id.'" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
@@ -1288,19 +1287,19 @@ if ($permission) {
 													<?php } elseif($issue_areaid == 4){ ?>
 														<div class="table-responsive">
 															<table class="table table-bordered table-striped table-hover">
-																<?php											
+																<?php
 																$textclass = "text-primary";
 																$issues_scope = "";
 																$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
-																			
+
 																$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
 																$query_site_id->execute(array(":issueid" => $issueid));
-														
+
 																$sites = 0;
 																while ($rows_site_id = $query_site_id->fetch()) {
 																	$sites++;
 																	$site_id = $rows_site_id['site_id'];
-																	
+
 																	if($site_id==0){
 																		$allsites = '
 																		<thead>
@@ -1312,17 +1311,17 @@ if ($permission) {
 																		$query_site->execute(array(":site_id" => $site_id));
 																		$row_site = $query_site->fetch();
 																		$site = $row_site['site'];
-																	
+
 																		$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes('.$site_id.')">
 																				<th colspan="4">Site '.$sites.': '.$site.'</th>
 																			</tr>';
 																	}
-															
+
 																	$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, a.cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id ".$leftjoin." left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
 																	$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
-																
+
 																	$issues_scope .= $allsites.'
 																		<tr class="adjustments '.$site_id.'" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
@@ -1337,7 +1336,7 @@ if ($permission) {
 																		$subtask = $row_adjustments["task"];
 																		$unit =  $row_adjustments["unit"];
 																		$cost = $row_adjustments["cost"];
-																		
+
 																		$issues_scope .= '
 																			<tr class="adjustments '.$site_id.'" style="background-color:#e5e5e5">
 																				<td>' . $sites.'.'.$scopecount.'</td>
@@ -1373,11 +1372,11 @@ if ($permission) {
 																</tr>
 															</thead>
 															<tbody>
-															<?php																
+															<?php
 															$query_attachments = $db->prepare("SELECT * FROM tbl_files WHERE projid = :projid and projstage = :issueid and fcategory='Issue'");
 															$query_attachments->execute(array(":projid" => $projid, ":issueid" => $issueid));
-															//return; 
-															
+															//return;
+
 															$attachmentcount = 0;
 															while ($row_attachments = $query_attachments->fetch()){
 																$attachmentcount++;
@@ -1385,7 +1384,7 @@ if ($permission) {
 																$filelocation =  $row_attachments["floc"];
 																$filepurpose = $row_attachments["reason"];
 																$filetype = $row_attachments["ftype"];
-																
+
 																echo '<tr >
 																	<td>' . $attachmentcount.'</td>
 																	<td>' . $filename . '</td>
@@ -1418,10 +1417,10 @@ if ($permission) {
 															</thead>
 															<tbody>
 															<?php
-															//return; 
+															//return;
 															$sn = 0;
-					
-															while ($rows_project_members = $query_project_members->fetch()) { 	
+
+															while ($rows_project_members = $query_project_members->fetch()) {
 																$sn = $sn + 1;
 																$mbrid = $rows_project_members['ptid'];
 																$member = $rows_project_members["title"].".".$rows_project_members["fullname"];
@@ -1429,20 +1428,20 @@ if ($permission) {
 																$email = $rows_project_members['email'];
 																$phone = $rows_project_members['phone'];
 																$available = $rows_project_members['availability'];
-															
+
 																$query_member_designation =  $db->prepare("SELECT d.designation FROM tbl_projteam2 t inner join tbl_pmdesignation d on d.moid=t.designation where t.ptid='$mbrid'");
 																$query_member_designation->execute();
 																$row_member_designation = $query_member_designation->fetch();
 																$designation = $row_member_designation['designation'];
-																
-															
+
+
 																if($available == 0){
-															
+
 																	$query_member_leave_details =  $db->prepare("SELECT assignee FROM tbl_project_team_leave where owner='$mbrid' and resumed_at IS NULL and projid=:projid");
 																	$query_member_leave_details->execute(array(":projid" => $projid));
 																	$row_member_leave_details = $query_member_leave_details->fetch;
 																	$totalRows_member_leave_details = $query_member_leave_details->rowCount();
-																	
+
 																	$query_member_leave =  $db->prepare("SELECT startdate, enddate FROM tbl_employee_leave where employee='$mbrid' and status=2");
 																	$query_member_leave->execute();
 																	$row_member_leave = $query_member_leave->fetch;
@@ -1451,12 +1450,12 @@ if ($permission) {
 																		$leave_start_date = date("d M Y",strtotime($row_member_leave['startdate']));
 																		$leave_end_date = date("d M Y",strtotime($row_member_leave['enddate']));
 																	}
-																	
+
 																	$availability = "Unavailable";
 																	$reassignee = $rows['assignee'];
-																	
+
 																	$query_reassignee =  $db->prepare("SELECT fullname, d.title, phone, email FROM tbl_projteam2 t left join tbl_titles d on d.id=t.title where ptid='$reassignee'");
-																	$query_reassignee->execute();		
+																	$query_reassignee->execute();
 																	$row_reassignee = $query_reassignee->fetch();
 																	$reassigneedto = $row_reassignee["title"].".".$row_reassignee["fullname"];
 																	$reassigneedphone = $row_reassignee["phone"];
@@ -1480,7 +1479,7 @@ if ($permission) {
 																	<td><a href="tel:<?=$phone?>"><?=$phone?></a></td>
 																	<td><?php echo $email; ?></td>
 																</tr>
-															<?php 
+															<?php
 															}
 															?>
 															</tbody>
@@ -1504,36 +1503,36 @@ if ($permission) {
 												<div class="row clearfix" style="padding-left:10px; padding-right:10px">
 													<?php
 													$query_projstatuschange =  $db->prepare("SELECT projcode, projstatus, projchangedstatus FROM tbl_projects WHERE projid = :projid");
-													$query_projstatuschange->execute(array(":projid" => $projid));		
+													$query_projstatuschange->execute(array(":projid" => $projid));
 													$row_projstatuschange = $query_projstatuschange->fetch();
 													$projstatus = $row_projstatuschange["projstatus"];
 													$projcode = $row_projstatuschange["projcode"];
-													
+
 													$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and issueid='$issueid'");
-													$query_escalationstage->execute();	
+													$query_escalationstage->execute();
 													$escalationstage_count = $query_escalationstage->rowCount();
 													$assessmentcomments = array();
 													while($row_escalationstage = $query_escalationstage->fetch()){
 														$assessmentcomments[] = $row_escalationstage["issue_status"];
 													}
-													
+
 													//6 is On Hold status
 													if($projstatus==6){
 														$query_issueassessment = $db->prepare("SELECT assessment FROM tbl_projissues WHERE id=:issueid and projid=:projid");
-														$query_issueassessment->execute(array(":issueid" => $issueid, ":projid" => $projid));		
+														$query_issueassessment->execute(array(":issueid" => $issueid, ":projid" => $projid));
 														$row_issueassessment = $query_issueassessment->fetch();
 														$assessment = $row_issueassessment["assessment"];
-														
+
 														$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid");
-														$query_escalationstage->execute(array(":projid" => $projid, ":issueid" => $issueid));	
+														$query_escalationstage->execute(array(":projid" => $projid, ":issueid" => $issueid));
 														$escalationstage_count = $query_escalationstage->rowCount();
 														$assessmentcomments = array();
 														while($row_escalationstage = $query_escalationstage->fetch()){
 															$assessmentcomments[] = $row_escalationstage["issue_status"];
 														}
-														
+
 														$query_escalationstage_comments = $db->prepare("SELECT comments FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid and issue_status='On Hold'");
-														$query_escalationstage_comments->execute(array(":projid" => $projid, ":issueid" => $issueid));	
+														$query_escalationstage_comments->execute(array(":projid" => $projid, ":issueid" => $issueid));
 														$count_comments = $query_escalationstage_comments->rowCount();
 														$escalationstage_comments = $query_escalationstage_comments->fetch();
 														?>
@@ -1555,7 +1554,7 @@ if ($permission) {
 																</select>
 															</div>
 														</div>
-													<?php	
+													<?php
 													}
 													elseif($projstatus !== 6){
 														//$option1 = $issue_areaid == 2 ? '<option value="ApprovedScope">Approve the Request</option>' : '<option value="adjust">Adjust Project Affected Parameters</option>';
@@ -1570,14 +1569,14 @@ if ($permission) {
 																	<option value="On Hold">Put the Project On Hold</option>
 																	<option value="Cancelled">Cancel the Project</option>
 																	<option value="Continue">Ignore and Close the Issue!</option>
-																</select>	
+																</select>
 															</div>
 														</div>
 													<?php
 													}
 													?>
 													<div id="content">
-													</div> 
+													</div>
 													<input name="projid" type="hidden" id="projid" value="<?php echo $projid; ?>" />
 													<input name="user_name" type="hidden" id="user_name" value="<?php echo $username; ?>" />
 													<input name="deptid" type="hidden" id="deptid" value="<?php echo $opid; ?>" />
@@ -1587,16 +1586,16 @@ if ($permission) {
 												</div>
 											</form>
 										</div>
-									</div> 
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
             <!-- #END# Advanced Form Example With Validation -->
-			
+
 			<?php } else {
-				echo '	
+				echo '
 				<div class="row clearfix" style="margin-top:10px">
 					<!-- Advanced Form Example With Validation -->
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -1615,7 +1614,7 @@ if ($permission) {
 			?>
         </div>
     </section>
-    <!-- end body  -->	
+    <!-- end body  -->
 <script src="assets/js/issues/index.js"></script>
 <?php
 } else {
@@ -1624,6 +1623,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-?>	
+?>
 </body>
 </html>

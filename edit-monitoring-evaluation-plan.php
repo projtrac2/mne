@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
 
         $results = "";
         $editFormAction = $_SERVER['PHP_SELF'];
@@ -170,10 +171,7 @@ if ($permission) {
                         </script>";
             }
         }
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-        print($result);
-    }
+    
 ?>
     <style>
         @media (min-width: 1200px) {
@@ -754,7 +752,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/add-project-mne-plan.js"></script>

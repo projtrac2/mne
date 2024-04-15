@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $proj_id_decode = base64_decode($_GET['projid']);
         $proj_id_array = explode("projid54321", $proj_id_decode);
         $projid = $proj_id_array[1];
@@ -9,9 +10,7 @@ if ($permission) {
         $query_rsProjects->execute();
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -201,6 +200,10 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

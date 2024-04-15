@@ -1,8 +1,8 @@
 <?php 
+try {
 
 require 'authentication.php';
 
-try {
 
      
 
@@ -50,10 +50,7 @@ try {
 	$query_rsPrjTeam =  $db->prepare("SELECT t.fullname AS fullname, t.title AS title, t.email AS email, t.phone AS phone, d.designation AS designation, t.ministry AS ministry, t.department AS department FROM tbl_projmembers m INNER JOIN tbl_projteam2 t ON t.ptid=m.ptid INNER JOIN tbl_pmdesignation d ON d.moid=t.designation WHERE m.projid = '$projid' AND t.disabled='0' ORDER BY d.Reporting ASC");
 	$query_rsPrjTeam->execute();	
 	$totalRows_rsPrjTeam = $query_rsPrjTeam->rowCount();
-} catch (PDOException $ex) {
-    // $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($ex->getMessage());
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -342,3 +339,11 @@ try {
 </body>
 
 </html>
+
+<?php 
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

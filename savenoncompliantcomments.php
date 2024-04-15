@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -43,5 +46,9 @@ if(isset($_POST['checklistid'])){
 	}
 			
 	echo json_encode("success");
+}
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
 }
 ?>

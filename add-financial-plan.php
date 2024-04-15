@@ -1,5 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
+<<<<<<< HEAD
 if ($permission) {
    try {
       if (isset($_GET['proj'])) {
@@ -11,6 +14,15 @@ if ($permission) {
          $query_rsProjects->execute(array(":projid" => $projid));
          $row_rsProjects = $query_rsProjects->fetch();
          $totalRows_rsProjects = $query_rsProjects->rowCount();
+=======
+
+
+if ($permission && isset($_GET['proj'])) {
+      $encoded_projid = $_GET['proj'];
+      $decode_projid = base64_decode($encoded_projid);
+      $projid_array = explode("encodefnprj", $decode_projid);
+      $projid = $projid_array[1];
+>>>>>>> a86ec8a0e2f758e8fe1b037ea93221d3199a93f1
 
          $approve_details = "";
          if ($totalRows_rsProjects > 0) {
@@ -922,12 +934,14 @@ if ($permission) {
          $results =  restriction();
          echo $results;
       }
-   } catch (PDOException $ex) {
-      $results = flashMessage("An error occurred: " . $ex->getMessage());
-   }
+
 } else {
    $results =  restriction();
    echo $results;
+}
+
+} catch (PDOException $ex) {
+   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

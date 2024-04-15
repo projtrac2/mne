@@ -1,8 +1,8 @@
 <?php 
+try {
 
 require 'authentication.php';
 
-try {
 
 	
 	if (isset($_GET["projid"]) && !empty($_GET["projid"])) {
@@ -32,10 +32,7 @@ try {
 		}
 	}
  
-} catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	print($ex->getMessage());
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -241,6 +238,14 @@ try {
 			<!--</div> -->
 		</div>
 	</section>
+
+	<?php 
+
+	} catch (PDOException $th) {
+		customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+	}
+
+	?>
 
 	<!-- Jquery Core Js -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>

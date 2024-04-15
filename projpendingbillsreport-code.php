@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 			if($totalRows_rsUpP == 0){
 				?>
 				<tr>
@@ -96,4 +99,8 @@
                 </tfoot>
 			<?php	
 			}
+
+		} catch (\PDOException $th) {
+			customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+		}
 			?>

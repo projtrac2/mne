@@ -1,3 +1,8 @@
+<?php 
+try {
+	//code...
+
+?>
 <div class="body">
     <div class="table-responsive">
 		<div class="tab-content">
@@ -154,3 +159,10 @@
 		</div>
 	</div>
 </div>
+<?php 
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>

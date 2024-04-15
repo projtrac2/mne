@@ -1,9 +1,9 @@
 <?php
+try{
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
-try{
 if(isset($_POST['rskid']) && !empty($_POST['rskid'])) 
 {
 	$rskid = $_POST["rskid"]; 
@@ -169,8 +169,8 @@ if(isset($_POST['rskid']) && !empty($_POST['rskid']))
 			</div>
 		</div>';
 }
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (\PDOException $ex){
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+
 }
 ?>

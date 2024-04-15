@@ -1,11 +1,11 @@
 <?php
+try{
 
 //require_once('Connections/ProjMonEva.php'); 
 //include_once 'projtrac-dashboard/resource/session.php';
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
-try{
 	$myprjid = $_POST["myprjid"];
 	$opid = $_POST["opid"];
 	$opdetailsid = $_POST["opdetailsid"];
@@ -52,7 +52,7 @@ try{
 			</tr>';
 	}
 	
-}catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $result;
+}catch (PDOException $th){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
 }

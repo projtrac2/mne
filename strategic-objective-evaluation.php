@@ -1,8 +1,9 @@
-<?php  
+<?php 
+try {
+
 require('includes/head.php'); 
 
 if ($permission) {
-  try {
     $query_strategic_objective = $db->prepare("SELECT o.id AS id, objective FROM tbl_strategic_plan_objectives o left join tbl_key_results_area r on r.id=o.kraid left join tbl_strategicplan p on p.id=r.spid WHERE current_plan=1 ORDER BY o.id ASC");
 	$query_strategic_objective->execute();
 	
@@ -12,15 +13,7 @@ if ($permission) {
     } */
 	//$rows = $query_strategic_objective->fetch();
     $count_strategic_objective = $query_strategic_objective->rowCount();
-  } catch (PDOException $ex) {
-    function flashMessage($err)
-    {
-      return $err;
-    }
-
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    print($result);
-  }
+  
 ?>
 <style>
 .container{
@@ -312,5 +305,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+  }
 ?>
 <script src="assets/js/strategicplan/strategic-objectives.js"></script>

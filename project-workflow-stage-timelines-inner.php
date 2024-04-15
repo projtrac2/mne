@@ -1,4 +1,9 @@
-    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+    <?php 
+	try {
+		//code...
+	
+	?>
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="card">
 			<div class="header">
 				<div style="color:#333; background-color:#EEE; width:100%; height:30px">
@@ -260,5 +265,13 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <!-- End Item Delete -->
+
+<?php 
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+
+?>
 
 <script src="general-settings/js/fetch-project-workflow-timelines.js"></script> 

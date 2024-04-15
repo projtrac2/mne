@@ -1,7 +1,8 @@
 <?php
+try { 
+
 require('includes/head.php');
 if ($permission) {
-    try { 
 ?>
         <!-- start body  -->
         <section class="content">
@@ -136,14 +137,16 @@ if ($permission) {
         </div>
         <!-- End  Item more Info -->
 <?php
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+   
 } else {
     $results =  restriction();
     echo $results;
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <script src="assets/js/projects/view-project.js"></script>

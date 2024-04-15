@@ -1,9 +1,7 @@
 <?php  
-
-require 'authentication.php';
-
 try{
-	
+
+    require 'authentication.php';
 
 	if (isset($_GET["del"]) && isset($_GET['fn'])) {
 		if (isset($_GET['fn'])) {
@@ -38,11 +36,7 @@ try{
 	  
 	$query_rsFnName = $db->prepare("SELECT f.id, f.financier, t.type as ftype FROM tbl_financiers f inner join tbl_financier_type t ON t.id=f.type ORDER BY f.id ASC");
 	$query_rsFnName->execute();
-}
-catch (PDOException $ex){
-    $result = flashMessage("An error occurred: " .$ex->getMessage());
-    print($result);
-}
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -304,3 +298,9 @@ catch (PDOException $ex){
 </body>
 
 </html>
+<?php 
+}
+catch (PDOException $th){
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

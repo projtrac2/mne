@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $accesslevel = "";
         $sector = 0;
         $indicator_data = '<option value="" >Select Indicator</option>';
@@ -43,9 +44,7 @@ if ($permission) {
         $query_rsComm->execute();
         $row_rsComm = $query_rsComm->fetch();
         $totalRows_rsComm = $query_rsComm->rowCount();
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <style>
         .mt-map-wrapper {
@@ -184,6 +183,10 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?> 
 <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU&callback=initMap"></script>
 <script src="assets/js/map/output.js"></script>

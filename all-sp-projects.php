@@ -160,7 +160,6 @@ try {
 		} while ($row_rsUpP = $query_rsUpP->fetch());
 	}
 } catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	echo $result;
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

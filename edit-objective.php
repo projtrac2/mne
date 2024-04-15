@@ -1,4 +1,6 @@
 <?php
+try {
+
 $decode_objid = (isset($_GET['obj']) && !empty($_GET["obj"])) ? base64_decode($_GET['obj']) : header("Location: view-strategic-plans.php"); 
 $objid_array = explode("obj321", $decode_objid);
 $objid = $objid_array[1];
@@ -7,7 +9,6 @@ $original_objid = $_GET['obj'];
 require('includes/head.php');
 require('functions/strategicplan.php');
 
-try {
     $strategic_objective = get_strategic_objective($objid);
     if (!$strategic_objective) {
         // redirect back to strategic plan  
@@ -62,9 +63,7 @@ try {
             }
         }
     }
-} catch (PDOException $ex) {
-    flashMessage("An error occurred: " . $ex->getMessage());
-}
+
 if ($permission) {
 ?>
     <script src="assets/ckeditor/ckeditor.js"></script>
@@ -219,7 +218,9 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-
+} catch (\PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 require('includes/footer.php');
 ?>
 <script src="assets/js/strategicplan/view-kra-objective.js"></script>

@@ -2,9 +2,6 @@
 require 'authentication.php';
 
 try{	
-		
-	
- 	
 	$maxRows_rsUpP = 50;
 	$pageNum_rsUpP = 0;
 	if (isset($_GET['pageNum_rsUpP'])) {

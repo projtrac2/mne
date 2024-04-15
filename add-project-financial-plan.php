@@ -1,10 +1,12 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
+<<<<<<< HEAD
 
         $query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE active = 1");
         $query_risk_impact->execute();
@@ -14,6 +16,9 @@ if ($permission) {
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
+=======
+    
+>>>>>>> a86ec8a0e2f758e8fe1b037ea93221d3199a93f1
 ?>
     <!-- start body  -->
     <section class="content">
@@ -388,6 +393,9 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
+}
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

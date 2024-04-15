@@ -1,9 +1,10 @@
 <?php 
+	try {
+
 require('includes/head.php');
 $pageTitle = "Quarterly Targets";
 
 if ($permission) {
-	try {
 
 		if (isset($_GET['projid'])) {
 			$projid = $_GET['projid'];
@@ -33,9 +34,7 @@ if ($permission) {
 		$query_rsTender->execute();
 		$row_rsTender = $query_rsTender->fetch();
 		$totalRows_rsTender = $query_rsTender->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+	
 ?>
 	<!-- start body  -->
 	<!-- JQuery Nestable Css -->
@@ -245,5 +244,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 <!-- <script src="general-settings/js/fetch-selected-project-activities.js"></script> -->

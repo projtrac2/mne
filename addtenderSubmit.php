@@ -1,7 +1,8 @@
 <?php 
+	try{
+
 	include_once 'projtrac-dashboard/resource/Database.php';
 	include_once 'projtrac-dashboard/resource/utilities.php';
-	try{
 		
 	$user_name = $_POST['username'];
 	$evaluation =date('Y-m-d', strtotime($_POST['tenderevaluationdate']));
@@ -62,10 +63,7 @@
 	":date_created"=>$date_created
 	
 	));
-}catch (PDOException $ex){
-		$result = flashMessage("An error occurred: " .$ex->getMessage());
-		echo $result;
-}
+
 
 
 
@@ -159,4 +157,8 @@
 				}, 10000);
 			</script>";
 	}
+
+}catch (PDOException $ex){
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

@@ -1,5 +1,9 @@
 <?php
 
+	try {
+		//code...
+	
+
 		require 'PHPMailer/PHPMailerAutoload.php';
 
 		$mail = new PHPMailer;
@@ -408,4 +412,8 @@
 		$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
 		$mail->send();
+
+	} catch (\phpmailerException $th) {
+		//throw $th;
+	}
 ?>

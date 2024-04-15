@@ -1,4 +1,9 @@
-    <section class="content" style="margin-top:-20px; padding-bottom:0px">
+<?php 
+try {
+	//code...
+
+?>
+	<section class="content" style="margin-top:-20px; padding-bottom:0px">
         <div class="container-fluid">
 			<div class="row clearfix" style="margin-top:10px">
 				<!-- Advanced Form Example With Validation -->
@@ -97,3 +102,10 @@
             <!-- #END# Advanced Form Example With Validation -->
         </div>
     </section>
+
+
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
+?>

@@ -1,7 +1,8 @@
 <?php
+    try {
+
 require('includes/head.php'); 
 if ($permission) {
-    try {
         $taskid = isset($_GET['taskid']) ? base64_decode($_GET['taskid']) : "";
 
         $projid = $project_name = $task_name = "";
@@ -19,9 +20,7 @@ if ($permission) {
             $progid = $project = $sectorid = "";
             $project_name = ($totalRows_rsProjects > 0) ? $row_rsProjects['projname'] : "";
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+  
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -265,6 +264,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 
 <script>

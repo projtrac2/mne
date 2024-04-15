@@ -1,8 +1,8 @@
 <?php
+try {
 require('includes/head.php');
 
 if ($permission) {
-	try {
 		if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
 			$encoded_userid = $_GET["ptid"];
 			$decode_userid = base64_decode($encoded_userid);
@@ -99,9 +99,7 @@ if ($permission) {
 		$query_rsPTeam = $db->prepare("SELECT *, t.designation AS designation FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id inner join tbl_pmdesignation d on d.moid=t.designation $where ORDER BY position ASC");
 		$query_rsPTeam->execute();
 		$totalRows_rsPTeam = $query_rsPTeam->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	} ?>
+	 ?>
 
 	<!-- start body  -->
 	<section class="content">
@@ -333,4 +331,8 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
+
+} catch (PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>

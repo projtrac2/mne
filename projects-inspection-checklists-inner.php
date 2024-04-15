@@ -1,3 +1,9 @@
+<?php
+try {
+	//code...
+
+?>
+
 <div class="block-header">
 	<h4 class="contentheader"><i class="fa fa-list" aria-hidden="true"></i>
 		Assign Inspection Officers
@@ -265,3 +271,10 @@ if ($totalRows_rsMembers > 0) {
 <!-- End add item -->
 
 <script src="assets/js/inspection/assign.js"></script>
+<?php 
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+}
+
+?>

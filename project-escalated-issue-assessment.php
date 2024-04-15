@@ -1,4 +1,9 @@
 <?php
+
+try {
+	//code...
+
+
 $pageName = "Project Escalated Issue Assessment";
 $replacement_array = array(
     'planlabel' => "Escalated Issue Action",
@@ -609,6 +614,10 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+
+} catch (\PDOException $th) {
+	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}
 ?>
 	
 </body>

@@ -1,7 +1,8 @@
 <?php
+try {
+
 require('includes/head.php');
 if ($permission) {
-    try {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
         $projid_array = explode("encodeprocprj", $decode_projid);
         $projid = $projid_array[1];
@@ -62,9 +63,7 @@ if ($permission) {
         $query_rsOutputs = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE d.projid=:projid ORDER BY d.id");
         $query_rsOutputs->execute(array(":projid" => $projid));
         $totalRows_rsOutputs = $query_rsOutputs->rowCount();
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+    
 ?>
     <!-- start body  -->
     <section class="content">
@@ -148,6 +147,10 @@ if ($permission) {
 } else {;
     $results =  restriction();
     echo $results;
+}
+
+} catch (PDOException $ex) {
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

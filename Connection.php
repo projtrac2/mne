@@ -13,13 +13,19 @@ class Connection
       try {
          $this->con = new PDO($this->server, $this->user, $this->pass, $this->options);
          return $this->con;
-      } catch (PDOException $e) {
-         echo "There is some problem in connection: " . $e->getMessage();
+      } catch (PDOException $ex) {
+         $this->customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
       }
    }
 
    public function closeConnection()
    {
       $this->con = null;
+   }
+
+   public function customErrorHandler($errno, $errstr, $errfile, $errline)
+   {
+      $message = "Error: [$errno] $errstr - $errfile:$errline";
+      error_log($message . PHP_EOL, 3, "error_log.log");
    }
 }

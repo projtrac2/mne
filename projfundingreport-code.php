@@ -1,4 +1,7 @@
 <?php
+try {
+	//code...
+
 			if($totalRows_rsUpP == 0){
 				?>
 				<tr id="rows" style="border:#EEE thin solid">
@@ -47,4 +50,8 @@
             <?php 
 				} while ($row_rsUpP = $query_rsUpP->fetch()); 	
 			}
+
+		} catch (\PDOException $th) {
+			customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
+		}
 			?>
