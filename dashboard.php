@@ -2,7 +2,6 @@
 require('includes/head.php');
 if ($permission) {
     try {
-
         $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
         $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
         $financial_year_from = $financial_year_to = $level_one_id = $level_two_id = '';
@@ -329,14 +328,14 @@ if ($permission) {
             $row_crfinyear = $query_crfinyear->fetch();
             $currentfinyearid = $row_crfinyear["id"];
 
-            $query_crfinyear_budget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projfscyear = $currentfinyearid AND g.program_type=1");
+            $query_crfinyear_budget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projfscyear = $currentfinyearid ");
             $query_crfinyear_budget->execute();
             $row_crfinyear_budget = $query_crfinyear_budget->fetch();
             $budget_total = $row_crfinyear_budget["totalbudget"];
             $budget_total = $budget_total > 0 ?  $budget_total : 0;
             $totalcrfybudget = number_format($budget_total, 2);
 
-            $query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE b.finyear=$currentfinyear AND g.program_type=1");
+            $query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE b.finyear=$currentfinyear ");
             $query_crfinyearalloc->execute();
             $row_crfinyearalloc = $query_crfinyearalloc->fetch();
             $totalcrfinyearalloc = $row_crfinyearalloc["totalamt"];
@@ -360,14 +359,14 @@ if ($permission) {
             $row_crfinyear = $query_crfinyear->fetch();
             $previousfinyearid = $row_crfinyear["id"];
 
-            $query_pvfinyearbudget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE program_type=1 AND p.projfscyear = $previousfinyearid");
+            $query_pvfinyearbudget = $db->prepare("SELECT sum(projcost) AS totalbudget FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projfscyear = $previousfinyearid");
             $query_pvfinyearbudget->execute();
             $row_pvfinyearbudget = $query_pvfinyearbudget->fetch();
             $total_budget = $row_pvfinyearbudget["totalbudget"];
             $total_budget = $total_budget > 0 ?  $total_budget : 0;
             $totalpvfybudget = number_format($total_budget, 2);
 
-            $query_pvfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE program_type=1 AND b.finyear=$previousfinyear");
+            $query_pvfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE b.finyear=$previousfinyear");
             $query_pvfinyearalloc->execute();
             $row_pvfinyearalloc = $query_pvfinyearalloc->fetch();
             $totalpvfinyearalloc = $row_pvfinyearalloc["totalamt"];
@@ -426,7 +425,7 @@ if ($permission) {
                 $end_year = $start_year + 1;
                 $start_date = date("Y-m-d", strtotime($start_year . "-07-01"));
                 $end_date = date("Y-m-d", strtotime($end_year . "-06-30"));
-                $query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE g.program_type=1 AND b.finyear=:finyear");
+                $query_crfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE b.finyear=:finyear");
                 $query_crfinyearalloc->execute(array(":finyear" => $start_year));
                 $row_crfinyearalloc = $query_crfinyearalloc->fetch();
                 $totalannualbudget =  !is_null($row_crfinyearalloc["totalamt"]) ? $row_crfinyearalloc["totalamt"] : 0;
@@ -592,61 +591,58 @@ if ($permission) {
                                                     </select>
                                                 </div>
                                             </form>
-                                        </div>
-                                    </div>
-                                    <div class="body">
-                                        <!-- Widgets -->
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?stage=1&<?php echo $allprojectsurl; ?>' id="stage_one">
-                                                <div class="info-box bg-grey hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">hourglass_empty</i>
+                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                                <a href='view-dashboard-projects.php?stage=1&<?php echo $allprojectsurl; ?>' id="stage_one">
+                                                    <div class="info-box bg-grey hover-expand-effect">
+                                                        <div class="icon">
+                                                            <i class="material-icons">hourglass_empty</i>
+                                                        </div>
+                                                        <div class="content">
+                                                            <div class="text" style="font-size:13px;">Pre-Investment</div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(1); ?>" data-speed="1000" data-fresh-interval="20" id="pre_investment"><?php echo widgets(1); ?></div>
+                                                        </div>
                                                     </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:13px;">Pre-Investment</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(1); ?>" data-speed="1000" data-fresh-interval="20" id="pre_investment"><?php echo widgets(1); ?></div>
+                                                </a>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                                <a href="view-dashboard-projects.php?stage=2&<?php echo $allprojectsurl; ?>" id="stage_two">
+                                                    <div class="info-box bg-brown hover-expand-effect">
+                                                        <div class="icon">
+                                                            <i class="material-icons">report_problem</i>
+                                                        </div>
+                                                        <div class="content">
+                                                            <div class="text" style="font-size:16px;">Planned</div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(2); ?>" data-speed="1000" data-fresh-interval="20" id="planned"><?php echo widgets(2); ?></div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href="view-dashboard-projects.php?stage=2&<?php echo $allprojectsurl; ?>" id="stage_two">
-                                                <div class="info-box bg-brown hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">report_problem</i>
+                                                </a>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                                <a href='view-dashboard-projects.php?stage=3&<?php echo $allprojectsurl; ?>' id="stage_three">
+                                                    <div class="info-box bg-blue hover-expand-effect">
+                                                        <div class="icon">
+                                                            <i class="material-icons">timeline</i>
+                                                        </div>
+                                                        <div class="content">
+                                                            <div class="text" style="font-size:16px;">On-Going</div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(3); ?>" data-speed="1000" data-fresh-interval="20" id="ongoing"><?php echo widgets(3); ?></div>
+                                                        </div>
                                                     </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">Planned</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(2); ?>" data-speed="1000" data-fresh-interval="20" id="planned"><?php echo widgets(2); ?></div>
+                                                </a>
+                                            </div>
+                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
+                                                <a href='view-dashboard-projects.php?prjstatus=complete&<?php echo $allprojectsurl; ?>' id="stage_four">
+                                                    <div class="info-box bg-light-green hover-expand-effect">
+                                                        <div class="icon">
+                                                            <i class="material-icons">verified_user</i>
+                                                        </div>
+                                                        <div class="content">
+                                                            <div class="text" style="font-size:16px;">Completed</div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(4); ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo widgets(4); ?></div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?stage=3&<?php echo $allprojectsurl; ?>' id="stage_three">
-                                                <div class="info-box bg-blue hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">timeline</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">On-Going</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(3); ?>" data-speed="1000" data-fresh-interval="20" id="ongoing"><?php echo widgets(3); ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                        <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                            <a href='view-dashboard-projects.php?prjstatus=complete&<?php echo $allprojectsurl; ?>' id="stage_four">
-                                                <div class="info-box bg-light-green hover-expand-effect">
-                                                    <div class="icon">
-                                                        <i class="material-icons">verified_user</i>
-                                                    </div>
-                                                    <div class="content">
-                                                        <div class="text" style="font-size:16px;">Completed</div>
-                                                        <div class="number count-to" data-from="0" data-to="<?php echo widgets(4); ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo widgets(4); ?></div>
-                                                    </div>
-                                                </div>
-                                            </a>
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                     <!-- #END# Widgets -->
@@ -819,5 +815,3 @@ require('includes/footer.php');
     let tender_projects = <?= $tender_projects ?>;
     let tender_cost = <?= $tender_cost ?>;
 </script>
-
-project_contract_guarantees

@@ -81,42 +81,15 @@ try {
 
     if (isset($_GET['getUnits'])) {
         $getUnits = $_GET['getUnits'];
-        $indicator = $getUnits;
-        $program_starting_year = $_GET['program_starting_year'];
-        $years = $_GET['years'];
-        $program_type = $_GET['program_type'];
-
         $query_Indicator = $db->prepare("SELECT unit, indicator_name FROM tbl_indicator i INNER JOIN tbl_measurement_units u ON u.id = i.indicator_unit WHERE i.indid = :indid");
         $query_Indicator->execute(array(":indid" => $getUnits));
         $row = $query_Indicator->fetch();
         $total = $query_Indicator->rowCount();
-
-        $targets = array();
-        if ($program_type == 1) {
-            for ($i = 0; $i < $years; $i++) {
-                $query_program = $db->prepare("SELECT SUM(target) as target FROM tbl_progdetails WHERE indicator ='$indicator' AND year='$program_starting_year'");
-                $query_program->execute();
-                $row_program = $query_program->fetch();
-                $count_program = $query_program->rowCount();
-                $program_target = ($count_program > 0) ? $row_program['target'] : 0;
-
-                $query_strategicplan = $db->prepare("SELECT year_target FROM tbl_strategic_plan_op_indicator_targets WHERE op_indicator_id ='$indicator' AND year='$program_starting_year' ");
-                $query_strategicplan->execute();
-                $row_strategicplan = $query_strategicplan->fetch();
-                $count_strategicplan = $query_strategicplan->rowCount();
-                $strategicplan_targets = ($count_strategicplan > 0) ? $row_strategicplan['year_target'] : 0;
-                $targets[] = $strategicplan_targets - $program_target;
-                $program_starting_year++;
-            }
-        }
-
         if ($total > 0) {
             $unit = $row['unit'];
             $indicator_name = $row['indicator_name'];
-            echo json_encode(array('success' => true, 'unit' => $unit, 'targets' =>  $targets, 'indicator_name' => $indicator_name));
-        } else {
-            echo json_encode(array('success' => false));
         }
+        echo json_encode(array('success' => true, 'unit' => $unit,'indicator_name' => $indicator_name));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

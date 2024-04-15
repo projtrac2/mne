@@ -1,12 +1,6 @@
 const ajax_url = 'ajax/programs/index';
 
 $(document).ready(function () {
-    if (details.edit == 1) {
-        $("#program_workplan_div").show();
-    }
-
-    hide_workplan(details.edit);
-
     // check if the input has already been selected
     $(document).on("change", ".indicator", function (e) {
         var tralse = true;
@@ -35,7 +29,6 @@ $(document).ready(function () {
 });
 
 function get_sections() {
-    hide_workplan(0);
     $("#program_duration").val("");
     $("#sector_id").html(`<option value="" selected="selected" class="selection">....Select ${details.ministry} first....</option>`);
     $("#directorate_id").html(`<option value="" selected="selected" class="selection">....Select ${details.ministry} first....</option>`);
@@ -59,8 +52,6 @@ function get_sections() {
 }
 
 function get_directorate() {
-    hide_workplan(0);
-    $("#program_duration").val("");
     $("#directorate_id").html(`<option value="" selected="selected" class="selection">....Select ${details.section} first....</option>`);
     var sector_id = $("#sector_id").val();
     if (sector_id != "") {
@@ -94,120 +85,39 @@ function get_strategy() {
     });
 }
 
-function get_workplan_header() {
-    var program_duration = $("#program_duration").val();
-    var program_starting_year = $("#starting_year").val();
-    var strategic_plan_end_year = $("#stratplanendyear").val();
-    var program_type = details.program_type;
-    hide_workplan(0);
-
-    if (program_duration != "" || parseInt(program_duration) != 0) {
-        program_duration = parseInt(program_duration);
-        if (program_type == 1) {
-            program_starting_year = parseInt(program_starting_year);
-            var program_end_year = program_starting_year + program_duration - 1;
-            if (program_end_year <= strategic_plan_end_year) {
-                var containerH = `<tr>
-                <th rowspan="2">Indicator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                <th rowspan="2">Output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-                var content = `<tr>`;
-                for (var i = 0; i < program_duration; i++) {
-                    var finyear = program_starting_year + 1;
-                    containerH += `<th colspan="2">${program_starting_year}/${finyear}</th><input type="hidden" id="output_year${i}" name="progyear[]" value="${program_starting_year}" />`;
-                    content += `<th>Target &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                                <th>Budget (ksh) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-                    program_starting_year++;
-                }
-                containerH +=
-                    `<th rowspan="2">
-                        <button type="button" name="addprogramplus" id="addprogramplus" onclick="add_program_workplan()" class="btn btn-success btn-sm">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </button>
-                    </th>
-                    </tr>`;
-                content += `<tr>`;
-                containerH += content;
-                hide_workplan(1);
-                $("#phead").append(containerH);
-            } else {
-                hide_workplan(0);
-                $("#program_duration").val("");
-            }
-        } else {
-            var containerH = `<tr>
-                <th rowspan="2">Indicator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                <th rowspan="2">Output&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-            var content = `<tr>`;
-            for (var i = 0; i < program_duration; i++) {
-                var finyear = program_starting_year + 1;
-                containerH += `<th colspan="2">${program_starting_year}/${finyear}</th><input type="hidden" id="output_year${i}" name="progyear[]" value="${program_starting_year}" />`;
-                content += `<th>Target &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
-                            <th>Budget (ksh) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>`;
-                program_starting_year++;
-            }
-            containerH +=
-                `<th rowspan="2">
-                    <button type="button" name="addprogramplus" id="addprogramplus" onclick="add_program_workplan();" class="btn btn-success btn-sm">
-                        <span class="glyphicon glyphicon-plus"></span>
-                    </button>
-                </th> </tr>`;
-            content += `<tr>`;
-            containerH += content;
-            hide_workplan(1);
-            $("#phead").append(containerH);
-
-        }
-    }
-}
-
-function hide_workplan(param) {
-    if (param) {
-        $("#program_workplan_div").show();
-    } else {
-        $("#program_workplan_div").hide();
-        $("#phead").html("");
-        $("#program_workplan_body").html("");
-    }
-}
-
 $rowno = $("#program_workplan_body tr").length;
 function add_program_workplan() {
-    var years = $("#program_duration").val();
-    var directorate_id = $("#directorate_id").val();
-    if (directorate_id != "") {
-        var containerB =
-            `<tr class="" id="row${$rowno}">
+    var years = $("#strategic_plan_duration").val();
+    var containerB =
+        `<tr class="" id="row${$rowno}">
             <td>
                 <select name="indicator[]" id="indicatorrow${$rowno}" onchange="get_indicator_details('row${$rowno}')" class="form-control selectOutput show-tick indicator"  style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
                     <option value="">... Select Indicator first ...</option>
                 </select>
             </td>
             <td id="outputrow${$rowno}">
-            </td>
-            `;
-        for (var i = 0; i < years; i++) {
-            containerB +=
-                `<td>
-                <input name="targetrow${$rowno}[]" id="targetrow${$rowno}" class="form-control targetrow${$rowno}" type="number" min="0" step="0.01" data-number-to-fixed="2" data-number-stepfactor="100" style="border:#CCC thin solid; border-radius: 5px"  required>
-            </td>
-            <td>
-                <input name="budgetrow${$rowno}[]" id="budgetrow${$rowno}" class="form-control currency budgetrow${$rowno}" type="number" min="0" step="0.01" data-number-to-fixed="2" data-number-stepfactor="100" style="border:#CCC thin solid; border-radius: 5px"  required>
             </td>`;
-        }
-
-        containerB += `
-            <td>
-                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_program_row("row${$rowno}")>
-                    <span class="glyphicon glyphicon-minus"></span>
-                </button>
-            </td>
-        </tr>`;
-        $rowno = $rowno + 1;
-        $("#program tr:last").after(containerB);
-        get_indicator($rowno);
-    } else {
-        swal("Warning", `Select ${details.directorate} First!`, "warning");
+    for (var i = 0; i < years; i++) {
+        containerB +=
+            `<td>
+            <input name="targetrow${$rowno}[]" id="targetrow${$rowno}" class="form-control targetrow${$rowno}" type="number" min="0" step="0.01" data-number-to-fixed="2" data-number-stepfactor="100" style="border:#CCC thin solid; border-radius: 5px"  required>
+        </td>
+        <td>
+            <input name="budgetrow${$rowno}[]" id="budgetrow${$rowno}" class="form-control currency budgetrow${$rowno}" type="number" min="0" step="0.01" data-number-to-fixed="2" data-number-stepfactor="100" style="border:#CCC thin solid; border-radius: 5px"  required>
+        </td>`;
     }
+
+    containerB += `
+        <td>
+            <button type="button" class="btn btn-danger btn-sm" id="delete" onclick=delete_program_row("row${$rowno}")>
+                <span class="glyphicon glyphicon-minus"></span>
+            </button>
+        </td>
+    </tr>`;
+    $rowno = $rowno + 1;
+    $("#program tr:last").after(containerB);
+    get_indicator($rowno);
+
 }
 
 function delete_program_row(rowno) {
@@ -215,35 +125,26 @@ function delete_program_row(rowno) {
 }
 
 function get_indicator(rowno = null) {
-    var sector_id = $("#sector_id").val();
     var indicator = "#indicatorrow" + (rowno - 1);
-    if (sector_id) {
-        $.ajax({
-            type: 'get',
-            url: ajax_url,
-            data: { getprogindicator: sector_id },
-            success: function (html) {
-                if (rowno != null) {
-                    $(indicator).html(html);
-                } else {
-                    $(".indicator").html(html);
-                }
+    $.ajax({
+        type: 'get',
+        url: ajax_url,
+        data: { getprogindicator: "" },
+        success: function (html) {
+            if (rowno != null) {
+                $(indicator).html(html);
+            } else {
+                $(".indicator").html(html);
             }
-        });
-    } else {
-        $(".indicator").html(`<option value="">... Select ${details.directorate}  First ... </option>`);
-    }
-
+        }
+    });
 }
 
 function get_indicator_details(rowno) {
     var rw = rowno;
-    var output = 'output' + rw;
     var indicator = 'indicator' + rw;
     var target = '.target' + rw;
     var budget = '.budget' + rw;
-    var years = $("#program_duration").val();
-    var program_starting_year = $("#starting_year").val();
     var indicatorVal = $("#" + indicator).val();
 
     if (indicatorVal != "") {
@@ -252,9 +153,6 @@ function get_indicator_details(rowno) {
             url: ajax_url,
             data: {
                 getUnits: indicatorVal,
-                program_type: details.program_type,
-                years: years,
-                program_starting_year: program_starting_year,
             },
             dataType: "json",
             success: function (html) {
@@ -266,12 +164,6 @@ function get_indicator_details(rowno) {
                     var budgets = 'budget' + indicatorVal + '[]';
                     $(target).attr('name', targets);
                     $(budget).attr('name', budgets);
-                    if (details.program_type == 1) {
-                        for (i = 0; i < years; i++) {
-                            $("#indicator_targets" + rowno + i).html(html.targets[i]);
-                            $("#hidden_indicator_targets" + rowno + i).val(html.targets[i]);
-                        }
-                    }
                 }
             }
         });

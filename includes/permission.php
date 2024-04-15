@@ -204,46 +204,6 @@ function get_child_id($page_detials)
     return $child;
 }
 
-
-
-
-
-function validate_program_url($progid, $program_type)
-{
-    global $db;
-
-    if ($program_type == "" && $progid != '') {
-        $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid=:progid");
-        $query_rsProgram->execute(array(":progid" => $progid));
-        $row_rsProgram = $query_rsProgram->fetch();
-        $totalRows_rsProgram = $query_rsProgram->rowCount();
-        $program_type = $totalRows_rsProgram > 0 ?  $row_rsProgram['program_type'] : 0;
-    }
-    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
-}
-
-function validate_project_url($progid)
-{
-    global $db;
-    $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid=:progid");
-    $query_rsProgram->execute(array(":progid" => $progid));
-    $row_rsProgram = $query_rsProgram->fetch();
-    $totalRows_rsProgram = $query_rsProgram->rowCount();
-    $program_type = $totalRows_rsProgram > 0 ?  $row_rsProgram['program_type'] : 0;
-    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
-}
-
-function validate_output_url($projid)
-{
-    global $db;
-    $sql = $db->prepare("SELECT * FROM `tbl_projects` p inner join `tbl_programs` g ON g.progid=p.progid WHERE p.projid=:projid LIMIT 1");
-    $sql->execute(array(":projid" => $projid));
-    $rows_count = $sql->rowCount();
-    $row = $sql->fetch();
-    $program_type =  ($rows_count > 0) ? $row['program_type'] : 0;
-    return $program_type == 1 ? "view-strategic-plans" : "all-programs";
-}
-
 function child_ids($page_url)
 {
     global $db;
@@ -267,38 +227,6 @@ if ($page_detials) {
     $icon = $page_detials['icon'];
     $allow_read_records = $page_detials['allow_read'];
     $workflow_stage = $page_detials['workflow_stage'];
-
-    if (isset($_GET['progid']) ||  isset($_GET['program_type'])) {
-        $url_pages = '';
-        if (get_current_url() == "add-project") {
-            $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
-            $progid_array = explode("progid54321", $decode_progid);
-            $progid = $progid_array[1];
-            $url_pages = validate_project_url($progid);
-        } else  if (get_current_url() == 'edit-program') {
-            $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
-            $progid_array = explode("progid54321", $decode_progid);
-            $progid = $progid_array[1];
-            $url_pages = validate_program_url($progid, '');
-        } else if (get_current_url() ==  'add-program') {
-            $program_type = $_GET['program_type'];
-            $url_pages = validate_program_url('', $program_type);
-        }
-        $page_detials = child_ids($url_pages);
-    } else if (get_current_url() == 'add-project-outputs' && isset($_GET['projid'])) {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
-        $projid_array = explode("projid54321", $decode_projid);
-        $projid = $projid_array[1];
-        $url_pages = validate_output_url($projid);
-        $page_detials = child_ids($url_pages);
-    } else if (isset($_GET['projid']) && get_current_url() == "add-project") {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
-        $projid_array = explode("projid54321", $decode_projid);
-        $projid = $projid_array[1];
-        $url_pages = validate_output_url($projid);
-        $page_detials = child_ids($url_pages);
-    }
-
     $Id = get_parent_id($page_detials);
     $subId = get_child_id($page_detials);
 }

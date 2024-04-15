@@ -100,8 +100,6 @@ if ($permission) {
                                                         project_name:'$projname',
                                                         edit:'$edit'
                                                     }";
-
-
                                         ?>
                                                     <tr>
                                                         <td align="center"><?= $counter ?></td>
@@ -130,6 +128,7 @@ if ($permission) {
                                                                         </li>
                                                                     <?php
                                                                     }
+                                                                    
                                                                     if ($assigned_responsible) {
                                                                     ?>
                                                                         <li>
@@ -217,7 +216,6 @@ if ($permission) {
             <!-- /modal-content -->
         </div>
     </div>
-	
 
     <!-- start issues modal  -->
     <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
@@ -383,7 +381,6 @@ if ($permission) {
 
 require('includes/footer.php');
 ?>
-
 <script>
     const redirect_url = "add-project-activities.php";
 </script>
