@@ -10,7 +10,7 @@ try {
     {
         global $db;
         $guarantees_expiring = [];
-        $guarantees_stmt = $db->prepare('SELECT * FROM tbl_contract_guarantees');
+        $guarantees_stmt = $db->prepare('SELECT g.projid, g.guarantee, g.start_date, g.duration, p.progid, p.projname, t.contractrefno FROM tbl_contract_guarantees as g INNER JOIN tbl_projects as p ON g.projid=p.projid LEFT JOIN tbl_tenderdetails as t ON g.projid=t.projid');
         $guarantees_stmt->execute();
         $guarantees_obj = $guarantees_stmt->fetchAll(PDO::FETCH_OBJ);
 
@@ -36,7 +36,7 @@ try {
     {
         global $db;
         $guarantees_healthy = [];
-        $guarantees_stmt = $db->prepare('SELECT * FROM tbl_contract_guarantees');
+        $guarantees_stmt = $db->prepare('SELECT g.projid, g.guarantee, g.start_date, g.duration, p.progid, p.projname, t.contractrefno FROM tbl_contract_guarantees as g INNER JOIN tbl_projects as p ON g.projid=p.projid LEFT JOIN tbl_tenderdetails as t ON g.projid=t.projid');
         $guarantees_stmt->execute();
         $guarantees_obj = $guarantees_stmt->fetchAll(PDO::FETCH_OBJ);
 
@@ -61,7 +61,7 @@ try {
     {
         global $db;
         $guarantees_expired = [];
-        $guarantees_stmt = $db->prepare('SELECT * FROM tbl_contract_guarantees');
+        $guarantees_stmt = $db->prepare('SELECT g.projid, g.guarantee, g.start_date, g.duration, p.progid, p.projname, t.contractrefno FROM tbl_contract_guarantees as g INNER JOIN tbl_projects as p ON g.projid=p.projid LEFT JOIN tbl_tenderdetails as t ON g.projid=t.projid');
         $guarantees_stmt->execute();
         $guarantees_obj = $guarantees_stmt->fetchAll(PDO::FETCH_OBJ);
 
@@ -73,7 +73,6 @@ try {
             if ($today >= $end_date) {
                 array_push($guarantees_expired, $guarantee);
             }
-            
         }
 
         return $guarantees_expired;
@@ -93,6 +92,7 @@ try {
         $guarantees = contractGuaranteesExpired();
         $pageTitle = 'Contract Guarantees Expired';
     }
+
     // if ($permission) {
 
 ?>
@@ -120,9 +120,11 @@ try {
                                         <thead>
                                             <tr>
                                                 <th style="width:5%">#</th>
-                                                <th style="width:55%">Guarantee</th>
+                                                <th style="width:27%">Guarantee</th>
+                                                <th style="width:27%">Project</th>
+                                                <th style="width:14%">Contract No</th>
+                                                <th style="width:1%">Duration</th>
                                                 <th style="width:15%">Start Date</th>
-                                                <th style="width:15%">Duration</th>
                                                 <th style="width:10%">End Date</th>
                                             </tr>
                                         </thead>
@@ -134,9 +136,11 @@ try {
                                                 ?>
                                                 <tr>
                                                     <td style="width:5%"><?= $hash ?></td>
-                                                    <td style="width:55%"><?= $value->guarantee ?></td>
+                                                    <td style="width:27%"><?= $value->guarantee ?></td>
+                                                    <td style="width:27%"><?= $value->projname ?></td>
+                                                    <td style="width:14%"><?= $value->contractrefno ?></td>
+                                                    <td style="width: 1%;"><?= $value->duration ?></td>
                                                     <td style="width:15%"><?= $value->start_date ?></td>
-                                                    <td style="width:15%"><?= $value->duration ?></td>
                                                     <td style="width:10%"><?= $end_date ?></td>
                                                 </tr>
                                                 <?php  

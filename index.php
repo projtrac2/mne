@@ -94,20 +94,13 @@ if (isset($_POST['sign-in'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background-image: url('./images/back-14.jpg');
+      background-image: url('./images/main-4.jpg');
       background-repeat: no-repeat;
       background-size: 100% 100%;
       min-height: 100vh;
+      padding: 0px !important;
     }
 
-    .m-footer {
-      text-align: center;
-      background-color: black;
-      color: white;
-      position: absolute;
-      bottom: 0px;
-      width: 100%;
-    }
 
     .m-alert {
       padding: 0.6vw;
@@ -138,35 +131,97 @@ if (isset($_POST['sign-in'])) {
 
     .m-email {
       color: black;
-      padding: 0.6vw !important;
       border-radius: 5px !important;
       border: none;
-      width: 40%;
-      font-size: 18px !important;
+      width: 70%;
+      font-size: 12px !important;
+      padding-top: 0.001vw !important;
+      padding-right: 0.001vw !important;
+      padding-bottom: 0.001vw !important;
+      padding-left: 2.1vw !important;
+
     }
 
     .m-password {
       color: black;
-      padding: 0.6vw !important;
       border-radius: 5px !important;
+      padding-top: 0.001vw !important;
+      padding-right: 0.001vw !important;
+      padding-bottom: 0.001vw !important;
+      padding-left: 2.1vw !important;
       border: none;
-      width: 40%;
-      font-size: 18px !important;
+      width: 70%;
+      font-size: 12px !important;
     }
 
     #submit-btn {
-        background-color: #22c55e;
-        color: white;
-        border: none;
-        padding-left: 2vw;
-        padding-right: 2vw;
-        padding-top: 0.5vw;
-        padding-bottom: 0.5vw;
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 1px;
-        border-radius: 5px;
-      }
+      background-color: #22c55e;
+      color: white;
+      border: none;
+      padding-left: 2vw;
+      padding-right: 2vw;
+      padding-top: 0.5vw;
+      padding-bottom: 0.5vw;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      border-radius: 5px;
+    }
+
+    #forgot-password {
+      background-color: transparent;
+      color: white;
+      border: 1.5px solid #003366;
+      padding-left: 2vw;
+      padding-right: 2vw;
+      padding-top: 0.5vw;
+      padding-bottom: 0.5vw;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      border-radius: 5px;
+    }
+
+    .m-footer {
+      text-align: center;
+      background-color: black;
+      color: white;
+      position: absolute;
+      bottom: 0px;
+      width: 100%;
+      font-size: 8px;
+    }
+
+    .m-bg {
+      margin-top: 2%;
+      text-align: center;
+    }
+
+    .m-bg img {
+      width: 70%;
+    }
+
+    .glass-bg-resp {
+      text-align: center;
+    }
+
+    .glass-bg-resp h4 {
+      font-size: 12px;
+    }
+
+    .glass-morphism {
+      /* From https://css.glass */
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      width: 86%;
+      margin: 10% auto;
+    }
+
+    
 
     @media only screen and (max-height: 600px) {
 
@@ -204,7 +259,217 @@ if (isset($_POST['sign-in'])) {
 
 
 
-    
+
+
+    /** sm */
+    @media (min-width: 640px) {
+      .m-footer {
+        text-align: center;
+        background-color: black;
+        color: white;
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        font-size: 10px;
+      }
+
+    }
+
+    /** md */
+    @media (min-width: 768px) {
+      .m-footer {
+        text-align: center;
+        background-color: black;
+        color: white;
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+      }
+
+      body {
+        background-image: url('./images/back-14.jpg');
+      }
+
+      .glass-bg-resp {
+        text-align: left;
+      }
+
+      .m-bg {
+        margin-top: 0px;
+        text-align: left;
+      }
+
+      .m-bg img {
+        width: 50%;
+      }
+
+      #submit-btn {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+        padding-left: 2vw;
+        padding-right: 2vw;
+        padding-top: 0.5vw;
+        padding-bottom: 0.5vw;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border-radius: 5px;
+      }
+
+      #forgot-password {
+        background-color: transparent;
+        color: white;
+        border: 1.5px solid #003366;
+        padding-left: 2vw;
+        padding-right: 2vw;
+        padding-top: 0.5vw;
+        padding-bottom: 0.5vw;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border-radius: 5px;
+      }
+
+      .m-email {
+        color: black;
+        padding-top: 0.2vw !important;
+        padding-right: 0.2vw !important;
+        padding-bottom: 0.2vw !important;
+        padding-left: 1vw !important;
+        border-radius: 5px !important;
+        border: none;
+        width: 40%;
+        font-size: 16px !important;
+      }
+
+      .m-password {
+        color: black;
+        padding-top: 0.2vw !important;
+        padding-right: 0.2vw !important;
+        padding-bottom: 0.2vw !important;
+        padding-left: 1vw !important;
+        border-radius: 5px !important;
+        border: none;
+        width: 40%;
+        font-size: 16px !important;
+      }
+
+      .glass-bg-resp h4 {
+        font-size: 18px;
+      }
+
+      .glass-morphism {
+          background: transparent;
+          border-radius: 0px;
+          box-shadow: none;
+          backdrop-filter: blur(0px);
+          -webkit-backdrop-filter: blur(0px);
+          border: none;
+          width: 86%;
+          margin: 0px;/* From https://css.glass */
+      }
+
+    }
+
+    /** lg */
+    @media (min-width: 1024px) {
+
+      .glass-morphism {
+          background: transparent;
+          border-radius: 0px;
+          box-shadow: none;
+          backdrop-filter: blur(0px);
+          -webkit-backdrop-filter: blur(0px);
+          border: none;
+          width: 86%;
+          margin: 0px;/* From https://css.glass */
+      }
+
+      .glass-bg-resp h4 {
+        font-size: 18px;
+      }
+
+      .m-footer {
+        text-align: center;
+        background-color: black;
+        color: white;
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        font-size: 14px;
+
+      }
+
+      body {
+        background-image: url('./images/back-14.jpg');
+      }
+
+      .glass-bg-resp {
+        text-align: left;
+      }
+
+      .m-bg {
+        margin-top: 0px;
+        text-align: left;
+      }
+
+      .m-bg img {
+        width: 50%;
+      }
+
+      #submit-btn {
+        background-color: #22c55e;
+        color: white;
+        border: none;
+        padding-left: 2vw;
+        padding-right: 2vw;
+        padding-top: 0.5vw;
+        padding-bottom: 0.5vw;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border-radius: 5px;
+      }
+
+      #forgot-password {
+        background-color: transparent;
+        color: white;
+        border: 1.5px solid #003366;
+        padding-left: 2vw;
+        padding-right: 2vw;
+        padding-top: 0.5vw;
+        padding-bottom: 0.5vw;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        border-radius: 5px;
+      }
+
+      .m-email {
+        color: black;
+        padding-top: 0.2vw !important;
+        padding-right: 0.2vw !important;
+        padding-bottom: 0.2vw !important;
+        padding-left: 1vw !important;
+        border-radius: 5px !important;
+        border: none;
+        width: 40%;
+        font-size: 16px !important;
+      }
+
+      .m-password {
+        color: black;
+        padding-top: 0.2vw !important;
+        padding-right: 0.2vw !important;
+        padding-bottom: 0.2vw !important;
+        padding-left: 1vw !important;
+        border-radius: 5px !important;
+        border: none;
+        width: 40%;
+        font-size: 16px !important;
+      }
+    }
   </style>
   <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.css" />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -217,38 +482,42 @@ if (isset($_POST['sign-in'])) {
   <div class="container">
     <div class="row">
       <div class="col-lg-4 col-md-12 col-sm-12 m-padding">
-        <div style="margin-bottom: 6vh;" class="m-bg">
-          <img src="./images/logo-proj.png" alt="" srcset="" width="500">
+
+        <div class="glass-morphism">
+          <div style="margin-bottom: 6vh;" class="m-bg glass-bg-resp">
+            <img src="./images/logo-proj.png" alt="" srcset="" width="500">
+          </div>
+
+
+          <div style="margin-bottom: 4vh;" class="glass-bg-resp">
+            <h4 style="color: #003366;">Login to mne</h4>
+            <!-- <p style="color: black;">Check email for otp code!</p> -->
+          </div>
+
+          <div class="glass-bg-resp">
+            <form method="POST" id="loginusers">
+              <div style="margin-bottom: 1vh;">
+                <input class="m-email" name="email" type="email" id="email" placeholder="Email" required>
+                <p style="color: #dc2626;"></p>
+              </div>
+
+              <div style="margin-bottom: 4vh;">
+                <input class="m-password" name="password" type="password" id="password" placeholder="Password" required>
+                <p style="color: #dc2626;"></p>
+              </div>
+
+              <input type="hidden" name="sign-in" value="sign-in">
+
+              <div class="btn-flex">
+                <button id="submit-btn" type="button">Sign In</button>
+                <a href="forgot-password.php"><button type="button" id="forgot-password">Forgot Password</button></a>
+              </div>
+            </form>
+          </div>
+
         </div>
-
-
-        <div style="margin-bottom: 4vh;">
-          <h4 style="color: #003366;">Login to mne</h4>
-          <!-- <p style="color: black;">Check email for otp code!</p> -->
-        </div>
-
-        <div class="glass-bg-resp">
-          <form method="POST" id="loginusers">
-            <div style="margin-bottom: 4vh;">
-              <input class="m-email form-control" name="email" type="email" id="email" placeholder="Email" required>
-              <p style="color: #dc2626;"></p>
-            </div>
-
-            <div style="margin-bottom: 4vh;">
-              <input class="m-password" name="password" type="password" id="password" placeholder="Password" required>
-              <p style="color: #dc2626;"></p>
-            </div>
-
-            <input type="hidden" name="sign-in" value="sign-in">
-
-            <div class="btn-flex">
-              <button id="submit-btn" type="button">Sign In</button>
-              <a href="forgot-password.php"><button type="button" style="background-color: transparent; color: white; border: 1.5px solid #003366; padding-left: 2vw; padding-right: 2vw; padding-top: 0.5vw; padding-bottom: 0.5vw; font-size: 14px; font-weight: 600; letter-spacing: 1px; border-radius: 5px;">Forgot Password</button></a>
-            </div>
-          </form>
-        </div>
-
       </div>
+
       <div class="col-lg-8 col-md-12 col-sm-12">
 
       </div>
