@@ -1,6 +1,5 @@
 <?php
 include '../controller.php';
-include './includes/permission.php';
 try {
     if (isset($_POST['store_cost'])) {
         $projid = $_POST['projid'];
@@ -108,5 +107,6 @@ try {
         echo json_encode(array("success" => true, "tasks" => $input, "remaining_amount" => number_format($remaining_amount, 2), "task"=>$task));
     }
 } catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    echo $ex->getMessage();
 }

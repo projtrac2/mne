@@ -1,13 +1,13 @@
 <?php
-	try {
+try {
 
-$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : "";
-$stplanid_array = explode("strplan1", $decode_stplanid);
-$stplan = $stplanid_array[1];
-$stplane = $_GET['plan'];
+	$decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : "";
+	$stplanid_array = explode("strplan1", $decode_stplanid);
+	$stplan = $stplanid_array[1];
+	$stplane = $_GET['plan'];
 
-require('includes/head.php');
-if ($permission) {
+	require('includes/head.php');
+	if ($permission) {
 		// get project risks
 		$query_strategic_plan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE id=:stplan");
 		$query_strategic_plan->execute(array(":stplan" => $stplan));
@@ -121,7 +121,11 @@ if ($permission) {
 													$project_directorate = $row['directorate'];
 													$projevaluation = $row['projevaluation'];
 													$projimpact = $row['projimpact'];
+													$stage_id = $row['stage_id'];
+													$child_stage_id = $row['projstage'];
+													$status_id = $row['projstatus'];
 													$projid_hashed = base64_encode("projid54321{$projid}");
+													$project_status =	get_project_status($status_id);
 
 													$query_adp =  $db->prepare("SELECT *, p.status as status FROM tbl_annual_dev_plan p inner join tbl_fiscal_year y ON y.id=p.financial_year WHERE projid = :projid");
 													$query_adp->execute(array(":projid" => $projid));
@@ -159,7 +163,8 @@ if ($permission) {
 														currentfy:'$currentfy'
 													}";
 
-													$active = '<label class="label success" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">Pending</label>';
+
+													$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">Pending</label>';
 													$filter_department = view_record($project_department, $project_section, $project_directorate);
 													if ($filter_department) {
 														$sn++;
@@ -169,9 +174,9 @@ if ($permission) {
 															<td><?= $sn ?> </td>
 															<td><?= $projname ?> </td>
 															<td><?= $progname ?> </td>
-															<td><?= $sector ?> </td>
+															<td><?= $sector  ?> </td>
 															<td><?= number_format($budget, 2) ?> </td>
-															<td><?= $active ?> </td>
+															<td><?= $project_status ?> </td>
 															<td>
 																<input type="hidden" name="projname" id="projname<?= $projid ?>" value="<?= $projname ?>">
 																<!-- Single button -->
@@ -185,36 +190,63 @@ if ($permission) {
 																				<i class="glyphicon glyphicon-file"></i> More
 																			</a>
 																		</li>
-																		<li>
-																			<a type="button" onclick="add_to_adp(<?= $details ?>)">
-																				<i class="glyphicon glyphicon-plus"></i> Add to ADP
-																			</a>
-																		</li>
-																		<li>
-																			<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
-																				<i class="glyphicon glyphicon-edit"></i> Remove from ADP
-																			</a>
-																		</li>
-																		<li>
-																			<a type="button" href="add-project-mne-plan.php?projid=<?= $projid_hashed ?>">
-																				<i class="glyphicon glyphicon-plus"></i>Add M&E Plan
-																			</a>
-																		</li>
-																		<li>
-																			<a type="button" data-toggle="modal" data-target="#fyItemModal" id="fyItemModalBtn" onclick="adjustFy(<?= $details ?>)">
-																				<i class="glyphicon glyphicon-calendar"></i> Adjust Output FY
-																			</a>
-																		</li>
-																		<li>
-																			<a type="button" data-toggle="modal" id="editprogram" href="add-project?projid=<?= $projid_hashed ?>">
-																				<i class="glyphicon glyphicon-edit"></i> Edit
-																			</a>
-																		</li>
-																		<li>
-																			<a type="button" id="removeItemModalBtn" onclick="removeItem(<?= $projid ?>)">
-																				<i class="glyphicon glyphicon-trash"></i> Remove
-																			</a>
-																		</li>
+																		<?php
+																		if ($stage_id == 1) {
+																			if ($child_stage_id == 4) {
+																		?>
+																				<li>
+																					<a type="button" href="add-project-mne-plan.php?projid=<?= $projid_hashed ?>">
+																						<i class="glyphicon glyphicon-plus"></i>Add M&E Plan
+																					</a>
+																				</li>
+																				<li>
+																					<a type="button" data-toggle="modal" id="editprogram" href="add-project?projid=<?= $projid_hashed ?>">
+																						<i class="glyphicon glyphicon-edit"></i> Edit
+																					</a>
+																				</li>
+																				<li>
+																					<a type="button" id="removeItemModalBtn" onclick="removeItem(<?= $projid ?>)">
+																						<i class="glyphicon glyphicon-trash"></i> Remove
+																					</a>
+																				</li>
+																			<?php
+																			} else if ($child_stage_id == 5) {
+																			?>
+																				<li>
+																					<a type="button" href="add-project-mne-plan.php?projid=<?= $projid_hashed ?>">
+																						<i class="glyphicon glyphicon-plus"></i>Edit M&E Plan
+																					</a>
+																				</li>
+																				<li>
+																					<a type="button" href="add-project-risks.php?projid=<?= $projid_hashed ?>">
+																						<i class="glyphicon glyphicon-plus"></i>Add Risk Plan
+																					</a>
+																				</li>
+																			<?php
+																			} else if ($child_stage_id == 6) {
+																			?>
+																				<li>
+																					<a type="button" href="add-project-risks.php?projid=<?= $projid_hashed ?>">
+																						<i class="glyphicon glyphicon-plus"></i>Edit Risk Plan
+																					</a>
+																				</li>
+																				<li>
+																					<a type="button" onclick="add_to_adp(<?= $details ?>)">
+																						<i class="glyphicon glyphicon-plus"></i> Add to ADP
+																					</a>
+																				</li>
+																			<?php
+																			} else if ($child_stage_id == 7) {
+																			?>
+																				<li>
+																					<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
+																						<i class="glyphicon glyphicon-edit"></i> Remove from ADP
+																					</a>
+																				</li>
+																		<?php
+																			}
+																		}
+																		?>
 																	</ul>
 																</div>
 															</td>
@@ -312,14 +344,13 @@ if ($permission) {
 		</div>
 		<!-- End Adjust Financial Year -->
 
-<?php 
-} else {
-	$results =  restriction();
-	echo $results;
-}
+<?php
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
 
-require('includes/footer.php');
-
+	require('includes/footer.php');
 } catch (PDOException $th) {
 	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
@@ -333,3 +364,4 @@ require('includes/footer.php');
 </script>
 <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
 <script src="assets/js/projects/view-project.js"></script>
+<script src="assets/js/master/index.js"></script>

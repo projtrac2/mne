@@ -1,37 +1,25 @@
 <?php
 try {
 
-require('includes/head.php');
-if ($permission) {
-        $accesslevel = "";
+    require('includes/head.php');
+    if ($permission) {
+        $access_level = "";
         if (($user_designation < 5)) {
-            $accesslevel = "";
+            $access_level = "";
         } elseif ($user_designation == 5) {
-            $accesslevel = " AND g.projsector=$user_department";
+            $access_level = " AND g.projsector=$user_department";
         } elseif ($user_designation == 6) {
-            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section";
+            $access_level = " AND g.projsector=$user_department AND g.projdept=$user_section";
         } elseif ($user_designation > 6) {
-            $accesslevel = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
+            $access_level = " AND g.projsector=$user_department AND g.projdept=$user_section AND g.directorate=$user_directorate";
         }
 
-        function widgets($stage, $level_one_id, $level_two_id, $program_type)
-        {
-            global $db;
-            $access_level =    get_access_level();
-            $where = "";
-            if ($stage == 1) {
-                $where = "p.projstage=0";
-            } else if ($stage == 2) {
-                $where = "p.projstage >= 1 AND p.projstage < 8";
-            } else if ($stage == 3) {
-                $where = "p.projstage >= 8 AND p.projstage <= 9";
-            } else if ($stage == 4) {
-                $where = "p.projstage = 10";
-            }
 
-            $where .= $access_level;
-            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE program_type=:program_type AND  $where ");
-            $query_rsprojects->execute(array(":program_type" => $program_type));
+        function widgets($stage_id, $level_one_id, $level_two_id, $project_type)
+        {
+            global $db, $access_level;
+            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.stage_id=:stage_id AND project_type=:project_type $access_level ");
+            $query_rsprojects->execute(array(":stage_id" => $stage_id, ":project_type" => $project_type));
             $allprojects = $query_rsprojects->rowCount();
             $projids_array = [];
             if ($allprojects > 0) {
@@ -58,6 +46,7 @@ if ($permission) {
             return $projids_array;
         }
 
+
         $projects = $ind_projects = [];
 
         if (isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER") {
@@ -65,11 +54,11 @@ if ($permission) {
             $level_two_id = isset($_GET['projward']) && !empty($_GET['projward']) ? $_GET['projward'] : '';
             $stage = (isset($_GET['stage']))  ? $_GET['stage'] : '';
             $projects =  widgets($stage, $level_one_id, $level_two_id, 1);
-            $ind_projects =  widgets($stage, $level_one_id, $level_two_id, 2);
+            $ind_projects =  widgets($stage, $level_one_id, $level_two_id, 0);
         } else {
             $stage = (isset($_GET['stage']))  ? $_GET['stage'] : '';
             $projects =  widgets($stage, '', '', 1);
-            $ind_projects =  widgets($stage, '', '', 2);
+            $ind_projects =  widgets($stage, '', '', 0);
         }
 
         $_SESSION['back_url'] = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
@@ -565,13 +554,12 @@ if ($permission) {
                 </div>
             </div>
         </div>
-<?php 
-} else {
-    $results =  restriction();
-    echo $results;
-}
-require('includes/footer.php');
-
+<?php
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
 } catch (PDOException $th) {
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

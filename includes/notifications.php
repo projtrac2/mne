@@ -43,70 +43,46 @@
 
 <script>
     const notification_url = "ajax/notifications/fetchnotifications";
-
-    function load_unseen_notification(view = '') {
-        $.ajax({
-            url: notification_url,
-            method: "get",
-            data: {
-                get_alerts: "get_alerts",
-                view: view
-            },
-            dataType: "json",
-            success: function(data) {
-                if (data.success) {
-                    $('#mynotif').html(data.alerts);
-                    $('#notif_count').html(data.total_alerts);
-                } else {
-                    error_alert("Sorry error occurred");
-                }
-            }
-        });
-    }
-
-    function load_notification_alert(alert_id) {
-        $.ajax({
-            url: notification_url,
-            method: "get",
-            data: {
-                get_notifications: "get_notifications",
-                alert_id: alert_id
-            },
-            dataType: "json",
-            success: function(data) {
-                if (data.success) {
-                    $('#mymsg').html(data.notifications);
-                    $('#number').html(data.total_notifications);
-                } else {
-                    error_alert("Sorry error occurred");
-                }
-            }
-        });
-    }
-
-    function load_unseen_message(read = '') {
-        $.ajax({
-            url: notification_url,
-            method: "get",
-            data: {
-                get_notifications: "get_notifications",
-                read: read
-            },
-            dataType: "json",
-            success: function(data) {
-                if (data.success) {
-                    $('#mymsg').html(data.notifications);
-                    $('#number').html(data.total_notifications);
-                } else {
-                    error_alert("Sorry error occurred");
-                }
-            }
-        });
-    }
-
-
-
     $(document).ready(function() {
+        function load_unseen_notification(view = '') {
+            $.ajax({
+                url: notification_url,
+                method: "get",
+                data: {
+                    get_alerts: "get_alerts",
+                    view: view
+                },
+                dataType: "json",
+                success: function(data) {
+                    if (data.success) {
+                        $('#mynotif').html(data.alerts);
+                        $('#notif_count').html(data.total_alerts);
+                    } else {
+                        error_alert("Sorry error occurred");
+                    }
+                }
+            });
+        }
+
+        function load_unseen_message(read = '') {
+            $.ajax({
+                url: notification_url,
+                method: "get",
+                data: {
+                    get_notifications: "get_notifications",
+                    read: read
+                },
+                dataType: "json",
+                success: function(data) {
+                    if (data.success) {
+                        $('#mymsg').html(data.notifications);
+                        $('#number').html(data.total_notifications);
+                    } else {
+                        error_alert("Sorry error occurred");
+                    }
+                }
+            });
+        }
 
         // $(document).on('click', '#notif', function() {
         //     $('.count').html('');

@@ -1,27 +1,28 @@
 <?php
-    try {
 
 require('includes/head.php');
-if ($permission) {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
+    try {
+        $decode_projid =  base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
-        $query_rsProjects->execute(array(":projid" => $projid));
-        $row_rsProgjects = $query_rsProjects->fetch();
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid AND projstage=:projstage");
+        $query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
+        $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-        if ($totalRows_rsProjects > 0) {
-            $progid = $row_rsProgjects['progid'];
-            $projcode = $row_rsProgjects['projcode'];
-            $project = $row_rsProgjects['projname'];
-            $projfscyear = $row_rsProgjects['projfscyear'];
-            $projduration = $row_rsProgjects['projduration'];
-            $projevaluation = $row_rsProgjects['projevaluation'];
-            $projimpact = $row_rsProgjects['projimpact'];
-            $projstartdate = $row_rsProgjects['projstartdate'];
-            $projenddate = $row_rsProgjects['projenddate'];
 
+        if ($totalRows_rsProjects > 0) {
+            $progid = $row_rsProjects['progid'];
+            $projcode = $row_rsProjects['projcode'];
+            $project = $row_rsProjects['projname'];
+            $projfscyear = $row_rsProjects['projfscyear'];
+            $projduration = $row_rsProjects['projduration'];
+            $projevaluation = $row_rsProjects['projevaluation'];
+            $projimpact = $row_rsProjects['projimpact'];
+            $projstartdate = $row_rsProjects['projstartdate'];
+            $projenddate = $row_rsProjects['projenddate'];
+            $project_stage_id = $row_rsProjects['stage_id'];
 
             $end_year_moth = date("m", strtotime($projenddate));
             $end_year = date("Y", strtotime($projenddate));
@@ -102,11 +103,8 @@ if ($permission) {
                                             <ul class="list-group">
                                                 <li class="list-group-item list-group-item list-group-item-action active"> Name: <?= $project ?> </li>
                                                 <li class="list-group-item"><strong> Code: </strong> <?= $projcode ?> </li>
-                                                <li class="list-group-item"><strong> Start Date: </strong><?php $projstartdate; ?> </li>
-                                                <li class="list-group-item"><strong> End Date: </strong> <?= $projenddate ?> </li>
                                                 <input type="hidden" name="myprojid" id="myprojid" value="<?= $projid ?>">
                                                 <input type="hidden" name="key_unique" id="key_unique" value="<?= $projid ?>">
-
                                             </ul>
                                         </div>
                                     </div>
@@ -320,8 +318,24 @@ if ($permission) {
                                         }
                                         ?>
                                     </div>
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                            <?php
+                                            if (mne_plan()) {
+                                                $approve_details = "{
+                                                    projid:$projid,
+                                                    workflow_stage:$project_stage_id,
+                                                    project_name:'$project',
+                                                    sub_stage:'$workflow_stage',
+                                                }";
+                                            ?>
+                                                <button type="submit" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Proceed</button>
+                                            <?php
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -639,16 +653,16 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-   
+    } catch (PDOException $ex) {
+        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    }
 } else {
     $results =  restriction();
     echo $results;
-}
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>
 <script src="assets/js/mneplan/add-project-mne-plan.js"></script>
 <script src="assets/js/mneplan/index.js"></script>
 <script src="assets/js/projects/output.js"></script>
+<script src="assets/js/master/index.js"></script>

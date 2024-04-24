@@ -1,12 +1,10 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-<<<<<<< HEAD
 
         $query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE active = 1");
         $query_risk_impact->execute();
@@ -16,9 +14,6 @@ if ($permission) {
     } catch (PDOException $ex) {
         $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
-=======
-    
->>>>>>> a86ec8a0e2f758e8fe1b037ea93221d3199a93f1
 ?>
     <!-- start body  -->
     <section class="content">
@@ -96,7 +91,7 @@ if ($permission) {
                                                         $activity = $sub_stage > 1 ? "Approve"  : "Edit";
                                                     }
 
-                                                    $due_date = get_master_data_due_date($projid, $workflow_stage, $sub_stage);
+                                                    $due_date = get_due_date($projid, $workflow_stage);
                                                     $activity_status = "Pending";
                                                     if ($sub_stage > 1) {
                                                         $activity_status = "Pending Approval";
@@ -156,11 +151,11 @@ if ($permission) {
                                                                     <?php
                                                                     }
                                                                     ?>
-																	<li>
-																		<a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues('<?= $projid_hashed ?>', '<?= htmlspecialchars($projname) ?>')">
-																			<i class="fa fa-exclamation-triangle text-danger"></i> Issues
-																		</a>
-																	</li>
+                                                                    <li>
+                                                                        <a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues('<?= $projid_hashed ?>', '<?= htmlspecialchars($projname) ?>')">
+                                                                            <i class="fa fa-exclamation-triangle text-danger"></i> Issues
+                                                                        </a>
+                                                                    </li>
                                                                 </ul>
                                                             </div>
                                                         </td>
@@ -232,7 +227,7 @@ if ($permission) {
             <!-- /modal-content -->
         </div>
     </div>
-	
+
     <!-- start issues modal  -->
     <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog modal-lg">
@@ -393,9 +388,6 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
-}
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

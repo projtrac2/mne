@@ -32,11 +32,11 @@ try {
         $sql = $db->prepare("UPDATE tbl_projects SET projstage=:projstage, proj_substage=:proj_substage WHERE  projid=:projid");
         $result  = $sql->execute(array(":projstage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
 
-        if ($workflow_stage == 5) {
-            $projstatus = 3;
-            $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
-            $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
-        }
+        // if ($workflow_stage == 5) {
+        //     $projstatus = 3;
+        //     $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
+        //     $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
+        // }
 
         if ($result) {
             $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");

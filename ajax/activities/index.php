@@ -2,7 +2,6 @@
 
 include '../controller.php';
 try {
-
     if (isset($_GET['get_sites'])) {
         $msg = false;
         $output_id = $_GET['output_id'];
@@ -221,9 +220,6 @@ try {
         echo json_encode(array('success' => true, 'target' => $max_target + $target));
     }
 
-
-
-
     if (isset($_GET['get_miletone_edit_details'])) {
         $milestone_id = $_GET['milestone_id'];
         $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE id=:milestone_id");
@@ -302,8 +298,7 @@ try {
         }
         echo json_encode(array('success' => true));
     }
-
-
+    
     if (isset($_POST['store_output_data_mile_d'])) {
         $store_output_data = $_POST['store_output_data_mile_d'];
         $output_id = $_POST['output'];
@@ -352,6 +347,7 @@ try {
         $results = $sql->execute(array(':milestone_id' => $milestone_id, ":output_id" => $output_id));
         echo json_encode(array("success" => true, "milestone" => "Deleted successfully"));
     }
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+} catch (PDOException $ex) {
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    echo $ex->getMessage();
 }

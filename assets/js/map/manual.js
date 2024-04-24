@@ -9,7 +9,7 @@ const longitude = $("#company_longitude").val();
 
 function initMap() {
   map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: latitude, lng: longitude },
+    center: new google.maps.LatLng(latitude, longitude),
     zoom: 13,
     styles: [
       {
@@ -77,7 +77,7 @@ function initMap() {
 
     places.forEach((place) => {
       if (!place.geometry || !place.geometry.location) {
-        console.log("Returned place contains no geometry");
+        error_alert("Returned place contains no geometry");
         return;
       }
 

@@ -457,22 +457,11 @@ if ($permission) {
             return array("financial_years" => $financial_years, "years" => $years);
         }
 
-        function widgets($stage)
+        function widgets($stage_id)
         {
             global $db, $access_level;
-            $where = "";
-            if ($stage == 1) {
-                $where = "p.projstage=0";
-            } else if ($stage == 2) {
-                $where = "p.projstage >= 1 AND p.projstage < 8";
-            } else if ($stage == 3) {
-                $where = "p.projstage >= 8 AND p.projstage <= 9";
-            } else if ($stage == 4) {
-                $where = "p.projstage = 10";
-            }
-            $where .= $access_level;
-            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE  $where ");
-            $query_rsprojects->execute();
+            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.stage_id=:stage_id $access_level ");
+            $query_rsprojects->execute(array(":stage_id" => $stage_id));
             $allprojects = $query_rsprojects->rowCount();
             return $allprojects;
         }
@@ -679,7 +668,7 @@ if ($permission) {
                                                 </a>
                                             </div>
                                             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                                <a href='view-dashboard-projects.php?prjstatus=complete&<?php echo $allprojectsurl; ?>' id="stage_four">
+                                                <a href='view-dashboard-projects.php?stage=4&<?php echo $allprojectsurl; ?>' id="stage_four">
                                                     <div class="info-box bg-light-green hover-expand-effect">
                                                         <div class="icon">
                                                             <i class="material-icons">verified_user</i>

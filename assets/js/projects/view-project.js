@@ -1,4 +1,4 @@
-const ajax_url = "ajax/projects/more";
+const project_ajax_url = "ajax/projects/more";
 const more_url = "ajax/projects/info";
 const approve_url = "ajax/projects/approve";
 
@@ -10,7 +10,7 @@ $(document).ready(function () {
         var financialyear = $("#financialyear").val();
         $.ajax({
             type: "post",
-            url: ajax_url,
+            url: project_ajax_url,
             data: { "projid": projid, "financialyear": financialyear },
             dataType: "json",
             success: function (response) {
@@ -88,7 +88,7 @@ function add_to_adp(details) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: ajax_url,
+                    url: project_ajax_url,
                     data: {
                         add_to_adp: 'add_to_adp',
                         projid: details.projid,
@@ -133,7 +133,7 @@ function remove_from_adp(projid) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: ajax_url,
+                    url: project_ajax_url,
                     data: {
                         remove_from_adp: 'remove_from_adp',
                         projid: projid,
@@ -149,7 +149,7 @@ function remove_from_adp(projid) {
                         } else {
                             swal({
                                 title: "Project !",
-                                text:  "Error removing Project from ADP",
+                                text: "Error removing Project from ADP",
                                 icon: "error",
                             });
                         }
@@ -176,7 +176,7 @@ function removeItem(projid) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: ajax_url,
+                    url: project_ajax_url,
                     data: {
                         deleteItem: 'deleteItem',
                         itemId: projid,
@@ -227,7 +227,7 @@ function get_total_projects() {
             type: 1,
         },
         dataType: "json",
-        success: function(response) {
+        success: function (response) {
             if (response.success) {
                 $("#total-projects").html(response.projects);
             }

@@ -1,7 +1,16 @@
 
 <?php
 
-
+$status_array = array(
+    'all' => array("status" => ''),
+    'complete' => array("status" => 5),
+    'on-track' => array("status" => 4),
+    'pending' => array("status" => 3),
+    'behind-schedule' => array("status" => 11),
+    'awaiting-procurement' => array("status" => 1),
+    'on-hold' => array("status" => 6),
+    'cancelled' => array("status" => 2),
+);
 
 $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
 $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
@@ -79,27 +88,105 @@ function prjward($prjsc, $prjward)
 
 function widgets_filter($from = null, $to = null, $level1 = null, $level2 = null, $prjstatus, $accesslevel = "")
 {
-    $sql = '';
+    $widget_array = '';
     if ($from != null) {
         if ($to != null) {
             if ($level1 != null) {
-                $sql = ($level2 != null) ? "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to : "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
+                if ($level2 != null) {
+                    // select for only from, to, level 1 and 2
+                    $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
+                    $widget_array = widgets($sql, $level1, $level2, $prjstatus, $accesslevel);
+                } else {
+                    // select for only from, to and level 1
+                    $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
+                }
             } else {
+                // select for only from, to and to
                 $sql = "p.projfscyear >=" . $from . "  and p.projfscyear <= " . $to;
+                $widget_array = widgets($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
             }
         } else {
             if ($level1 != null) {
-                $sql = ($level2 != null) ?   "p.projfscyear >=" . $from : "p.projfscyear >=" . $from;
+                if ($level2 != null) {
+                    // select for only from, level 1 and 2
+                    $sql = "p.projfscyear >=" . $from;
+                    $widget_array = widgets($sql, $level1, $level2, $prjstatus, $accesslevel);
+                } else {
+                    // select for only from and level 1
+                    $sql = "p.projfscyear >=" . $from;
+                    $widget_array = widgets($sql, $level1, $level2 = null, $level3 = null, $prjstatus, $accesslevel);
+                }
             } else {
+                // select for only from
                 $sql = "p.projfscyear >=" . $from;
+                $widget_array = widgets($sql, $level1 = null, $level2 = null, $prjstatus, $accesslevel);
+            }
+        }
+    } else {
+        if ($level1 != null) {
+            if ($level2 != null) {
+                // select for only level 1 and 2
+                $widget_array = widgets($sql = null, $level1, $level2, $level3 = null, $prjstatus);
+            } else {
+                // select for only level 1
+                $widget_array = widgets($sql = null, $level1, $level2 = null, $prjstatus, $accesslevel);
             }
         }
     }
-    $widget_array = widgets($sql, $level1, $level2 = null, $prjstatus, $accesslevel);
-    return array("widget_data" => $widget_array);
+
+    return array(
+        "widget_data" => $widget_array,
+    );
 }
 
+function widgets($query = null, $level1 = null, $level2 = null, $projstatus = null, $accesslevel = null)
+{
+    global $status_array, $db;
+    $widgets = array();
+    foreach ($status_array as $key => $project_status) {
+        $status = $project_status['status'];
+        $stmt = '';
+        if ($status != '') {
+            $stmt = "projstatus =" . $status;
+        }
 
+        $where = $stmt != "" ? $accesslevel . " AND " . $stmt : $accesslevel;
+        $where = $query != null ? $where . " AND " . $query : $where;
+
+        $sql = "SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.projstage > 0 and p.deleted = '0' " . $where;
+        $query_rsprojects = $db->prepare($sql);
+        $query_rsprojects->execute();
+        $row_projects = $query_rsprojects->fetch();
+        $allprojects = $query_rsprojects->rowCount();
+
+
+        if ($allprojects > 0) {
+            if ($level1 != null) {
+                $count_projects = 0;
+                do {
+                    $projcommunity = explode(",", $row_projects['projcommunity']);
+                    $projlga = explode(",", $row_projects['projlga']);
+
+                    if ($level2 != null) {
+                        if (in_array($level2, $projlga)) {
+                            $count_projects += 1;
+                        }
+                    } else {
+                        if (in_array($level1, $projcommunity)) {
+                            $count_projects += 1;
+                        }
+                    }
+                } while ($row_projects = $query_rsprojects->fetch());
+                $widgets[$key] = $count_projects;
+            } else {
+                $widgets[$key] = $allprojects;
+            }
+        } else {
+            $widgets[$key] = 0;
+        }
+    }
+    return $widgets;
+}
 
 
 function fund_sources()

@@ -39,24 +39,12 @@ if (isset($_POST['get_indicator'])) {
 }
 
 
-function widgets($stage, $level_one_id, $level_two_id)
+function widgets($stage_id, $level_one_id, $level_two_id)
 {
 	global $db;
 	$access_level =	get_access_level();
-	$where = "";
-	if ($stage == 1) {
-		$where = "p.projstage=0";
-	} else if ($stage == 2) {
-		$where = "p.projstage >= 1 AND p.projstage < 8";
-	} else if ($stage == 3) {
-		$where = "p.projstage >= 8 AND p.projstage <= 9";
-	} else if ($stage == 4) {
-		$where = "p.projstage = 10";
-	}
-
-	$where .= $access_level;
-	$query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE  $where ");
-	$query_rsprojects->execute();
+	$query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.stage_id=:stage_id $access_level ");
+	$query_rsprojects->execute(array(":stage_id" => $stage_id));
 	$allprojects = $query_rsprojects->rowCount();
 
 	$counter = 0;
@@ -71,8 +59,6 @@ function widgets($stage, $level_one_id, $level_two_id)
 					$counter += in_array($level_one_id, $level_one_ids) ? 1 : 0;
 				}
 			}
-		} else {
-			$counter += 0;
 		}
 	} else {
 		$counter = $allprojects;

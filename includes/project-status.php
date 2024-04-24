@@ -152,7 +152,7 @@ function get_implementation_status($projid)
     return $activity_monitoring && $output_monitoring && $issues ? true : false;
 }
 
-function get_project_status()
+function update_project_status()
 {
     global $db, $today;
     $query_workflow = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE parent=0 ORDER BY `priority` ASC");
@@ -168,6 +168,7 @@ function get_project_status()
                 while ($row_rsProjects = $query_rsProjects->fetch()) {
                     $projid = $row_rsProjects['projid'];
                     $child_stage_id = $row_rsProjects['projstage'];
+                    $grand_stage_id = $row_rsProjects['proj_substage'];
                     $implimentation_type =  $row_rsProjects['projcategory'];
                     $status_id =  $row_rsProjects['projstatus'];
 
@@ -179,10 +180,9 @@ function get_project_status()
                         if ($child_stage_id == 1) {
                             $change_substage = change_substage($projid);
                             if ($change_substage) {
-                                $child_stage_id = $change_substage ? 2 : 1;
+                                $grand_stage_id = $change_substage ? 2 : 1;
                             } else {
                                 if ($project_schedule) {
-                                    $start_date = $project_schedule['start_date'];
                                     $end_date = $project_schedule['end_date'];
                                     if ($implimentation_type == 2) {
                                         $contract_details = get_contract_dates($projid);
@@ -209,11 +209,27 @@ function get_project_status()
                     }
 
                     $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus, proj_substage=:substage_id WHERE  projid=:projid");
-                    $result  = $sql->execute(array(":projstatus" => $status_id, ":substage_id" => $child_stage_id, ":projid" => $projid));
+                    $sql->execute(array(":projstatus" => $status_id, ":substage_id" => $grand_stage_id, ":projid" => $projid));
                 }
             }
         }
     }
 }
 
-get_project_status();
+function get_project_status($status_id)
+{
+    global $db;
+    $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
+    $query_Projstatus->execute(array(":projstatus" => $status_id));
+    $row_Projstatus = $query_Projstatus->fetch();
+    $total_Projstatus = $query_Projstatus->rowCount();
+    $status = "";
+    if ($total_Projstatus > 0) {
+        $status_name = $row_Projstatus['statusname'];
+        $status_class = $row_Projstatus['class_name'];
+        $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+    }
+    return $status;
+}
+
+update_project_status();

@@ -3,6 +3,7 @@ const url1 = "ajax/maps/map";
 
 const latitude = $("#company_latitude").val();
 const longitude = $("#company_longitude").val();
+var styledMapType;
 
 let map;
 let directionsService;
@@ -16,6 +17,51 @@ $(document).ready(function () {
 			mapTypeIds: ["styled_one_point_map"],
 		},
 	});
+
+	styledMapType = new google.maps.StyledMapType(
+		[
+			{
+				"featureType": "administrative.province",
+				"elementType": "geometry",
+				"stylers": [
+					{
+						"color": "#452003"
+					},
+					{
+						"saturation": 5
+					},
+					{
+						"visibility": "on"
+					},
+					{
+						"weight": 5
+					}
+				]
+			},
+			{
+				"featureType": "administrative.province",
+				"elementType": "geometry.stroke",
+				"stylers": [
+					{
+						"color": "#452003"
+					},
+					{
+						"visibility": "on"
+					}
+				]
+			},
+			{
+				featureType: "poi.business",
+				stylers: [{ visibility: "off" }],
+			},
+			{
+				featureType: "transit",
+				elementType: "labels.icon",
+				stylers: [{ visibility: "off" }],
+			},
+		],
+		{ name: "Projtrac M&E Map" }
+	);
 });
 
 
@@ -45,7 +91,7 @@ const get_coordinates = () => {
 					} else if (mapping_type == '3') {
 						waypoint_markers(response.markers);
 					} else {
-						console.log("sorry to have been wronged");
+						error_alert("sorry to have been wronged");
 					}
 				} else {
 					findPosition(false);
@@ -57,7 +103,7 @@ const get_coordinates = () => {
 
 // function to handle errors
 const handleLocationError = (browserHasGeolocation, infoWindow, pos) => {
-	console.log("errors found");
+	error_alert("errors found");
 }
 
 const findPosition = (result) => {
@@ -81,51 +127,6 @@ const findPosition = (result) => {
 					title: "projname",
 					// icon: 'assets/js/maps/project-management.png',
 				});
-
-				var styledMapType = new google.maps.StyledMapType(
-					[
-						{
-							"featureType": "administrative.province",
-							"elementType": "geometry",
-							"stylers": [
-								{
-									"color": "#452003"
-								},
-								{
-									"saturation": 5
-								},
-								{
-									"visibility": "on"
-								},
-								{
-									"weight": 5
-								}
-							]
-						},
-						{
-							"featureType": "administrative.province",
-							"elementType": "geometry.stroke",
-							"stylers": [
-								{
-									"color": "#452003"
-								},
-								{
-									"visibility": "on"
-								}
-							]
-						},
-						{
-							featureType: "poi.business",
-							stylers: [{ visibility: "off" }],
-						},
-						{
-							featureType: "transit",
-							elementType: "labels.icon",
-							stylers: [{ visibility: "off" }],
-						},
-					],
-					{ name: "Projtrac M&E Map" }
-				);
 
 				//Associate the styled map with the MapTypeId and set it to display.
 				map.mapTypes.set("styled_one_point_map", styledMapType);
@@ -155,51 +156,6 @@ const static_markers = (markers) => {
 			title: "projname",
 			// icon: 'assets/js/maps/project-management.png',
 		});
-
-		var styledMapType = new google.maps.StyledMapType(
-			[
-				{
-					"featureType": "administrative.province",
-					"elementType": "geometry",
-					"stylers": [
-						{
-							"color": "#452003"
-						},
-						{
-							"saturation": 5
-						},
-						{
-							"visibility": "on"
-						},
-						{
-							"weight": 5
-						}
-					]
-				},
-				{
-					"featureType": "administrative.province",
-					"elementType": "geometry.stroke",
-					"stylers": [
-						{
-							"color": "#452003"
-						},
-						{
-							"visibility": "on"
-						}
-					]
-				},
-				{
-					featureType: "poi.business",
-					stylers: [{ visibility: "off" }],
-				},
-				{
-					featureType: "transit",
-					elementType: "labels.icon",
-					stylers: [{ visibility: "off" }],
-				},
-			],
-			{ name: "Projtrac M&E Map" }
-		);
 
 		//Associate the styled map with the MapTypeId and set it to display.
 		map.mapTypes.set("styled_one_point_map", styledMapType);

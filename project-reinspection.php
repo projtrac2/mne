@@ -1,26 +1,24 @@
 <?php
 try {
-
-require('includes/head.php');
-
-if ($permission) {
-
+    require('includes/head.php');
+    if ($permission) {
         if (isset($_POST['store'])) {
             $projid = $_POST['projid'];
             $comments = $_POST['comments'];
             $parent_issue_id = $_POST['issue_id'];
             $date_requested = date("Y-m-d");
-            $sub_stage = $comments != '' ? 4 : 5;
-            $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
-            $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
 
 
             $sql = $db->prepare("UPDATE tbl_projissues SET status=7 WHERE projid=:projid AND id=:parent_issue_id");
             $result  = $sql->execute(array(":projid" => $projid, ":parent_issue_id" => $parent_issue_id));
-
-
+            $stage_id = 4;
+            $projstage = 20;
+            $sub_stage =  5;
 
             if ($comments != '') {
+                $stage_id = 3;
+                $projstage = 20;
+                $sub_stage =  4;
                 $sql = $db->prepare("INSERT INTO tbl_projissues (projid, issue_description, issue_area, risk_category, issue_priority, issue_impact, created_by, date_created) VALUES (:projid, :issue_description, :issue_area, :risk_category, :issue_priority, :issue_impact, :user, :date)");
                 $results  = $sql->execute(array(':projid' => $projid, ':issue_description' => $comments, ':issue_area' => 5, ':risk_category' => 5, ':issue_priority' => 5, ':issue_impact' => 5, ':user' => $user_name, ':date' => $date_requested));
 
@@ -28,6 +26,10 @@ if ($permission) {
                 $sql = $db->prepare("UPDATE tbl_inspection_checklist SET issue_id=:issue_id WHERE  projid=:projid AND issue_id=0 AND answer=2 AND parent_issue_id=:parent_issue_id ");
                 $result  = $sql->execute(array(":issue_id" => $issue_id, ":projid" => $projid, ":parent_issue_id" => $parent_issue_id));
             }
+
+            $sql = $db->prepare("UPDATE tbl_projects SET stage_id=:stage_id, projstage=:projstage,proj_substage=:proj_substage WHERE projid=:projid");
+            $result  = $sql->execute(array(":stage_id" => $stage_id, ":projstage" => $projstage, ":proj_substage" => $sub_stage, ":projid" => $projid));
+
 
             $msg = "Record created Successfully";
             $results = "<script type=\"text/javascript\">
@@ -481,13 +483,11 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-   
-} else {
-    $results =  restriction();
-    echo $results;
-}
-require('includes/footer.php');
-
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
 } catch (PDOException $th) {
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

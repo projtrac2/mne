@@ -5,8 +5,8 @@ error_reporting(E_ALL);
 
 function customErrorHandler($errno, $errstr, $errfile, $errline)
 {
-	$message = "Error: [$errno] $errstr - $errfile:$errline";
-	error_log($message . PHP_EOL, 3, "error_log.log");
+    $message = "Error: [$errno] $errstr - $errfile:$errline";
+    error_log($message . PHP_EOL, 3, "error_log.log");
 }
 
 function get_current_url_tests()
@@ -226,7 +226,6 @@ $permission =  (in_array("read", $page_actions)) ? true : false;
 $page_detials = get_page_details();
 
 $pageTitle = $icon = $allow_read_records = $workflow_stage = $Id = $subId = '';
-
 if ($page_detials) {
     $_SESSION['page_id'] = $page_detials['id'];
     $pageTitle = $page_detials['name'];
@@ -236,9 +235,6 @@ if ($page_detials) {
     $Id = get_parent_id($page_detials);
     $subId = get_child_id($page_detials);
 }
-
-
-
 
 function view_record($department, $section, $directorate)
 {

@@ -1,4 +1,5 @@
-const ajax_url = "ajax/team/team.php";
+const ajax_url = "ajax/team/team";
+
 $(document).ready(function () {
     $("#add_output").submit(function (e) {
         e.preventDefault();
@@ -40,7 +41,6 @@ $(document).ready(function () {
             data: form_data,
             dataType: "json",
             success: function (response) {
-                console.log(response);
                 if (response.success) {
                     success_alert("Record successfully created");
                 } else {
@@ -70,7 +70,6 @@ $(document).ready(function () {
             data: form_data,
             dataType: "json",
             success: function (response) {
-                console.log(response);
                 if (response.success) {
                     success_alert("Record successfully created");
                 } else {
@@ -215,8 +214,6 @@ function get_members_replace(department_id, sector_id, directorate_id, ptid, nam
             user_to_replace: ptid,
         },
         error: function (error) {
-            //Do Something to handle error
-            console.log(error);
         },
         success: function (response) {
             response = JSON.parse(response);
@@ -229,14 +226,8 @@ function get_members_replace(department_id, sector_id, directorate_id, ptid, nam
     });
 }
 
-
-function change_role_modal_data(user_id, role_id) {
-    
-}
-
 function change_role_modal_data(user_id, role_id, projid, name) {
     $('#userid_change_role').val(user_id);
-    console.log(name);
     $('#change_role_user_name').text(name);
     $.ajax({
         type: "get",
@@ -252,7 +243,7 @@ function change_role_modal_data(user_id, role_id, projid, name) {
             if (response.success) {
                 $("#role_edit_select").html(response.inputs);
             } else {
-                console.log("Could not find the data");
+                error_alert("Could not find the data");
             }
         }
     });
@@ -272,7 +263,6 @@ const add_team_members = (user_id, role_id) => {
             },
             dataType: "json",
             success: function (response) {
-                console.log(response);
                 if (response.success) {
                     // $(`#member`).html(response.members);
                     // $("#sector_id").html(response.sections);
@@ -282,7 +272,7 @@ const add_team_members = (user_id, role_id) => {
                     $('#userid_edit_checklist').val(user_id);
                     $("#task_div_edit").html(response.tasks);
                 } else {
-                    console.log("Could not find the data");
+                    error_alert("Could not find the data");
                 }
             }
         });
@@ -299,7 +289,7 @@ const add_team_members = (user_id, role_id) => {
                 if (response.success) {
                     $("#task_div").html(response.tasks);
                 } else {
-                    console.log("Could not find the data");
+                    error_alert("Could not find the data");
                 }
             }
         });
@@ -332,21 +322,10 @@ const check_uncheck_output = (output_id) => {
     }
 }
 
-function check_box(output_id, task_id) {
-    var checked = $(`.sub_task${task_id}`).is(':checked');
-    if (checked) {
-        $(`#checked${task_id}`).html("Check");
-        $(`.sub_task${task_id}`).prop("checked", false);
-        check_uncheck_output(output_id);
-    } else {
-        $(`.sub_task${task_id}`).prop("checked", true);
-        $(`#checked${task_id}`).html("Uncheck");
-        check_uncheck_output(output_id);
-    }
-}
-
 function check_item(output_id, task_id) {
     var checked = $(`.sub_task${task_id}`).is(':checked');
+    console.log(output_id);
+    console.log(checked);
     if (!checked) {
         $(`#checked${task_id}`).html("Check");
         $(`#all${task_id}`).prop("checked", false);
@@ -369,7 +348,6 @@ function validateForm() {
 
 
 const delete_team_member = (details) => {
-    console.log(details);
     swal({
         title: "Are you sure?",
         text: `You want to delete ${details.full_name} from project_team!`,

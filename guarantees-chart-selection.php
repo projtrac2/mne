@@ -19,20 +19,19 @@ try {
             $end_date = date('Y-m-d', strtotime("+$guarantee->duration days", strtotime($start_date)));
             $today = date('Y-m-d');
             $thirty_days = date('Y-m-d', strtotime("+30 days", strtotime($today)));
-            
+
             // expiring
             $date_differences = date_diff(date_create($end_date), date_create($thirty_days));
             $is_expiring = (int) $date_differences->format("%a");
             if ($is_expiring <= 30) {
                 array_push($guarantees_expiring, $guarantee);
             }
-            
         }
 
         return $guarantees_expiring;
     }
 
-    function contractGuaranteesHealthy() 
+    function contractGuaranteesHealthy()
     {
         global $db;
         $guarantees_healthy = [];
@@ -44,7 +43,7 @@ try {
             $start_date = $guarantee->start_date;
             $today = date('Y-m-d');
             $thirty_days = date('Y-m-d', strtotime("+30 days", strtotime($today)));
-            
+
             // healthy
             $end_date = date('Y-m-d', strtotime("+$guarantee->duration days", strtotime($start_date)));
             $date_difference = date_diff(date_create($end_date), date_create($thirty_days));
@@ -57,7 +56,7 @@ try {
         return $guarantees_healthy;
     }
 
-    function contractGuaranteesExpired() 
+    function contractGuaranteesExpired()
     {
         global $db;
         $guarantees_expired = [];
@@ -73,7 +72,6 @@ try {
             if ($today >= $end_date) {
                 array_push($guarantees_expired, $guarantee);
             }
-            
         }
 
         return $guarantees_expired;
@@ -93,8 +91,7 @@ try {
         $guarantees = contractGuaranteesExpired();
         $pageTitle = 'Contract Guarantees Expired';
     }
-    // if ($permission) {
-
+    if ($permission) {
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -127,11 +124,11 @@ try {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php  
-                                                $hash = 1;
-                                                foreach ($guarantees as $key => $value) {
-                                                    $end_date = date('Y-m-d', strtotime("+$value->duration days", strtotime($value->start_date)));
-                                                ?>
+                                            <?php
+                                            $hash = 1;
+                                            foreach ($guarantees as $key => $value) {
+                                                $end_date = date('Y-m-d', strtotime("+$value->duration days", strtotime($value->start_date)));
+                                            ?>
                                                 <tr>
                                                     <td style="width:5%"><?= $hash ?></td>
                                                     <td style="width:55%"><?= $value->guarantee ?></td>
@@ -139,9 +136,9 @@ try {
                                                     <td style="width:15%"><?= $value->duration ?></td>
                                                     <td style="width:10%"><?= $end_date ?></td>
                                                 </tr>
-                                                <?php  
-                                                    $hash++;
-                                                }
+                                            <?php
+                                                $hash++;
+                                            }
                                             ?>
                                         </tbody>
                                     </table>
@@ -155,9 +152,13 @@ try {
 <?php
     require('includes/footer.php');
 
-    // }
+    }
 } catch (PDOException $th) {
     var_dump($th);
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>
+
+
+inhouse
+dates (approve) | frequency (data entry assign, approve) | target breakdown (proceed)

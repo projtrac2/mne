@@ -57,7 +57,7 @@ try {
         return $input;
     }
 
-    function get_members($projid, $department_id, $section_id, $directorate_id, $member_id, $edit)
+    function get_members($projid, $department_id, $section_id, $directorate_id)
     {
         global $db;
         $input = '<option value="">Select Member</option>';
@@ -78,9 +78,10 @@ try {
                 while ($row_team = $query_team->fetch()) {
                     $user_id = $row_team['userid'];
                     $query_rsMembers = $db->prepare("SELECT responsible, role FROM `tbl_projmembers` WHERE projid=:projid  AND stage=:workflow_stage and team_type=4 AND responsible=:user_id");
-                    $query_rsMembers->execute(array(":projid" => $projid, ":workflow_stage" => 10, ":user_id" => $user_id));
+                    $query_rsMembers->execute(array(":projid" => $projid, ":workflow_stage" => 9, ":user_id" => $user_id));
                     $total_rsMembers = $query_rsMembers->rowCount();
-                    if ($total_rsMembers == 0 || $edit == 1) {
+
+                    if ($total_rsMembers == 0) {
                         $title_id = $row_team['title'];
                         $firstname = $row_team['firstname'];
                         $middlename = $row_team['middlename'];
@@ -91,8 +92,7 @@ try {
                         $row_rsTitle = $query_rsTitle->fetch();
                         $title = $row_rsTitle ? $row_rsTitle['title'] : '';
                         $membername = $title . ". " . $firstname . " " . $middlename . " " . $lastname;
-                        $selected = $member_id == $user_id ? ' selected="selected"' : '';
-                        $input .= '<option value="' . $user_id . '" ' . $selected . '>' . $membername . '</option>';
+                        $input .= '<option value="' . $user_id . '">' . $membername . '</option>';
                     }
                 }
             }
@@ -189,11 +189,12 @@ try {
                         $check =  $checked == 1 ? "checked" : "";
                         $task_div  .=
                             '<tr>
+                            <td>' . $t_counter . '</td>
                             <td>
                                 <div class="form-line">
                                     <input type="hidden" name="task_id[]" value="' . $task_id . '" />
-                                    <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $subtask_id . '" ' . $checked . ' onchange="check_item(' . $output_id . ',' . $subtask_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $subtask_id . $site_id . '" class="with-gap radio-col-green subtasks_' . $output_id . ' sub_task' . $task_id . '" />
-                                    <label for="subtask_id' . $subtask_id . $site_id . '">' . $t_counter . '. ' . $task_name . '</label>
+                                    <input name="subtask_id' . $site_id . $output_id . '[]" value="' . $subtask_id . '" onchange="check_item(\'' . $site_id .  $output_id . '\',' . $subtask_id . ')" type="checkbox" ' . $check . ' id="subtask_id' . $site_id . $output_id . $subtask_id . '" class="with-gap radio-col-green subtasks_' . $site_id . $output_id . ' sub_task' . $subtask_id . '" />
+                                    <label for="subtask_id' . $site_id . $output_id . $subtask_id . '">' . $t_counter . '. ' . $task_name . '</label>
                                 </div>
                             </td>
                         </tr>';
@@ -201,7 +202,6 @@ try {
                 }
             }
         }
-
         return  $task_div;
     }
 
@@ -218,26 +218,25 @@ try {
             while ($row_Sites = $query_Sites->fetch()) {
                 $site_id = $row_Sites['site_id'];
                 $site = $row_Sites['site'];
-                $counter++;
                 $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:output_site");
                 $query_Site_Output->execute(array(":output_site" => $site_id));
                 $rows_Site_Output = $query_Site_Output->rowCount();
                 if ($rows_Site_Output > 0) {
                     $output_counter = 0;
+                    $counter++;
+
                     $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id");
                     $query_rsUser->execute(array(":member_id" => $user_id));
                     $totalRows_rsUser = $query_rsUser->rowCount();
                     $checked = $totalRows_rsUser > 0 ? 1 : 0;
-                    $site_checked =  $checked == 1 ? "checked" : "";
                     $check =  $checked ? "Uncheck" : "Check";
 
                     $task_div .= '
                             <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Site ' . $output_counter . ': ' . strtoupper($site) . '</legend>
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Site ' . $counter . ': ' . strtoupper($site) . '</legend>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="form-line">
                                         <input type="hidden" name="site_id[]" value="' . $site_id . '"/>
-                                        
                                     </div>
                                 </div>';
 
@@ -255,7 +254,7 @@ try {
                             $query_rsUser = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE member_id=:member_id AND output_id=:output_id AND site_id=:site_id");
                             $query_rsUser->execute(array(":member_id" => $user_id, ":output_id" => $output_id, ':site_id' => $site_id));
                             $totalRows_rsUser = $query_rsUser->rowCount();
-                            $checked_true = true;
+
                             $checked = $totalRows_rsUser > 0 ? 1 : 0;
                             $output_checked =  $checked == 1 ? "checked" : "";
                             $check =  $checked ? "Uncheck" : "Check";
@@ -264,8 +263,8 @@ try {
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($output) . '</legend>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="form-line">
-                                        <input name="projevaluation" onchange="output_check_box(' . $site_id . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
-                                        <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id .$output_id . '"> ' . $check . ' All</span></label>
+                                        <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                                        <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
                                         <input type="hidden" name="output_id' . $site_id . '[]" value="' . $output_id . '">
                                     </div>
                                 </div>
@@ -274,7 +273,8 @@ try {
                                         <table class="table table-bordered table-striped table-hover js-basic-example ">
                                             <thead>
                                                 <tr>
-                                                    <th style="width:100%;">#</th>
+                                                    <th style="width:10%;">#</th>
+                                                    <th style="width:90%;">Subtask</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="">
@@ -315,18 +315,18 @@ try {
                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($output) . '</legend>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="form-line">
-                            <input name="projevaluation" onchange="output_check_box(' . $output_id . ', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $output_id . '" class="with-gap radio-col-green sub_task" />
-                            <label for="outputs' . $output_id . '"><span id="output_checked' . $output_id . '"> ' . $check . ' All</span></label>
-                            <input type="hidden" name="output_id0[]" value="' . $output_id . '">
-                            <input type="hidden" name="site_id[]" value="' . $site_id . '"/>
+                            <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                            <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
+                            <input type="hidden" name="output_id' . $site_id . '[]" value="'  . $output_id . '">
                         </div>
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped table-hover js-basic-example ">
                                 <thead>
-                                    <tr>
-                                        <th style="width:100%;"> Task</th>
+                                   <tr>
+                                        <th style="width:10%;">#</th>
+                                        <th style="width:90%;">Subtask</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -488,7 +488,7 @@ try {
             $approveItemQuery->execute(array(":role" => $role, ':projid' => $projid, ':responsible' => $ptid));
         } else if ($store_technical_team == 2) {
             $owner = $_POST['owner'];
-            // replace user - 
+            // replace user -
             $approveItemQuery = $db->prepare("UPDATE `tbl_projmembers` SET responsible=:responsible WHERE projid=:projid AND team_type=4 AND responsible=:owner");
             $approveItemQuery->execute(array(":responsible" => $owner, ':projid' => $projid, ':owner' => $ptid));
 
@@ -515,8 +515,8 @@ try {
                                 $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
                                 for ($i = 0; $i < $subtask_length; $i++) {
                                     $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
-                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,task_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:task_id,:subtask_id)");
-                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':task_id' => $task_id, ':subtask_id' => $subtask_id));
+                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:subtask_id)");
+                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':subtask_id' => $subtask_id));
                                 }
                             }
                         }
@@ -550,8 +550,8 @@ try {
                                 $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
                                 for ($i = 0; $i < $subtask_length; $i++) {
                                     $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
-                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,task_id,subtask_id,site_id) VALUES (:projid,:member_id,:output_id,:task_id,:subtask_id,:site_id)");
-                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':task_id' => $task_id, ':subtask_id' => $subtask_id, ':site_id' => $site_id));
+                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,subtask_id,site_id) VALUES (:projid,:member_id,:output_id,:subtask_id,:site_id)");
+                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':subtask_id' => $subtask_id, ':site_id' => $site_id));
                                 }
                             }
                         }
