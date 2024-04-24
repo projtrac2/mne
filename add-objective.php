@@ -12,7 +12,7 @@ if ($permission) {
 	try {
 		$results_kra = get_kra($kraid);
 		if (!$results_kra) {
-			// redirect back to strategic plan  
+			// redirect back to strategic plan
 			header("Location: view-strategic-plans.php");
 		}
 
@@ -76,8 +76,6 @@ if ($permission) {
 	}
 
 ?>
-
-
 	<script src="assets/ckeditor/ckeditor.js"></script>
 
 	<!-- start body  -->
@@ -205,7 +203,6 @@ if ($permission) {
 			</div>
 	</section>
 	<!-- end body  -->
-
 
 	<?php
 	require('includes/footer.php');

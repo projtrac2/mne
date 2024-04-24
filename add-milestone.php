@@ -1,6 +1,5 @@
 <?php
 try {
-
     require('includes/head.php');
     if ($permission) {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";

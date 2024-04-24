@@ -1,6 +1,6 @@
-<?php 
+<?php
 require('includes/head.php');
-if ($permission) { 
+if ($permission) {
     try {
         $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
         $query_allcategories->execute();
@@ -20,17 +20,17 @@ if ($permission) {
 
                 $msg = 'Mitigations Successfully Added';
                 $results = "<script type=\"text/javascript\">
-                     swal({
-                         title: \"Success!\",
-                         text: \" $msg\",
-                         type: 'Success',
-                         timer: 2000,
-                         icon:'success',
-                 showConfirmButton: false });
-                     setTimeout(function(){
-                         window.location.href = 'view-risk-mitigation.php';
-                     }, 2000);
-                 </script>";
+                    swal({
+                            title: \"Success!\",
+                            text: \" $msg\",
+                            type: 'Success',
+                            timer: 2000,
+                            icon:'success',
+                            showConfirmButton: false });
+                            setTimeout(function(){
+                            window.location.href = 'view-risk-mitigation.php';
+                        }, 2000);
+                    </script>";
             } else {
                 $msg = 'Please fill all required fields!!';
                 $results = "<script type=\"text/javascript\">

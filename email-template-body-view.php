@@ -1,8 +1,5 @@
 <?php
 require('includes/permission.php');
-
-
-
 try {
     $template = '<p>Email template not found</p>';
     if ($_GET['si'] == 6) {
