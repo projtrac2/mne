@@ -1,8 +1,5 @@
     <div class="body">
         <?php
-        try {
-            //code...
-        
         $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
         $query_Sites->execute(array(":projid" => $projid));
         $rows_sites = $query_Sites->rowCount();
@@ -150,9 +147,5 @@
                 }
             }
         }
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-    }
         ?>
     </div>

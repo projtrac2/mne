@@ -1,14 +1,15 @@
 <?php
-    try {				
-
     require('includes/head.php');
     if ($permission) {
+        try {				
 			$query_risks_register = $db->prepare("SELECT * FROM tbl_risk_register g left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE active=1 ORDER BY category ASC");
 			$query_risks_register->execute();
 			$totalRows_risks_register = $query_risks_register->rowCount();
 			
 			
-        
+        } catch (PDOException $ex) {
+            $results = flashMessage("An error occurred: " . $ex->getMessage());
+        }
 		?>
         <section class="content">
             <div class="container-fluid">
@@ -267,11 +268,6 @@
     }
 
     require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
-
-}
     ?>
 
     <script>

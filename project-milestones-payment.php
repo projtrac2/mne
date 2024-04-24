@@ -1,14 +1,16 @@
 <?php 
-try {
-
 require('includes/head.php');
 //$pageTitle = $planlabelplural;
 
 if ($permission) { 
+	try {
 		$query_rsMilestone =  $db->prepare("SELECT * FROM tbl_milestone WHERE paymentstatus = 0 AND status = 5 AND paymentrequired = 1 GROUP BY msid");
 		$query_rsMilestone->execute();
 		$rows_rsMilestone = $query_rsMilestone->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?> 
 	<!-- JQuery Nestable Css -->
 	<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
@@ -715,11 +717,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 
 <!-- Jquery Nestable -->

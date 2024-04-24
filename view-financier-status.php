@@ -1,9 +1,8 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
     
+    try {
 
         if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "financierstatusfrm")) {
 
@@ -115,7 +114,9 @@ if ($permission) {
         } else {
             $status =  "Inactive";
         }
-   
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -269,10 +270,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script type="text/javascript">
     function add_row() {

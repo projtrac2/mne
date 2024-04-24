@@ -1,6 +1,4 @@
 <?php
-try {
-
 require('includes/head.php'); 
 if ($permission) {
 ?>
@@ -624,11 +622,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-    //code...
-} catch (\PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script>
     $(document).ready(function() {

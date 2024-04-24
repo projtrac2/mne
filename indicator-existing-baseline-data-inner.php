@@ -542,7 +542,12 @@ try {
     <!-- #END# Modal Request Payment -->
 
 <?php
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+} catch (PDOException $ex) {
+    function flashMessage($data)
+    {
+        return $data;
+    }
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    echo $result;
 }
 ?>

@@ -1,12 +1,11 @@
 <?php
-try {
-
-    require('includes/head.php');
-    if ($permission && isset($_GET['projid'])) {
-        $encoded_projid = $_GET['projid'];
-        $decode_projid = base64_decode($encoded_projid);
-        $projid_array = explode("projid54321", $decode_projid);
-        $projid = $projid_array[1];
+require('includes/head.php');
+if ($permission && isset($_GET['projid'])) {
+    $encoded_projid = $_GET['projid'];
+    $decode_projid = base64_decode($encoded_projid);
+    $projid_array = explode("projid54321", $decode_projid);
+    $projid = $projid_array[1];
+    try {
         $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid");
         $query_rsProjects->execute(array(":projid" => $projid));
         $row_rsProjects = $query_rsProjects->fetch();
@@ -299,13 +298,13 @@ try {
             $results =  restriction();
             echo $results;
         }
-    } else {
-        $results =  restriction();
-        echo $results;
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
-    require('includes/footer.php');
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+} else {
+    $results =  restriction();
+    echo $results;
 }
+require('includes/footer.php');
 ?>
 <script src="assets/js/monitoring/monitor.js"></script>

@@ -1,9 +1,8 @@
 <?php
-try {
-
 require('includes/head.php');
 
 if ($permission) {
+    try {
         $query_title =  $db->prepare("SELECT id,title FROM tbl_mbrtitle");
         $query_title->execute();
 
@@ -101,7 +100,9 @@ if ($permission) {
 
             echo $results;
         }
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <script src="assets/ckeditor/ckeditor.js"></script>
 
@@ -325,8 +326,6 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
+
 require('includes/footer.php');
 ?>

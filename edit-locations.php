@@ -1,9 +1,8 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission) {
 
+    try {
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
             $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -86,7 +85,10 @@ if ($permission) {
         $query_rsAllLocations = $db->prepare("SELECT * FROM tbl_state WHERE location='0' and parent IS NULL and id<>'1' ORDER BY state ASC");
         $query_rsAllLocations->execute();
         $row_rsAllLocations = $query_rsAllLocations->fetch();
-    
+    } catch (PDOException $ex) {
+        $result = "An error occurred: " . $ex->getMessage();
+        print($result);
+    }
 
 ?>
     <link rel="stylesheet" href="css/addprojects.css">
@@ -306,8 +308,6 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $ex) {
-    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
+
 require('includes/footer.php');
 ?>

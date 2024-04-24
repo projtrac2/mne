@@ -1,10 +1,9 @@
 <?php
-try {
-
 require('includes/head.php');
 
 if ($permission) {
 
+    try {
         $currentPage = $_SERVER["PHP_SELF"];
         $query_mainfunder = $db->prepare("SELECT sum(amount) as ttamt, year FROM tbl_main_funding f inner join tbl_fiscal_year y on y.id=f.financialyear GROUP BY financialyear");
         $query_mainfunder->execute();
@@ -27,7 +26,9 @@ if ($permission) {
             $currentyear = $cy;
         }
         $nxtyr = $currentyear + 1;
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -407,9 +408,5 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="general-settings/js/fetch-funding.js"></script>

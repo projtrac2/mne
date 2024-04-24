@@ -1,8 +1,8 @@
 <?php
-try {
 require('includes/head.php');
 
 if ($permission) {
+	try {
 		if (isset($_GET['projid'])) {
 		  $hash = $_GET['projid'];
 		  $decode_projid = base64_decode($hash);
@@ -17,7 +17,9 @@ if ($permission) {
 		$query_project_photos = $db->prepare("SELECT f.*, s.stage, p.progid FROM tbl_project_photos f INNER JOIN tbl_project_workflow_stage s ON s.id=f.projstage inner join tbl_projects p on p.projid=f.projid WHERE f.projid = $projid ORDER BY f.projstage, f.ftype");
 		$query_project_photos->execute();
 		$total_project_photos = $query_project_photos->rowCount();
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 	?>
 
 	<!-- start body  -->
@@ -141,8 +143,4 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

@@ -1,16 +1,17 @@
 <?php 
-try {
-
 require('includes/head.php'); 
 // get the functions selecting data 
 require('functions/inspection.php');
 require('functions/department.php');
 require('functions/indicator.php');
 
+try {
 	// get al active topics 
 	$checklists = get_checklists();
 	$departments = get_departments();
-
+} catch (PDOException $ex) {
+	$result = flashMessage("An error occurred: " . $ex->getMessage());
+}
 ?>
 
 <div class="card-header">
@@ -195,11 +196,6 @@ require('functions/indicator.php');
 </div>
 <?php
 include_once('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>

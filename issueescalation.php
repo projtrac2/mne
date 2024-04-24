@@ -1,5 +1,4 @@
 <?php
-try{
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -7,6 +6,7 @@ include_once 'projtrac-dashboard/resource/utilities.php';
 $current_date = date("Y-m-d");
 $current_date_time = date("Y-m-d H:m:s");
 
+try{
 	if(isset($_POST['issueid']) && !empty($_POST['issueid'])){
 		$rskid = $_POST['issueid'];
 		$projid = $_POST['projid'];
@@ -77,7 +77,7 @@ $current_date_time = date("Y-m-d H:m:s");
 		echo json_encode("success");
 	}
 
-}catch (PDOException $th){
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
+}catch (PDOException $ex){
+    $result = flashMessage("An error occurred: " .$ex->getMessage());
+	echo $result;
 }

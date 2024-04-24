@@ -1,9 +1,4 @@
-    <?php 
-	try {
-		//code...
-	
-	?>
-	<section class="content" style="margin-top:-20px; padding-bottom:0px">
+    <section class="content" style="margin-top:-20px; padding-bottom:0px">
         <div class="container-fluid">
 			<div class="row clearfix" style="margin-top:10px">
 				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:10px">
@@ -25,6 +20,7 @@
 									<!--<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-9px">Team Members</a>-->
 									<?php //}else{?>
 									<a href="certificateofcompletion" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Completion Certificates</a>
+								<?php// } ?>
 								
 									<a href="paymentsreport" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Payments Report</a>
 							</div>
@@ -142,7 +138,7 @@
 																				</thead>
 																				<tbody>
 																					<tr>
-																						<td><strong>In House</strong></td>
+																						<td style="color:#"><strong>In House</strong></td>
 																						<td><?php echo number_format($row_rsTask['projcost'], 2); ?></td>
 																						<td><?php echo $totalprojamountpaid; ?></td>
 																						<td align="center"><?php echo $utilrate."%"; ?></td>
@@ -474,9 +470,3 @@
             <!-- #END# Advanced Form Example With Validation -->
         </div>
     </section>
-	<?php 
-	} catch (\PDOException $th) {
-		customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-	}
-	?>

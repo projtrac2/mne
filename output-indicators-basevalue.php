@@ -1,10 +1,9 @@
 <?php
-try {  
-
     $pageName ="Output Indicator Base Values"; 
     require('includes/head.php');
     require('includes/header.php');
 
+try {  
 
 	$query_rsAllIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_type=2 AND indicator_category='Output' AND active = '1' ORDER BY indid");
 	$query_rsAllIndicators->execute();
@@ -25,7 +24,10 @@ try {
 	$row_rsCat = $query_rsCat->fetch();
 	 
 	
-
+}catch (PDOException $ex){
+    $result = flashMessage("An error occurred: " .$ex->getMessage());
+	echo $result;
+}
 ?>
 	<!--<div class="header">
 		<h4><i class="fa fa-list" aria-hidden="true"></i> OUTPUT INDICATORS' BASE VALUES</h4>
@@ -153,8 +155,4 @@ try {
 	<script src="assets/custom js/fetch-selected-indicators.js"></script>
 	<?php 
 		require('includes/footer.php');
-
-		}catch (PDOException $ex){
-			customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-		}
 	?>

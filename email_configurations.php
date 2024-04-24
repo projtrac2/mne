@@ -1,10 +1,4 @@
-<?php 
-try {
-   //code...
-
-include 'db_connect.php' 
-
-?>
+<?php include 'db_connect.php' ?>
 <div class="col-lg-12">
    <div class="card card-outline card-success">
       <div class="card-header">
@@ -59,13 +53,6 @@ include 'db_connect.php'
       </div>
    </div>
 </div>
-<?php
-
-} catch (\PDOException $ex) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
-
-?>
 <script>
    $(document).ready(function() {
       $('#list').dataTable()

@@ -1,8 +1,7 @@
 <?php
-	try {
-
 require('includes/head.php');
 if ($permission) {
+	try {
 		$query_survey = $db->prepare("SELECT * FROM tbl_indicator WHERE data_source=2 AND baseline=0 AND surveystatus=0 AND active='1' ORDER BY indid ASC");
 		$query_survey->execute();
 		$count_survey = $query_survey->rowCount();
@@ -18,7 +17,10 @@ if ($permission) {
 		$query_surveyed = $db->prepare("SELECT * FROM tbl_indicator i INNER JOIN tbl_indicator_baseline_survey_forms f on f.indid=i.indid WHERE i.baseline=0 AND f.status=2 ORDER BY f.indid");
 		$query_surveyed->execute();
 		$count_surveyed = $query_surveyed->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		print($result);
+	}
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -418,9 +420,7 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
+
 require('includes/footer.php');
 ?>
 

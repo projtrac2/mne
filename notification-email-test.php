@@ -1,10 +1,9 @@
 <?php
-try {
-
 require 'PHPMailer/PHPMailerAutoload.php';
 
 $mail = new PHPMailer;
 
+try {
 	$query_user = $db->prepare("SELECT fullname, email FROM tbl_admin WHERE username='dmk'");
 	$query_rsTPList->execute();		
 	$row_rsTPList = $query_rsTPList->fetch();
@@ -46,6 +45,6 @@ $mail = new PHPMailer;
 	$mail->Body   .= '<tr><td><i>Our Link: www.projtrac.co.ke</i></td></tr>';
 	$mail->Body   .= '</table>';
 	$mail->AltBody = 'Projtrac M&E Platform is a Health Care Market Place where you can buy health packages for yourself, family, friends and others in need.';
-} catch (Exception $th) {
-	customErrorHandler($th->getCode(), "Message could not be sent. Mailer Error: $mail->ErrorInfo", $th->getFile(), $th->getLine());
+} catch (Exception $e) {
+    echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
 }

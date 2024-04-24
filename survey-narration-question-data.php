@@ -22,8 +22,9 @@ if ($permission) {
 		$parentquestion = $row_parent_question["question"];
 	}
 
-  }catch (PDOException $th){
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+  }catch (PDOException $ex){
+      $result = flashMessage("An error occurred: " .$ex->getMessage());
+      print($result);
   }
 
 ?>

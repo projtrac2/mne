@@ -1,6 +1,4 @@
 <?php
-try {
-    //code...
 
 /**
  * @return AllRoles
@@ -11,11 +9,6 @@ $stmt_project_roles->execute();
 $roles = $stmt_project_roles->fetchAll(PDO::FETCH_OBJ);
 $hash = 1;
 $ranks = [1 => "one", 2 => 'two', 3 => 'three', 4 => "four", 5 => "five", 6 => "six", 7 => "seven", 8 => "eight", 9 => "nine", 10 => "ten"];
-
-
-} catch (\PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
     <div class="card">

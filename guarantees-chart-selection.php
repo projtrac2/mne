@@ -26,6 +26,7 @@ try {
             if ($is_expiring <= 30) {
                 array_push($guarantees_expiring, $guarantee);
             }
+
         }
 
         return $guarantees_expiring;
@@ -51,7 +52,7 @@ try {
             if ($is_healthy >= 30 && $today <= $end_date) {
                 array_push($guarantees_healthy, $guarantee);
             }
-        }
+        } 
 
         return $guarantees_healthy;
     }
@@ -72,6 +73,7 @@ try {
             if ($today >= $end_date) {
                 array_push($guarantees_expired, $guarantee);
             }
+
         }
 
         return $guarantees_expired;
@@ -91,7 +93,8 @@ try {
         $guarantees = contractGuaranteesExpired();
         $pageTitle = 'Contract Guarantees Expired';
     }
-    if ($permission) {
+    // if ($permission) {
+
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -125,10 +128,10 @@ try {
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $hash = 1;
-                                            foreach ($guarantees as $key => $value) {
-                                                $end_date = date('Y-m-d', strtotime("+$value->duration days", strtotime($value->start_date)));
-                                            ?>
+                                                $hash = 1;
+                                                foreach ($guarantees as $key => $value) {
+                                                    $end_date = date('Y-m-d', strtotime("+$value->duration days", strtotime($value->start_date)));
+                                                ?>
                                                 <tr>
                                                     <td style="width:5%"><?= $hash ?></td>
                                                     <td style="width:55%"><?= $value->guarantee ?></td>
@@ -136,9 +139,9 @@ try {
                                                     <td style="width:15%"><?= $value->duration ?></td>
                                                     <td style="width:10%"><?= $end_date ?></td>
                                                 </tr>
-                                            <?php
-                                                $hash++;
-                                            }
+                                                <?php
+                                                    $hash++;
+                                                }
                                             ?>
                                         </tbody>
                                     </table>
@@ -152,13 +155,9 @@ try {
 <?php
     require('includes/footer.php');
 
-    }
+    // }
 } catch (PDOException $th) {
     var_dump($th);
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>
-
-
-inhouse
-dates (approve) | frequency (data entry assign, approve) | target breakdown (proceed)

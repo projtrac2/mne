@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+    try {
         if (isset($_GET['fn'])) {
             $hash = $_GET['fn'];
             $decode_fndid = base64_decode($hash);
@@ -15,7 +15,9 @@ if ($permission) {
         $query_financier->execute(array(":fn" => $fn));
         $row_financier = $query_financier->fetch();
         $typeid = $row_financier['type'];
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
 
     <!-- start body  -->
@@ -233,8 +235,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

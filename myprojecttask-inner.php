@@ -1,10 +1,4 @@
-<?php 
-
-try {
-	//code...
-
-?>
-	<section class="content" style="margin-top:-20px; padding-bottom:0px">
+    <section class="content" style="margin-top:-20px; padding-bottom:0px">
         <div class="container-fluid">
             <div class="block-header">          
 				<h4>      
@@ -275,10 +269,3 @@ try {
             </div>
         </div>
     </section>
-
-<?php
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-
-?>

@@ -1,9 +1,11 @@
 <?php
-try {
 require('includes/head.php');
 
 if ($permission) {
-   
+    try {
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <script src="assets/ckeditor/ckeditor.js"></script>
 
@@ -208,10 +210,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script src="assets/js/settings/standard.js"></script>

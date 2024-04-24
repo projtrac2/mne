@@ -1,7 +1,7 @@
 <?php 
-try {
 include_once 'includes/head-alt.php';
 $crud_permissions = $role_group  == 1 ? true : false;
+try {
     if (isset($_GET['contrid'])) {
         $contrid_rsInfo = $_GET['contrid'];
     }
@@ -47,7 +47,10 @@ $crud_permissions = $role_group  == 1 ? true : false;
     $query_rsPFiles->execute();
     $row_rsPFiles = $query_rsPFiles->fetch();
     $totalRows_rsPFiles = $query_rsPFiles->rowCount();
-
+} catch (PDOException $ex) {
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    print($result);
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -356,10 +359,3 @@ $crud_permissions = $role_group  == 1 ? true : false;
 </body>
 
 </html>
-
-<?php 
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-?>

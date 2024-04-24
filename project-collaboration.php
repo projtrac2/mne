@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+    try {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
@@ -47,7 +47,10 @@ if ($permission) {
         $query_discussion = $db->prepare("SELECT * FROM `tbl_project_discussion_topics` d INNER JOIN users u  ON u.userid=d.created_by INNER JOIN tbl_projteam2 p  ON u.pt_id = p.ptid WHERE projid = :projid ORDER BY id ASC");
         $query_discussion->execute(array(':projid' => $projid));
         $totalRows_issuediscussion = $query_discussion->rowCount();
-   
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        print($result);
+    }
 ?>
     <link rel="stylesheet" href="assets/css/discussion.css">
     <section class="content">
@@ -195,10 +198,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script>

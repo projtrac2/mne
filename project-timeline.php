@@ -1,6 +1,4 @@
 <?php
-try {
-
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -9,6 +7,7 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 include_once('projects-functions.php');
 if ($permission) {
+	try {
 		$back_url = $_SESSION['back_url'];
 		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstartdate AS sdate, projenddate AS edate, projcategory, progress FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
@@ -188,7 +187,10 @@ if ($permission) {
 			$project_data .= "}]";
 			return $project_data;
 		}
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 	<style>
 		@import "https://code.highcharts.com/dashboards/css/dashboards.css";
@@ -688,11 +690,6 @@ function get_output_chart($projid)
 
 
 $data =  get_output_chart($projid);
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 <script>
 	const start_date = `<?= $project_start_date ?>`;

@@ -1,6 +1,4 @@
 <?php
-try {
-
 $ind = (isset($_GET['ind'])) ? base64_decode($_GET['ind']) : header("Location: all-indicators.php");
 require('includes/head.php');
 // get the functions selecting data 
@@ -10,6 +8,7 @@ require('functions/strategicplan.php');
 require('functions/datasources.php');
 require('functions/measurement-unit.php');
 require('functions/calculationmethods.php');
+try {
 	$strategic_plan = get_strategic_plan();
 	$currentYear = get_current_year();
 	$departments = get_departments();
@@ -181,7 +180,9 @@ require('functions/calculationmethods.php');
 			}
 		}
 	}
-
+} catch (PDOException $ex) {
+	$result = flashMessage("An error occurred: " . $ex->getMessage());
+}
 ?>
 
 <!-- add assets -->
@@ -546,9 +547,6 @@ require('functions/calculationmethods.php');
 <?php
 include_once('indicators/partials/add-modal.php');
 include_once('includes/footer.php');
-} catch (\PDOException $ex) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
 ?>
 <script src="assets/js/indicators/indicators.js"></script>
 <script src="assets/js/indicators/outcome.js"></script>

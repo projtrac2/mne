@@ -1,8 +1,8 @@
 <?php
-try {
 
 require('includes/head.php');
 if ($permission) {
+    try {
         $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
@@ -42,7 +42,9 @@ if ($permission) {
             }
             return $outputs;
         }
-
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -212,10 +214,6 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
-}
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

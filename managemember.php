@@ -1,8 +1,7 @@
 <?php 
-try {
-
 include_once 'includes/head-alt.php';
 $crud_permissions = $role_group == 2 ? true : false;
+try {
 
 	$editFormAction = $_SERVER['PHP_SELF'];
 	if (isset($_SERVER['QUERY_STRING'])) {
@@ -167,7 +166,9 @@ $crud_permissions = $role_group == 2 ? true : false;
 	$query_rsOtherEMployees =  $db->prepare("SELECT * FROM tbl_projteam2 WHERE ptid<>'$ptid'  AND ministry='$myministry' AND availability=1");
 	$query_rsOtherEMployees->execute();
 	$row_rsOtherEMployees = $query_rsOtherEMployees->fetch();
-
+} catch (PDOException $ex) {
+	$results = flashMessage("An error occurred: " . $ex->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -468,9 +469,3 @@ $crud_permissions = $role_group == 2 ? true : false;
 </body>
 
 </html>
-
-<?php 
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-?>

@@ -1,10 +1,5 @@
 
-<?php 
-try {
-	//code...
-
-?>
-			<div class="block-header" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; background-color:#000; color:#FFF">
+            <div class="block-header" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; background-color:#000; color:#FFF">
 				<h4 class="contentheader"><i class="fa fa-tachometer" aria-hidden="true"></i> Projects Inspection Checklists Topics
 				</h4>
             </div>
@@ -85,9 +80,3 @@ try {
 								</div>
 							</fieldset>
                         </div>
-<?php 
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-?>

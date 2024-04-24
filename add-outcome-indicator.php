@@ -1,6 +1,4 @@
 <?php
-try {
-
 require('functions/strategicplan.php');
 require('includes/head.php');
 
@@ -10,6 +8,7 @@ if ($permission) {
 	require('functions/measurement-unit.php');
 	require('functions/calculationmethods.php');
 
+	try {
 		//$currentYear = get_current_year();
 		$data_sources = get_data_sources();
 		$measurement_units = get_measurement_units();
@@ -142,7 +141,9 @@ if ($permission) {
 		if (isset($_SERVER['QUERY_STRING'])) {
 			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
 		}
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 
 	<script src="assets/ckeditor/ckeditor.js"></script>
@@ -427,10 +428,6 @@ if ($permission) {
 } else {
 	$results =  restriction();
 	echo $results;
-}
-
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

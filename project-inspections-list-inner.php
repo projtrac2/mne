@@ -1,6 +1,3 @@
-<?php 
-try {
-?>
 <div class="body">
 	<div class="table-responsive">
 		<ul class="nav nav-tabs" style="font-size:14px">
@@ -302,14 +299,6 @@ try {
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <!-- End Item more --> 
-
-<?php 
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-
-?>
 
 <script>
 	const getTasks = function (projid, outputid, level3, level4) {  

@@ -1,5 +1,4 @@
 <?php
-try {
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -8,6 +7,7 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 
 if ($permission) {
+	try {
 		$back_url = $_SESSION['back_url'];
 		$query_rsMyP = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
@@ -328,7 +328,10 @@ if ($permission) {
 		$chart_data = get_budget_chart();
 		$series_chart = $chart_data['series_data'];
 		$subtasks_data = $chart_data['subtasks_data'];
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 	<section class="content">
 		<div class="container-fluid">
@@ -672,8 +675,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

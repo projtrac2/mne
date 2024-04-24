@@ -1,9 +1,8 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
 
+    try {
 		$query_rsProjects = $db->prepare("SELECT g.progid, g.progname, g.projsector, p.projcode, p.projid, p.projname, p.projinspection, p.projstage, p.projstatus, s.sector FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid inner join tbl_sectors s on s.stid=g.projdept WHERE p.deleted='0'");
 		$query_rsProjects->execute();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -18,7 +17,9 @@ if ($permission) {
 
         $query_srcSector = $db->prepare("SELECT DISTINCT projdept, g.projsector FROM tbl_programs g inner join tbl_projects p on p.progid=g.progid where projplanstatus='1' ORDER BY g.projsector ASC");
         $query_srcSector->execute();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <style>
         #links a {
@@ -157,13 +158,10 @@ if ($permission) {
 
 <?php
 } else {
+    var_dump("sorry this is what we should work on the data ");
     $results =  restriction();
     echo $results;
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
-}
 ?>

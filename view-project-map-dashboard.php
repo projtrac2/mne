@@ -1,7 +1,7 @@
 <?php
-try {			
 require('includes/head.php');
 if ($permission) {
+    try {			
 		$accesslevel = "";
 		$sector = 0;
 		
@@ -40,7 +40,9 @@ if ($permission) {
         $query_rsSectors = $db->prepare("SELECT * FROM tbl_sectors WHERE parent='0' ");
         $query_rsSectors->execute();
         $totalRows_rsSectors = $query_rsSectors->rowCount();
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <style>
         .mt-map-wrapper {
@@ -153,10 +155,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script src="assets/js/maps/get_output_coordinates.js"></script>

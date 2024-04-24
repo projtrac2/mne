@@ -193,6 +193,7 @@ try {
         <!-- End add item -->
 <?php
     } else {
+        var_dump("sorry this is what we should work on the data ");
         $results =  restriction();
         echo $results;
     }

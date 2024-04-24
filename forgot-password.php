@@ -1,7 +1,4 @@
 <?php
-try {
-  //code...
-
 require 'vendor/autoload.php';
 require 'Models/Connection.php';
 include "Models/Auth.php";
@@ -184,11 +181,6 @@ if (isset($_POST['forgotpassword']) && $_POST['forgotpassword'] == "Forgot Passw
 </body>
 
 </html>
-<?php 
-} catch (\PDOException $th) {
-  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-?>
 
   <!-- <p>&nbsp;</p>
   <div class="container-fluid">

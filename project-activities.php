@@ -1,6 +1,4 @@
-<?php
-try {
-
+<?php 
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: project-dashboard"); 
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -8,6 +6,7 @@ $projid = $projid_array[1];
 $original_projid = $_GET['proj'];
 require('includes/head.php');
 if ($permission) {
+	try {
 		$query_rsMyP =  $db->prepare("SELECT *, projcost, projstatus, projstartdate AS sdate, projenddate AS edate, projcategory FROM tbl_projects WHERE deleted='0' AND projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -34,7 +33,10 @@ if ($permission) {
 		$query_rsTender->execute(array(":projid" => $projid));
 		$row_rsTender = $query_rsTender->fetch();
 		$totalRows_rsTender = $query_rsTender->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 	<!-- start body  -->
 	<!-- JQuery Nestable Css -->
@@ -399,9 +401,5 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="general-settings/js/fetch-selected-project-activities.js"></script>

@@ -1,18 +1,12 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
-<<<<<<< HEAD
 	try {
-		//get financial years
-=======
 		//get financial years 
->>>>>>> a86ec8a0e2f758e8fe1b037ea93221d3199a93f1
 		$year = date("Y");
 		$month = date("m");
-
-		if ($month >= 1 && $month <= 6) {
+		
+		if($month >= 1 && $month <= 6){
 			$year = $year - 1;
 		}
 		$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year where yr='$year'");
@@ -27,7 +21,9 @@ if ($permission) {
 		$gadpyr_rows_count = $query_gadpyr->rowCount();
 
 		$currentdatetime = date("Y-m-d H:i:s");
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -77,11 +73,11 @@ if ($permission) {
 											$classstatus = "";
 											$classstatusin = "";
 										}
-								?>
-										<li class="<?= $classstatus ?>">
+										?>
+										<li class="<?=$classstatus?>">
 											<a data-toggle="tab" href="#<?= $link ?>"><i class="fa fa-caret-square-o<?= $linkclass ?>" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge <?= $linkclassbadge ?>">||</span></a>
 										</li>
-								<?php
+										<?php
 									}
 								}
 								?>
@@ -121,7 +117,7 @@ if ($permission) {
 												$classstatusin = "";
 												$color = "blue";
 											}
-									?>
+											?>
 											<div id="<?= $link ?>" class="tab-pane fade<?= $classstatusin ?>">
 												<div style="color:#333; background-color:#EEE; width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:<?= $color ?>"></i> <?= $adp; ?> Programs </h4>
@@ -130,67 +126,59 @@ if ($permission) {
 													<thead>
 														<tr class="<?= $linkclassbadge ?>" style="width:100%">
 															<th width="3%">#</th>
-															<th width="15%"><?= $ministrylabel ?></th>
 															<th width="35%">Program</th>
-															<th width="14%">Requested Budget (ksh)</th>
-															<th width="18%">Approved Budget (ksh)</th>
-															<th width="8%">Status</th>
-															<th width="8%">No. Projects</th>
+															<th width="18%">Requested Budget (ksh)</th>
+															<th width="19%">Approved Budget (ksh)</th>
+															<th width="18%"><?= $ministrylabel ?></th>
 															<th width="7%" data-orderable="false">Action</th>
 														</tr>
 													</thead>
 													<tbody>
 														<?php
 														// get programs adps
-														$query_gadps = $db->prepare("SELECT g.* FROM tbl_annual_dev_plan a inner join tbl_projects p on p.projid=a.projid inner join tbl_programs g on g.progid=p.progid WHERE financial_year='$adpfyid' GROUP BY g.progid");
-														$query_gadps->execute();
-														$rows_count = $query_gadps->rowCount();
+														$query_adp_approved_budget = $db->prepare("SELECT progid FROM tbl_adp_projects_budget WHERE year=:yrid GROUP BY progid");
+														$query_adp_approved_budget->execute(array(":yrid" => $yrid));
+														$rows_adp_approved_budget = $query_adp_approved_budget->rowCount();
 
-														if ($rows_count > 0) {
+														if ($rows_adp_approved_budget > 0) {
 															//$month = 8;
+															
 															$sn = 0;
-															while ($row = $query_gadps->fetch()) {
-																$progid = $row['progid'];
-																$progname = $row["progname"];
-																$progsector = $row["projsector"];
-																$progdept = $row["projdept"];
-																$progstartyear = $row["syear"];
-																$progstartyr = $progstartyear + 1;
-																$progduration = $row["years"];
-																$active = "";
+															while ($row_approved_budget = $query_adp_approved_budget->fetch()) {
+																$progid = $row_approved_budget['progid'];
+														
+																// get programs adps
+																$query_budget_programs = $db->prepare("SELECT * FROM tbl_programs WHERE progid=:progid");
+																$query_budget_programs->execute(array(":progid" => $progid));
+																$budget_programs = $query_budget_programs->fetch();
+																
+																$progname = $budget_programs["progname"];
+																$progsector = $budget_programs["projsector"];
+																$progdept = $budget_programs["projdept"];
+																$project_directorate = $budget_programs['directorate'];
 																$buttonunapprov = '';
 																$button = '';
 
-																$project_department = $row['projsector'];
-																$project_section = $row['projdept'];
-																$project_directorate = $row['directorate'];
-
-
-																//get program sector
-																$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
-																$query_year->execute(array(":adpyr" => $adpyr));
-																$rowyear = $query_year->fetch();
-																$year_id = $rowyear["id"];
-
 																//get program budget
-																$query_prgbudget =  $db->prepare("SELECT SUM(amount) as budget FROM tbl_adp_projects_budget WHERE progid ='$progid' AND year='$adpfyid'");
-																$query_prgbudget->execute();
+																$query_prgbudget =  $db->prepare("SELECT SUM(amount) as budget, SUM(adjusted_amount) as adjusted_amount FROM tbl_adp_projects_budget WHERE progid = :progid AND year=:yrid");
+																$query_prgbudget->execute(array(":progid" => $progid, ":yrid" => $yrid));
 																$row_prgbudget = $query_prgbudget->fetch();
-																$progbudget = number_format($row_prgbudget['budget'], 2);
+																$requested_budget = number_format($row_prgbudget['budget'], 2);
+																$adjusted_amount = number_format($row_prgbudget['adjusted_amount'], 2);
 
-																//get program sector
+																//get program sector 
 																$query_sector = $db->prepare("SELECT stid, sector FROM `tbl_sectors` WHERE stid=:progsector");
 																$query_sector->execute(array(":progsector" => $progsector));
 																$rowsector = $query_sector->fetch();
 																$sector = $rowsector["sector"];
 
-																//get adjusted program based budget
-																$query_sum = $db->prepare("SELECT SUM(budget) AS amount FROM `tbl_programs_based_budget` WHERE progid=:progid and finyear=:adpyr");
+																//get adjusted program based budget 
+																/* $query_sum = $db->prepare("SELECT SUM(budget) AS amount FROM `tbl_programs_based_budget` WHERE progid=:progid and finyear=:adpyr");
 																$query_sum->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																$rowsum = $query_sum->fetch();
-																$amount = number_format($rowsum["amount"], 2);
+																$amount = number_format($rowsum["amount"], 2); */
 
-																// get department
+																// get department 
 																$query_dept =  $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE stid=:progdept");
 																$query_dept->execute(array(":progdept" => $progdept));
 																$row_dept = $query_dept->fetch();
@@ -199,17 +187,17 @@ if ($permission) {
 
 																$ministry = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $sector . '</span>';
 
-																// get program annual plan
+																// get program annual plan 
 																$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid = :progid and finyear = :adpyr");
 																$query_pbb->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																$norows_pbb = $query_pbb->rowCount();
 
-																// get program quarterly targets
-																$query_pbbtargets =  $db->prepare("SELECT * FROM  tbl_programs_quarterly_targets WHERE progid = :progid and year = :adpyr");
-																$query_pbbtargets->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
-																$norows_pbbtargets = $query_pbbtargets->rowCount();
-
-																if ($norows_pbb > 0) {
+																if ($row_prgbudget['adjusted_amount'] == 0) {
+																	// get program quarterly targets 
+																	$query_pbbtargets =  $db->prepare("SELECT * FROM  tbl_programs_quarterly_targets WHERE progid = :progid and year = :yrid");
+																	$query_pbbtargets->execute(array(":progid" => $progid, ":yrid" => $yrid));
+																	$norows_pbbtargets = $query_pbbtargets->rowCount();
+																	
 																	if ($norows_pbbtargets > 0) {
 																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
 																		$query_projects_count->execute();
@@ -224,8 +212,8 @@ if ($permission) {
 																			</li>';
 																		}
 																	} else {
-																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 1");
-																		$query_projects_count->execute();
+																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = :progid AND projstage > 1");
+																		$query_projects_count->execute(array(":progid" => $progid));
 																		$count_projects_count = $query_projects_count->rowCount();
 																		//if (in_array("edit_budget", $page_actions) && $count_projects_count == 0) {
 																		if ($count_projects_count == 0) {
@@ -238,7 +226,7 @@ if ($permission) {
 																		}
 
 																		//if (in_array("add_quarterly_targets", $page_actions)) {
-																		$buttonunapprov .= '
+																			$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="quarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="addQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
 																				<i class="fa fa-plus-square-o"></i> Add Quarterly Targets
@@ -246,58 +234,44 @@ if ($permission) {
 																			</li>';
 																		//}
 																	}
-																	$active = "<label class='label label-success'>Adjusted</label>";
-																	$button = '<!-- Single button -->
-																	<div class="btn-group">
-																		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																			Options <span class="caret"></span>
-																		</button>
-																		<ul class="dropdown-menu">
-																			' . $buttonunapprov . '
-																			<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>
-																		</ul>
-																	</div>';
 																} else {
-																	$buttonunapprov = "";
 																	//if (in_array("add_budget", $page_actions)) {
-																	if ($month >= 7 && $month <= 12) {
-																		$buttonunapprov = '
+																		if ($month >= 7 && $month <= 12) {
+																			$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approvePADP(' . $progid . ')">
 																				<i class="fa fa-check-square-o"></i> Add Approved Budget
 																				</a>
 																			</li>';
-																	}
+																		}
 																	//}
-
-																	$active = "<label class='label label-danger'>Pending</label>";
-																	$button = '<!-- Single button -->
-																	<div class="btn-group">
-																		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																			Options <span class="caret"></span>
-																		</button>
-																		<ul class="dropdown-menu">
-																			' . $buttonunapprov . '
-																			<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>
-																		</ul>
-																	</div>';
 																}
-																$filter_department = view_record($project_department, $project_section, $project_directorate);
+																$button = '<!-- Single button -->
+																<div class="btn-group">
+																	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																		Options <span class="caret"></span>
+																	</button>
+																	<ul class="dropdown-menu">
+																		' . $buttonunapprov . '
+																		<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>      
+																	</ul> 
+																</div>';
+																
+																$filter_department = view_record($progsector, $progdept, $project_directorate);
 																if ($filter_department) {
 																	$sn++;
-														?>
+																	?>
 																	<tr>
 																		<td align="center"><?php echo $sn; ?></td>
 																		<td><?php echo $progname; ?></td>
-																		<td><?php echo $progbudget; ?></td>
-																		<td><?php echo $amount  ?></td>
+																		<td><?php echo $requested_budget; ?></td>
+																		<td><?php echo $adjusted_amount;  ?></td>
 																		<td><?php echo $ministry; ?></td>
-																		<td><?php echo $active; ?></td>
 																		<td><?php echo $button; ?></td>
 																	</tr>
-														<?php
+																<?php
 																}
-															} // /while
+															} // /while 
 														}
 														?>
 													</tbody>
@@ -528,20 +502,15 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 
-<script src="general-settings/js/fetch-programs.js"></script>
+<!--<script src="general-settings/js/fetch-programs.js"></script>-->
 <script>
 	$(document).ready(function() {
 		$('.tables').DataTable();
 
 
-		// submit approved pbb details
+		// submit approved pbb details  
 		$("#approveItemForm").submit(function(e) {
 			e.preventDefault();
 			var form_data = $(this).serialize();
@@ -563,7 +532,7 @@ require('includes/footer.php');
 			});
 		});
 
-		// submit editted approved pbb details
+		// submit editted approved pbb details  
 		$("#editpbbItemForm").submit(function(e) {
 			e.preventDefault();
 			var form_data = $(this).serialize();
@@ -629,7 +598,7 @@ require('includes/footer.php');
 			});
 		});
 	});
-	// get the program budget/target div from db
+	// get the program budget/target div from db 
 	function approvePADP(progid = null) {
 		if (progid) {
 			$.ajax({
@@ -647,7 +616,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db
+	// get the program budget/target div from db 
 	function editPADP(progid = null, adpyr = null) {
 		if (progid) {
 			$.ajax({
@@ -666,7 +635,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db
+	// get the program budget/target div from db 
 	function addQuarterlytargets(progid = null, adpyr = null) {
 		//console.log(progid);
 		if (progid) {
@@ -686,7 +655,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db
+	// get the program budget/target div from db 
 	function editQuarterlytargets(progid = null, adpyr = null) {
 		//console.log(progid);
 		if (progid) {

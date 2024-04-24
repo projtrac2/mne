@@ -1,13 +1,14 @@
 <?php
-try {
-
 $Id = 9;
 $subId = 42;
 include_once 'includes/head-alt.php';
+try {
 	$query_issues = $db->prepare("SELECT tbl_projects.projid, projname, projstatus, projcommunity, projlga, projstate, projcategory, count(id) AS issues FROM tbl_projissues INNER JOIN tbl_projects ON tbl_projects.projid=tbl_projissues.projid INNER JOIN tbl_projrisk_categories ON tbl_projrisk_categories.rskid=tbl_projissues.risk_category WHERE tbl_projects.deleted='0' GROUP BY tbl_projects.projid");
 	$query_issues->execute();
 	$count_issues = $query_issues->rowCount();
-
+} catch (PDOException $ex) {
+	$results = flashMessage("An error occurred: " . $ex->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -443,11 +444,3 @@ include_once 'includes/head-alt.php';
 </body>
 
 </html>
-
-<?php 
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
-
-?>

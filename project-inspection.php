@@ -1,12 +1,11 @@
-<?
-try {
-
+<?php
 require('includes/head.php');
 
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 if ($permission) {
+    try {
         if (isset($_POST['store'])) {
             $projid = $_POST['projid'];
             $comments = $_POST['comments'];
@@ -659,17 +658,14 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 } else {
     $results =  restriction();
     echo $results;
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 <script src="assets/js/inspection/inspection-acceptance-answer.js" defer></script>

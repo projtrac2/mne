@@ -6,6 +6,7 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
+
         $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
         $query_rsProjects->execute(array(":projid" => $projid));
         $row_rsProjects = $query_rsProjects->fetch();
@@ -36,6 +37,8 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                 $start_date = $row_rsTender['startdate'];
                 $end_date = $row_rsTender['enddate'];
             }
+
+            $approval_stage = $project_sub_stage > 2 ? true : false;
 ?>
             <!-- start body  -->
             <div class="container-fluid">
@@ -65,12 +68,15 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                             <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
                                             <li class="list-group-item"><strong>Contract Start Date: </strong> <?= date('d M Y', strtotime($start_date)); ?> </li>
                                             <li class="list-group-item"><strong>Contract End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?> </li>
+                                            <!-- <li class="list-group-item"><strong>Monitoring Frequency: </strong> <?php //$monitoring_frequency;
+                                                                                                                        ?> </li> -->
                                             <input type="hidden" name="project_start_date" id="project_start_date" value="<?= $start_date ?>">
                                             <input type="hidden" name="project_end_date" id="project_end_date" value="<?= $end_date ?>">
                                         </ul>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="body">
                                 <?php
                                 $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
@@ -126,31 +132,15 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                             ?>
                                                                     <div class="row clearfix">
                                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                                            <div class="card-header">
-                                                                                <div class="row clearfix">
-                                                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                                                        <h5><u>
-                                                                                                TASK <?= $task_counter ?>: <?= $milestone ?>
-                                                                                                <div class="btn-group" style="float:right">
-                                                                                                    <div class="btn-group" style="float:right">
-                                                                                                        <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                            <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                                                        </button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </u>
-                                                                                        </h5>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
                                                                             <div class="table-responsive">
                                                                                 <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table">
                                                                                     <thead>
                                                                                         <tr>
                                                                                             <th style="width:5%">#</th>
-                                                                                            <th style="width:40%">Subtask</th>
+                                                                                            <th style="width:30%">Subtask</th>
                                                                                             <th style="width:15%">Unit of Measure</th>
                                                                                             <th style="width:10%">Duration</th>
+                                                                                            <th style="width:10%">Frequency</th>
                                                                                             <th style="width:15%">Start Date</th>
                                                                                             <th style="width:15%">End Date</th>
                                                                                             <th>Action</th>
@@ -168,6 +158,8 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                                                                 $task_name = $row_rsTasks['task'];
                                                                                                 $task_id = $row_rsTasks['tkid'];
                                                                                                 $subtask_frequency = $row_rsTasks['frequency'];
+                                                                                                $frequency_name = '';
+
                                                                                                 $unit =  $row_rsTasks['unit_of_measure'];
                                                                                                 $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
                                                                                                 $query_rsIndUnit->execute(array(":unit_id" => $unit));
@@ -188,9 +180,10 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                                                         ?>
                                                                                                 <tr id="row">
                                                                                                     <td style="width:5%"><?= $tcounter ?></td>
-                                                                                                    <td style="width:40%"><?= $task_name ?></td>
+                                                                                                    <td style="width:30%"><?= $task_name ?></td>
                                                                                                     <td style="width:15%"><?= $unit_of_measure ?></td>
                                                                                                     <td style="width:10%"><?= $duration ?> Days</td>
+                                                                                                    <td style="width:10%"><?= $frequency_name ?></td>
                                                                                                     <td style="width:15%"><?= $start_date ?></td>
                                                                                                     <td style="width:15%"><?= $end_date ?></td>
                                                                                                     <td><button type="button" onclick="get_subtasks_wbs(<?= $output_id ?>, <?= $site_id ?>, <?= $msid ?> , <?= $task_id ?>, <?= $subtask_frequency ?>)" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px"><span class="glyphicon glyphicon-pencil"></span></button></td>
@@ -215,70 +208,57 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                             }
                                             ?>
                                         </fieldset>
-                                    <?php
+                                        <?php
                                     }
                                 }
 
                                 $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
                                 $query_Output->execute(array(":projid" => $projid));
                                 $total_Output = $query_Output->rowCount();
+                                $outputs = '';
                                 if ($total_Output > 0) {
-                                    $counter = 0;
+                                    $outputs = '';
+                                    if ($total_Output > 0) {
+                                        $counter = 0;
 
-                                    while ($row_rsOutput = $query_Output->fetch()) {
-                                        $output_id = $row_rsOutput['id'];
-                                        $output = $row_rsOutput['indicator_name'];
-                                        $counter++;
-                                        $site_id = 0;
-                                    ?>
-                                        <fieldset class="scheduler-border">
-                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
-                                                OUTPUT <?= $counter ?>: <?= $output ?>
-                                            </legend>
-                                            <?php
-                                            $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ");
-                                            $query_rsMilestone->execute(array(":output_id" => $output_id));
-                                            $totalRows_rsMilestone = $query_rsMilestone->rowCount();
-                                            if ($totalRows_rsMilestone > 0) {
-                                                $task_counter = 0;
-                                                while ($row_rsMilestone = $query_rsMilestone->fetch()) {
-                                                    $milestone = $row_rsMilestone['milestone'];
-                                                    $msid = $row_rsMilestone['msid'];
-                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id ");
-                                                    $query_rsTask_Start_Dates->execute(array(':task_id' => $msid, ':site_id' => 0));
-                                                    $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                    $edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
-                                                    $details = array("output_id" => $output_id, "site_id" => $site_id, 'task_id' => $msid, 'edit' => $edit);
-                                                    $task_counter++;
-                                            ?>
-                                                    <div class="row clearfix">
-                                                        <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
-                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                            <div class="card-header">
-                                                                <div class="row clearfix">
-                                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                                        <h5>
-                                                                            <u>
-                                                                                TASK <?= $task_counter ?>: <?= $milestone ?>
-                                                                                <div class="btn-group" style="float:right">
-                                                                                    <div class="btn-group" style="float:right">
-                                                                                        <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                            <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </u>
-                                                                        </h5>
-                                                                    </div>
-                                                                </div>
+                                        while ($row_rsOutput = $query_Output->fetch()) {
+                                            $output_id = $row_rsOutput['id'];
+                                            $output = $row_rsOutput['indicator_name'];
+                                            $counter++;
+                                            $site_id = 0;
+                                        ?>
+                                            <fieldset class="scheduler-border">
+                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                    OUTPUT <?= $counter ?>: <?= $output ?>
+                                                </legend>
+                                                <?php
+                                                $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ");
+                                                $query_rsMilestone->execute(array(":output_id" => $output_id));
+                                                $totalRows_rsMilestone = $query_rsMilestone->rowCount();
+                                                if ($totalRows_rsMilestone > 0) {
+                                                    $task_counter = 0;
+                                                    while ($row_rsMilestone = $query_rsMilestone->fetch()) {
+                                                        $milestone = $row_rsMilestone['milestone'];
+                                                        $msid = $row_rsMilestone['msid'];
+                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id ");
+                                                        $query_rsTask_Start_Dates->execute(array(':task_id' => $msid, ':site_id' => 0));
+                                                        $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                        $edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
+                                                        $details = array("output_id" => $output_id, "site_id" => $site_id, 'task_id' => $msid, 'edit' => $edit);
+                                                        $task_counter++;
+                                                ?>
+                                                        <div class="row clearfix">
+                                                            <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
+                                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                 <div class="table-responsive">
                                                                     <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
                                                                         <thead>
                                                                             <tr>
                                                                                 <th style="width:5%">#</th>
-                                                                                <th style="width:40%">Item</th>
+                                                                                <th style="width:30%">Item</th>
                                                                                 <th style="width:15%">Unit of Measure</th>
                                                                                 <th style="width:10%">Duration</th>
+                                                                                <th style="width:10%">Frequency</th>
                                                                                 <th style="width:15%">Start Date</th>
                                                                                 <th style="width:15%">End Date</th>
                                                                                 <th>Action</th>
@@ -295,7 +275,36 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                                                     $tcounter++;
                                                                                     $task_name = $row_rsTasks['task'];
                                                                                     $task_id = $row_rsTasks['tkid'];
-                                                                                    $subtask_frequency = $row_rsTasks['frequency'];
+                                                                                    $subtask_frequency = $row_rsTasks['frequency_id'];
+                                                                                    switch ($subtask_frequency) {
+                                                                                        case 1:
+                                                                                            $frequency_name = 'daily';
+                                                                                            break;
+
+                                                                                        case 2:
+                                                                                            $frequency_name = 'weekly';
+                                                                                            break;
+
+                                                                                        case 3:
+                                                                                            $frequency_name = 'monthly';
+                                                                                            break;
+
+                                                                                        case 4:
+                                                                                            $frequency_name = 'quarterly';
+                                                                                            break;
+
+                                                                                        case 5:
+                                                                                            $frequency_name = 'semi annually';
+                                                                                            break;
+
+                                                                                        case 5:
+                                                                                            $frequency_name = 'yearly';
+                                                                                            break;
+
+                                                                                        default:
+                                                                                            $frequency_name = 'N/A';
+                                                                                            break;
+                                                                                    }
                                                                                     $unit =  $row_rsTasks['unit_of_measure'];
                                                                                     $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
                                                                                     $query_rsIndUnit->execute(array(":unit_id" => $unit));
@@ -316,42 +325,105 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                                             ?>
                                                                                     <tr id="row<?= $tcounter ?>">
                                                                                         <td style="width:5%"><?= $tcounter ?></td>
-                                                                                        <td style="width:40%"><?= $task_name ?></td>
+                                                                                        <td style="width:30%"><?= $task_name ?></td>
                                                                                         <td style="width:15%"><?= $unit_of_measure ?></td>
                                                                                         <td style="width:10%"><?= $duration ?> Days</td>
+                                                                                        <td style="width:10%"><?= $frequency_name ?></td>
                                                                                         <td style="width:15%"><?= $start_date ?> </td>
                                                                                         <td style="width:15%"><?= $end_date ?></td>
                                                                                         <td><button type="button" onclick="get_subtasks_wbs(<?= $output_id ?>, <?= $site_id ?>, <?= $msid ?> , <?= $task_id ?>, <?= $subtask_frequency ?>)" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px"><span class="glyphicon glyphicon-pencil"></span></button></td>
                                                                                     </tr>
-                                                                                <?php
+                                                                            <?php
                                                                                 }
-                                                                                ?>
-                                                                                <tr id="row<?= $tcounter ?>">
-                                                                                    <td style="width:5%"><?= $tcounter ?></td>
-                                                                                    <td style="width:40%"><?= $task_name ?></td>
-                                                                                    <td style="width:15%"><?= $unit_of_measure ?></td>
-                                                                                    <td style="width:10%"><?= $duration ?> Days</td>
-                                                                                    <td style="width:15%"><?= $start_date ?> </td>
-                                                                                    <td style="width:15%"><?= $end_date ?></td>
-                                                                                </tr>
-                                                                        <?php
                                                                             }
-                                                                        }
-                                                                        ?>
+                                                                            ?>
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                 <?php
-                                            }
-                                        }
+                                                    }
+                                                }
                                                 ?>
-                                        </fieldset>
-                                    <?php
+                                            </fieldset>
+                                <?php
+                                        }
+                                    }
                                 }
+                                ?>
+                                <?php
+                                $query_Comments = $db->prepare("SELECT * FROM tbl_program_of_work_comments WHERE projid = :projid ORDER BY id DESC");
+                                $query_Comments->execute(array(":projid" => $projid));
+                                $total_Comments = $query_Comments->rowCount();
+                                if ($total_Comments > 0) {
+                                    while ($row_comment = $query_Comments->fetch()) {
+                                        $comment = $row_comment['comments'];
+                                        $created_by = $row_comment['created_by'];
+                                        $created_at = $row_comment['created_at'];
+                                        $query_rsPMbrs = $db->prepare("SELECT t.*, t.email AS email, tt.title AS ttitle, u.userid FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid inner join tbl_titles tt on tt.id=t.title WHERE userid = :user_id ORDER BY ptid ASC");
+                                        $query_rsPMbrs->execute(array(":user_id" => $created_by));
+                                        $row_rsPMbrs = $query_rsPMbrs->fetch();
+                                        $count_row_rsPMbrs = $query_rsPMbrs->rowCount();
+                                        $created_by = $count_row_rsPMbrs > 0 ?  $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
+                                ?>
+                                        <div class="row clearfix">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <ul class="list-group">
+                                                    <li class="list-group-item"><strong>Comment: </strong> <?= $comment ?> </li>
+                                                    <li class="list-group-item"><strong>Comment Date: </strong> <?= date('d M Y', strtotime($created_at)); ?> </li>
+                                                    <li class="list-group-item">Comments By: <?= $created_by ?> </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                <?php
+                                    }
+                                }
+                                ?>
+                                <form role="form" id="form_data" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                        <div class="col-md-12 text-center">
+                                            <?php
+                                            function validate_tasks()
+                                            {
+                                                global $projid, $db;
+                                                $query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type	=1");
+                                                $query_rsOther_cost_plan->execute(array(":projid" => $projid));
+                                                $totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
+                                                $result = [];
+                                                if ($totalRows_rsOther_cost_plan > 0) {
+                                                    while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
+                                                        $site_id = $row_rsOther_cost_plan['site_id'];
+                                                        $subtask_id = $row_rsOther_cost_plan['subtask_id'];
+                                                        $task_id = $row_rsOther_cost_plan['tasks'];
+                                                        if ($subtask_id != 0) {
+                                                            $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id= :task_id AND subtask_id= :subtask_id ');
+                                                            $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id));
+                                                            $stmt_result = $stmt->rowCount();
 
-                                    ?>
+                                                            $query_rsWorkBreakdown = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
+                                                            $query_rsWorkBreakdown->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
+                                                            $row_rsWorkBreakdown = $query_rsWorkBreakdown->rowCount();
+                                                            $result[] =  $stmt_result > 0 && $row_rsWorkBreakdown > 0  ? true : false;
+                                                        }
+                                                    }
+                                                }
+                                                return !empty($result) && !in_array(false, $result) ? $result : false;
+                                            }
+
+                                            $proceed = validate_tasks();
+                                            if ($proceed && !$approval_stage) {
+                                                $approve_details = "{projid:$projid,project_name:'$projname',}";
+                                            ?>
+                                                <input type="hidden" name="projid" value="<?= $projid ?>">
+                                                <input type="hidden" name="update_project_substage" id="update_project_substage">
+                                                <button type="button" class="btn btn-success" onclick="approve_project(<?= $approve_details ?>)">Submit</button>
+                                            <?php
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -359,50 +431,64 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
             </div>
 
             <!-- Start Modal Item Edit -->
-            <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog">
+            <div class="modal fade" id="outputItemModals" tabindex="-1" role="dialog">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header" style="background-color:#03A9F4">
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                            <h4 class="modal-title" style="color:#fff" align="center" id="modal-title">Add Program of Works</h4>
+                            <h4 class="modal-title" style="color:#fff" align="center" id="modal-title">Add Program of Works Structure</h4>
                         </div>
-                        <div class="modal-body">
+                        <div class="modal-body" style="max-height:450px; overflow:auto;">
                             <div class="card">
+                                <div class="card-header">
+                                    <div class="row clearfix">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                            <ul class="list-group">
+                                                <li class="list-group-item list-group-item list-group-item-action active">Subtask: <span id="subtask_name"></span> </li>
+                                                <li class="list-group-item"><strong>Start Date: </strong> <span id="subtask_start_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;<strong>Duration: </strong> <span id="subtask_duration"></span> days &nbsp;&nbsp;&nbsp;&nbsp; <strong>End Date: </strong> <span id="subtask_end_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;<strong>Target: </strong> <span id="subtask_target"></span></li>
+                                                <input type="hidden" name="total_target" id="total_target" value="">
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
-                                            <form class="form-horizontal" id="add_output" action="" method="POST">
+                                            <form class="form-horizontal" id="add_project_frequency" action="" method="POST">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered" id="files_table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th style="width: 5%;">#</th>
-                                                                    <th style="width:55%">Subtask *</th>
-                                                                    <th style="width:10%">Start Date *</th>
-                                                                    <th style="width:20%">Duration (Days) *</th>
-                                                                    <th style="width:10%">End Date *</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="tasks_table_body">
-                                                                <tr></tr>
-                                                                <tr id="removeTr" align="center">
-                                                                    <td colspan="4">Add Program of Works</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                        <label class="control-label">Activity Target breakdown Frequency *: </label>
+                                                        <div class="form-line">
+                                                            <select name="activity_monitoring_frequency" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
+                                                                <option value="">.... Select from list ....</option>
+                                                                <?php
+                                                                $query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");
+                                                                $query_frequency->execute();
+                                                                $totalRows_frequency = $query_frequency->rowCount();
+                                                                $input = '';
+                                                                if ($totalRows_frequency > 0) {
+                                                                    while ($row_frequency = $query_frequency->fetch()) {
+                                                                        $input .= '<option value="' . $row_frequency['fqid'] . '" >' . $row_frequency['frequency'] . ' </option>';
+                                                                    }
+                                                                }
+                                                                echo $input;
+                                                                ?>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                         <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                                                        <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                                        <input type="hidden" name="store_tasks" id="store_tasks" value="">
-                                                        <input type="hidden" name="output_id" id="output_id" value="">
-                                                        <input type="hidden" name="task_id" id="task_id" value="">
-                                                        <input type="hidden" name="site_id" id="site_id" value="">
+                                                        <input type="hidden" name="store_frequency" id="store_frequency" value="">
+                                                        <input type="hidden" name="projid" id="t_projid" value="<?= $projid ?>">
+                                                        <input type="hidden" name="output_id" id="t_output_id" value="">
+                                                        <input type="hidden" name="site_id" id="t_site_id" value="">
+                                                        <input type="hidden" name="task_id" id="t_task_id" value="">
+                                                        <input type="hidden" name="frequency" id="frequency" value="">
+                                                        <input type="hidden" name="subtask_id" id="t_subtask_id" value="">
                                                         <input type="hidden" name="today" id="today" value="<?= date('Y-m-d') ?>">
-                                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit-frequency" value="Save" />
                                                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                                     </div>
                                                 </div>
@@ -423,7 +509,7 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
             echo $results;
         }
     } catch (PDOException $ex) {
-        customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
     }
 } else {
     $results =  restriction();

@@ -4,6 +4,10 @@ require('includes/head.php');
 if ($permission) {
     require('functions/strategicplan.php');
     $pageName = "Measurement Units";
+    try {
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
 
     <!-- start body  -->

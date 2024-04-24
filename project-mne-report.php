@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 if ($permission) {
 	$decode_proj = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: {$sourceurl}");
@@ -828,8 +825,4 @@ if ($permission) {
 				}
 
 				require('includes/footer.php');
-
-			} catch (\PDOException $th) {
-				customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-			}
 					?>

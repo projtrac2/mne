@@ -1,8 +1,7 @@
 <?php 
-try {
-
 require('includes/head.php');
 if ($permission) {
+	try {
 		$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 		$projid_array = explode("projrisk047", $decode_projid);
 		$projid = $projid_array[1];
@@ -17,7 +16,10 @@ if ($permission) {
 		$query_issues = $db->prepare("SELECT i.id, i.issue_area, i.issue_priority, i.issue_impact, category, issue_description, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate FROM tbl_projissues i LEFT JOIN tbl_projrisk_categories c ON c.catid=i.risk_category WHERE i.projid=:projid");
 		$query_issues->execute(array(":projid" => $projid));
 		$count_issues = $query_issues->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		print($result);
+	}
 	?>
 	<section class="content">
 		<div class="container-fluid">
@@ -195,11 +197,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 
 <script src="assets/js/issues/index.js"></script>

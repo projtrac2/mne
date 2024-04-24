@@ -1,9 +1,8 @@
 <?php 
-try {
-
 require('includes/head.php'); 
 
 if ($permission) {
+    try {
         /* $query_escalatedissues = $db->prepare("SELECT *, c.category as cat FROM tbl_projects p inner join tbl_projissues i on i.projid=p.projid inner join tbl_projrisk_categories c on c.rskid=i.risk_category inner join tbl_project_riskscore s on s.issueid=i.id inner join tbl_projissue_severity v on v.id=s.score inner join tbl_priorities o on o.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE e.category='issue' and e.owner='$user_name' and (i.status=4 or i.status=5)"); */
         $query_escalated_issues = $db->prepare("SELECT i.id, i.issue_area, i.issue_priority, i.issue_impact, category, issue_description, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate, i.projid, projname FROM tbl_projissues i INNER JOIN tbl_projects p on i.projid=p.projid inner join tbl_projrisk_categories c ON c.catid=i.risk_category WHERE (status=0 OR status=2) AND 	issue_area<>5");
         $query_escalated_issues->execute();
@@ -34,7 +33,9 @@ if ($permission) {
 		}
 		
 		$superuser = super_user($designation_id);
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -204,10 +205,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script type="text/javascript">
     $(document).ready(function() {

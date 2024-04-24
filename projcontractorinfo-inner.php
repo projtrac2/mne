@@ -1,10 +1,6 @@
 <!--<div class="clearfix m-b-20">
     <div class="content" style="margin-top:-10px">-->
-<?php 
-try {
-	//code...
 
-?>
 <div class="body">
 	<div class="table-responsive">
 		<ul class="nav nav-tabs" style="font-size:14px">
@@ -471,11 +467,3 @@ try {
 		</div>
 	</div>
 </div>
-<?php 
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
-
-?>

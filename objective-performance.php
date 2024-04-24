@@ -1,8 +1,4 @@
 <?php
-
-try {
-	//code...
-
 require('includes/head.php');
 if ($permission && isset($_GET['fyid'])) {
 	$sector_id = $_GET['department'];
@@ -240,8 +236,4 @@ if ($permission && isset($_GET['fyid'])) {
 }
 
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

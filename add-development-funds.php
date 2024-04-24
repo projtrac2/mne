@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 if ($permission) {
 	try {
@@ -553,9 +550,6 @@ if ($permission) {
 	echo $results;
 }
 
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 require('includes/footer.php');
 ?>
 

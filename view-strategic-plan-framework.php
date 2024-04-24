@@ -1,5 +1,4 @@
 <?php
-try {
 $decode_stplanid = (isset($_GET['plan']) && !empty($_GET["plan"])) ? base64_decode($_GET['plan']) : header("Location: view-strategic-plans.php");
 $stplanid_array = explode("strplan1", $decode_stplanid);
 $stplan = $stplanid_array[1];
@@ -9,6 +8,7 @@ $stplane = $_GET['plan'];
 require('includes/head.php');
 if ($permission) {
     require('functions/strategicplan.php');
+    try {
         $strategicPlan = get_splan($stplan);
 
         if (!$strategicPlan) {
@@ -27,7 +27,9 @@ if ($permission) {
 
         // get the key results areas under this strategic plan
         $kras = get_strategic_plan_kras($stplan);
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- JQuery Nestable Css -->
     <link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
@@ -246,10 +248,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <!-- Jquery Nestable -->

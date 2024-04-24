@@ -1,6 +1,4 @@
 <?php
-try {
-
 require('includes/head.php');
 include_once("Models/Email.php");
 
@@ -70,6 +68,7 @@ if ($permission) {
                 </script>";
     }
 
+    try {
         $editFormAction = $_SERVER['PHP_SELF'];
         if (isset($_SERVER['QUERY_STRING'])) {
             $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -379,7 +378,10 @@ if ($permission) {
         $row_rsDesignation = $query_rsDesignation->fetch();
         $totalRows_rsDesignation = $query_rsDesignation->rowCount();
         $profid = 1;
-   
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -853,10 +855,6 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
-}
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

@@ -1,7 +1,3 @@
-<?php
-try {
-
-?>
 <form method="POST" name="submitsvyfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
 	<?php
 	if(isset($_GET['fm']) && !empty($_GET['fm'])){
@@ -336,9 +332,3 @@ try {
 		</div>
 	</div>
 </form>	
-
-<?php 
-} catch (\Throwable $th) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
-?>

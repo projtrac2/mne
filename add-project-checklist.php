@@ -1,9 +1,8 @@
 <?php 
-try {
-
 require('includes/head.php'); 
 
 if ($permission) { 
+    try {
         if (isset($_POST["search"])) {
             $projcode = trim($_POST["srccode"]);
             $projsector = $_POST["srcsector"];
@@ -49,7 +48,10 @@ if ($permission) {
         //$row_srcSector = $query_srcSector->fetch();
 
 
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
 ?>
     <style>
         #links a {
@@ -359,10 +361,6 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
-}
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

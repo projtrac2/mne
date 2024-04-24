@@ -1,8 +1,4 @@
 <?php
-
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
 $token = (isset($_GET['token']) && !empty($_GET['token'])) ? $_GET['token'] : header("location:index.php");
 require 'vendor/autoload.php';
 require 'Models/Connection.php';
@@ -261,7 +257,7 @@ if (isset($_POST['resetpassword']) && $_POST['resetpassword'] == "Reset Password
             ?>
               <form action="" method="POST" class="form-signin" style="margin-bottom:10px" id="loginusers">
                 <div style="width:100%; height:auto; background-color:#036">
-                  <p><img src="<?php // $company_settings->floc; 
+                  <p><img src="<?php // $company_settings->floc;
                                 ?>" style="height:100px; width:230px; margin-top:10px" class="imgdim" /></p>
                 </div>
                 <br />

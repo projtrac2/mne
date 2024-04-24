@@ -1,10 +1,9 @@
 <?php
-try {
-
 $id = isset($_GET['monitor_id']) && !empty($_GET['monitor_id']) ? $_GET['monitor_id'] : header("location:projects-monitoring.php");
 require('includes/head.php'); 
 
 if ($permission) {
+  try {
     $pageTitle = "Add Monitoring Data";
     function error_msg($msg)
     {
@@ -309,7 +308,10 @@ if ($permission) {
     $row_rsMlsProg = $query_rsMlsProg->fetch();
     $prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
     $percent2 = round($prjprogress, 2);
-  
+  } catch (PDOException $ex) {
+    $result = flashMessage("An error occurred: " . $ex->getMessage());
+    echo $result;
+  }
 ?>
   <!-- <link rel="stylesheet" href="assets/custom-css/add-monitoring-data.css"> -->
   <style>
@@ -318,13 +320,13 @@ if ($permission) {
       height: 24px;
       -moz-border-radius: 0px;
       -webkit-border-radius: 0px;
-      width: '<?php echo $percent2; ?>%';
+      width: <?php echo $percent2; ?>%;
     }
 
     .cornflowerblue {
       background-color: CornflowerBlue;
       box-shadow: inset 0px 0px 6px 2px rgba(255, 255, 255, .3);
-      width: '<?php echo $percent2; ?>%';
+      width: <?php echo $percent2; ?>%;
     }
   </style>
   <section class="content">
@@ -644,10 +646,6 @@ if ($permission) {
 } else {
   $results =  restriction();
   echo $results;
-}
-
-} catch (PDOException $ex) {
-  customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

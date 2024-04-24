@@ -3,6 +3,7 @@ try {
 
 	require('includes/head.php');
 	// 0 pending frwquency  1) Pending assignments 2) pending data entry 3) Pending Approval 4 (Assigned ) Pending Approval
+
 	if ($permission) {
 		$query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
 		$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));

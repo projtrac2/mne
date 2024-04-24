@@ -1,13 +1,15 @@
 <?php
-try {
 require('includes/head.php');
 $permission = true;
 if ($permission) {
+    try {
         $query_rsMinistry = $db->prepare("SELECT * FROM tbl_sectors  WHERE parent='0' ");
         $query_rsMinistry->execute();
         $row_rsMinistry = $query_rsMinistry->fetch();
         $total_rsMinistry = $query_rsMinistry->rowCount();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
 
     <!-- start body  -->
@@ -350,10 +352,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>

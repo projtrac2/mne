@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 
 if ($permission) {
@@ -94,7 +91,7 @@ if ($permission) {
 	}	
 ?>
 <script src="ckeditor/ckeditor.js"></script>
-<section class="content">
+<section class="content" style="">
     <div class="container-fluid">
         <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
             <h4 class="contentheader">
@@ -389,8 +386,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

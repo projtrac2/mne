@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 $page = "view";
 require('includes/head.php');
 include_once("Models/User.php");
@@ -698,8 +695,4 @@ if ($designation  >= 5) {
 <!-- end body  -->
 <?php
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

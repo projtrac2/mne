@@ -1,12 +1,11 @@
 <?php
-	try {
-
 $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) :"";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
 $original_projid = $_GET['projid'];
 require('includes/head.php');
 if ($permission) {
+	try {
 		if (isset($_GET['projid'])) {
 			$query_rsProjects = $db->prepare("SELECT *  FROM tbl_projects WHERE deleted='0' and projplanstatus='1' and projid=:projid ");
 			$query_rsProjects->execute(array(":projid" => $projid));
@@ -1466,15 +1465,14 @@ if ($permission) {
 <?php
 			}
 		}
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 } else {
 	$results =  restriction();
 	echo $results;
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

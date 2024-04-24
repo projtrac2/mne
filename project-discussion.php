@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+	try {
 		$decode_topic_id = (isset($_GET['topic']) && !empty($_GET["topic"])) ? base64_decode($_GET['topic']) : "";
 		$topic_id_array = explode("projid54321", $decode_topic_id);
 		$topic_id = $topic_id_array[1];
@@ -56,7 +56,10 @@ if ($permission) {
 		$query_discussion = $db->prepare("SELECT * FROM `tbl_project_discussions` d INNER JOIN users u  ON u.userid=d.created_by INNER JOIN tbl_projteam2 p  ON u.pt_id = p.ptid WHERE topic_id = :topic_id ORDER BY id ASC");
 		$query_discussion->execute(array(':topic_id' => $topic_id));
 		$totalRows_issuediscussion = $query_discussion->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		print($result);
+	}
 ?>
 	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="assets/css/style.css">
@@ -220,10 +223,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script>
 	$(document).on('change', ':file', function(e) {

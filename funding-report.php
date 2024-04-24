@@ -1,8 +1,7 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
+    try {
         $hash = $_GET['fn'];
         $decode_fndid = base64_decode($hash);
         $fndid_array = explode("fn918273AxZID", $decode_fndid);
@@ -67,7 +66,9 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
             $row_utilizedfunds = $query_utilizedfunds->fetch();
             return  !is_null($row_utilizedfunds["utilized"]) ? $row_utilizedfunds["utilized"] : 0;
         }
-   
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -183,8 +184,6 @@ if ($permission && isset($_GET["fn"]) && !empty($_GET["fn"])) {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
+
 require('includes/footer.php');
 ?>

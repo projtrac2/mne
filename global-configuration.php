@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 
 if ($permission) {
@@ -98,9 +95,7 @@ if ($permission) {
 	$results =  restriction();
 	echo $results;
 }
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
+
 require('includes/footer.php');
 ?>
 

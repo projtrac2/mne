@@ -204,6 +204,7 @@ try {
                                                 $stage = $workflow_stage;
                                                 if ($total_Output == 0) {
                                                     $stage = $workflow_stage + 1;
+                                                    
                                                     if ($baseline_survey == 0) {
                                                         $stage = $stage + 1;
                                                         if ($implementation_type == 1) {

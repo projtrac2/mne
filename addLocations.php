@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 //include_once 'projtrac-dashboard/resource/session.php';
 date_default_timezone_set("Africa/Nairobi");
 include_once 'projtrac-dashboard/resource/Database.php';
@@ -34,7 +31,4 @@ if (isset($_POST["sc_id"]) && $_POST["sc_id"] !== "0") {
 	}
 } elseif (isset($_POST["sc_id"]) && $_POST["sc_id"] == "1") {
 	echo '<input type="text" name="location" class="form-control" id="location" placeholder="Enter Level-1" required="required" style="height:35px; width:98%"/>';
-}
-} catch (\Throwable $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

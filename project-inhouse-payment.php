@@ -1,6 +1,4 @@
 <?php
-try {
-
 $pageName = "Strategic Plans";
 $replacement_array = array(
 	'planlabel' => "CIDP",
@@ -10,6 +8,7 @@ $replacement_array = array(
 $page = "view";
 require('includes/head.php');
 if ($permission) {
+	try {
 		$query_ipProjects =  $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' AND projcategory = '1' AND (projstatus = 4  OR projstatus = 11)");
 		$query_ipProjects->execute();
 		$Rows_ipProjects = $query_ipProjects->rowCount();
@@ -18,7 +17,10 @@ if ($permission) {
 		$query_rsUsers->execute();
 		$row_rsUsers = $query_rsUsers->fetch();
 		$totalRows_rsUsers = $query_rsUsers->rowCount();
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 
 	<!-- JQuery Nestable Css -->
@@ -597,11 +599,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 
 

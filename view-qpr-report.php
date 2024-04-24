@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 if ($permission && isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER") {
 	$financial_year_id = $b_financial_year = '';
@@ -261,9 +258,4 @@ if ($permission && isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER
 }
 
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>

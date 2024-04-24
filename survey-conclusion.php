@@ -1,5 +1,4 @@
 <?php 
-try {
 $resultstypeid = $_GET['resultstype'];
 $sourceurl = $resultstypeid == 1 ? "view-project-impact-evaluation" : "view-project-survey";
 $resultstype = $resultstypeid == 1 ? "Impact" : "Outcome";
@@ -10,6 +9,7 @@ $resultsid = $resultsid_array[1];
 
 require('includes/head.php');
 if ($permission) {
+  try {
 	$project = $projid = $formname = $enumeratortype = $sample = $evalstartdate = $evalenddate =  $formid = $indid = $datasource = $projstage = $category = $disaggregated = $calculationmethod = $startdate = $enddate = $projlocations = "";
     if ((isset($_POST["submit"]))) {
       $results = "";
@@ -244,7 +244,10 @@ if ($permission) {
 	}
 	
 	$pageTitle = "Project ".$resultstype." ".$evaluationtype." Evaluation Conclusion";
-  
+  }catch (PDOException $ex){
+      $result = flashMessage("An error occurred: " .$ex->getMessage());
+      print($result);
+  }
 ?>
 <script src="ckeditor/ckeditor.js"></script>
 
@@ -1628,8 +1631,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-}catch (PDOException $th){
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

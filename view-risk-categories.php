@@ -1,12 +1,14 @@
 <?php
-try {
 require('includes/head.php');
 
 if ($permission) { 
+   try {
       $query_rsriskcategory = $db->prepare("SELECT * FROM tbl_projrisk_categories");
       $query_rsriskcategory->execute();
       $totalrows_rsriskcategory = $query_rsriskcategory->rowCount();
-   
+   } catch (PDOException $ex) {
+      $results = flashMessage("An error occurred: " . $ex->getMessage());
+   }
 ?>
 
    <!-- start body  -->
@@ -120,10 +122,6 @@ if ($permission) {
    echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script>

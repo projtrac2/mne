@@ -1,6 +1,4 @@
 <?php
-	try {
-
 $decode_indid = (isset($_GET['ind']) && !empty($_GET["ind"])) ? base64_decode($_GET['ind']) : header("Location: view-indicators.php");
 $indid_array = explode("opid", $decode_indid);
 $ind = $indid_array[1];
@@ -9,6 +7,7 @@ require('includes/head.php');
 if ($permission) {
 	require('functions/indicator.php');
 	require('functions/measurement-unit.php');
+	try {
 		$indicator = get_indicator_by_indid($ind);
 		$measurement_units = get_measurement_units();
 		($indicator) ?  "" : header("Location: view-indicators.php");
@@ -97,7 +96,9 @@ if ($permission) {
 				echo $results;
 			}
 		}
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 
 	<script src="assets/ckeditor/ckeditor.js"></script>
@@ -313,9 +314,6 @@ if ($permission) {
 } else {
 	$results =  restriction();
 	echo $results;
-}
-} catch (PDOException $ex) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 
 require('includes/footer.php');

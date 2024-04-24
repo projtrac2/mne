@@ -1,8 +1,7 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
         if (isset($_GET['projid'])) {
             $encoded_projid = $_GET['projid'];
             $decode_projid = base64_decode($encoded_projid);
@@ -616,14 +615,12 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 } else {
     $results =  restriction();
     echo $results;
-}
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

@@ -1,14 +1,15 @@
 
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -205,10 +206,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/master/index.js"></script>

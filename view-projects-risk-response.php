@@ -1,13 +1,15 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+    try {
         $currentPage = $_SERVER["PHP_SELF"];
         $query_issues = $db->prepare("SELECT tbl_projects.projid, projname, projstatus, projcommunity, projlga, projstate, projcategory, count(id) AS issues, tbl_projissues.* FROM tbl_projissues INNER JOIN tbl_projects ON tbl_projects.projid=tbl_projissues.projid INNER JOIN tbl_projrisk_categories ON tbl_projrisk_categories.rskid=tbl_projissues.risk_category WHERE tbl_projects.deleted='0' GROUP BY tbl_projects.projid");
         $query_issues->execute();
         $row_issues = $query_issues->fetch();
         $count_issues = $query_issues->rowCount();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -263,10 +265,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script>
     function CallRiskResponse(projid) {

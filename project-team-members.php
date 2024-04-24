@@ -1,6 +1,4 @@
 <?php
-try {
-
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -8,6 +6,7 @@ $original_projid = $_GET['proj'];
 
 require('includes/head.php');
 if ($permission) {
+	try {
 		$back_url = $_SESSION['back_url'];
 		$workflow_stage = 8;
 		$general_substage = 1;
@@ -87,7 +86,9 @@ if ($permission) {
 			$count_row_rsPMbrs = $query_rsPMbrs->rowCount();
 			return $count_row_rsPMbrs > 0 ?  $row_rsPMbrs['ttitle'] . ". " . $row_rsPMbrs['fullname'] : "";
 		}
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 	<section class="content">
 		<div class="container-fluid">
@@ -318,8 +319,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

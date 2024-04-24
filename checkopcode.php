@@ -1,7 +1,4 @@
 <?php
-try {
-    //code...
-
 //Include database configuration file
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -52,8 +49,5 @@ if(isset($_POST["impcode_id"]) && !empty($_POST["impcode_id"])){
                                 This Impact Code already exist in the database and you can not use it again: ".$code."
                             </div>";
 	}
-}
-} catch (\PDOException $th) {
-    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

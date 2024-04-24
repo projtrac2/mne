@@ -1,9 +1,8 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
     $yrid = "";
+    try {
         $decode_indid =  base64_decode($_GET['ind']);
         $indid_array = explode("opid", $decode_indid);
         $indid = $indid_array[1];
@@ -385,14 +384,15 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
             $results =  restriction();
             echo $results;
         }
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
 } else {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
+
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/indicator-existing-baseline-data.js"></script>

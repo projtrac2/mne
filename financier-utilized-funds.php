@@ -1,9 +1,8 @@
 <?php
-try {
-
 $pageName = "Funds Utilization";
 require('includes/head.php');
 require('includes/header.php');
+try {
 	if (isset($_GET['fn'])) {
 		$hash = $_GET['fn'];
 		$decode_fndid = base64_decode($hash);
@@ -26,7 +25,10 @@ require('includes/header.php');
 
 	$query_rsGrantCode = $db->prepare("SELECT gtid, donationcode FROM tbl_donor_grants WHERE deleted='0' AND dnid='$donorid' ORDER BY donationcode ASC");
 	$query_rsGrantCode->execute();
-
+} catch (PDOException $ex) {
+	$result = flashMessage("An error occurred: " . $ex->getMessage());
+	print($result);
+}
 ?>
 
 
@@ -123,8 +125,5 @@ require('includes/header.php');
 	</div>
 </div>
 <?php
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 require('includes/footer.php');
 ?>

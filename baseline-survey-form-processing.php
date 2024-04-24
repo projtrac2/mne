@@ -1,9 +1,5 @@
 <?php
 
-try {
-
-
-
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
@@ -667,8 +663,4 @@ if (isset($_POST['closesurvey']) && $_POST['closesurvey'] == 1) {
 						</script>";
 	}
 	echo $results;
-}
-
-} catch (\Throwable $th) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -1,7 +1,7 @@
 <?php
 include_once "controller.php";
 try {
-    // get financiers // select 
+    // get financiers // select
     if (isset($_POST['getfinancier'])) {
         $projid = $_POST['getfinancier'];
         $query_rsFunding =  $db->prepare("SELECT * FROM tbl_myprojfunding WHERE projid = :projid");
@@ -16,7 +16,7 @@ try {
                 $projamount = $row_rsFunding['amountfunding'];
                 $funderid = $row_rsFunding['financier'];
                 $sourcat =$row_rsFunding['sourcecategory'];
-				
+
                 $query_rsPlanFunding =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_project_cost_funders_share WHERE funder =:funderid AND projid=:projid");
                 $query_rsPlanFunding->execute(array(":funderid" => $funderid, ':projid' => $projid));
                 $row_rsPlanFunding = $query_rsPlanFunding->fetch();
@@ -25,11 +25,10 @@ try {
 				if(is_null($spent_plan_amount)){
 					$spent_plan_amount = 0;
 				}
-					
 
-                //calculate amount remaining 
+
+                //calculate amount remaining
                 $remaining = $projamount - $spent_plan_amount;
-
                 if ($remaining > 0) {
 					$query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$funderid'");
 					$query_rsFunder->execute();
@@ -42,7 +41,7 @@ try {
         }
     }
 
-    // get financier ceiling 
+    // get financier ceiling
     if (isset($_POST['cfinance'])) {
         $projfinid = $_POST['financeId'];
         $projid = $_POST['projid'];
@@ -61,8 +60,8 @@ try {
 		if(is_null($spent_plan_amount)){
 			$spent_plan_amount = 0;
 		}
-		
-        //calculate amount remaining 
+
+        //calculate amount remaining
         $remaining = $projamount - $spent_plan_amount;
         $arr = [];
         if ($remaining > 0) {
@@ -75,7 +74,7 @@ try {
         echo json_encode($arr);
     }
 
-    // add new important details from modal to db 
+    // add new important details from modal to db
     if (isset($_POST['newitem'])) {
         $result3 = true;
         $outputid = $_POST['foutputid'];
@@ -89,7 +88,7 @@ try {
         $timelineid = "";
         $remarkid = "";
 
-        // add the remarks 
+        // add the remarks
         if (isset($type) && !empty($type)) {
             $comments = trim(stripslashes($_POST['comments']));
 //             //remarks
@@ -113,12 +112,12 @@ try {
             }
         }
 
-        // add financiers 
+        // add financiers
         if (isset($_POST['amountfunding']) && isset($_POST['finance'])) {
             $amountfunding = $_POST['amountfunding'];
             $financierid = $_POST['finance'];
             for ($t = 0; $t < count($financierid); $t++) {
-                // get financier id 
+                // get financier id
                 $funder = $financierid[$t];
                 $amount = $amountfunding[$t];
                 $insertSQL = $db->prepare("INSERT INTO tbl_project_cost_funders_share (projid, outputid, type, plan_id, funder, amount, created_by, date_created) VALUES (:projid,:outputid, :type, :plan_id, :funder, :amount,  :created_by, :date_created)");
@@ -175,7 +174,7 @@ try {
             $result2  = $insertSQL->execute(array(":comments" => $comments, ":id" => $remarkid));
         }
 
-        // update financier information 
+        // update financier information
         if (isset($_POST['amountfunding']) && isset($_POST['finance'])) {
             $amountfunding = $_POST['amountfunding'];
             $financierid = $_POST['finance'];
@@ -190,7 +189,7 @@ try {
                 for ($t = 0; $t < count($financierid); $t++) {
                     $funder = $financierid[$t];
                     $amount = $amountfunding[$t];
-					
+
                     $insertSQL = $db->prepare("INSERT INTO tbl_project_cost_funders_share (projid, outputid, type, plan_id, funder, amount, created_by, date_created) VALUES (:projid,:outputid, :type, :plan_id, :funder, :amount,  :created_by, :date_created)");
                     $result1  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid, ":type" => $type, ":plan_id" => $remarkid, ":funder" => $funder, ":amount" => $amount, ':created_by' => $createdby, ':date_created' => $current_date));
                     if ($result1) {
@@ -200,10 +199,10 @@ try {
             }
         }
 
-        //update timeline  
+        //update timeline
         if (isset($_POST['timelinedate'])) {
             $timeline = $_POST['timelinedate'];
-            $timelineid = $_POST['timelineid']; 
+            $timelineid = $_POST['timelineid'];
             $responsible =null;
             if(!empty($_POST['responsible'])){
                $responsible = $_POST['responsible'];
@@ -229,7 +228,7 @@ try {
         echo json_encode($arr);
     }
 
-    // delete information for user // when row is deleted  // when values of either no of units of units cost changes 
+    // delete information for user // when row is deleted  // when values of either no of units of units cost changes
     if (isset($_POST['deleteItem'])) {
         $projid = $_POST['projid'];
         $outputid = $_POST['outputid'];
@@ -269,7 +268,7 @@ try {
         }
     }
 
-    // delete a financier on remove financier row // delete financier on change that value of a 
+    // delete a financier on remove financier row // delete financier on change that value of a
     if (isset($_POST['deleteFinancier'])) {
         if (isset($_POST['deletefinid'])) {
             $dfinid = $_POST['deletefinid'];
@@ -289,7 +288,7 @@ try {
         }
     }
 
-    // get details for editing for modal 
+    // get details for editing for modal
     if (isset($_POST['editdetails'])) {
         $crmkid = $_POST['crmkid'];
         $outputid = $_POST['outputid'];
@@ -298,7 +297,7 @@ try {
 
         if (isset($_POST['cdsmttimeline'])) {
             $cdsmttimeline = $_POST['cdsmttimeline'];
-            //get distributed timeline details 
+            //get distributed timeline details
             $query_rsTimeline = $db->prepare("SELECT *  FROM tbl_project_expenditure_timeline WHERE outputid =:outputid AND id=:cdsmttimeline ");
             $query_rsTimeline->execute(array(":outputid" => $outputid, ":cdsmttimeline" => $cdsmttimeline));
             $row_rsTimeline = $query_rsTimeline->fetch();
@@ -307,7 +306,7 @@ try {
             $responsible = $row_rsTimeline['responsible'];
         }
 
-        // get remarks 
+        // get remarks
         $query_rsRemarks = $db->prepare("SELECT *  FROM tbl_project_direct_cost_plan WHERE outputid =:outputid AND id=:crmkid ");
         $query_rsRemarks->execute(array(":outputid" => $outputid, ":crmkid" => $crmkid));
         $row_rsRemarks = $query_rsRemarks->fetch();
@@ -318,7 +317,7 @@ try {
         echo json_encode($arr);
     }
 
-    // get financier rows for editing 
+    // get financier rows for editing
     if (isset($_POST['getfinancieredit'])) {
         $cfinid = explode(",", $_POST['cfinid']);
         $outputid = $_POST['outputid'];
@@ -337,7 +336,7 @@ try {
             $option = '';
 
             $cfid = $cfinid[$i];
-            // get fiancier details 
+            // get fiancier details
             $query_rsFinancier = $db->prepare("SELECT *  FROM tbl_project_cost_funders_share WHERE outputid =:outputid AND id=:cfinid ");
             $query_rsFinancier->execute(array(":outputid" => $outputid, ":cfinid" => $cfid));
             $row_rsFinancier = $query_rsFinancier->fetch();
@@ -364,9 +363,9 @@ try {
                     $row_rsPlanFunding = $query_rsPlanFunding->fetch();
                     $totalRows_rsPlanFunding = $query_rsPlanFunding->rowCount();
                     $spent_plan_amount = $row_rsPlanFunding['amount'];
-					
-					
-                    $remaining = $projamount - $spent_plan_amount; 
+
+
+                    $remaining = $projamount - $spent_plan_amount;
 
                     if ($fndid == $financierId) {
                         $plan_ceiling = $projamount - $spent_plan_amount;
@@ -375,13 +374,13 @@ try {
                     } else {
                         $ceiling = $remaining;
                     }
-                    //calculate amount remaining 
+                    //calculate amount remaining
 
                     if ($ceiling > 0) {
 						$query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$financierId'");
 						$query_rsFunder->execute();
 						$row_rsFunder = $query_rsFunder->fetch();
-						
+
 						$funder = $row_rsFunder['financier'];
 						if ($fndid == $financierId) {
 							$option .= '<option value="' . $financierId . '" selected>' . $funder . '</option>';
@@ -396,27 +395,27 @@ try {
             $fin .=  '
 			<tr id="financierrow' . $rowno . '">
                 <td>
-                    ' . $tp . ' 
+                    ' . $tp . '
                 </td>
                 <td>
                     ' . $history . '
                     <select onchange=financeirChange("row' . $rowno . '") data-id="' . $rowno . '" name="finance[]" id="financerow' . $rowno . '" class="form-control validoutcome selectedfinance" required="required">
-                        <option value="">Select Financier from list</option> 
+                        <option value="">Select Financier from list</option>
                         ' . $option . '
                     </select>
                 </td>
                 <td>
-                    <input type="hidden" name="hceilingval[]"  id="hceilingvalrow' . $rowno . '" value="' . $plan_ceiling_value . '" /> 
-                    <input type="hidden" name="ceilingval[]"  id="ceilingvalrow' . $rowno . '" value="' . $plan_ceiling_value . '" /> 
-                    <span id="currrow' .  $rowno . '"></span> 
+                    <input type="hidden" name="hceilingval[]"  id="hceilingvalrow' . $rowno . '" value="' . $plan_ceiling_value . '" />
+                    <input type="hidden" name="ceilingval[]"  id="ceilingvalrow' . $rowno . '" value="' . $plan_ceiling_value . '" />
+                    <span id="currrow' .  $rowno . '"></span>
                     <span id="financierCeilingrow' . $rowno . '" style="color:red">
                     ' .    number_format($plan_ceiling, 2) . '
                     </span>
                 </td>
-                <td> 
+                <td>
                     <input type="hidden" name="hamountfunding[]"  id="hamountfundingrow' . $rowno . '" value="' . $amount . '" />
                     <input type="number" name="amountfunding[]" onkeyup=amountfunding("row' . $rowno  . '")   onchange=amountfunding("row' . $rowno  . '")
-                     id="amountfundingrow' . $rowno . '"   placeholder="Enter" 
+                     id="amountfundingrow' . $rowno . '"   placeholder="Enter"
                      value="' . $amount . '" class="form-control financierTotal" style="width:85%; float:right" required/>
                 </td>
                 <td>
@@ -575,7 +574,7 @@ try {
         $row_rsOutputs = $query_rsOutputs->fetch();
         $totalRows_rsOutputs = $query_rsOutputs->rowCount();
 
-        // query the 
+        // query the
         $query_rsProjFinancier =  $db->prepare("SELECT * FROM tbl_myprojfunding WHERE projid = :projid ORDER BY amountfunding desc");
         $query_rsProjFinancier->execute(array(":projid" => $projid));
         $row_rsProjFinancier = $query_rsProjFinancier->fetch();

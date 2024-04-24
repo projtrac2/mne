@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php');
 if ($permission) {
 	$back_url = $_SESSION['back_url'];
@@ -860,8 +857,4 @@ if ($permission) {
 				}
 
 				require('includes/footer.php');
-
-			} catch (\PDOException $th) {
-				customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-			}
 					?>

@@ -160,6 +160,7 @@ try {
 			} while ($row_indProjs = $query_indProjs->fetch());
 		}
 	} catch (PDOException $ex) {
-		customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
 	}
 ?>

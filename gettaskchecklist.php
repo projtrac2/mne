@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
@@ -205,8 +202,5 @@ else{
 		</div>
 	</div>';
 }
-}
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 ?>

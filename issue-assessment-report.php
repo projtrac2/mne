@@ -1,9 +1,8 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission) {
 
+    try {
 
 
         if (isset($_GET['eval'])) {
@@ -41,7 +40,10 @@ if ($permission) {
         $query_evalfindings =  $db->prepare("SELECT * FROM tbl_project_evaluation_form_sections WHERE formid = '$formid'");
         $query_evalfindings->execute();
         $totalRows_evalfindings = $query_evalfindings->rowCount();
-  
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        print($result);
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -260,10 +262,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script type="text/javascript">
     $(document).ready(function() {

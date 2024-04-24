@@ -127,25 +127,6 @@ if ($permission) {
                 </div>
         </section>
         <!-- end body  -->
-        <!-- Start Item more -->
-        <div class="modal fade" tabindex="-1" role="dialog" id="moreModal">
-            <div class="modal-dialog  modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header" style="background-color:#03A9F4">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> More Information</h4>
-                    </div>
-                    <div class="modal-body" id="moreinfo">
-                    </div>
-                    <div class="modal-footer">
-                        <div class="col-md-12 text-center">
-                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
-                        </div>
-                    </div>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div>
-        <!-- End Item more -->
 
         <!-- start issues modal  -->
         <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">

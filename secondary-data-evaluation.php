@@ -1,7 +1,4 @@
 <?php 
-try {
-	//code...
-
 $resultstypeid = $_GET['resultstype'];
 $sourceurl = $resultstypeid == 1 ? "impact-evaluation-secondary-data-source" : "evaluation-secondary-data-source";
 $resultstype = $resultstypeid == 1 ? "Impact" : "Outcome";
@@ -343,10 +340,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
-}
 ?>
 
 <script>

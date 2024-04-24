@@ -1,8 +1,7 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
 
         $results = "";
         if (isset($_POST["MM_insert"])) {
@@ -152,7 +151,16 @@ if ($permission) {
             $unit = $row['unit'];
 			$pageTitle = "Define ". $formtype . $surveytype . " Survey Details";
         }
-    
+    } catch (PDOException $ex) {
+
+        function flashMessage($flashMessages)
+        {
+            return $flashMessages;
+        }
+
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -418,9 +426,7 @@ if ($permission) {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $ex) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
+
 require('includes/footer.php');
 ?>
 <script src="assets/custom js/indicator-details.js"></script>

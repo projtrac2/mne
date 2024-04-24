@@ -1,8 +1,8 @@
 <?php
-try {
 require('functions/strategicplan.php');
 require('includes/head.php');
 if ($permission) {
+	try {
 		$deptlebel = "";
 
 		if (isset($_GET["staff"]) && !empty($_GET["staff"])) {
@@ -123,7 +123,9 @@ if ($permission) {
 		$query_rsLvDetails->execute();
 		$row_rsLvDetails = $query_rsLvDetails->fetch();
 		$rows_rsLvDetails = $query_rsLvDetails->rowCount();
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 
 	<!-- start body  -->
@@ -379,8 +381,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

@@ -1,10 +1,9 @@
 <?php
-try {
-
 require('functions/strategicplan.php');
 require('includes/head.php');
 
 if ($permission) {
+	try {
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
 			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -242,7 +241,9 @@ if ($permission) {
 				</script>";
 			}
 		}
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 	<script src="assets/ckeditor/ckeditor.js"></script>
 
@@ -736,8 +737,5 @@ if ($permission) {
 	echo $results;
 }
 
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 require('includes/footer.php');
 ?>

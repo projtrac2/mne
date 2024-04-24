@@ -1,7 +1,4 @@
 				<?php
-				try {
-					//code...
-				
 				$nm = 0;
 				do {
 					$nm = $nm + 1;
@@ -34,9 +31,4 @@
 							<?php } ?></td>
 					</tr>
 				<?php
-				} while ($row_rsPuM = $query_rsPuM->fetch()); 
-				
-				} catch (\PDOException $th) {
-					customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-				}
-				?>
+				} while ($row_rsPuM = $query_rsPuM->fetch()); ?>

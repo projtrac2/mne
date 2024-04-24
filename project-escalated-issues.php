@@ -1,9 +1,8 @@
 <?php
-try {
-
 require('includes/head.php');
 
 if ($permission) {
+	try {
 		if(isset($_GET["proj"]) && !empty($_GET["proj"])){
 			$prjid = $_GET["proj"];
 			$query_escalatedissues = $db->prepare("SELECT i.id, p.projname, c.category, i.observation, i.status as status, i.created_by AS monitor, i.owner as owner, i.date_escalated, i.date_assigned, i.date_created AS issuedate, pr.priority, e.owner as escowner FROM tbl_projissues i INNER JOIN tbl_projects p ON p.projid=i.projid INNER JOIN tbl_projrisk_categories c ON c.rskid=i.risk_category inner join tbl_priorities pr on pr.id=i.priority inner join tbl_escalations e on e.itemid=i.id WHERE p.projid='$prjid'");
@@ -30,7 +29,10 @@ if ($permission) {
 		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
 		$percent2 = round($prjprogress, 2);
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		print($result);
+	}
 ?>
     <link href="css/project-progress.css" rel="stylesheet">
 	<!-- start body  -->
@@ -416,10 +418,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script type="text/javascript">

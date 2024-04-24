@@ -1,6 +1,4 @@
 <?php
-try {
-
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -9,6 +7,7 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 include_once('projects-functions.php');
 if ($permission) {
+	try {
 		$query_rsMyP =  $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' AND projid = '$projid'");
 		$query_rsMyP->execute();
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -97,7 +96,10 @@ if ($permission) {
 			$row_rstender = $query_rstender->fetch();
 			$tendertype = $row_rstender["type"];
 		}
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 	<style>
 		@import url("https://code.highcharts.com/css/highcharts.css");
@@ -650,8 +652,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

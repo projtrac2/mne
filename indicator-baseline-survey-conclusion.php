@@ -1,8 +1,7 @@
 <?php
-	try {
-
 require('includes/head.php');
 if ($permission) {
+	try {
 
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
@@ -166,7 +165,10 @@ if ($permission) {
 				$baseyr = $row_baseyear["year"];
 			}
 		}
-
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		echo $result;
+	}
 ?>
 	<link href="css/indicator-baseline-survey-conclusion.css" rel="stylesheet" />
 	<!-- start body  -->
@@ -1058,9 +1060,6 @@ if ($permission) {
 } else {
 	$results =  restriction();
 	echo $results;
-}
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

@@ -102,7 +102,13 @@ try {
 		</div><!-- /.modal-dialog -->
 	</div>
 <?php
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+} catch (PDOException $ex) {
+	function flashMessage($err)
+	{
+		return $err;
+	}
+
+	$result = flashMessage("An error occurred: " . $ex->getMessage());
+	print($result);
 }
 ?>

@@ -1,11 +1,11 @@
 <?php 
-try {
 $decode_frm = (isset($_GET['frm']) && !empty($_GET["frm"])) ? base64_decode($_GET['frm']) : header("Location: view-project-impact-evaluation"); 
 $formid_array = explode("surveydata", $decode_frm);
 $formid = $formid_array[1];
 
 require('includes/head.php'); 
 if ($permission) {
+  try {
     $query_rsEvalDates = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE id=:frmid");
     $query_rsEvalDates->execute(array(":frmid" => $formid));
     $row_rsrsEvalDates = $query_rsEvalDates->fetch();
@@ -79,7 +79,10 @@ if ($permission) {
     }
 	$surveytype = $resultstype == 1 ? "Impact" : "Outcome";
 	$evaluationurl = $resultstype == 1 ? "view-project-impact-evaluation.php" : "view-project-survey.php";
-  
+  }catch (PDOException $ex){
+      $result = flashMessage("An error occurred: " .$ex->getMessage());
+      print($result);
+  }
 
 ?>
    <!-- start body  -->
@@ -1215,8 +1218,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-}catch (PDOException $th){
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>

@@ -1,8 +1,7 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
         if (isset($_GET['fndid'])) {
             $finid = base64_decode($_GET['fndid']);
             if (!empty($finid)) {
@@ -28,7 +27,10 @@ if ($permission) {
 
             return $status;
         }
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        print($result);
+    }
 ?>
 
     <!-- start body  -->
@@ -111,8 +113,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

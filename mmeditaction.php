@@ -1,10 +1,9 @@
 <?php
-try{//For Load All Data
-
 //include_once 'projtrac-dashboard/resource/session.php';
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
+try{//For Load All Data
     if($_POST["action"] == "Risk")
     {
 		$projid= $_POST["projid"];
@@ -256,7 +255,8 @@ include_once 'projtrac-dashboard/resource/utilities.php';
 		}
 	}
 }
-catch (PDOException $th){
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+catch (PDOException $ex){
+    $result = flashMessage("An error occurred: " .$ex->getMessage());
+	print($result);
 }
 ?>

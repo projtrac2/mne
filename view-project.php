@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+	try {
 		$decode_progid = (isset($_GET['prg']) && !empty($_GET["prg"])) ? base64_decode($_GET['prg']) : "";
 		$progid_array = explode("progid54321", $decode_progid);
 		$progid = $progid_array[1];
@@ -30,7 +30,9 @@ if ($permission) {
 			}
 			return $output && $outcome && $impact ? true : false;
 		}
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -194,9 +196,5 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="assets/js/projects/view-project.js"></script>

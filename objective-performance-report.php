@@ -1,8 +1,7 @@
 <?php
-    try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
 
         function get_financial_year($financial_year)
         {
@@ -144,7 +143,10 @@ if ($permission) {
         }
 
         $approve_responsible = 1;
-   
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+        echo $result;
+    }
 ?>
     <section class="content">
         <div class="container-fluid">
@@ -933,11 +935,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 <script>
     var ajax_url = "./ajax/reports/index"

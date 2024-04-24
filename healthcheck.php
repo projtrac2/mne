@@ -1,7 +1,7 @@
 <?php
-    try {
 require('includes/head.php');
 if ($permission) {
+    try {
         $query_rsAudit_Trail = $db->prepare("SELECT * FROM tbl_audit_log ");
         $query_rsAudit_Trail->execute(array(":projcontractor" => $user_name));
         $totalRows_rsAudit_Trail = $query_rsAudit_Trail->rowCount();
@@ -79,13 +79,13 @@ if ($permission) {
         </section>
         <!-- end body  -->
 <?php
-    
+    } catch (PDOException $ex) {
+        // customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+    }
 } else {
     $results =  restriction();
     echo $results;
 }
-} catch (PDOException $ex) {
-    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-}
+
 require('includes/footer.php');
 ?>

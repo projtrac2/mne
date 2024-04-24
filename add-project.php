@@ -1,6 +1,4 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
     try {
@@ -252,7 +250,7 @@ if ($permission) {
                                             </div>
                                         </div>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="" class="control-label">SP ? *:</label>
+                                            <label for="" class="control-label">SP linked ? *:</label>
                                             <div class="form-line">
                                                 <input name="project_type" type="radio" value="1" <?= $project_type == 1 && $projid != "" ? "checked" : "" ?> id="project_type1" class="with-gap radio-col-green project_type" required="required" />
                                                 <label for="project_type1">YES</label>
@@ -564,9 +562,6 @@ if ($permission) {
 } else {
     $results =  restriction();
     echo $results;
-}
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 require('includes/footer.php');
 ?>

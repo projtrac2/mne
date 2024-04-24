@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+	try {
 		$query_stratplan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");
 		$query_stratplan->execute();
 		$row_stratplan = $query_stratplan->fetch();
@@ -223,7 +223,11 @@ if ($permission) {
 
 	
  
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		// print($result);
+		var_dump($ex->getMessage());
+	}
 ?>
 	<!-- start body  -->
 	<section class="content">
@@ -359,11 +363,6 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 <script src="assets/plugins/echarts/echarts-all.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>

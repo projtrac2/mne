@@ -12,6 +12,7 @@ if ($permission) {
 
         $query_risk_categories = $db->prepare("SELECT * FROM tbl_projrisk_categories");
         $query_risk_categories->execute();
+
 ?>
         <section class="content">
             <div class="container-fluid">
@@ -96,6 +97,8 @@ if ($permission) {
                                                         project_name:'$projname',
                                                         edit:'$edit'
                                                     }";
+
+
                                             ?>
                                                         <tr>
                                                             <td align="center"><?= $counter ?></td>

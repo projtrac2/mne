@@ -1,6 +1,4 @@
 <?php
-try {
-	//code...
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -81,9 +79,5 @@ if(isset($_POST['projid']) && !empty($_POST['projid']))
 			<input type="hidden" name="projchangedstatus" value="'.$projchangedstatus.'"/>
 			<input type="hidden" name="projcode" value="'.$projcode.'"/>
 		</div>';
-}
-} catch (\PDOException $th) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-
 }
 ?>

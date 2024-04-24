@@ -1,9 +1,9 @@
 <?php
-try{
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
 
+try{
 	if(isset($_POST['owner']) && !empty($_POST['owner'])){
 		$issueid = $_POST['issueid'];
 		$ownerid = $_POST['owner'];
@@ -68,6 +68,7 @@ include_once 'projtrac-dashboard/resource/utilities.php';
 			
 		echo json_encode("success");
 	}
-}catch (PDOException $th){
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}catch (PDOException $ex){
+    $result = flashMessage("An error occurred: " .$ex->getMessage());
+	echo $result;
 }

@@ -1,6 +1,4 @@
 <?php
-try {
-	//code...
 
 include_once 'projtrac-dashboard/resource/Database.php';
 include_once 'projtrac-dashboard/resource/utilities.php';
@@ -130,9 +128,5 @@ if(isset($_POST['mstid']))
 				</div>
 			</div>
 		</div>';
-}
-} catch (\Throwable $th) {
-	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
-
 }
 ?>

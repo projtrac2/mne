@@ -1,6 +1,4 @@
 <?php
-try {
-
 $decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
 $projid_array = explode("projid54321", $decode_projid);
 $projid = $projid_array[1];
@@ -11,6 +9,7 @@ $original_projid = $_GET['proj'];
 require('includes/head.php');
 if ($permission) {
     $back_url = $_SESSION['back_url'];
+    try {
         $query_project = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
         $query_project->execute(array(":projid" => $projid));
         $row_project = $query_project->fetch();
@@ -18,7 +17,9 @@ if ($permission) {
         $projstage = $row_project["projstage"];
         $projcat = $row_project["projcategory"];
         $percent2 = number_format(calculate_project_progress($projid, $projcat), 2);
-    
+    } catch (PDOException $ex) {
+        $result = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <style>
         .mt-map-wrapper {
@@ -119,10 +120,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 

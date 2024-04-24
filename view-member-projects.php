@@ -1,7 +1,7 @@
 <?php
-try {
 require('includes/head.php');
 if ($permission) {
+    try {
 
         $mbrid = "";
         if (isset($_GET["mbrid"]) && !empty($_GET["mbrid"])) {
@@ -132,7 +132,9 @@ if ($permission) {
         $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0' AND g.program_type=0 AND p.projstage =10");
         $query_rs_ind_projects->execute();
         $total_ind_projects = $query_rs_ind_projects->rowCount();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <style>
         .modal-lg {
@@ -643,10 +645,6 @@ if ($permission) {
     echo $results;
 }
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 
 <script type="text/javascript">

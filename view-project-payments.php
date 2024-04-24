@@ -1,7 +1,4 @@
 <?php
-try {
-	//code...
-
 require('includes/head.php'); 
 if ($permission) {
 ?>
@@ -366,10 +363,6 @@ if ($permission) {
 	echo $results;
 }
 require('includes/footer.php');
-
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="assets/custom js/fetch-monitoring-evaluation.js"></script>
 

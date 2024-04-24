@@ -1,8 +1,7 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission) {
+    try {
         $parameter_id = isset($_GET['parameter_id']) ? base64_decode($_GET['parameter_id']) : "";
         $d_site_id = isset($_GET['site_id']) ? base64_decode($_GET['site_id']) : "";
         $d_state_id = isset($_GET['state_id']) ? base64_decode($_GET['state_id']) : "";
@@ -73,7 +72,9 @@ if ($permission) {
             $rows_count = $sql->rowCount();
             return ($rows_count > 0)  ? $row['standard'] : false;
         }
-   
+    } catch (PDOException $ex) {
+        $results =  flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
 
     <section class="content">
@@ -414,10 +415,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine()); 
-}
 ?>
 
 <script src="assets/js/inspection/inspect.js"></script>

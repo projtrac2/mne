@@ -1,6 +1,4 @@
 <?php
-try {
-
 require('includes/head.php');
 
 if ($permission) {
@@ -11,6 +9,7 @@ if ($permission) {
 
 	require('functions/strategicplan.php');
 
+	try {
 		$results_kra = get_kra($kraid);
 		if (!$results_kra) {
 			// redirect back to strategic plan  
@@ -72,7 +71,9 @@ if ($permission) {
 				}
 			}
 		}
-	
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
 
 ?>
 
@@ -214,10 +215,6 @@ if ($permission) {
 } else {
 	$results =  restriction();
 	echo $results;
-}
-
-} catch (PDOException $ex) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
 
 require('includes/footer.php');

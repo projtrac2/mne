@@ -1,11 +1,10 @@
 <?php
-try {
-
 require('includes/head.php');
 
 echo '<title>Result-Based Monitoring &amp; Evaluation System: Escalated Project Issues</title>';
 
 if ($permission) {
+	try {
 		$projcategory = "";
 		if (isset($_GET["proj"]) && !empty($_GET["proj"])) {
 			$prjid = $_GET["proj"];
@@ -31,7 +30,10 @@ if ($permission) {
 		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
 		$percent2 = round($prjprogress, 2);
-	
+	} catch (PDOException $ex) {
+		$result = flashMessage("An error occurred: " . $ex->getMessage());
+		print($result);
+	}
 ?>
 
     <link href="css/project-progress.css" rel="stylesheet">
@@ -431,12 +433,6 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-
-} catch (PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-
-}
 ?>
 
 <script type="text/javascript">

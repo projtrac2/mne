@@ -7,31 +7,6 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-function level1($comm)
-{
-	try {
-		global $db;
-		$query_ward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:comm ");
-		$query_ward->execute(array(":comm" => $comm));
-		$data = 0;
-		while ($row = $query_ward->fetch()) {
-			$projlga = $row['id'];
-			$query_rsLocations = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:id");
-			$query_rsLocations->execute(array(":id" => $projlga));
-			$row_rsLocations = $query_rsLocations->fetch();
-			$total_locations = $query_rsLocations->rowCount();
-			if ($total_locations > 0) {
-				$data += 1;
-			}
-		}
-		return $data;
-	} catch (\PDOException $th) {
-		customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-	}
-}
-
-try {
-	//code...
 
 if (isset($_POST['getward'])) {
 	$getward = explode(",", $_POST['getward']);
@@ -60,7 +35,24 @@ if (isset($_POST['getward'])) {
 	echo $data;
 }
 
-
+function level1($comm)
+{
+	global $db;
+	$query_ward = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:comm ");
+	$query_ward->execute(array(":comm" => $comm));
+	$data = 0;
+	while ($row = $query_ward->fetch()) {
+		$projlga = $row['id'];
+		$query_rsLocations = $db->prepare("SELECT id, state FROM tbl_state WHERE parent=:id");
+		$query_rsLocations->execute(array(":id" => $projlga));
+		$row_rsLocations = $query_rsLocations->fetch();
+		$total_locations = $query_rsLocations->rowCount();
+		if ($total_locations > 0) {
+			$data += 1;
+		}
+	}
+	return $data;
+}
 
 
 if (isset($_POST['get_all'])) {
@@ -351,7 +343,4 @@ if (isset($_POST['get_baseline_ind'])) {
 	$query_lvonesum->execute(array(":indid" => $indid));
 	$row_lvonesum = $query_lvonesum->fetch();
 	echo ($row_lvonesum["sumvalue"] != null) ?  $row_lvonesum["sumvalue"] : 0;
-}
-} catch (\PDOException $th) {
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

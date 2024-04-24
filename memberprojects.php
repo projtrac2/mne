@@ -1,9 +1,8 @@
 <?php
-    try {
-
 require('includes/head.php');
 
 if ($permission) {
+    try {
         if (isset($_GET['mbrid'])) {
             $mbrid = $_GET['mbrid'];
             if (!empty($mbrid)) {
@@ -15,7 +14,9 @@ if ($permission) {
                 $row_mbrdetails = $query_mbrdetails->fetch();
             }
         }
-   
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
     <!-- start body  -->
     <section class="content">
@@ -51,8 +52,4 @@ if ($permission) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>

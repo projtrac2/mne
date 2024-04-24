@@ -104,7 +104,8 @@ try{
 	$stdate  = add_work_days(new DateTime(), 30);
 	//echo $stdate->format('Y-m-d');
 			
-}catch (PDOException $th){
-	customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+}catch (PDOException $ex){
+    $result = flashMessage("An error occurred: " .$ex->getMessage());
+	echo $result;
 }
 ?>

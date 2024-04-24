@@ -2,166 +2,133 @@
 
 function get_unit_of_measure($unit)
 {
-    try {
-        global $db;
-        $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
-        $query_rsIndUnit->execute(array(":unit_id" => $unit));
-        $row_rsIndUnit = $query_rsIndUnit->fetch();
-        $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-        return $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
-
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-    }
+    global $db;
+    $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
+    $query_rsIndUnit->execute(array(":unit_id" => $unit));
+    $row_rsIndUnit = $query_rsIndUnit->fetch();
+    $totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+    return $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : '';
 }
 
 function check_program_of_works($site_id, $task_id, $subtask_id)
 {
-    try {
-        global $db;
-        $query_rsWorkBreakdown = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
-        $query_rsWorkBreakdown->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
-        $row_rsWorkBreakdown = $query_rsWorkBreakdown->fetch();
-        return $row_rsWorkBreakdown;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-    }
+    global $db;
+    $query_rsWorkBreakdown = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
+    $query_rsWorkBreakdown->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
+    $row_rsWorkBreakdown = $query_rsWorkBreakdown->fetch();
+    return $row_rsWorkBreakdown;
 }
 
 function get_target($site_id, $task_id, $subtask_id, $start_date, $end_date)
 {
-    try {
-        global $db;
-        $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id AND start_date=:start_date  AND end_date=:end_date');
-        $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id, ":start_date" => $start_date, ":end_date" => $end_date));
-        $stmt_result = $stmt->rowCount();
-        $result = $stmt->fetch();
-        $target = $stmt_result > 0 ? $result['target'] : 0;
-        return $target;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-    }
+    global $db;
+    $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id AND start_date=:start_date  AND end_date=:end_date');
+    $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id, ":start_date" => $start_date, ":end_date" => $end_date));
+    $stmt_result = $stmt->rowCount();
+    $result = $stmt->fetch();
+    $target = $stmt_result > 0 ? $result['target'] : 0;
+    return $target;
 }
 
 function check_target_breakdown($site_id, $task_id, $subtask_id)
 {
-    try {
-        global $db;
-        $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id = :task_id AND subtask_id = :subtask_id ');
-        $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id));
-        $stmt_result = $stmt->rowCount();
-        return $stmt_result > 0 ? true : false;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-    }
+    global $db;
+    $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE site_id=:site_id AND task_id = :task_id AND subtask_id = :subtask_id ');
+    $stmt->execute(array(':site_id' => $site_id, ':task_id' => $task_id, ":subtask_id" => $subtask_id));
+    $stmt_result = $stmt->rowCount();
+    return $stmt_result > 0 ? true : false;
 }
 
 function getStartAndEndDate($week, $year)
 {
-    try {
-        $dto = new DateTime();
-        $dto->setISODate($year, $week);
-        $ret['week_start'] = $dto->format('Y-m-d');
-        $dto->modify('+6 days');
-        $ret['week_end'] = $dto->format('Y-m-d');
-        return $ret;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-    }
+    $dto = new DateTime();
+    $dto->setISODate($year, $week);
+    $ret['week_start'] = $dto->format('Y-m-d');
+    $dto->modify('+6 days');
+    $ret['week_end'] = $dto->format('Y-m-d');
+    return $ret;
 }
 
 function filter_head($task_start_date, $task_end_date, $start_date, $end_date)
 {
-    try {
-        $response = false;
-        if ($task_start_date != '' && $task_end_date != '') {
-            if (
-                ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
-                ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
-                ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
-            ) {
-                $response = true;
-            }
-        } else {
+    $response = false;
+    if ($task_start_date != '' && $task_end_date != '') {
+        if (
+            ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+            ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+            ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+        ) {
             $response = true;
         }
-        return $response;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    } else {
+        $response = true;
     }
+    return $response;
 }
 
 function filter_body($start_date, $end_date, $target, $site_id, $task_id, $subtask_id)
 {
-    try {
-        $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
-        $task_start_date = $work_program ? $work_program['start_date'] : '';
-        $task_end_date = $work_program ?  $work_program['end_date'] : '';
-        $table = '';
-        if ($work_program) {
-            if (
-                ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
-                ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
-                ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
-            ) {
-                $table .= '<td style="width:15%">' . $target . '</td>';
-            } else {
-                $table .= '<td style="width:15%">n/a</td>';
-            }
+    $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
+    $task_start_date = $work_program ? $work_program['start_date'] : '';
+    $task_end_date = $work_program ?  $work_program['end_date'] : '';
+    $table = '';
+    if ($work_program) {
+        if (
+            ($task_start_date >= $start_date && $task_start_date <= $end_date) ||
+            ($task_end_date >= $start_date && $task_end_date <= $end_date) ||
+            ($task_start_date <= $start_date && $task_end_date >= $start_date && $task_end_date >= $end_date)
+        ) {
+            $table .= '<td style="width:15%">' . $target . '</td>';
         } else {
             $table .= '<td style="width:15%">n/a</td>';
         }
-        return $table;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    } else {
+        $table .= '<td style="width:15%">n/a</td>';
     }
+    return $table;
 }
 
 function get_table_body($site_id, $output_id, $task_id, $duration_details)
 {
-    try {
-        global $db;
-        $body = '';
-        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
-        $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
-        $totalRows_rsTasks = $query_rsTasks->rowCount();
-        if ($totalRows_rsTasks > 0) {
-            $tcounter = 0;
-            while ($row_rsTasks = $query_rsTasks->fetch()) {
-                $tcounter++;
-                $task_name = $row_rsTasks['task'];
-                $subtask_id = $row_rsTasks['tkid'];
-                $unit =  $row_rsTasks['unit_of_measure'];
-                $unit_of_measure = get_unit_of_measure($unit);
-                $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
-                $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
-                $body .=
-                    "<tr>
-                    <td style='width:5%'>$tcounter</td>
-                    <td style='width:40%'>$task_name</td>
-                    <td style='width:40%'>$unit_of_measure</td>";
-                $duration = count($duration_details);
-                for ($i = 0; $i < $duration; $i++) {
-                    $start_date = $duration_details[$i][0];
-                    $end_date = $duration_details[$i][1];
-                    $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date);
-                    $body .= filter_body($start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 1);
-                }
-                $body .= '<td>';
-                if ($work_program) {
-                    $body .=
-                        '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
-                    $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
-                    $body .= '
-                        </button>';
-                }
-                $body .= '</td></tr>';
+    global $db;
+    $body = '';
+    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id AND msid=:msid  ORDER BY parenttask");
+    $query_rsTasks->execute(array(":output_id" => $output_id, ":msid" => $task_id));
+    $totalRows_rsTasks = $query_rsTasks->rowCount();
+    if ($totalRows_rsTasks > 0) {
+        $tcounter = 0;
+        while ($row_rsTasks = $query_rsTasks->fetch()) {
+            $tcounter++;
+            $task_name = $row_rsTasks['task'];
+            $subtask_id = $row_rsTasks['tkid'];
+            $unit =  $row_rsTasks['unit_of_measure'];
+            $unit_of_measure = get_unit_of_measure($unit);
+            $work_program = check_program_of_works($site_id, $task_id, $subtask_id);
+            $breakdown = check_target_breakdown($site_id, $task_id, $subtask_id);
+            $body .=
+                "<tr>
+                <td style='width:5%'>$tcounter</td>
+                <td style='width:40%'>$task_name</td>
+                <td style='width:40%'>$unit_of_measure</td>";
+            $duration = count($duration_details);
+            for ($i = 0; $i < $duration; $i++) {
+                $start_date = $duration_details[$i][0];
+                $end_date = $duration_details[$i][1];
+                $target = get_target($site_id, $task_id, $subtask_id, $start_date, $end_date);
+                $body .= filter_body($start_date, $end_date, $target, $site_id, $task_id, $subtask_id, 1);
             }
+            $body .= '<td>';
+            if ($work_program) {
+                $body .=
+                    '<button type="button" onclick="get_subtasks_wbs(' . $output_id . ', ' . $site_id . ', ' . $task_id . ', ' . $subtask_id . ')" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px" >';
+                $body .= $breakdown ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>';
+                $body .= '
+                    </button>';
+            }
+            $body .= '</td></tr>';
         }
-        return $body;
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
     }
+    return $body;
 }
 
 function get_frequency_header($frequency, $start_date)
@@ -385,21 +352,16 @@ function get_structure($site_id, $output_id, $task_id, $frequency, $duration, $s
 
 function get_task_dates($task_id, $site_id)
 {
-    try {
-        global $db;
-        $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) AS start_date, MAX(end_date) AS end_date FROM `tbl_program_of_works` WHERE task_id=:task_id AND site_id=:site_id");
-        $query_rsTask_Start_Dates->execute(array(':task_id' => $task_id, ':site_id' => $site_id));
-        $Rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-        $task_start_date = $task_end_date = '';
-        if ($Rows_rsTask_Start_Dates) {
-            $task_start_date = $Rows_rsTask_Start_Dates['start_date'];
-            $task_end_date =  $Rows_rsTask_Start_Dates['end_date'];
-        }
-        return array("task_start_date" => $task_start_date, "task_end_date" => $task_end_date);
-    } catch (\PDOException $th) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    global $db;
+    $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) AS start_date, MAX(end_date) AS end_date FROM `tbl_program_of_works` WHERE task_id=:task_id AND site_id=:site_id");
+    $query_rsTask_Start_Dates->execute(array(':task_id' => $task_id, ':site_id' => $site_id));
+    $Rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+    $task_start_date = $task_end_date = '';
+    if ($Rows_rsTask_Start_Dates) {
+        $task_start_date = $Rows_rsTask_Start_Dates['start_date'];
+        $task_end_date =  $Rows_rsTask_Start_Dates['end_date'];
     }
-    
+    return array("task_start_date" => $task_start_date, "task_end_date" => $task_end_date);
 }
 
 function get_duration($min_date, $max_date)

@@ -1,8 +1,7 @@
 <?php
-try {
-
 require('includes/head.php');
 if ($permission &&  isset($_GET['status'])) {
+    try {
         $status = $_GET['status'];
         $start_year = $_GET['year'];
         $end_year = $start_year + 1;
@@ -21,7 +20,9 @@ if ($permission &&  isset($_GET['status'])) {
 
         $query_rsProjissues->execute(array(":start_date" => $start_date, ":end_date" => $end_date));
         $totalRows_rsProjissues = $query_rsProjissues->rowCount();
-    
+    } catch (PDOException $ex) {
+        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    }
 ?>
 <style>
 .container{
@@ -236,9 +237,5 @@ if ($permission &&  isset($_GET['status'])) {
 }
 
 require('includes/footer.php');
-
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 ?>
 <script src="assets/js/risk/index.js"></script>
