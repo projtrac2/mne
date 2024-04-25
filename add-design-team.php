@@ -1,4 +1,4 @@
-<?php 
+<?php
 require('includes/head.php');
 if ($permission) {
     try {
@@ -63,6 +63,7 @@ if ($permission) {
                             <!-- Start Page Content -->
                             <!-- ============================================================== -->
                             <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                <?= csrf_token_html(); ?>
                                 <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
                                     <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                         <label class="control-label">Project Code:</label>
@@ -146,7 +147,7 @@ if ($permission) {
                                                             user_id:$ptid,
                                                             ministry_id:$department_id,
                                                             sector_id:$section_id,
-                                                            edit:'1', 
+                                                            edit:'1',
                                                             role_id:$role_id
                                                         }";
                                                 ?>

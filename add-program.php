@@ -76,6 +76,7 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
                         <div class="card">
                             <div class="body">
                                 <form id="addprogform" method="POST" name="addprogform" action="" enctype="multipart/form-data" autocomplete="off">
+                                    <?= csrf_token_html(); ?>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Program Details</legend>
                                         <div class="col-md-12">

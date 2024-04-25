@@ -1,8 +1,8 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission) {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+    if ($permission  && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
+        $decode_projid =   base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
@@ -106,7 +106,6 @@ try {
             }
 
             $approve = $project_sub_stage > 1 ? true : false;
-
 ?>
             <section class="content">
                 <div class="container-fluid">
@@ -338,6 +337,7 @@ try {
                             <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Milestone</h4>
                         </div>
                         <form class="form-horizontal" id="output_form" action="" method="POST">
+                            <?= csrf_token_html(); ?>
                             <div class="modal-body">
                                 <fieldset class="scheduler-border" id="milestone_div">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Milestone</legend>

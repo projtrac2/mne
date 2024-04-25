@@ -62,6 +62,7 @@ try {
                                     <!-- Start Page Content -->
                                     <!-- ============================================================== -->
                                     <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
                                         <div class="table-responsive">
                                             <table class="table table-bordered table-striped table-hover js-basic-example ">
                                                 <thead>
@@ -204,7 +205,7 @@ try {
                                                 $stage = $workflow_stage;
                                                 if ($total_Output == 0) {
                                                     $stage = $workflow_stage + 1;
-                                                    
+
                                                     if ($baseline_survey == 0) {
                                                         $stage = $stage + 1;
                                                         if ($implementation_type == 1) {
@@ -267,6 +268,7 @@ try {
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
                                             <form class="form-horizontal" id="add_output" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                     <label><?= $ministrylabel ?>*:</label>
                                                     <div class="form-line">

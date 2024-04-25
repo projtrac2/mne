@@ -3,11 +3,11 @@ var manageItemTable;
 $(document).ready(function() {
   // manage Project Main Menu  data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-measurement-units",
-    order: [], 
+    ajax: "general-settings/selected-items/fetch-selected-system-workflow-stages",
+    order: [],
     'columnDefs': [{
-      'targets': [4],
-      'orderable': false, 
+      'targets': [5],
+      'orderable': false,
     }]
   });
 
@@ -16,47 +16,48 @@ $(document).ready(function() {
     var form_data = $(this).serialize();
 
     // form validation
-    var unit = $("#unit").val();
+    var stage = $("#stage").val();
+    var parent = $("#parent").val();
     var description = $("#description").val();
     var newitem = $("#newitem").val();
 
-    if (unit == "") {
-        $("#unit").after(
-        '<p class="text-danger">Measurement unit field is required</p>'
+    if (stage == "") {
+        $("#stage").after(
+        '<p class="text-danger">Stage Name field is required</p>'
         );
-        $("#unit")
+        $("#stage")
         .closest(".form-input")
         .addClass("has-error");
-    } else {
+    } else { 
         // remov error text field
-        $("#unit")
+        $("#stage")
         .find(".text-danger")
         .remove();
         // success out for form
-        $("#unit")
+        $("#stage")
         .closest(".form-input")
         .addClass("has-success");
     } // /else
 
-    if (description == "") {
-        $("#description").after(
-        '<p class="text-danger">Measurement unit description field is required</p>'
+    if (parent == "") {
+        $("#parent").after(
+        '<p class="text-danger">Stage Parent field is required</p>'
         );
-        $("#description")
+        $("#parent")
         .closest(".form-input")
         .addClass("has-error");
     } else {
         // remov error text field
-        $("#description")
+        $("#parent")
         .find(".text-danger")
         .remove();
         // success out for form
-        $("#description")
+        $("#parent")
         .closest(".form-input")
         .addClass("has-success");
-    } 
-	
-    if (unit && description) {
+    }
+
+    if (stage && parent) {
       var form = $(this);
       var formData = new FormData(this);
 
@@ -68,7 +69,7 @@ $(document).ready(function() {
         success: function(response) {
           if (response) {
             $("#submitItemForm")[0].reset();
-            // reload the titles table 
+            // reload the titles table
             manageItemTable.ajax.reload(null, true);
             alert("Record successfully saved");
             $(".modal").each(function() {
@@ -80,7 +81,7 @@ $(document).ready(function() {
     } // /if validation is ok
     // /if validation is ok
     // /if validation is ok
-    return false;
+    //return false;
   }); // /submit Project Main Menu  form
 
   // add Project Main Menu  modal btn clicked
@@ -98,7 +99,7 @@ $(document).ready(function() {
         .removeClass("has-success");
     }); // /add Project Main Menu  modal btn clicked
 
-  // remove Project Main Menu 
+  // remove Project Main Menu
 }); // document.ready fucntion
 
 function editItem(itemId = null) {
@@ -114,7 +115,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-measurement-unit",
+      url: "general-settings/selected-items/fetch-selected-system-workflow-stage",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -129,7 +130,8 @@ function editItem(itemId = null) {
             '" />'
         );
 
-        $("#editunit").val(response.unit);
+        $("#editstage").val(response.stage);
+        $("#editparent").val(response.parent);
         $("#editdescription").val(response.description);;
         $("#editStatus").val(response.active);
 
@@ -139,42 +141,43 @@ function editItem(itemId = null) {
           .bind("submit", function(e) {
             // form validation
             e.preventDefault();
-        var editunit = $("#editunit").val();
+        var editstage = $("#editstage").val();
+        var editparent = $("#editparent").val();
         var editdescription = $("#editdescription").val();
         var itemStatus = $("#editStatus").val();
-		
-		if (editunit == "") {
-			$("#editunit").after(
-			'<p class="text-danger">Measurement unit field is required</p>'
+
+		if (editstage == "") {
+			$("#editstage").after(
+			'<p class="text-danger">Stage Name field is required</p>'
 			);
-			$("#editunit")
+			$("#editstage")
 			.closest(".form-input")
 			.addClass("has-error");
 		} else {
 			// remov error text field
-			$("#editunit")
+			$("#editstage")
 			.find(".text-danger")
 			.remove();
 			// success out for form
-			$("#editunit")
+			$("#editstage")
 			.closest(".form-input")
 			.addClass("has-success");
 		} // /else
 
-		if (editdescription == "") {
-			$("#editdescription").after(
-			'<p class="text-danger">Measurement unit description field is required</p>'
+		if (editparent == "") {
+			$("#editparent").after(
+			'<p class="text-danger">Stage Parent field is required</p>'
 			);
-			$("#editdescription")
+			$("#editparent")
 			.closest(".form-input")
 			.addClass("has-error");
 		} else {
 			// remov error text field
-			$("#editdescription")
+			$("#editparent")
 			.find(".text-danger")
 			.remove();
 			// success out for form
-			$("#editdescription")
+			$("#editparent")
 			.closest(".form-input")
 			.addClass("has-success");
 		} // /else
@@ -197,12 +200,12 @@ function editItem(itemId = null) {
             .addClass("has-success");
         } // /else
 
-        if (editunit && editdescription && editStatus) {
+        if (editstage && editparent && editStatus) {
               var form = $(this);
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/measurement-units-action",
+                url: "general-settings/action/system-workflow-stages-action",
                 type: form.attr("method"),
                 data: formData,
                 dataType: "json",
@@ -218,8 +221,8 @@ function editItem(itemId = null) {
                     });
 					manageItemTable.ajax.reload(null, true);
                     swal('Record successfully updated');
-                    setTimeout(() => { 
-                    }, 3000); 
+                    setTimeout(() => {
+                    }, 3000);
                   } // /success function
                 } // /success function
               }); // /ajax function
@@ -231,13 +234,13 @@ function editItem(itemId = null) {
     }); // /ajax to fetch Project Main Menu  image
   } else {
     swal('Error creating record!!');
-    setTimeout(() => { 
+    setTimeout(() => {
       location.reload(true);
-    }, 3000); 
+    }, 3000);
   }
 } // /edit Project Main Menu  function
 
-// remove Project Main Menu 
+// remove Project Main Menu
 function removeItem(itemId = null) {
   if (itemId) {
     // remove Project Main Menu  button clicked
@@ -246,29 +249,29 @@ function removeItem(itemId = null) {
       .bind("click", function() {
         var deleteItem = 1;
         $.ajax({
-          url: "general-settings/action/measurement-units-action",
+          url: "general-settings/action/system-workflow-stages-action",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
           success: function(response) {
             // loading remove button
             $("#removeItemBtn").button("reset");
-            if (response.success == true) { 
+            if (response.success == true) {
 				manageItemTable.ajax.reload(null, true);
 				swal('Record successfully deleted');
-				setTimeout(() => { 
-				}, 3000); 
+				setTimeout(() => {
+				}, 3000);
 				$(".modal").each(function() {
 					$(this).modal("hide");
 				});
             } else {
 				swal('Error Updating Record');
-				setTimeout(() => { 
+				setTimeout(() => {
 					location.reload(true);
-				}, 3000); 
+				}, 3000);
             } // /error
           } // /success function
-        }); // /ajax fucntion to remove the Project Main Menu 
+        }); // /ajax fucntion to remove the Project Main Menu
         return false;
       }); // /remove Project Main Menu  btn clicked
   } // /if Project Main Menu id

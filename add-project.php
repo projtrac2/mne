@@ -207,6 +207,7 @@ if ($permission) {
                                 <fieldset class="scheduler-border" style="padding:10px">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">ADD PROJECT DETAILS</legend>
                                     <form role="form" id="project_details" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <label class="control-label">Project Code (Eg. 2018/12/AB23)*:</label>
                                             <span id="gt" style="display:none; color:#fff; background-color:#F44336; padding:5px"> Code Exists </span>

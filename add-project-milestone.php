@@ -121,7 +121,7 @@ if ($permission) {
                                                                 </button>
                                                             </td>
                                                         </tr>
-                                                    <?php
+                                                <?php
                                                     }
                                                 }
                                                 ?>
@@ -152,6 +152,7 @@ if ($permission) {
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="output_form" action="" method="POST">
+                                            <?= csrf_token_html(); ?>
                                             <br />
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <label for="milestone_name" class="control-label">Milestone *:</label>

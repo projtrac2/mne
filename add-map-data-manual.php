@@ -19,7 +19,6 @@ try {
 			$mapping_type =  $row_rsOutput['indicator_mapping_type'];
 			$unit_id = $row_rsOutput['indicator_unit'];
 
-
 			$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:projstage");
 			$query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
 			$row_rsProjects = $query_rsProjects->fetch();
@@ -285,6 +284,7 @@ try {
 										<div class="row clearfix">
 											<div class="col-md-12">
 												<form action="" method="post" id="submitform">
+													<?= csrf_token_html(); ?>
 													<div class="col-md-12">
 														<input id="pac-input" class="controls" type="text" placeholder="Search Box" />
 														<div class="mt-map-wrapper">
@@ -315,7 +315,6 @@ try {
 						</div>
 				</section>
 				<!-- end body  -->
-
 <?php
 			} else {
 				$results =  restriction();

@@ -216,6 +216,7 @@ if ($permission) {
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="add_output" action="" method="POST">
+                                            <?= csrf_token_html(); ?>
                                             <br />
                                             <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                 <label for="program_target" class="control-label">Program Target *:</label>

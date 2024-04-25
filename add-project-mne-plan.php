@@ -356,6 +356,7 @@ if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
                                         <div class="body">
                                             <div class="div-result">
                                                 <form class="form-horizontal" id="add_output" action="" method="POST">
+                                                    <?= csrf_token_html(); ?>
                                                     <br />
                                                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                         <label for="program_target" class="control-label">Program Target *:</label>
@@ -433,6 +434,7 @@ if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
                                         <div class="body">
                                             <div class="div-result">
                                                 <form class="form-horizontal" id="addoutcomeform" method="POST" name="addoutcomeform" action="" enctype="multipart/form-data" autocomplete="off">
+                                                    <?= csrf_token_html(); ?>
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                         <label class="control-label" style="color:#0b548f; font-size:16px">Project: <u><?php echo $project; ?></u></label>
                                                     </div>
@@ -549,6 +551,7 @@ if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
                                         <div class="body">
                                             <div class="div-result">
                                                 <form class="form-horizontal" id="addimpactform" method="POST" name="addimpactform" action="" enctype="multipart/form-data" autocomplete="off">
+                                                    <?= csrf_token_html(); ?>
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                         <label class="control-label" style="color:#0b548f; font-size:16px">Project: <u><?php echo $project; ?></u></label>
                                                     </div>

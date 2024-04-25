@@ -4,11 +4,6 @@ require('includes/head.php');
 
 if ($permission) {
 	try {
-		$editFormAction = $_SERVER['PHP_SELF'];
-		if (isset($_SERVER['QUERY_STRING'])) {
-			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-		}
-
 		$query_rsPinStatus = $db->prepare("SELECT id,pin_status FROM tbl_contractorpinstatus");
 		$query_rsPinStatus->execute();
 		$row_rsPinStatus = $query_rsPinStatus->fetch();
@@ -269,6 +264,7 @@ if ($permission) {
 					<div class="card">
 						<div class="body">
 							<form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Core Details</legend>
 									<div class="col-md-12">

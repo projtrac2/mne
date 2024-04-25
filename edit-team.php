@@ -63,6 +63,7 @@ try {
                                     <!-- Start Page Content -->
                                     <!-- ============================================================== -->
                                     <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
                                         <div class="table-responsive">
                                             <table class="table table-bordered table-striped table-hover js-basic-example ">
                                                 <thead>
@@ -207,6 +208,7 @@ try {
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
                                             <form class="form-horizontal" id="add_output" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                                     <label><?= $ministrylabel ?>*:</label>
                                                     <div class="form-line">
@@ -314,6 +316,7 @@ try {
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
                                             <form class="form-horizontal" id="add_output_role" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
 
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px">
                                                     <label class="control-label">Role:</label>
@@ -358,6 +361,7 @@ try {
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <form class="form-horizontal" id="add_output_check_list" action="" method="POST">
+                                            <?= csrf_token_html(); ?>
 
                                             <div class="body">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:5px; margin-bottom:5px" id="task_div_edit">

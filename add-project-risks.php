@@ -242,6 +242,7 @@ try {
 							<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle" style="color:orange"></i> Project's Risks Responsible</h4>
 						</div>
 						<form class="form-horizontal" id="add_responsible" action="" method="POST">
+							<?= csrf_token_html(); ?>
 							<div class="modal-body">
 								<fieldset class="scheduler-border" id="milestone_div">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Details </legend>
@@ -316,6 +317,7 @@ try {
 							<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle" style="color:orange"></i> Project's Potential Risks</h4>
 						</div>
 						<form class="form-horizontal" id="add_risk" action="" method="POST">
+							<?= csrf_token_html(); ?>
 							<div class="modal-body">
 								<fieldset class="scheduler-border" id="milestone_div">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Risk Details </legend>

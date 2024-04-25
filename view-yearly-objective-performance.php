@@ -1,9 +1,4 @@
-<?php
-$replacement_array = array(
-	'planlabel' => "CIDP",
-	'plan_id' => base64_encode(6),
-);
-
+<?php 
 $fscyear = (isset($_GET['fscyear'])) ? base64_decode($_GET['fscyear']) : "";
 $stid = (isset($_GET['stid'])) ? base64_decode($_GET['stid']) : "";
 $origin = (isset($_GET['orig'])) ? $_GET['orig'] : 1;

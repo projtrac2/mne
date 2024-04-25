@@ -119,6 +119,7 @@ try {
                                         <!-- ============================================================== -->
                                         <div class="body">
                                             <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                <?= csrf_token_html(); ?>
                                                 <ul class="list-group">
                                                     <li class="list-group-item list-group-item list-group-item-action active">Project: <?= $projname ?></li>
                                                     <li class="list-group-item"><strong>Code: </strong> <?= $projcode ?> </li>

@@ -256,6 +256,7 @@ if ($permission) {
 						<div class="body">
 							<!-- start body -->
 							<form id="add_funds" method="POST" name="<?= $fundsfrm ?>" action="" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
 									<div class="col-md-8">

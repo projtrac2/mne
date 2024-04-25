@@ -104,6 +104,7 @@ if ($permission) {
 							<div class="body" id="objective_table"></div>
 							<h5 style="background-color:#c7e1e8;line-height:3;padding-left:10px;padding-right:10px;"> <strong>Key Result Area:</strong><u> <?php echo $kraName ?> </u></h5>
 							<form action="" method="POST" class="form-inline" role="form" id="stratcplan">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Strategic Objectives. </legend>
 									<div class="col-md-12">

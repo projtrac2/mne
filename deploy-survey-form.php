@@ -1,4 +1,4 @@
-<?php 
+<?php
 require('includes/head.php');
 if ($permission) {
     try {
@@ -10,9 +10,9 @@ if ($permission) {
 
         if (isset($_GET['formid']) && !empty($_GET['formid'])) {
             $encoded_formid = $_GET['formid'];
-			$decode_formid = base64_decode($encoded_formid);
-			$formid_array = explode("surveyform", $decode_formid);
-			$formid = $formid_array[1];
+            $decode_formid = base64_decode($encoded_formid);
+            $formid_array = explode("surveyform", $decode_formid);
+            $formid = $formid_array[1];
 
             $query_rs_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE id=:formid");
             $query_rs_form->execute(array(":formid" => $formid));
@@ -22,7 +22,7 @@ if ($permission) {
             $indid = $row_rs_form['indid'];
             $form_name = $row_rs_form['form_name'];
             $resultstype = $row_rs_form['resultstype'];
-			$resultstypename = $resultstype == 1 ? "Impact" : "Outcome";
+            $resultstypename = $resultstype == 1 ? "Impact" : "Outcome";
             $surveytype = $row_rs_form['form_type'];
             $formtype = $row_rs_form['type'];
             $enumtype = $row_rs_form['enumerator_type'];
@@ -48,7 +48,7 @@ if ($permission) {
             $indicator_calculation_method  = $row_rsIndicator['indicator_calculation_method'];
             $indunit  = $row_rsIndicator['indicator_unit'];
 
-            // get unit 
+            // get unit
             $query_Indicator = $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id ='$indunit'");
             $query_Indicator->execute();
             $row = $query_Indicator->fetch();
@@ -59,7 +59,7 @@ if ($permission) {
             if ($disaggregated == 1) {
                 $disaggregation_arr = [];
                 $query_rsInd_disaggregation_type = $db->prepare("SELECT * FROM tbl_indicator_measurement_variables_disaggregation_type d
-            INNER JOIN tbl_indicator_disaggregation_types g on g.id=d.disaggregation_type  
+            INNER JOIN tbl_indicator_disaggregation_types g on g.id=d.disaggregation_type
             WHERE d.indicatorid= '$indid' AND g.type=0");
                 $query_rsInd_disaggregation_type->execute();
                 $row_rsInd_disaggregation_type = $query_rsInd_disaggregation_type->fetch();
@@ -122,7 +122,7 @@ if ($permission) {
                     <div class="card">
                         <div class="card-header">
                             <ul class="list-group">
-                                <li class="list-group-item list-group-item list-group-item-action active">Form Name: <?php echo $resultstypename." ". $form_name ?> </li>
+                                <li class="list-group-item list-group-item list-group-item-action active">Form Name: <?php echo $resultstypename . " " . $form_name ?> </li>
                                 <li class="list-group-item ">Change to be measured: <?= $indname ?> </li>
                                 <li class="list-group-item ">Unit of Measure: <?= $unit ?> </li>
                                 <li class="list-group-item ">Enumerator Type: <?= $enumeratortype ?> </li>
@@ -132,6 +132,7 @@ if ($permission) {
                             <div class="row clearfix">
                                 <div class="col-md-12" id="disaggregation_div">
                                     <form id="addnewdata" method="POST" name="addnewdata" action="">
+                                        <?= csrf_token_html(); ?>
                                         <fieldset class="scheduler-border">
                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Location Disaggregations</legend>
                                             <div class="col-md-12" id="outcome_direct_disagregation">
@@ -200,6 +201,7 @@ if ($permission) {
 
                                 <div class="col-md-12" id="enumerator_div">
                                     <form id="addenumeratorbasefrm" method="POST" name="addenumeratorbasefrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+                                        <?= csrf_token_html(); ?>
                                         <fieldset class="scheduler-border">
                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Assign Enumerator</legend>
                                             <div class="col-md-12" id="outcome_direct_disagregation">
@@ -231,7 +233,7 @@ if ($permission) {
                                                                     $row_rsComm = $query_rsComm->fetch();
                                                                     $totalRows_rsComm = $query_rsComm->rowCount();
                                                                     $state = $row_rsComm['state'];
-																	?>
+                                                            ?>
                                                                     <tr>
                                                                         <td width="4%">
                                                                             <?= $counter ?>
@@ -363,11 +365,11 @@ require('includes/footer.php');
         $("#addenumeratorbasefrm").submit(function(e) {
             e.preventDefault();
             var formdata = $(this).serialize();
-			var resultstype = $("#resultstype").val();
-			var redirurl = "view-project-survey";
-			if (resultstype == 1) {
-				redirurl = "view-project-impact-evaluation";
-			}
+            var resultstype = $("#resultstype").val();
+            var redirurl = "view-project-survey";
+            if (resultstype == 1) {
+                redirurl = "view-project-impact-evaluation";
+            }
             $("#submit").prop('disabled', true);
 
             $.ajax({

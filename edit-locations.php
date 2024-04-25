@@ -42,9 +42,9 @@ if ($permission) {
                         title: \"Success!\",
                         text: \" $msg\",
                         type: 'Success',
-                        timer: 5000, 
+                        timer: 5000,
                         icon:'success',
-                        showConfirmButton: false 
+                        showConfirmButton: false
                     });
                         setTimeout(function(){
                                 window.location.href = 'locations.php';
@@ -63,7 +63,7 @@ if ($permission) {
                             type: 'Danger',
                             timer: 5000,
                             icon:'error',
-                            showConfirmButton: false 
+                            showConfirmButton: false
                         });
                         setTimeout(function(){
                             window.location.href = 'locations.php';
@@ -125,6 +125,7 @@ if ($permission) {
                                     <div class="card">
                                         <div class="body" style="margin-top:5px">
                                             <form role="form" id="<?= $formName ?>" name="<?= $formName ?>" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                <?= csrf_token_html(); ?>
                                                 <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
                                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?php echo $action; ?> Location (If adding Level-2/Level-3, first Select Parent Location .i.e Level-1/Level-2)</legend>
                                                     <div class="col-md-3">

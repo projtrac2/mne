@@ -106,6 +106,7 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <form action="" method="POST" class="form-inline" role="form" id="stratcplan">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                         <span id="">Edit</span> <?= $planlabel ?>.

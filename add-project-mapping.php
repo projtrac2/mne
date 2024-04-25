@@ -319,6 +319,7 @@ try {
                                         </div>
                                     </div>
                                     <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
                                         <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                             <div class="col-md-12 text-center">
                                                 <?php

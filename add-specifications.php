@@ -155,7 +155,7 @@ if ($permission) {
                                                                             $task_name = $row_rsTasks['task'];
                                                                             $task_id = $row_rsTasks['tkid'];
                                                                             $query_rsSpecifions = $db->prepare("SELECT * FROM tbl_project_specifications WHERE task_id=:task_id AND site_id=:site_id");
-                                                                            $query_rsSpecifions->execute(array(":task_id" => $task_id, ':site_id'=>$site_id));
+                                                                            $query_rsSpecifions->execute(array(":task_id" => $task_id, ':site_id' => $site_id));
                                                                             $row_rsSpecifions = $query_rsSpecifions->fetch();
                                                                             $totalRows_rsSpecifions = $query_rsSpecifions->rowCount();
                                                                             $edit = $totalRows_rsSpecifions > 0 ? 1 : 0;
@@ -208,6 +208,7 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Output Specifications</h4>
                 </div>
                 <form class="form-horizontal" id="add_items" action="" method="POST">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-body">
                         <fieldset class="scheduler-border" id="tasks_parameters_div">
                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Specifications </legend>

@@ -86,9 +86,9 @@
                                                     <li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(<?= $moid ?>)"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
                                                     <!-- <li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem()"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li> -->
                                                     <li>
-                                                    <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?=$moid?>, '<?= $designation ?>', '<?=$wordings?>')">
-                                                        <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
-                                                    </a>
+                                                        <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?= $moid ?>, '<?= $designation ?>', '<?= $wordings ?>')">
+                                                            <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
+                                                        </a>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -96,7 +96,7 @@
                                     </tr>
 
                             <?php
-                                } // /while 
+                                } // /while
                             } // if num_rows
 
 
@@ -114,6 +114,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form class="form-horizontal" id="submitItemForm" action="general-settings/action/designation-action.php" method="POST" enctype="multipart/form-data">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Desgnation</h4>
@@ -199,6 +200,7 @@
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="editItemForm" action="general-settings/action/designation-action.php" method="POST">
+                                            <?= csrf_token_html(); ?>
                                             <br />
                                             <div class="col-md-12 id=" edit-product-messages"></div>
                                             <div class="col-md-4 form-input">
@@ -292,6 +294,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form class="form-horizontal" id="submitPermissionForm" action="" method="POST" enctype="multipart/form-data">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Permission</h4>

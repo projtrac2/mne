@@ -148,7 +148,7 @@ if ($permission) {
 		<div class="container-fluid">
 			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 				<h4 class="contentheader">
-				<?=$icon?>
+					<?= $icon ?>
 					<?php echo $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
@@ -165,6 +165,7 @@ if ($permission) {
 					<div class="card">
 						<div class="body">
 							<form id="addindfrm" method="POST" name="addindfrm" action="" onsubmit="return form_validate()" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add New Indicator</legend>
 
@@ -176,13 +177,14 @@ if ($permission) {
 									</div>
 
 									<div class="col-lg-8 col-md-8 col-sm-12 col-xs-12" id="code-availability-status">
-										<p id="loaderIcon" style="display:none" /></p>
+										<p id="loaderIcon" style="display:none" />
+										</p>
 									</div>
 
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<label>Impact Indicator *:</label>
 										<div>
-											<input name="indname" type="text" class="form-control" id="indname" style="border:#CCC thin solid; border-radius: 5px" required  placeholder="Enter impact indicator"/>
+											<input name="indname" type="text" class="form-control" id="indname" style="border:#CCC thin solid; border-radius: 5px" required placeholder="Enter impact indicator" />
 										</div>
 									</div>
 

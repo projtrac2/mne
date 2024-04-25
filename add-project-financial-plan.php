@@ -66,8 +66,7 @@ if ($permission) {
 
                                                 $query_rsPlan = $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid = :projid");
                                                 $query_rsPlan->execute(array(":projid" => $projid));
-                                                $totalRows_plan = $query_rsPlan->rowCount();
-                                                $timeline_details =  get_timeline_details($workflow_stage, $sub_stage, $start_date);
+                                                $totalRows_plan = $query_rsPlan->rowCount(); 
                                                 $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                 $details =
                                                     "{
@@ -203,6 +202,7 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Assign Project</h4>
                 </div>
                 <form class="form-horizontal" id="assign_responsible" action="" method="POST">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-body" style="max-height:450px; overflow:auto;">
                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <label for="projduration">Responsible *:</label>
@@ -254,6 +254,7 @@ if ($permission) {
                     <div class="tab-content">
                         <div id="home" class="tab-pane fade in active">
                             <form class="form-horizontal" id="add_items" action="" method="POST">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border" id="specification_issues">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                         <i class="fa fa-exclamation-circle" aria-hidden="true"></i> New Issue

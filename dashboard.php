@@ -616,6 +616,7 @@ if ($permission) {
                                         <h2>Projects Status</h2>
                                         <div class="row clearfix" style="margin-bottom:-20px">
                                             <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                                     <select name="level_one_id" id="level_one_id" onchange="get_level_two()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px;" data-live-search="true">
                                                         <option value="">Select <?= $level1label ?></option>

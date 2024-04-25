@@ -20,7 +20,6 @@ try {
             $mapping_type = $row_rsOutput['indicator_mapping_type'];
             $unit_id = $row_rsOutput['indicator_unit'];
 
-
             $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:projstage");
             $query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
             $row_rsProjects = $query_rsProjects->fetch();
@@ -176,6 +175,7 @@ try {
                                         <div class="header">
                                             <div class="row clearfix">
                                                 <form action="" method="post" id="submitform">
+                                                    <?= csrf_token_html(); ?>
                                                     <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                                         <label for="latitude">Project Latitude *:</label>
                                                         <input type="text" name="latitude" id="latitude" readonly class="form-control">

@@ -96,6 +96,7 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <form id="add_partner" method="POST" name="addpartnerfrm" action="" enctype="multipart/form-data" autocomplete="off">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
                                     <div class="col-md-12">

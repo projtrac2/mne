@@ -154,6 +154,7 @@ if ($permission) {
                         <div class="tab-content">
                             <div id="home" class="tab-pane fade in active">
                                 <form class="form-horizontal" id="add_items" action="" method="POST">
+                                    <?= csrf_token_html(); ?>
                                     <fieldset class="scheduler-border" id="specification_issues">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                             <i class="fa fa-exclamation-circle" aria-hidden="true"></i> New Issue
@@ -298,6 +299,7 @@ if ($permission) {
                             </ul>
                         </div>
                         <form class="form-horizontal" id="add_handover_details" action="" method="POST">
+                            <?= csrf_token_html(); ?>
                             <fieldset class="scheduler-border">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                     <i class="fa fa-comment" aria-hidden="true"></i> Handover Remark(s)

@@ -52,7 +52,7 @@ if ($permission) {
 		$svystartdate = $row_rsSvyDates["startdate"];
 		$svyenddate = $row_rsSvyDates["enddate"];
 		$current_date = date("Y-m-d");
-		//$email ="denkytheka@gmail.com";	
+		//$email ="denkytheka@gmail.com";
 
 		function submission()
 		{
@@ -229,6 +229,7 @@ if ($permission) {
 							}
 							?>
 							<form method="POST" name="submitsvyfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<?php
 
 								if (isset($_GET['fm']) && !empty($_GET['fm'])) {

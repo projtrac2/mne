@@ -268,6 +268,7 @@ if ($permission && (isset($_GET['progid']) && !empty($_GET["progid"]))) {
                                 </div>
                                 <div class="body">
                                     <form id="addprogform" method="POST" name="addprogform" action="" enctype="multipart/form-data" autocomplete="off">
+                                        <?= csrf_token_html(); ?>
                                         <fieldset class="scheduler-border">
                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Program Details</legend>
                                             <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12" id="strat_div">

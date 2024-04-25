@@ -1,7 +1,7 @@
 <?php
 $riskid = (isset($_GET['risk'])) ? base64_decode($_GET['risk']) : "";
 require('includes/head.php');
-if ($permission) { 
+if ($permission) {
     try {
         $action = "Add";
         $button = "Add";
@@ -155,6 +155,7 @@ if ($permission) {
                         <div class="body">
                             <!-- start body -->
                             <form id="addprojrisks" method="POST" name="addprojrisks" action="" enctype="multipart/form-data" autocomplete="off">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> <?= $action ?> Risk/Issue Category</legend>
                                     <div class="col-md-12">

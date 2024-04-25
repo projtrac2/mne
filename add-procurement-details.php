@@ -354,6 +354,7 @@ try {
                       <div id="details" class="tab-pane fade in active">
                         <div class="body">
                           <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                            <?= csrf_token_html(); ?>
                             <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
                               <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                 <label class="control-label">Project Code:</label>
@@ -678,6 +679,7 @@ try {
                       <div id="quotation" class="tab-pane fade">
                         <div class="body">
                           <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                            <?= csrf_token_html(); ?>
                             <fieldset class="scheduler-border">
                               <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                 <i class="fa fa-list-ol" aria-hidden="true"></i> 1.0 Direct Project Cost
@@ -873,6 +875,7 @@ try {
                             </legend>
                             <div class="body">
                               <form role="form" id="form" action="" method="post" autocomplete="off" onsubmit="return validate_payment_form()" enctype="multipart/form-data">
+                                <?= csrf_token_html(); ?>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                   <div class="form-line">
                                     <select name="payment_plan" id="payment_method" onchange="hide_show()" class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%" required>

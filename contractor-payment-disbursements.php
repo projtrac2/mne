@@ -146,7 +146,7 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		<li>
-																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>', '<?= $costline_id ?>', '<?= $amount_paid ?>', '<?= number_format($amount_paid,2) ?>')">
+																			<a type="button" id="addmoneval" data-toggle="modal" id="disburseItemModalBtn" data-target="#disburseItemModal" onclick="disburse_funds('<?= $projid ?>', '<?= $costline_id ?>', '<?= $amount_paid ?>', '<?= number_format($amount_paid, 2) ?>')">
 																				<i class="fa fa-plus-square"></i> Disburse
 																			</a>
 																		</li>
@@ -297,6 +297,7 @@ if ($permission) {
 					<h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Payment Request Details</span></h4>
 				</div>
 				<form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
+					<?= csrf_token_html(); ?>
 					<div class="modal-body">
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<fieldset class="scheduler-border">
@@ -439,6 +440,7 @@ if ($permission) {
 					<h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Disburse Funds</span></h4>
 				</div>
 				<form class="form-horizontal" id="modal_submit_form" action="" method="POST" enctype="multipart/form-data">
+					<?= csrf_token_html(); ?>
 					<div class="modal-body" id="">
 						<!-- /modal-body -->
 						<div id="approve_budgetline_data">

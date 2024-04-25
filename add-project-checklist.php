@@ -1,7 +1,7 @@
-<?php 
-require('includes/head.php'); 
+<?php
+require('includes/head.php');
 
-if ($permission) { 
+if ($permission) {
     try {
         if (isset($_POST["search"])) {
             $projcode = trim($_POST["srccode"]);
@@ -80,8 +80,8 @@ if ($permission) {
         <div class="container-fluid">
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                 <h4 class="contentheader">
-                <?=$icon?>
-					<?php echo $pageTitle ?>
+                    <?= $icon ?>
+                    <?php echo $pageTitle ?>
                     <div class="btn-group" style="float:right">
                         <div class="btn-group" style="float:right">
                         </div>
@@ -303,6 +303,7 @@ if ($permission) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form class="form-horizontal" id="submitMilestoneForm" action="" method="POST" enctype="multipart/form-data">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center" id="addModal">

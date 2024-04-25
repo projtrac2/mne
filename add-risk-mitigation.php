@@ -77,6 +77,7 @@ if ($permission) {
                         <div class="body">
                             <!-- start body -->
                             <form id="addinspectionchecklist" method="POST" name="addinspectionchecklist" action="" enctype="multipart/form-data" autocomplete="off">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Mitigation Measures</legend>
                                     <div class="col-md-12" style="padding-left:0px">

@@ -406,6 +406,7 @@ if ($permission) {
                             if (!isset($_GET["ptid"])) {
                             ?>
                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <?= csrf_token_html(); ?>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MEMBER DETAILS</legend>
                                         <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
@@ -592,6 +593,7 @@ if ($permission) {
                             } elseif (isset($_GET["ptid"]) && (!empty($_GET["ptid"]) || $_GET["ptid"] != '')) {
                             ?>
                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                    <?= csrf_token_html(); ?>
                                     <fieldset class="scheduler-border">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">MEMBER DETAILS</legend>
                                         <div class="row">

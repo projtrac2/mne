@@ -2,13 +2,6 @@
 require('includes/head.php');
 if ($permission) {
     try {
-
-        $results = "";
-        $editFormAction = $_SERVER['PHP_SELF'];
-        if (isset($_SERVER['QUERY_STRING'])) {
-            $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-        }
-
         if (isset($_GET['projid'])) {
             $projid = $_GET['projid'];
 
@@ -40,14 +33,14 @@ if ($permission) {
             $row = $query_Indicator->fetch();
             $ocunitofmeasure = $row['unit'];
 
-            //Outcome  details 
+            //Outcome  details
             $query_rsOutcomeDetails =  $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE  projid='$projid' ");
             $query_rsOutcomeDetails->execute();
             $row_rsOutcomeDetails = $query_rsOutcomeDetails->fetch();
             $Outcomedata_source = $row_rsOutcomeDetails['data_source'];
             $Outcomeevaluation_frequency = $row_rsOutcomeDetails['evaluation_frequency'];
 
-            //Outcome  evaluation questions 
+            //Outcome  evaluation questions
             $query_outcomeevalqstns =  $db->prepare("SELECT * FROM tbl_project_outcome_evaluation_questions WHERE  projid='$projid'");
             $query_outcomeevalqstns->execute();
             $count_outcomeevalqstns = $query_outcomeevalqstns->rowCount();
@@ -92,70 +85,70 @@ if ($permission) {
                     $results = $deleteQuery->execute(array(':projid' => $projid));
 
                     for ($j = 0; $j < count($_POST['questions']); $j++) {
-						$question = $_POST['questions'][$j];
+                        $question = $_POST['questions'][$j];
 
-						$insertSQL1 = $db->prepare("INSERT INTO `tbl_project_outcome_evaluation_questions`(projid, question) VALUES(:projid, :question)");
-						$result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question));
+                        $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_outcome_evaluation_questions`(projid, question) VALUES(:projid, :question)");
+                        $result1  = $insertSQL1->execute(array(":projid" => $projid, ":question" => $question));
                     }
                 }
             }
 
             if ($result1) {
-				require 'PHPMailer/PHPMailerAutoload.php';
-					
-				$query_proj = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
-				$query_proj->execute(array(":projid" => $projid));
-				$row_proj = $query_proj->fetch();
-				$projcode = $row_proj["projcode"];
-				$projname = $row_proj["projname"];
-				
-				$query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
-				$query_timeline->execute();
-				$row_timeline = $query_timeline->fetch();
-				$time = $row_timeline["time"];
-				$unit = $row_timeline["units"];
-									 
-				// today's date
-				$Date = date("Y-m-d");
-				 
-				// Add days to date and display it
-				$duedate = date('Y-m-d', strtotime($Date. ' + '.$time.' '.$unit));
-				
-				$query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
-				$query_rsteam->execute();
-				$row_rsteam = $query_rsteam->fetch();
-				$totalRows_rsteam = $query_rsteam->rowCount();
-				$title = $row_rsteam['title'];
-				$fullname = $title.".".$row_rsteam['fullname'];
-				$receipient = $row_rsteam['email'];
-				
-				$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
-				$query_url->execute();		
-				$row_url = $query_url->fetch();
-				$url = $row_url["main_url"];
-				$org = $row_url["company_name"];
-				$org_email = $row_url["email_address"];
-				
-				$urlextention = "view-project-survey";
-				if($outcomedataSource == 2){
-					$urlextention = "evaluation-secondary-data-source";
-				}
-			
-				$detailslink = '<a href="'.$url.$urlextention.'" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
-				
-				$mainmessage = ' Dear ' . $fullname . ',
+                require 'PHPMailer/PHPMailerAutoload.php';
+
+                $query_proj = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
+                $query_proj->execute(array(":projid" => $projid));
+                $row_proj = $query_proj->fetch();
+                $projcode = $row_proj["projcode"];
+                $projname = $row_proj["projname"];
+
+                $query_timeline = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE category = 'Baseline' AND workflow = 9 AND stage = 1");
+                $query_timeline->execute();
+                $row_timeline = $query_timeline->fetch();
+                $time = $row_timeline["time"];
+                $unit = $row_timeline["units"];
+
+                // today's date
+                $Date = date("Y-m-d");
+
+                // Add days to date and display it
+                $duedate = date('Y-m-d', strtotime($Date . ' + ' . $time . ' ' . $unit));
+
+                $query_rsteam = $db->prepare("SELECT t.email AS email, title, fullname FROM tbl_projteam2 t left join users u on u.pt_id=t.ptid WHERE userid = '$responsible'");
+                $query_rsteam->execute();
+                $row_rsteam = $query_rsteam->fetch();
+                $totalRows_rsteam = $query_rsteam->rowCount();
+                $title = $row_rsteam['title'];
+                $fullname = $title . "." . $row_rsteam['fullname'];
+                $receipient = $row_rsteam['email'];
+
+                $query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
+                $query_url->execute();
+                $row_url = $query_url->fetch();
+                $url = $row_url["main_url"];
+                $org = $row_url["company_name"];
+                $org_email = $row_url["email_address"];
+
+                $urlextention = "view-project-survey";
+                if ($outcomedataSource == 2) {
+                    $urlextention = "evaluation-secondary-data-source";
+                }
+
+                $detailslink = '<a href="' . $url . $urlextention . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">CLICK HERE TO SEE DETAILS</a>';
+
+                $mainmessage = ' Dear ' . $fullname . ',
 				<p>Please note you have been assigned to carry out project baseline survey as per the details below:</p>
 				<p>Project Code:' . $projcode . '<br>
 				Project Name: ' . $projname . '<br>
 				Expected due date: ' . $duedate . '</p>
 				<p>Prepare the required resources. </p>';
-				$title = "Project Baseline Survey";
-				$subject = "Project Baseline Survey";
-				$receipientName = $fullname;
-				
-				include("assets/processor/email-body.php");
-				include("assets/processor/email-conf-settings.php");
-				
+                $title = "Project Baseline Survey";
+                $subject = "Project Baseline Survey";
+                $receipientName = $fullname;
+
+                include("assets/processor/email-body.php");
+                include("assets/processor/email-conf-settings.php");
+
                 $msg = 'The M&E Plan has been successfully updated!';
                 $results = "<script type=\"text/javascript\">
                             swal({
@@ -204,6 +197,7 @@ if ($permission) {
                     <div class="card">
                         <div class="body">
                             <form id="addprogform" method="POST" name="addprogform" action="" onsubmit="return formVal()" enctype="multipart/form-data" autocomplete="off">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <div id="hidden_fields">
                                         <input type="hidden" name="progid" id="progid" value="<?= $progid ?>">
@@ -379,9 +373,9 @@ if ($permission) {
                                                             while ($row_outcomeevalqstns = $query_outcomeevalqstns->fetch()) {
                                                                 $question = $row_outcomeevalqstns['question'];
                                                                 $questionid = $row_outcomeevalqstns['id'];
-																
+
                                                                 $orowno++;
-																?>
+                                                            ?>
                                                                 <tr id="questionrow<?= $orowno ?>">
                                                                     <td> <?= $orowno ?> </td>
 
@@ -499,7 +493,7 @@ if ($permission) {
                                                 </thead>
                                                 <tbody id="">
                                                     <?php
-                                                    //get project output details 
+                                                    //get project output details
                                                     $query_OutputData = $db->prepare("SELECT * FROM  tbl_project_details  WHERE projid = '$projid' ORDER BY id ASC");
                                                     $query_OutputData->execute();
                                                     $countrows_OutpuData = $query_OutputData->rowCount();
@@ -517,14 +511,14 @@ if ($permission) {
                                                             $outputid =  $row_OutputData['outputid'];
                                                             $indicatorId =  $row_OutputData['indicator'];
 
-                                                            //get output name 
+                                                            //get output name
                                                             $query_Output = $db->prepare("SELECT output, id FROM `tbl_progdetails`  WHERE id = '$outputid'");
                                                             $query_Output->execute();
                                                             $rows_Outputcount = $query_Output->rowCount();
                                                             $row_output =  $query_Output->fetch();
                                                             $outputname = $row_output ?  $row_output['output'] : "";
 
-                                                            //get indicator name 
+                                                            //get indicator name
                                                             $query_dep = $db->prepare("SELECT * FROM  tbl_indicator  WHERE  indid ='$indicatorId' ");
                                                             $query_dep->execute();
                                                             $row = $query_dep->fetch();
@@ -601,6 +595,7 @@ if ($permission) {
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="outputform" action="" method="POST">
+                                            <?= csrf_token_html(); ?>
                                             <br />
                                             <div class="col-md-12">
                                                 <label for="outputName" class="control-label">Output *:</label>
@@ -672,13 +667,13 @@ if ($permission) {
                                                             <?php
                                                             $query_rsOutcomeRskDetails = $db->prepare("SELECT * FROM tbl_projectrisks WHERE projid='$projid' and type=3");
                                                             $query_rsOutcomeRskDetails->execute();
-                                                            
+
                                                             $orowno = 0;
-                                                            while($row_rsOutcomeRskDetails = $query_rsOutcomeRskDetails->fetch()) {
+                                                            while ($row_rsOutcomeRskDetails = $query_rsOutcomeRskDetails->fetch()) {
                                                                 $outcomeRisks = $row_rsOutcomeRskDetails['rskid'];
                                                                 $assumption  = $row_rsOutcomeRskDetails['assumption'];
                                                                 $orowno++;
-																?>
+                                                            ?>
                                                                 <tr id="outcomerow<?= $orowno ?>">
                                                                     <td> <?= $orowno ?> </td>
                                                                     <td>
@@ -695,7 +690,7 @@ if ($permission) {
                                                                                         $selected = ($outcomeRisks == $row_rsRisk['rskid']) ? "selected" : '';
                                                                                         $input .= '<option value="' . $row_rsRisk['rskid'] . '" ' . $selected . '>' . $row_rsRisk['category'] . ' </option>';
                                                                                     }
-                                                                                } 
+                                                                                }
                                                                             } else {
                                                                                 $input .= '<option value="">No Risks Found</option>';
                                                                             }

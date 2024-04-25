@@ -4,7 +4,7 @@ $page_id = isset($_GET['page_id']) & !empty($_GET['page_id']) ? $_GET['page_id']
 
 if ($permission && $page_id != "") {
 ?>
-   <!-- start body  --> 
+   <!-- start body  -->
    <section class="content">
       <div class="container-fluid">
          <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
@@ -51,6 +51,7 @@ if ($permission && $page_id != "") {
       <div class="modal-dialog modal-lg">
          <div class="modal-content">
             <form class="form-horizontal" id="submitItemForm" action="general-settings/action/project-main-menu-action.php" method="POST" enctype="multipart/form-data">
+               <?= csrf_token_html(); ?>
                <div class="modal-header" style="background-color:#03A9F4">
                   <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                   <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Project Main Menu</h4>

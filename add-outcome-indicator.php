@@ -169,6 +169,7 @@ if ($permission) {
 					<div class="card">
 						<div class="body">
 							<form id="addindfrm" method="POST" name="addindfrm" action="" onsubmit="return form_validate()" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add New Indicator</legend>
 
@@ -361,6 +362,7 @@ if ($permission) {
 								<div class="body">
 									<div class="div-result">
 										<form class="form-horizontal" id="addform" action="" method="POST">
+											<?= csrf_token_html(); ?>
 											<br />
 											<div id="unitsof_measure">
 												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="indirectbeneficiary">

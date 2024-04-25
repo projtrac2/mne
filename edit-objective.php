@@ -1,5 +1,5 @@
 <?php
-$decode_objid = (isset($_GET['obj']) && !empty($_GET["obj"])) ? base64_decode($_GET['obj']) : header("Location: view-strategic-plans.php"); 
+$decode_objid = (isset($_GET['obj']) && !empty($_GET["obj"])) ? base64_decode($_GET['obj']) : header("Location: view-strategic-plans.php");
 $objid_array = explode("obj321", $decode_objid);
 $objid = $objid_array[1];
 $original_objid = $_GET['obj'];
@@ -10,7 +10,7 @@ require('functions/strategicplan.php');
 try {
     $strategic_objective = get_strategic_objective($objid);
     if (!$strategic_objective) {
-        // redirect back to strategic plan  
+        // redirect back to strategic plan
         header("Location: view-strategic-plans.php");
     }
     $current_date = date("Y-m-d");
@@ -19,7 +19,7 @@ try {
     $objective = $strategic_objective["objective"];
     $description = $strategic_objective["description"];
     $result_kra = get_kra($kraid);
-	$stplanid = $result_kra['spid'];
+    $stplanid = $result_kra['spid'];
     $stplan = base64_encode("strplan1{$stplanid}");
     $strategic_objectives_strategies = get_strategic_objectives_strategy($objid);
 
@@ -92,6 +92,7 @@ if ($permission) {
                             <div class="body" id="objective_table"></div>
                             <h5> <strong>Key Result Area:</strong><u> <?php echo $result_kra['kra'] ?> </u></h5>
                             <form action="" method="POST" class="form-inline" role="form" id="stratcplan">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Strategic Objectives. </legend>
                                     <div class="col-md-12">
@@ -181,7 +182,7 @@ if ($permission) {
                                                                 if ($nm == 1) {
                                                                     echo '<td></td>';
                                                                 } else {
-                                                                    echo   ' 
+                                                                    echo   '
                                                                 <td>
                                                                     <button type="button" class="btn btn-danger btn-sm"  onclick=delete_strow("row' . $nm . '")>
                                                                         <span class="glyphicon glyphicon-minus"></span>

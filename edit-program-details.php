@@ -214,6 +214,7 @@ if ($permission && $decode_progid != "") {
                     <div class="card">
                         <div class="body">
                             <form id="addprogform" method="POST" name="addprogform" action="" enctype="multipart/form-data" autocomplete="off">
+                                <?= csrf_token_html(); ?>
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Edit Program Details</legend>
                                     <div class="col-md-12">
@@ -426,7 +427,7 @@ if ($permission && $decode_progid != "") {
                                                                     <td>
                                                                         <select name="indicator[]" id="indicator<?php echo $row ?>" onchange='get_indicator_details("<?= $row ?>")' class="form-control selectOutput show-tick indicator" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>' +
                                                                             <option value="">... Select Indicator ...</option>
-                                                                            <?php 
+                                                                            <?php
                                                                             ?>
                                                                         </select>
                                                                     </td>

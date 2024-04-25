@@ -36,7 +36,7 @@ if ($permission) {
 						text: \" $msg\",
 						type: 'Success',
 						timer: 3000,
-						showConfirmButton: false 
+						showConfirmButton: false
 					});
 					setTimeout(function(){
 						window.location.href = 'email_templates.php';
@@ -81,7 +81,7 @@ if ($permission) {
 					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-						</div>
+						</div> 
 					</div>
 				</h4>
 			</div>
@@ -96,6 +96,7 @@ if ($permission) {
 					<div class="card">
 						<div class="body">
 							<form method="POST" name="addemailtemplate" action="" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8;  border:#CCC thin dashed; border-radius:3px">Template Details</legend>
 									<div class="col-lg-6">
@@ -108,20 +109,20 @@ if ($permission) {
 											<option value="">.... Select stage ....</option>
 											<?php
 											$initialstageid = $rowtemplate['stage'];
-											// get project stages 
+											// get project stages
 											$query_projstages =  $db->prepare("SELECT * FROM tbl_project_workflow_stage where active=1");
 											$query_projstages->execute();
-											
+
 											while ($row_projstages = $query_projstages->fetch()) {
 
 												$stageid = $row_projstages["id"];
 												$stage = $row_projstages["stage"];
 												$selected = "";
-												if($initialstageid == $stageid){
+												if ($initialstageid == $stageid) {
 													$selected = "selected";
 												}
-												
-												echo '<option value="' . $stageid . '" '.$selected.'>' . $stage . '</option>';
+
+												echo '<option value="' . $stageid . '" ' . $selected . '>' . $stage . '</option>';
 											}
 											?>
 										</select>

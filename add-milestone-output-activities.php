@@ -164,6 +164,7 @@ if ($permission) {
                         </div>
                         <div class="body">
                             <form class="form-horizontal" id="activities_form" action="" onsubmit="return validateForm()" method="POST">
+                                <?= csrf_token_html(); ?>
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <?php

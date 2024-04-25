@@ -142,6 +142,7 @@ if ($permission) {
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Inspection & Acceptance</h4>
                 </div>
                 <form class="form-horizontal" id="add_questions_form" action="" method="POST">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-body">
                         <fieldset class="scheduler-border" id="tasks_div">
                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Checklists </legend>

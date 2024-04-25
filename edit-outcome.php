@@ -1,7 +1,7 @@
 <?php
 $ind = (isset($_GET['ind'])) ? base64_decode($_GET['ind']) : header("Location: all-indicators.php");
 require('includes/head.php');
-// get the functions selecting data 
+// get the functions selecting data
 require('functions/indicator.php');
 require('functions/department.php');
 require('functions/strategicplan.php');
@@ -21,9 +21,9 @@ try {
 	$editFormAction = $_SERVER['PHP_SELF'];
 	$results = "";
 	$indicator = get_indicator_by_indid($ind);
-	// ($indicator) ?  "" : header("Location: all-indicators.php"); // check if indicator is in db 
+	// ($indicator) ?  "" : header("Location: all-indicators.php"); // check if indicator is in db
 
-	// get all the variables here 
+	// get all the variables here
 	$indcode = $indicator['indicator_code'];
 	$indname = $indicator['indicator_name'];
 	$inddesc = $indicator['indicator_description'];
@@ -190,6 +190,7 @@ try {
 <div class="body">
 	<div style="margin-top:5px">
 		<form id="editindfrm" method="POST" name="editindfrm" action="" onsubmit="return form_validate()" enctype="multipart/form-data" autocomplete="off">
+			<?= csrf_token_html(); ?>
 			<fieldset class="scheduler-border">
 				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add New Indicator</legend>
 

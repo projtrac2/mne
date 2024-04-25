@@ -1,19 +1,20 @@
 <?php
 require('includes/head.php');
-if ($permission) {
+if ($permission && isset($_GET['projid'])) {
     try {
-        if (isset($_GET['projid'])) {
-            $encoded_projid = $_GET['projid'];
-            $decode_projid = base64_decode($encoded_projid);
-            $projid_array = explode("projid54321", $decode_projid);
-            $projid = $projid_array[1];
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
-            $query_rsProjects->execute(array(":projid" => $projid));
-            $row_rsProjects = $query_rsProjects->fetch();
-            $totalRows_rsProjects = $query_rsProjects->rowCount();
+        $encoded_projid = $_GET['projid'];
+        $decode_projid = base64_decode($encoded_projid);
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid = $projid_array[1];
 
-            $approve_details = "";
-            // if ($totalRows_rsProjects > 0) {
+
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
+        $query_rsProjects->execute(array(":projid" => $projid));
+        $row_rsProjects = $query_rsProjects->fetch();
+        $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+        $approve_details = "";
+        if ($totalRows_rsProjects > 0) {
             $implimentation_type = $row_rsProjects['projcategory'];
             $projname = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
@@ -155,7 +156,6 @@ if ($permission) {
                 </script>";
             }
 ?>
-
             <!-- start body  -->
             <section class="content">
                 <div class="container-fluid">
@@ -464,6 +464,7 @@ if ($permission) {
 
                                         ?>
                                         <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                            <?= csrf_token_html(); ?>
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <?php
@@ -508,6 +509,7 @@ if ($permission) {
                                     } else {
                                     ?>
                                         <form role="form" id="form_contractor" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                            <?= csrf_token_html(); ?>
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
                                                     <fieldset class="scheduler-border" id="project_approve_div">
@@ -559,6 +561,7 @@ if ($permission) {
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
                                             <form class="form-horizontal" id="add_output" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                                     <div class="table-responsive">
                                                         <table class="table table-bordered" id="files_table">
@@ -604,13 +607,7 @@ if ($permission) {
                 </div>
                 <!-- /modal-dailog -->
             </div>
-
-
 <?php
-            // } else {
-            //     $results =  restriction();
-            //     echo $results;
-            // }
         } else {
             $results =  restriction();
             echo $results;

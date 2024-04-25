@@ -332,6 +332,7 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                         ?>
 
                                         <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                            <?= csrf_token_html(); ?>
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <?php
@@ -398,6 +399,7 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
                                             <form class="form-horizontal" id="add_output" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                                     <div class="table-responsive">
                                                         <table class="table table-bordered" id="files_table">
