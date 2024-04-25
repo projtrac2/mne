@@ -31,7 +31,6 @@ try {
         $projinspection = 0;
         $msg = false;
 
-
         $query_rs_fsc =  $db->prepare("SELECT yr FROM tbl_fiscal_year where id =:id");
         $query_rs_fsc->execute(array(":id" => $projfscyear));
         $row_rs_fsc = $query_rs_fsc->fetch();
@@ -93,6 +92,8 @@ try {
                 $type = $result ? true : false;
             }
         }
+
+
         echo json_encode(array("success" => $type));
     }
 
