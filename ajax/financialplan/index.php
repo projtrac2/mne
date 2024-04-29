@@ -2,39 +2,43 @@
 include '../controller.php';
 
 if (isset($_POST['store'])) {
-   $projid = $_POST['projid'];
-   $outputid = $_POST['output_id'];
-   $created_by  = $_POST['user_name'];
-   $date_created = date("Y-m-d");
-   $cost_type = $_POST['cost_type'];
-   $tasks = $_POST['task_id'];
-   $other_plan_id = $_POST['budget_line_id'];
-   $plan_id = $_POST['plan_id'];
-   $site_id = $_POST['site_id'];
-   $response = false;
-   if ($cost_type == 2) {
-      $sql = $db->prepare("DELETE FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=2");
-      $sql->execute(array(':projid' => $projid));
-   } else {
-      $sql = $db->prepare("DELETE FROM tbl_project_direct_cost_plan WHERE projid=:projid AND  tasks=:task_id AND site_id=:site_id AND cost_type=1");
-      $sql->execute(array(':projid' => $projid, ":task_id" => $tasks, ":site_id" => $site_id));
-   }
+   $success = true;
+   if (validate_csrf_token($_POST['csrf_token'])) {
+      $projid = $_POST['projid'];
+      $outputid = $_POST['output_id'];
+      $created_by  = $_POST['user_name'];
+      $date_created = date("Y-m-d");
+      $cost_type = $_POST['cost_type'];
+      $tasks = $_POST['task_id'];
+      $other_plan_id = $_POST['budget_line_id'];
+      $plan_id = $_POST['plan_id'];
+      $site_id = $_POST['site_id'];
+      $response = false;
+      if ($cost_type == 2) {
+         $sql = $db->prepare("DELETE FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type=2");
+         $sql->execute(array(':projid' => $projid));
+      } else {
+         $sql = $db->prepare("DELETE FROM tbl_project_direct_cost_plan WHERE projid=:projid AND  tasks=:task_id AND site_id=:site_id AND cost_type=1");
+         $sql->execute(array(':projid' => $projid, ":task_id" => $tasks, ":site_id" => $site_id));
+      }
 
-   $units_count = count($_POST['no_units']);
-   if (isset($_POST['no_units']) && !empty($_POST['no_units'])) {
-      for ($j = 0; $j < $units_count; $j++) {
-         $description = $_POST['description'][$j];
-         $unit = $_POST['unit_of_measure'][$j];
-         $subtask_id = $_POST['subtask_id'][$j];
-         $unit_cost = $_POST['unit_cost'][$j];
-         $units_no = $_POST['no_units'][$j];
-         $task_type = $_POST['task_type'][$j];
-         $order = $_POST['order'][$j];
-         $sql = $db->prepare("INSERT INTO tbl_project_direct_cost_plan (projid,outputid,site_id,plan_id,tasks,subtask_id,other_plan_id,description,unit,unit_cost,units_no,cost_type,task_type,item_order,created_by,date_created) VALUES (:projid,:outputid,:site_id,:plan_id,:tasks,:subtask_id,:other_plan_id, :description,:unit,:unit_cost,:units_no,:cost_type,:task_type,:item_order,:created_by, :date_created)");
-         $result[]  = $sql->execute(array(":projid" => $projid, ":outputid" => $outputid, ":site_id" => $site_id, ":plan_id" => $plan_id, ":tasks" => $tasks, ":subtask_id" => $subtask_id, ":other_plan_id" => $other_plan_id, ":description" => $description, ":unit" => $unit, ":unit_cost" => $unit_cost, ":units_no" => $units_no, ":cost_type" => $cost_type, ":task_type" => $task_type, ":item_order" => $order, ":created_by" => $created_by, ":date_created" => $date_created));
+      $units_count = count($_POST['no_units']);
+      if (isset($_POST['no_units']) && !empty($_POST['no_units'])) {
+         for ($j = 0; $j < $units_count; $j++) {
+            $description = $_POST['description'][$j];
+            $unit = $_POST['unit_of_measure'][$j];
+            $subtask_id = $_POST['subtask_id'][$j];
+            $unit_cost = $_POST['unit_cost'][$j];
+            $units_no = $_POST['no_units'][$j];
+            $task_type = $_POST['task_type'][$j];
+            $order = $_POST['order'][$j];
+            $sql = $db->prepare("INSERT INTO tbl_project_direct_cost_plan (projid,outputid,site_id,plan_id,tasks,subtask_id,other_plan_id,description,unit,unit_cost,units_no,cost_type,task_type,item_order,created_by,date_created) VALUES (:projid,:outputid,:site_id,:plan_id,:tasks,:subtask_id,:other_plan_id, :description,:unit,:unit_cost,:units_no,:cost_type,:task_type,:item_order,:created_by, :date_created)");
+            $result[]  = $sql->execute(array(":projid" => $projid, ":outputid" => $outputid, ":site_id" => $site_id, ":plan_id" => $plan_id, ":tasks" => $tasks, ":subtask_id" => $subtask_id, ":other_plan_id" => $other_plan_id, ":description" => $description, ":unit" => $unit, ":unit_cost" => $unit_cost, ":units_no" => $units_no, ":cost_type" => $cost_type, ":task_type" => $task_type, ":item_order" => $order, ":created_by" => $created_by, ":date_created" => $date_created));
+         }
       }
    }
-   echo json_encode(array("success" => true));
+
+   echo json_encode(array("success" => $success));
 }
 
 function unit_of_measurement($unit_of_measure)
@@ -286,7 +290,7 @@ if (isset($_GET['get_budgetline_details'])) {
       <tr>
          <td><strong>Balance</strong></td>
          <td>
-            <input type="hidden" name="remaining_balance" id="remaining_balance" value="'. $balance.'" />
+            <input type="hidden" name="remaining_balance" id="remaining_balance" value="' . $balance . '" />
             <input type="text" name="remaining" value="' . number_format($balance, 2) . '" id="remaining_balance1" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
          </td>
          <td><strong>Sub Total</strong></td>

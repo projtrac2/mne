@@ -22,8 +22,6 @@ try {
             $indicator_id = $row_rsOutput['indicator'];
             $output_name = $row_rsOutput['indicator_name'];
             $mapping_type = $row_rsOutput['indicator_mapping_type'];
-
-
             $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:projstage");
             $query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
             $row_rsProjects = $query_rsProjects->fetch();
@@ -44,50 +42,42 @@ try {
 
 
                 if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "add_budget_line_frm")) {
-                    $user_name = $_POST['user_name'];
-                    $costlineids = $_POST['costlineid'];
-                    $datecreated = date("Y-m-d");
-                    $output_id = $_POST['output_id'];
-                    $site_id = $_POST['site_id'];
-                    $total_costlineid = count($costlineids);
+                    if (validate_csrf_token($_POST['csrf_token'])) {
+                        $costlineids = $_POST['costlineid'];
+                        $datecreated = date("Y-m-d");
+                        $output_id = $_POST['output_id'];
+                        $site_id = $_POST['site_id'];
+                        $total_costlineid = count($costlineids);
 
 
-                    $deleteQuery = $db->prepare("DELETE FROM tbl_project_tender_details WHERE outputid=:output_id AND site_id=:site_id");
-                    $results = $deleteQuery->execute(array(":output_id" => $output_id, "site_id" => $site_id));
-                    $result = [];
+                        $deleteQuery = $db->prepare("DELETE FROM tbl_project_tender_details WHERE outputid=:output_id AND site_id=:site_id");
+                        $results = $deleteQuery->execute(array(":output_id" => $output_id, "site_id" => $site_id));
+                        $result = [];
 
-                    for ($i = 0; $i < $total_costlineid; $i++) {
-                        $costlineid = $_POST['costlineid'][$i];
-                        $unit_cost = $_POST['unit_cost'][$i];
-                        $query_rsDirect_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE id =:costlineid AND cost_type=1 ");
-                        $query_rsDirect_cost_plan->execute(array(":costlineid" => $costlineid));
-                        $totalRows_rsDirect_cost_plan = $query_rsDirect_cost_plan->rowCount();
-                        $row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
-                        if ($totalRows_rsDirect_cost_plan > 0) {
-                            $taskid = $row_rsDirect_cost_plan['tasks'];
-                            $unit = $row_rsDirect_cost_plan['unit'];
-                            $description = $row_rsDirect_cost_plan['description'];
-                            $subtask_id = $row_rsDirect_cost_plan['subtask_id'];
-                            $units_no = $row_rsDirect_cost_plan['units_no'];
+                        for ($i = 0; $i < $total_costlineid; $i++) {
+                            $costlineid = $_POST['costlineid'][$i];
+                            $unit_cost = $_POST['unit_cost'][$i];
+                            $query_rsDirect_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE id =:costlineid AND cost_type=1 ");
+                            $query_rsDirect_cost_plan->execute(array(":costlineid" => $costlineid));
+                            $totalRows_rsDirect_cost_plan = $query_rsDirect_cost_plan->rowCount();
+                            $row_rsDirect_cost_plan = $query_rsDirect_cost_plan->fetch();
+                            if ($totalRows_rsDirect_cost_plan > 0) {
+                                $taskid = $row_rsDirect_cost_plan['tasks'];
+                                $unit = $row_rsDirect_cost_plan['unit'];
+                                $description = $row_rsDirect_cost_plan['description'];
+                                $subtask_id = $row_rsDirect_cost_plan['subtask_id'];
+                                $units_no = $row_rsDirect_cost_plan['units_no'];
 
-                            $insertSQL = $db->prepare("INSERT INTO  tbl_project_tender_details(projid,outputid,site_id,costlineid,tasks,subtask_id,description,unit,unit_cost,units_no,created_by,date_created)  VALUES(:projid, :output_id, :site_id, :costlineid, :tasks, :subtask_id,:description, :unit, :unit_cost, :units_no, :created_by, :date_created)");
-                            $result[]  = $insertSQL->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ':costlineid' => $costlineid, ':tasks' => $taskid, ':subtask_id' => $subtask_id, ':description' => $description, ':unit' => $unit, ':unit_cost' => $unit_cost, ':units_no' => $units_no, ":created_by" => $user_name, ":date_created" => $datecreated));
+                                $insertSQL = $db->prepare("INSERT INTO  tbl_project_tender_details(projid,outputid,site_id,costlineid,tasks,subtask_id,description,unit,unit_cost,units_no,created_by,date_created)  VALUES(:projid, :output_id, :site_id, :costlineid, :tasks, :subtask_id,:description, :unit, :unit_cost, :units_no, :created_by, :date_created)");
+                                $result[]  = $insertSQL->execute(array(":projid" => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ':costlineid' => $costlineid, ':tasks' => $taskid, ':subtask_id' => $subtask_id, ':description' => $description, ':unit' => $unit, ':unit_cost' => $unit_cost, ':units_no' => $units_no, ":created_by" => $user_name, ":date_created" => $datecreated));
+                            }
                         }
+                        $hash = base64_encode("encodeprocprj{$projid}");
+                        $results = success_message('Records created successfully added.', 2, "add-procurement-details.php?prj=" . $hash);
+                    } else {
+                        $hash = base64_encode("encodeprocprj{$projid}");
+                        $results = error_message('Error occured please try again later', 2, "add-procurement-details.php?prj=" . $hash);
                     }
-                    $hashproc = base64_encode("encodeprocprj{$projid}");
-                    $msg = 'Records created successfully added.';
-                    $results = "<script type=\"text/javascript\">
-                swal({
-                title: \"Success!\",
-                text: \" $msg\",
-                type: 'Success',
-                timer: 2000,
-                icon:'success',
-                showConfirmButton: false });
-                setTimeout(function(){
-                        window.location.href = 'add-procurement-details?prj=$hashproc';
-                    }, 2000);
-            </script>";
                 }
 
 ?>
@@ -96,8 +86,7 @@ try {
                     <div class="container-fluid">
                         <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                             <h4 class="contentheader">
-                                <?= $icon ?>
-                                <?php echo $pageTitle ?>
+                                <?= $icon . " " . $pageTitle ?>
                                 <div class="btn-group" style="float:right">
                                     <div class="btn-group" style="float:right">
                                         <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning ">
@@ -187,11 +176,11 @@ try {
 
                                                                         $data_details =
                                                                             "{
-                                                                    taskid:{$taskid},
-                                                                    output_id:{$output_id},
-                                                                    task_units:{$units_no},
-                                                                    task_cost:{$unit_cost},
-                                                                }";
+                                                                                taskid:{$taskid},
+                                                                                output_id:{$output_id},
+                                                                                task_units:{$units_no},
+                                                                                task_cost:{$unit_cost},
+                                                                            }";
                                                                 ?>
                                                                         <input type="hidden" name="costlineid[]" value="<?= $rmkid ?>">
                                                                         <tr>
@@ -287,51 +276,4 @@ try {
 }
 require('includes/footer.php');
 ?>
-
-
-<script>
-    //function to put commas to the data
-    function commaSeparateNumber(val) {
-        while (/(\d+)(\d{3})/.test(val.toString())) {
-            val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
-        }
-        return val;
-    }
-
-    function cost_change(details) {
-        var taskid = details.taskid;
-        var task_cost = details.task_cost;
-        var new_unit_cost = $(`#unit_cost${taskid}`).val();
-        var new_units = $(`#total_units${taskid}`).val();
-
-        // if (task_cost != "" && parseFloat(task_cost) > 0) {
-        if (new_unit_cost != "" && parseFloat(new_unit_cost) > 0) {
-            new_units = parseFloat(new_units);
-            total_cost = new_units >= 0 ? new_unit_cost * new_units : 0;
-            $(`#total_cost${taskid}`).val(commaSeparateNumber(total_cost));
-            $(`#subtotal${taskid}`).val(total_cost);
-        } else {
-            $(`#total_cost${taskid}`).val(0);
-            $(`#subtotal${taskid}`).val(0);
-        }
-        // } else {
-        //     $(`#total_cost${taskid}`).val(0);
-        // }
-        calculate_total_cost();
-    }
-
-    function calculate_total_cost() {
-        var projcost = $("#project_cost").val();
-        var project_cost = projcost != "" ? parseFloat(projcost) : 0;
-        var subtotal = 0;
-        if (project_cost > 0) {
-            $(`.subtotal`).each(function() {
-                subtotal += ($(this).val() != "") ? parseFloat($(this).val()) : 0;
-            });
-        }
-
-        var sub_total_percentage = ((subtotal / project_cost) * 100);
-        $("#d_sub_total_amount").val(commaSeparateNumber(subtotal));
-        $("#d_sub_total_percentage").val(commaSeparateNumber(sub_total_percentage));
-    }
-</script>
+<script src="assets/js/procurement/index.js"></script>

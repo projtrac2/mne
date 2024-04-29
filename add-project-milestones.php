@@ -1,6 +1,5 @@
 <?php
 try {
-
     require('includes/head.php');
     if ($permission) {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
@@ -93,14 +92,14 @@ try {
 
                                                         $edit =  $assigned ? "edit" : "new";
                                                         $details = "{
-                                                        get_edit_details: 'details',
-                                                        projid:$projid,
-                                                        workflow_stage:$workflow_stage,
-                                                        sub_stage:$sub_stage,
-                                                        project_directorate:$project_directorate,
-                                                        project_name:'$projname',
-                                                        edit:'$edit'
-                                                    }";
+                                                            get_edit_details: 'details',
+                                                            projid:$projid,
+                                                            workflow_stage:$workflow_stage,
+                                                            sub_stage:$sub_stage,
+                                                            project_directorate:$project_directorate,
+                                                            project_name:'$projname',
+                                                            edit:'$edit'
+                                                        }";
                                             ?>
                                                         <tr>
                                                             <td align="center"><?= $counter ?></td>
@@ -375,18 +374,15 @@ try {
             </div> <!-- /modal-dailog -->
         </div>
         <!-- end issues modal  -->
-
-
 <?php
-
     } else {
         $results =  restriction();
         echo $results;
     }
+    require('includes/footer.php');
 } catch (PDOException $ex) {
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }
-require('includes/footer.php');
 ?>
 <script>
     const redirect_url = "add-project-milestones.php";

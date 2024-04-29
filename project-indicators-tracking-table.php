@@ -165,6 +165,7 @@ if ($permission) {
 						<div class="body">
 							<div class="row clearfix">
 								<form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+									<?= csrf_token_html(); ?>
 									<div class="col-md-3">
 										<select name="sector" id="sector" onchange="sectors()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px; width:98%" data-live-search="false">
 											<option value="">Select <?= $ministrylabel ?></option>
@@ -451,6 +452,7 @@ if ($permission) {
 								<div class="body">
 									<div class="div-result">
 										<form class="form-horizontal" id="addProjRemarksForm" action="assets/processor/reports-processor.php" method="POST" autocomplete="off">
+											<?= csrf_token_html(); ?>
 											<br>
 											<div id="result">
 												<div class="col-md-12">

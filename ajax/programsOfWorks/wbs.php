@@ -379,7 +379,6 @@ try {
 
         $subtask_end_date = $subtask_start_date = $subtask_duration = '';
         if ($totalRows_rsProjects > 0) {
-            $frequency = $row_rsProjects['activity_monitoring_frequency'];
             $query_rsSubTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id ");
             $query_rsSubTask_Start_Dates->execute(array(':task_id' => $task_id, ':site_id' => $site_id, ":subtask_id" => $subtask_id));
             $row_rsSubTask_Start_Dates = $query_rsSubTask_Start_Dates->fetch();
@@ -388,6 +387,7 @@ try {
                 $subtask_start_date = $row_rsSubTask_Start_Dates['start_date'];
                 $subtask_end_date = $row_rsSubTask_Start_Dates['end_date'];
                 $subtask_duration = $row_rsSubTask_Start_Dates['duration'];
+                $frequency = $row_rsSubTask_Start_Dates['frequency_id'];
                 $duration_details = get_duration($subtask_start_date, $subtask_end_date);
                 $duration = $duration_details['duration'];
                 $start_year = $duration_details['start_year'];
@@ -403,29 +403,32 @@ try {
     }
 
     if (isset($_POST['store_target'])) {
-        $projid = $_POST['projid'];
-        $output_id = $_POST['output_id'];
-        $site_id = $_POST['site_id'];
-        $task_id = $_POST['task_id'];
-        $subtask_id = $_POST['subtask_id'];
-        $frequency = $_POST['frequency'];
-        $targets = $_POST['target'];
-        $start_dates = $_POST['start_date'];
-        $end_dates = $_POST['end_date'];
-        $counter = count($targets);
-        $date = date('Y-m-d');
+        $success = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $success = true;
+            $projid = $_POST['projid'];
+            $output_id = $_POST['output_id'];
+            $site_id = $_POST['site_id'];
+            $task_id = $_POST['task_id'];
+            $subtask_id = $_POST['subtask_id'];
+            $frequency = $_POST['frequency'];
+            $targets = $_POST['target'];
+            $start_dates = $_POST['start_date'];
+            $end_dates = $_POST['end_date'];
+            $counter = count($targets);
+            $date = date('Y-m-d');
 
-        $stmt = $db->prepare("DELETE FROM `tbl_project_target_breakdown` WHERE projid=:projid AND output_id=:output_id AND site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id");
-        $results = $stmt->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id));
-
-        for ($i = 0; $i < $counter; $i++) {
-            $target = $targets[$i];
-            $start_date = $start_dates[$i];
-            $end_date = $end_dates[$i];
-            $sql = $db->prepare("INSERT INTO tbl_project_target_breakdown (projid, output_id, site_id, task_id, subtask_id,start_date,end_date, frequency, target, created_by, created_at) VALUES (:projid, :output_id, :site_id, :task_id, :subtask_id,:start_date,:end_date, :frequency, :target, :created_by, :created_at)");
-            $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':start_date' => $start_date, ':end_date' => $end_date, ":frequency" => $frequency, ":target" => $target, ":created_by" => $user_name, ':created_at' => $date));
+            $stmt = $db->prepare("DELETE FROM `tbl_project_target_breakdown` WHERE projid=:projid AND output_id=:output_id AND site_id=:site_id AND task_id=:task_id AND subtask_id=:subtask_id");
+            $results = $stmt->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id));
+            for ($i = 0; $i < $counter; $i++) {
+                $target = $targets[$i];
+                $start_date = $start_dates[$i];
+                $end_date = $end_dates[$i];
+                $sql = $db->prepare("INSERT INTO tbl_project_target_breakdown (projid, output_id, site_id, task_id, subtask_id,start_date,end_date, frequency, target, created_by, created_at) VALUES (:projid, :output_id, :site_id, :task_id, :subtask_id,:start_date,:end_date, :frequency, :target, :created_by, :created_at)");
+                $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':start_date' => $start_date, ':end_date' => $end_date, ":frequency" => $frequency, ":target" => $target, ":created_by" => $user_name, ':created_at' => $date));
+            }
         }
-        echo json_encode(array('success' => true));
+        echo json_encode(array('success' => $success));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

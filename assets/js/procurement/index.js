@@ -204,3 +204,45 @@ function validate_payment_form() {
     }
     return result;
 }
+
+
+//function to put commas to the data
+function commaSeparateNumber(val) {
+    while (/(\d+)(\d{3})/.test(val.toString())) {
+        val = val.toString().replace(/(\d+)(\d{3})/, "$1" + "," + "$2");
+    }
+    return val;
+}
+
+function cost_change(details) {
+    var taskid = details.taskid;
+    var task_cost = details.task_cost;
+    var new_unit_cost = $(`#unit_cost${taskid}`).val();
+    var new_units = $(`#total_units${taskid}`).val();
+
+    if (new_unit_cost != "" && parseFloat(new_unit_cost) > 0) {
+        new_units = parseFloat(new_units);
+        total_cost = new_units >= 0 ? new_unit_cost * new_units : 0;
+        $(`#total_cost${taskid}`).val(commaSeparateNumber(total_cost));
+        $(`#subtotal${taskid}`).val(total_cost);
+    } else {
+        $(`#total_cost${taskid}`).val(0);
+        $(`#subtotal${taskid}`).val(0);
+    }
+    calculate_total_cost();
+}
+
+function calculate_total_cost() {
+    var projcost = $("#project_cost").val();
+    var project_cost = projcost != "" ? parseFloat(projcost) : 0;
+    var subtotal = 0;
+    if (project_cost > 0) {
+        $(`.subtotal`).each(function () {
+            subtotal += ($(this).val() != "") ? parseFloat($(this).val()) : 0;
+        });
+    }
+
+    var sub_total_percentage = ((subtotal / project_cost) * 100);
+    $("#d_sub_total_amount").val(commaSeparateNumber(subtotal));
+    $("#d_sub_total_percentage").val(commaSeparateNumber(sub_total_percentage));
+}

@@ -689,7 +689,7 @@ if ($permission) {
                             <div class="row clearfix">
                                 <!-- Pie Chart -->
                                 <div class="col-lg-7 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Risk Matrix</h2>
                                         </div>
@@ -703,7 +703,7 @@ if ($permission) {
                                 <!-- #END# Bar Chart -->
                                 <!-- Bar Chart -->
                                 <div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Issues Status</h2>
                                         </div>
@@ -717,7 +717,7 @@ if ($permission) {
                                 <!-- #END# Bar Chart -->
                                 <!-- Start of Fund Sources Per Year Column-->
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Fund Sources (Ksh. in millions)</h2>
                                         </div>
@@ -732,7 +732,7 @@ if ($permission) {
                                 <!-- End of Fund Sources Per Year Column -->
                                 <!-- Browser Usage -->
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Funds Absorption Rate Per Department</h2>
                                         </div>
@@ -744,7 +744,7 @@ if ($permission) {
                                 <!-- #END# Browser Usage -->
                                 <!-- column -->
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Budget Vs Expenditure Per Year</h2>
                                         </div>
@@ -756,7 +756,7 @@ if ($permission) {
                                 <!-- column -->
                                 <!-- Pie Chart -->
                                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Projects Per Tender Category</h2>
                                         </div>
@@ -768,7 +768,7 @@ if ($permission) {
                                 <!-- #END# Bar Chart -->
                                 <!-- Bar Chart -->
                                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Projects Cost Per Tender Category</h2>
                                         </div>
@@ -780,7 +780,7 @@ if ($permission) {
                                 <!-- #END# Bar Chart -->
                                 <!-- Bar Chart -->
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="card" style="margin-bottom:-10px">
+                                    <div class="card">
                                         <div class="header">
                                             <h2 style="margin:5px">Projects Contract Guarantees</h2>
                                         </div>
@@ -833,7 +833,6 @@ if ($permission) {
 }
 require('includes/footer.php');
 ?>
-
 <script src="./assets/js/dashboard/index.js"></script>
 <script>
     let financial_years = '<?= $strategic_plan_financial_years ?>';

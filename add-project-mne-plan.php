@@ -7,8 +7,8 @@ if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid AND projstage=:projstage");
-        $query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid AND projstage=:workflow_stage");
+        $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 

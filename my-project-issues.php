@@ -12,7 +12,7 @@ if ($permission) {
 		$query_projdetails->execute(array(":projid" => $projid));
 		$row_projdetails = $query_projdetails->fetch();
 		$projname = $row_projdetails['projname'];
-		$projcategory = $row_projdetails['projcategory']; 
+		$projcategory = $row_projdetails['projcategory'];
 		$percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
 
 
@@ -120,14 +120,14 @@ if ($permission) {
 												$query_risk_impact->execute(array(":impactid" => $impactid));
 												$row_risk_impact = $query_risk_impact->fetch();
 												$impact = $row_risk_impact["description"];
-												
-												if($priorityid == 1){
+
+												if ($priorityid == 1) {
 													$priority = "High";
 													$priorityclass = 'bg-red';
-												}elseif($priorityid == 2){
+												} elseif ($priorityid == 2) {
 													$priority = "Medium";
 													$priorityclass = 'bg-blue';
-												}else{
+												} else {
 													$priority = "Low";
 													$priorityclass = 'bg-green';
 												}
@@ -156,7 +156,7 @@ if ($permission) {
 													$actionstatus = "Behind Schedule";
 													$styled = 'style="color:red"';
 												}
-												?>
+										?>
 												<tr style="background-color:#fff">
 													<td align="center"><?php echo $nm; ?></td>
 													<td><?php echo $issue; ?></td>
@@ -197,21 +197,22 @@ if ($permission) {
 	<!-- end body  -->
 
 
-    <!-- start issues modal  -->
-    <div class="modal fade" id="issueClosureModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> PROJECT ISSUE</span></h3>
-                </div>
-                <div class="modal-body">
+	<!-- start issues modal  -->
+	<div class="modal fade" id="issueClosureModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header" style="background-color:#03A9F4">
+					<h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> PROJECT ISSUE</span></h3>
+				</div>
+				<div class="modal-body">
 					<ul class="list-group">
 						<li class="list-group-item list-group-item list-group-item-action" style="height: auto"><strong>Project Name: <span id="project_name"></span></strong></li>
 					</ul>
 					<div id="issue_details">
-                    </div>
+					</div>
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 						<form class="form-horizontal" id="add_issue_closure" action="" method="POST">
+							<?= csrf_token_html(); ?>
 							<fieldset class="scheduler-border" id="specification_issues">
 								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 									<i class="fa fa-exclamation-circle" aria-hidden="true"></i> Issue Closure
@@ -226,49 +227,49 @@ if ($permission) {
 								</div>
 								<!-- Task Checklist Questions -->
 							</fieldset>
-						</div>
 					</div>
-					<div class="modal-footer">
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-							<input type="hidden" name="close_issue" id="close_issue" value="close_issue">
-							<input type="hidden" name="projid" id="projid" >
-							<input type="hidden" name="issueid" id="issueid" >
-							<input type="hidden" name="user_name" value="<?=$user_name?>" >
-							<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="add_issue_closure-form-submit" value="Close Issue" />
-							<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
-						</div>
-					</div> <!-- /modal-footer -->
+				</div>
+				<div class="modal-footer">
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+						<input type="hidden" name="close_issue" id="close_issue" value="close_issue">
+						<input type="hidden" name="projid" id="projid">
+						<input type="hidden" name="issueid" id="issueid">
+						<input type="hidden" name="user_name" value="<?= $user_name ?>">
+						<input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="add_issue_closure-form-submit" value="Close Issue" />
+						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+					</div>
+				</div> <!-- /modal-footer -->
 				</form>
 
-            </div> <!-- /modal-content -->
-        </div> <!-- /modal-dailog -->
-    </div>
+			</div> <!-- /modal-content -->
+		</div> <!-- /modal-dailog -->
+	</div>
 
 
-    <!-- start issues modal  -->
-    <div class="modal fade" id="closedIssueDetailsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-green">
-                    <h3 class="modal-title" style="color:#fff" align="center"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> CLOSED PROJECT ISSUE</span></h3>
-                </div>
-                <div class="modal-body">
+	<!-- start issues modal  -->
+	<div class="modal fade" id="closedIssueDetailsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header bg-green">
+					<h3 class="modal-title" style="color:#fff" align="center"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> CLOSED PROJECT ISSUE</span></h3>
+				</div>
+				<div class="modal-body">
 					<ul class="list-group">
 						<li class="list-group-item list-group-item list-group-item-action" style="height: auto"><strong>Project Name: <span id="closed_issue_project_name"></span></strong></li>
 					</ul>
 					<div id="closed_issue_details">
-                    </div>
-                </div>
+					</div>
+				</div>
 				<div class="modal-footer">
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
 						<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
 					</div>
 				</div> <!-- /modal-footer -->
-            </div> <!-- /modal-content -->
-        </div> <!-- /modal-dailog -->
-    </div>
+			</div> <!-- /modal-content -->
+		</div> <!-- /modal-dailog -->
+	</div>
 
-    <script src="assets/js/monitoring/issues.js"></script>
+	<script src="assets/js/monitoring/issues.js"></script>
 
 <?php
 } else {

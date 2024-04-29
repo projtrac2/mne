@@ -24,7 +24,7 @@ if ($permission) {
 			$phone = $_POST['phone'];
 			$mobile = $_POST['mobile'];
 			$email = $_POST['email'];
-			$ip_address =$_POST['ip_address'];
+			$ip_address = $_POST['ip_address'];
 			$domain_address = $_POST['domain_address'];
 			$plot_no =  $_POST['plot_no'];
 			$city = $_POST['city'];
@@ -37,17 +37,17 @@ if ($permission) {
 
 					if (!file_exists($filepath)) {
 						if (move_uploaded_file($_FILES['logo']['tmp_name'], $filepath)) {
-							if($rows_count == 0){
+							if ($rows_count == 0) {
 								$insertSQL = $db->prepare("INSERT INTO tbl_company_settings (company_name, postal_address, country, telephone_no, mobile_no, email_address, city, plot_no, domain_address, ip_address, logo, latitude, longitude, created_by, date_created) VALUES (:companyname, :postal, :country, :phone, :mobile, :email, :city, :plotno, :domain, :ipaddress, :logo, :latitude, :longitude, :user, :date)");
-								$insertSQL->execute(array(':companyname' => $company_name, ':postal' => $postal_address, ':country' => $country, ':phone' => $phone, ':mobile' => $mobile, ':email' => $email, ':city' => $city, ':plotno' =>$plot_no,  ':domain' => $domain_address, ':ipaddress' => $ip_address, ':logo' => $filepath, ':latitude' => $latitude, ':longitude' => $longitude, ':user' => $user_name, ':date' => $current_date));
-								
+								$insertSQL->execute(array(':companyname' => $company_name, ':postal' => $postal_address, ':country' => $country, ':phone' => $phone, ':mobile' => $mobile, ':email' => $email, ':city' => $city, ':plotno' => $plot_no,  ':domain' => $domain_address, ':ipaddress' => $ip_address, ':logo' => $filepath, ':latitude' => $latitude, ':longitude' => $longitude, ':user' => $user_name, ':date' => $current_date));
+
 								$msg = "Company details successfully added";
-							}else{
+							} else {
 								$detailsid = $setting["id"];
 								$updateQuery = $db->prepare("UPDATE tbl_company_settings SET company_name=:companyname, postal_address=:postal, country=:country, telephone_no=:phone, mobile_no=:mobile, email_address=:email, city=:city, plot_no=:plotno, domain_address=:domain, ip_address=:ipaddress, logo=:logo, latitude=:latitude, longitude=:longitude, created_by=:user, date_created=:date  WHERE id=:id");
 								$updatest = $updateQuery->execute(array(':companyname' => $_POST['company_name'], ':postal' => $_POST['postal_address'], ':country' => $_POST['country'], ':phone' => $_POST['phone'], ':mobile' => $_POST['mobile'], ':email' => $_POST['email'], ':city' => $_POST['city'], ':plotno' => $_POST['plot_no'],  ':domain' => $_POST['domain_address'], ':ipaddress' => $_POST['ip_address'], ':logo' => $filepath, ':latitude' => $latitude, ':longitude' => $longitude, ':user' => $user_name, ':date' => $current_date, ':id' => $detailsid));
 								$msg = "Company details successfully updated";
-							} 
+							}
 						}
 					} else {
 						$msg = 'The logo file you are uploading already exists, try another file!!';
@@ -58,7 +58,7 @@ if ($permission) {
 									text: \" $msg \",
 									type: 'Danger',
 									timer: 3000,
-									showConfirmButton: false 
+									showConfirmButton: false
 								});
 							</script>";
 					}
@@ -82,7 +82,7 @@ if ($permission) {
 							text: \" $msg \",
 							type: 'Danger',
 							timer: 3000,
-							showConfirmButton: false 
+							showConfirmButton: false
 						});
 					</script>";
 			}
@@ -132,6 +132,7 @@ if ($permission) {
 							<!-- ============================================================== -->
 
 							<form id="add_financier" method="POST" name="addfinancierfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+								<?= csrf_token_html(); ?>
 								<fieldset class="scheduler-border">
 									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
 									<div class="col-md-12">
@@ -162,12 +163,12 @@ if ($permission) {
 												while ($row_country = $query_country->fetch()) {
 													$selected = "";
 													$code = $row_country['id'];
-													if($countrycode == $code){
+													if ($countrycode == $code) {
 														$selected = "selected";
 													}
-													?>
-													<option value="<?php echo $row_country['id'] ?>" <?php echo $selected ?> ><?php echo $row_country['country'] ?></option>
-													<?php
+												?>
+													<option value="<?php echo $row_country['id'] ?>" <?php echo $selected ?>><?php echo $row_country['country'] ?></option>
+												<?php
 												}
 												?>
 											</select>

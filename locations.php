@@ -160,6 +160,7 @@ if ($permission) {
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form class="form-horizontal" id="submitItemForm" action="" method="POST" enctype="multipart/form-data">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Location </h4>

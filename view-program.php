@@ -1,13 +1,13 @@
 <?php
+try {
+    require('includes/head.php');
+    if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
+        $decode_stplanid =   base64_decode($_GET['plan']);
+        $stplanid_array = explode("strplan1", $decode_stplanid);
+        $spid = $stplanid_array[1];
+        $stplan = $stplanid_array[1];
+        $stplane = $_GET['plan'];
 
-require('includes/head.php');
-if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
-    $decode_stplanid =   base64_decode($_GET['plan']);
-    $stplanid_array = explode("strplan1", $decode_stplanid);
-    $spid = $stplanid_array[1];
-    $stplan = $stplanid_array[1];
-    $stplane = $_GET['plan'];
-    try {
         $sql = $db->prepare("SELECT * FROM `tbl_programs`  ORDER BY `progid` ASC");
         $sql->execute();
         $rows_count = $sql->rowCount();
@@ -83,46 +83,41 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
                                                             $project_section = $row_rsProgram['projdept'];
                                                             $project_directorate = $row_rsProgram['directorate'];
                                                             $created_by = $row_rsProgram['createdby'];
-                                                            $progid_hashed = base64_encode("progid54321{$progid}");
                                                             $progname =  $row_rsProgram['progname'];
 
                                                             //fetch budget
-                                                            $query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_progdetails WHERE progid=:progid");
-                                                            $query_rsBudget->execute(array(":progid" => $progid));
+                                                            $query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_progdetails WHERE progid=:progid AND strategic_plan_id=:strategic_plan_id");
+                                                            $query_rsBudget->execute(array(":progid" => $progid, ":strategic_plan_id" => $stplan));
                                                             $row_rsBudget = $query_rsBudget->fetch();
-                                                            $totalRows_rsBudget = $query_rsBudget->rowCount();
-                                                            $progbudget = number_format($row_rsBudget['budget'], 2);
+                                                            $progbudget = !is_null($$row_rsBudget['budget']) ? number_format($row_rsBudget['budget'], 2) : number_format(0, 2);
 
                                                             //get total projects
-                                                            $query_projsbudget = $db->prepare("SELECT COUNT(*) as projectscount, SUM(projcost) as budget FROM tbl_projects WHERE progid = :progid");
-                                                            $query_projsbudget->execute(array(":progid" => $progid));
+                                                            $query_projsbudget = $db->prepare("SELECT COUNT(*) as projectscount, SUM(projcost) as budget FROM tbl_projects WHERE progid = :progid AND strategic_plan_program_id=:strategic_plan_program_id");
+                                                            $query_projsbudget->execute(array(":progid" => $progid, ":strategic_plan_program_id" => $strategic_plan_program_id));
                                                             $row_projsbudget = $query_projsbudget->fetch();
                                                             $count_projsbudget = $query_projsbudget->rowCount();
 
-                                                            $projsbudget = ($count_projsbudget > 0) ? $row_projsbudget['budget'] : 0;
-                                                            $projectscount = ($count_projsbudget > 0) ? $row_projsbudget['projectscount'] : 0;
+                                                            $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
+                                                            $projectscount = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : number_format(0, 2);
                                                             $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
-
-
 
                                                             $query_rsStrategicPlanProgram =  $db->prepare("SELECT * FROM tbl_strategic_plan_programs WHERE progid =:progid AND strategic_plan_id=:strategic_plan_id");
                                                             $query_rsStrategicPlanProgram->execute(array(":progid" => $progid, ":strategic_plan_id" => $stplan));
                                                             $row_rsStrategicPlanProgram = $query_rsStrategicPlanProgram->fetch();
                                                             $totalRows_rsStrategicPlanProgram = $query_rsStrategicPlanProgram->rowCount();
 
+                                                            $projectscount = '<a href="#"><span class="badge bg-purple">0.00</span></a>';
+                                                            if ($totalRows_rsStrategicPlanProgram > 0) {
+                                                                $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
+                                                                $query_projs =  $db->prepare("SELECT projid FROM tbl_projects  WHERE  progid=:progid AND strategic_plan_program_id=:strategic_plan_program_id");
+                                                                $query_projs->execute(array(":progid" => $progid, ":strategic_plan_program_id" => $strategic_plan_program_id));
+                                                                $totalRows_projs = $query_projs->rowCount();
 
-
-                                                            $query_projs =  $db->prepare("SELECT projid FROM tbl_projects WHERE  progid=:progid");
-                                                            $query_projs->execute(array(":progid" => $progid));
-                                                            $totalRows_projs = $query_projs->rowCount();
-
-                                                            $projectscount = "";
-                                                            if ($totalRows_projs > 0) {
-                                                                $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
-                                                            } else {
-                                                                $projectscount = '<a href="#"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
+                                                                if ($totalRows_projs > 0) {
+                                                                    $progid_hashed = base64_encode("progid54321{$strategic_plan_program_id}");
+                                                                    $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
+                                                                }
                                                             }
-
 
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
@@ -190,10 +185,9 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
                                                                     </td>
                                                                 </tr>
                                                     <?php
-                                                            }
-                                                        } // /while
-
-                                                    } // if num_rows
+                                                            } // /while
+                                                        } // if num_rows
+                                                    }
                                                     ?>
                                                 </tbody>
                                             </table>
@@ -223,20 +217,18 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
                     </div>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
+        </div>
+        <!-- /.modal -->
         <!-- End Item more -->
-
 <?php
-    } catch (PDOException $ex) {
-        var_dump($ex);
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-
-require('includes/footer.php');
-
 ?>
 <script src="assets/js/programs/view-programs.js"></script>

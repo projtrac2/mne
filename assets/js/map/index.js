@@ -28,7 +28,7 @@ $(document).ready(function () {
 function assign(details) {
     $("#projid").val(details.projid);
     $("#project_name").html(details.project_name);
-    $("#store_mapping_teams").val("new"); 
+    $("#store_mapping_teams").val("new");
     if (details.edit == 1) {
         if (projid != "") {
             $("#store_mapping_teams").val("edit");

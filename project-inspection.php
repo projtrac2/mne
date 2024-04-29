@@ -1,9 +1,5 @@
 <?php
 require('includes/head.php');
-
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
 if ($permission) {
     try {
         if (isset($_POST['store'])) {
@@ -555,6 +551,7 @@ if ($permission) {
                                                     <i class="fa fa-calendar" aria-hidden="true"></i> Proceed
                                                 </legend>
                                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                    <?= csrf_token_html(); ?>
                                                     <?php
                                                     if (in_array(false, $proceed)) {
                                                     ?>
@@ -598,6 +595,7 @@ if ($permission) {
                                 <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Inspection & Acceptance Checklists</h4>
                             </div>
                             <form class="form-horizontal" id="add_questions_form" action="" method="POST">
+                                <?= csrf_token_html(); ?>
                                 <div class="modal-body">
                                     <fieldset class="scheduler-border" id="tasks_div">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Is it compliant? </legend>

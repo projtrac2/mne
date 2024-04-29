@@ -1,9 +1,8 @@
 <?php
 try {
-
     require('includes/head.php');
-    if ($permission) {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : header("Location: view-mne-plan.php");
+    if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
+        $decode_projid = base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
@@ -20,11 +19,7 @@ try {
             $project_directorate = $row_rsProjects['directorate'];
             $project_impact = $row_rsProjects['projimpact'];
             $project_evaluation = $row_rsProjects['projevaluation'];
-
-
-
             $approval_stage = ($sub_stage  >= 2) ? true : false;
-
 
             $disabled = $sub_stage == 0 || $sub_stage == 1 ? "" : "disabled";
             $approve_details = "{
@@ -72,7 +67,6 @@ try {
                 }
                 return !in_array(false, $submit_arr) ? true : false;
             }
-
 ?>
             <style>
                 .mt-map-wrapper {
@@ -134,7 +128,6 @@ try {
                                                 $query_Output = $db->prepare("SELECT * FROM tbl_project_details p INNER JOIN tbl_indicator i ON i.indid = p.indicator WHERE projid = :projid ORDER BY p.indicator");
                                                 $query_Output->execute(array(":projid" => $projid));
                                                 $total_Output = $query_Output->rowCount();
-                                                $mapped_all_arr = [];
                                                 if ($total_Output > 0) {
                                                     $counter = 0;
                                                     while ($row_rsOutput = $query_Output->fetch()) {
@@ -173,10 +166,8 @@ try {
 
                                                                         $status = '';
                                                                         if ($total_rsMapping > 0) {
-                                                                            $mapped_all_arr[] = true;
                                                                             $status =  '<span class="badge bg-green" style="margin-bottom:2px">Mapped</span> <br />';
                                                                         } else {
-                                                                            $mapped_all_arr[] = false;
                                                                             $today = date("Y-m-d");
                                                                             if ($today <= $mapping_date) {
                                                                                 $status =  '<span class="badge bg-blue" style="margin-bottom:2px">Pending</span> <br />';
@@ -242,10 +233,8 @@ try {
 
                                                                 $status = '';
                                                                 if ($total_rsMapping > 0) {
-                                                                    $mapped_all_arr[] = true;
                                                                     $status =  '<span class="badge bg-green" style="margin-bottom:2px">Mapped</span> <br />';
                                                                 } else {
-                                                                    $mapped_all_arr[] = false;
                                                                     $today = date("Y-m-d");
                                                                     if ($today <= $mapping_date) {
                                                                         $status =  '<span class="badge bg-blue" style="margin-bottom:2px">Pending</span> <br />';

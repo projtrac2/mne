@@ -266,7 +266,7 @@ if ($permission) {
 																	<li>
 																		<a type="button" data-toggle="modal" id="closeSurveyModalBtn" data-target="#closeSurveyModal" onclick="closesurvey(<?= $formid ?>)"> <i class="glyphicon glyphicon-edit"></i>Close</a>
 																	</li>
-																	<!--<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>       
+																	<!--<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="more(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More</a></li>
 											<li><a type="button" data-toggle="modal" id="editprogram"  href="edit-project.php?projid=' . $itemId . '"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
 											<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>  -->
 																</ul>
@@ -353,6 +353,7 @@ if ($permission) {
 				<div class="modal-body" style="max-height:450px; overflow:auto;">
 					<div class="div-result">
 						<form class="form-horizontal" id="baselinesurveyForm" action="indicator-baseline-survey-form-processing.php" method="POST" enctype="multipart/form-data" autocomplete="off">
+							<?= csrf_token_html(); ?>
 							<fieldset class="scheduler-border">
 								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-exchange" aria-hidden="true"></i> Survey Information</legend>
 								<br />

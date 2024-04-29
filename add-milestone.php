@@ -19,7 +19,6 @@ try {
             $workflow_stage = $row_rsProjects['projstage'];
             $project_directorate = $row_rsProjects['directorate'];
 
-
             $approval_stage = ($project_sub_stage  >= 2) ? true : false;
             $approve_details = "{
                 get_edit_details: 'details',
@@ -437,6 +436,7 @@ try {
                             <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Milestone Output</h4>
                         </div>
                         <form class="form-horizontal" id="store_output_data_mile" action="" method="POST">
+                            <?= csrf_token_html(); ?>
                             <div class="modal-body">
                                 <fieldset class="scheduler-border" id="milestone_div">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Milestone Output</legend>

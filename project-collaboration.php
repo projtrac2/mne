@@ -58,14 +58,14 @@ if ($permission) {
             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; padding-right:15px; color:#FFF">
                 <h4 class="contentheader">
                     <?= $icon . ' ' . $pageTitle ?>
-					<div class="btn-group" style="float:right">
-						<button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-							<span class="glyphicon glyphicon-plus"></span> Add Subject
-						</button>
-						<a type="button" id="outputItemModalBtnrow" href="project-output-monitoring-checklist.php" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
-							Go Back
-						</a>
-					</div>
+                    <div class="btn-group" style="float:right">
+                        <button type="button" data-toggle="modal" data-target="#addFormModal" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                            <span class="glyphicon glyphicon-plus"></span> Add Subject
+                        </button>
+                        <a type="button" id="outputItemModalBtnrow" href="project-output-monitoring-checklist.php" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
+                            Go Back
+                        </a>
+                    </div>
                 </h4>
             </div>
             <div class="row clearfix">
@@ -156,6 +156,7 @@ if ($permission) {
         <div class="modal-dialog">
             <div class="modal-content">
                 <form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
+                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add New Discussion Subject</span></h4>
                     </div>
@@ -164,16 +165,16 @@ if ($permission) {
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="body" id="add_modal_form">
-										<div id="budget_line">
-											<div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
-												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<label for="projduration">Subject *:</label>
-													<div class="form-input">
-														<input type="text" name="subject" min="0" value="" id="subject" placeholder="Enter your subject" class="form-control" required>
-													</div>
-												</div>
-											</div>
-										</div>
+                                        <div id="budget_line">
+                                            <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <label for="projduration">Subject *:</label>
+                                                    <div class="form-input">
+                                                        <input type="text" name="subject" min="0" value="" id="subject" placeholder="Enter your subject" class="form-control" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

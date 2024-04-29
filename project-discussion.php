@@ -178,6 +178,7 @@ if ($permission) {
 											<!-- .chat-right-panel -->
 										</div>
 										<form action="" method="post" enctype="multipart/form-data">
+											<?= csrf_token_html(); ?>
 											<div style="margin-top:10px">
 												<input type="hidden" name="projid" value="<?php echo $projid ?>">
 												<input type="hidden" name="topic_id" value="<?php echo $topic_id ?>">

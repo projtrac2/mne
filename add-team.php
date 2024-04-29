@@ -125,10 +125,10 @@ try {
                                                             $f_name = htmlspecialchars($membername);
 
                                                             $details = "{
-                                                        projid:$projid,
-                                                        full_name:'$f_name',
-                                                        user_id:$ptid,
-                                                    }";
+                                                                projid:$projid,
+                                                                full_name:'$f_name',
+                                                                user_id:$ptid,
+                                                            }";
                                                     ?>
                                                             <tr id="finrow<?= $rowno ?>">
                                                                 <td><?= $rowno  ?></td>
@@ -136,7 +136,6 @@ try {
                                                                 <td><?= $department  ?></td>
                                                                 <td><?= $sector  ?></td>
                                                                 <td><?= $role  ?></td>
-
                                                                 <td>
                                                                     <div class="btn-group">
                                                                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -251,6 +250,7 @@ try {
                             </div>
                         </div>
                     </div>
+                </div>
             </section>
             <!-- end body  -->
 

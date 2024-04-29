@@ -4,7 +4,6 @@ include '../controller.php';
 $datecreated  = date("Y-m-d");
 if (isset($_POST['get_risks'])) {
     $risk_type = $_POST['get_risks'];
-
     $query_rsRisk =  $db->prepare("SELECT * FROM tbl_projrisk_categories");
     $query_rsRisk->execute();
     $row_rsRisk = $query_rsRisk->fetch();
@@ -201,7 +200,7 @@ if (isset($_POST['addoutcome'])) {
 
         $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_expected_outcome_details`(projid, outcome, indid, data_source, evaluation_frequency, number_of_evaluations, added_by, date_added) VALUES(:projid, :outcome, :indid, :data_source, :evaluation_frequency, :number_of_evaluations, :added_by, :date_added)");
         $result1  = $insertSQL1->execute(array(":projid" => $projid, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":added_by" => $createdby, ":date_added" => $datecreated));
-		
+
         /* $resultstypeid = $db->lastInsertId();
 
         $answertype = $_POST['outcomemainanswertype'];
@@ -251,7 +250,7 @@ if (isset($_POST['editoutcome'])) {
         $number_of_evaluations  = $_POST['evaluationNumberFreq'];
         //$mainanswerlabels = $_POST['outcome_main_answer_labels'];
         $createdby  = $_POST['user_name'];
-      
+
 
         $insertSQL1 = $db->prepare("UPDATE `tbl_project_expected_outcome_details`  SET projid = :projid, outcome = :outcome, indid = :indid, data_source = :data_source, evaluation_frequency = :evaluation_frequency, number_of_evaluations = :number_of_evaluations, changed_by = :changed_by, date_changed = :date_added WHERE id = :outcomeid");
         $result1  = $insertSQL1->execute(array(":projid" => $projid, ":outcome" => $outcome, ":indid" => $indid, ":data_source" => $data_source, ":evaluation_frequency" => $evaluation_frequency, ":number_of_evaluations" => $number_of_evaluations, ":changed_by" => $createdby, ":date_added" => $datecreated, ":outcomeid" => $outcomeid));
@@ -298,23 +297,23 @@ if (isset($_POST['editoutcome'])) {
 if (isset($_POST['add_evaluation_questions'])) {
     if (isset($_POST['question']) && !empty($_POST['question'])) {
         $projid = $_POST['projid'];
-        $question = $_POST['question'];		
+        $question = $_POST['question'];
         $resultstype  = $_POST['resultstype'];
         $resultstypeid  = $_POST['resultstypeid'];
         $createdby  = $_POST['user_name'];
 		$questiontype = 1;
 		$main_question = $calculation_method = $answer_label = null;
-		
+
 		if(isset($_POST['question_type']) && !empty($_POST['question_type'])) {
 			$questiontype = $_POST['question_type'];
 		}
-		
+
 		if(isset($_POST['main_question']) && !empty($_POST['main_question'])) {
 			$main_question = $_POST['main_question'];
 		}
-		
+
         $answertype = $_POST['answertype'];
-		
+
 		if($answertype == 1){
 			$calculation_method  = $_POST['calculation_method'];
 		} elseif($answertype == 2){
@@ -345,21 +344,21 @@ if (isset($_POST['add_evaluation_questions'])) {
 if (isset($_POST['edit_evaluation_questions'])) {
     if (isset($_POST['question']) && !empty($_POST['question'])) {
 		$questionid = $_POST['questionid'];
-        $question = $_POST['question'];		
+        $question = $_POST['question'];
         $createdby  = $_POST['user_name'];
 		$questiontype = 1;
 		$main_question = $calculation_method = $answer_label = null;
-		
+
 		if(isset($_POST['question_type']) && !empty($_POST['question_type'])) {
 			$questiontype = $_POST['question_type'];
 		}
-		
+
 		if(isset($_POST['main_question']) && !empty($_POST['main_question'])) {
 			$main_question = $_POST['main_question'];
 		}
-		
+
         $answertype = $_POST['answertype'];
-		
+
 		if($answertype == 1){
 			$calculation_method  = $_POST['calculation_method'];
 		} elseif($answertype == 2){
@@ -371,7 +370,7 @@ if (isset($_POST['edit_evaluation_questions'])) {
 			$answer_label  = $_POST['answer_label'];
 			$calculation_method  = $_POST['calculation_method'];
 		}
-		
+
 		$insertSQL1 = $db->prepare("UPDATE tbl_project_evaluation_questions SET question = :question, parent_question = :parent_question, questiontype = :questiontype, answertype = :answertype, answerlabels = :answerlabels, question_calculation_method = :question_calculation_method WHERE id=:questionid");
 		$result1  = $insertSQL1->execute(array(":question" => $question, ":parent_question" => $main_question, ":questiontype" => $questiontype, ":answertype" => $answertype, ":answerlabels" => $answer_label, ":question_calculation_method" => $calculation_method, ":questionid" => $questionid));
 
@@ -390,7 +389,7 @@ if (isset($_POST['edit_evaluation_questions'])) {
 
 if (isset($_POST['deleteQuestion']) && $_POST['deleteQuestion'] == 1) {
 	$questionid = $_POST['questionid'];
-	
+
 	$sql = $db->prepare("DELETE FROM tbl_project_evaluation_questions WHERE id=:questionid");
 	$resulst = $sql->execute(array(':questionid' => $questionid));
 	if ($resulst) {
@@ -407,7 +406,7 @@ if (isset($_POST['addoutput'])) {
         $output = $_POST['opid'];
         $projid = $_POST['projid'];
         $outputIndicator  = $_POST['output_indicator'];
-        
+
 
         $datecreated = date("Y-m-d");
         $createdby = $_POST['user_name'];

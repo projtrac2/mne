@@ -205,7 +205,7 @@ if ($permission) {
                                                       <?php
                                                       if ($payment_status == 2 || $payment_status == 0) {
                                                       ?>
-                                                         <li> 
+                                                         <li>
                                                             <a type="button" href="inhouse-payment-request-amend.php?request_id=<?= $request_id_hashed ?>" title="Click here to amend request payment">
                                                                <i class="fa fa-money" style="color:white; height:20px; margin-top:0px"></i> Amend
                                                             </a>
@@ -474,6 +474,7 @@ if ($permission) {
       <div class="modal-dialog modal-lg">
          <div class="modal-content">
             <form class="form-horizontal" id="modal_form_submit1" action="" method="POST" enctype="multipart/form-data">
+               <?= csrf_token_html(); ?>
                <div class="modal-header" style="background-color:#03A9F4">
                   <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add Other Details</span></h4>
                </div>

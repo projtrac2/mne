@@ -121,6 +121,7 @@ if ($permission) {
                             </ul>
                         </div>
                         <form class="form-horizontal" id="add_closure_details" action="" method="POST">
+                            <?= csrf_token_html(); ?>
                             <fieldset class="scheduler-border">
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                     <i class="fa fa-comment" aria-hidden="true"></i> Closure Remark(s)

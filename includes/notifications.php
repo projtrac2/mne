@@ -94,9 +94,9 @@
         //     load_unseen_message('yes');
         // });
 
-        setInterval(function() {
-            load_unseen_notification();
-            load_unseen_message();
-        }, 5000);
+        // setInterval(function() {
+        //     load_unseen_notification();
+        //     load_unseen_message();
+        // }, 5000);
     });
 </script>

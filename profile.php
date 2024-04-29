@@ -377,6 +377,7 @@ if ($designation  >= 5) {
 									</div>
 									<div role="tabpanel" class="tab-pane fade in" id="profile_settings">
 										<form class="form-horizontal">
+											<?= csrf_token_html(); ?>
 											<div class="form-group">
 												<label for="NameSurname" class="col-sm-2 control-label">Name Surname</label>
 												<div class="col-sm-10">

@@ -41,6 +41,7 @@
     	<div class="modal-dialog modal-lg">
     		<div class="modal-content">
     			<form class="form-horizontal" id="submitItemForm" action="general-settings/action/project-indicator-category-action.php" method="POST" enctype="multipart/form-data">
+    				<?= csrf_token_html(); ?>
     				<div class="modal-header" style="background-color:#03A9F4">
     					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     					<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Indicator Category</h4>
@@ -122,16 +123,16 @@
     										</div> <!-- /form-group-->
 
     										<div class="col-md-4 form-input">
-												<label for="editStatus">
-													<font color="#174082">Indicator Category Type: </font>
-												</label>
-												<select class="form-control" id="editECategoryType" name="editType" required>
-													<option value="select...">Select...</option>
-													<option value="1">Impact</option>
-													<option value="2">Outcome</option>
-													<option value="3">Output</option>
-												</select>
-											</div> <!-- /form-group-->
+    											<label for="editStatus">
+    												<font color="#174082">Indicator Category Type: </font>
+    											</label>
+    											<select class="form-control" id="editECategoryType" name="editType" required>
+    												<option value="select...">Select...</option>
+    												<option value="1">Impact</option>
+    												<option value="2">Outcome</option>
+    												<option value="3">Output</option>
+    											</select>
+    										</div> <!-- /form-group-->
     										<div class="col-md-12 form-input" style="margin-top:10px">
     											<label>
     												<font color="#174082">Indicator Category Description: </font>

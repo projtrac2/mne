@@ -143,6 +143,7 @@ if ($permission) {
 						<div class="body">
 							<div class="row clearfix">
 								<form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+									<?= csrf_token_html(); ?>
 									<div class="col-md-1">
 									</div>
 									<div class="col-md-3">

@@ -16,15 +16,11 @@ try {
       $projname = $row_rsProjects['projname'];
       $projcode = $row_rsProjects['projcode'];
       $projcost = $row_rsProjects['projcost'];
-      $projcategory = $row_rsProjects['projcategory'];
       $progid = $row_rsProjects['progid'];
-      $projstartdate = $row_rsProjects['projstartdate'];
-      $projenddate = $row_rsProjects['projenddate'];
       $workflow_stage = $row_rsProjects['projstage'];
       $project_sub_stage = $row_rsProjects['proj_substage'];
       $project_directorate = $row_rsProjects['directorate'];
       $payment_plan = $row_rsProjects['payment_plan'];
-
 
       $query_rsprocurementmethod = $db->prepare("SELECT * FROM tbl_procurementmethod");
       $query_rsprocurementmethod->execute();
@@ -73,77 +69,78 @@ try {
       }
 
       if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "store_tender_details")) {
-        $hash = $_POST['projid'];
-        $dec = explode("encodeprocprj", base64_decode($hash));
-        $projid = $dec[1];
-        $user_name = $_POST['user_name'];
-        $datecreated = date("Y-m-d");
-        $existing_files = isset($_POST['attached_files']) ? $_POST['attached_files'] : "";
-        // $existing_files != "" ?: "";
-        clear_tables($projid, $existing_files);
-        if (isset($_POST['contractrefno']) && !empty($_POST['contractrefno'])) {
-          $evaluation = date('Y-m-d', strtotime($_POST['tenderevaluationdate']));
-          $award = date('Y-m-d', strtotime($_POST['tenderawarddate']));
-          $contractrefno = $_POST['contractrefno'];
-          $tenderno = $_POST['tenderno'];
-          $tendertitle = $_POST['tendertitle'];
-          $tendertype = $_POST['tendertype'];
-          $tendercat = $_POST['tendercat'];
-          $tenderamount = 0;
-          $procurementmethod = $_POST['procurementmethod'];
-          $financialscore = $_POST['financialscore'];
-          $technicalscore = $_POST['technicalscore'];
-          $comments = $_POST['comments'];
-          $projcontractor = $_POST['projcontractor'];
-          $cost_variation = $_POST['cost_variation'];
-          $date_created = date("Y-m-d");
+        if (validate_csrf_token($_POST['csrf_token'])) {
+          $hash = $_POST['projid'];
+          $dec = explode("encodeprocprj", base64_decode($hash));
+          $projid = $dec[1];
+          $user_name = $_POST['user_name'];
+          $datecreated = date("Y-m-d");
+          $existing_files = isset($_POST['attached_files']) ? $_POST['attached_files'] : "";
+          clear_tables($projid, $existing_files);
+          if (isset($_POST['contractrefno']) && !empty($_POST['contractrefno'])) {
+            $evaluation = date('Y-m-d', strtotime($_POST['tenderevaluationdate']));
+            $award = date('Y-m-d', strtotime($_POST['tenderawarddate']));
+            $contractrefno = $_POST['contractrefno'];
+            $tenderno = $_POST['tenderno'];
+            $tendertitle = $_POST['tendertitle'];
+            $tendertype = $_POST['tendertype'];
+            $tendercat = $_POST['tendercat'];
+            $tenderamount = 0;
+            $procurementmethod = $_POST['procurementmethod'];
+            $financialscore = $_POST['financialscore'];
+            $technicalscore = $_POST['technicalscore'];
+            $comments = $_POST['comments'];
+            $projcontractor = $_POST['projcontractor'];
+            $cost_variation = $_POST['cost_variation'];
+            $date_created = date("Y-m-d");
 
-          $insertSQL = $db->prepare("INSERT INTO `tbl_tenderdetails` (`projid`, `contractrefno`, `tenderno`, `tendertitle`,`tendertype`, `tendercat`, `tenderamount`, `procurementmethod`, `evaluationdate`, `awarddate`, `notificationdate`, `signaturedate`, `startdate`, `enddate`, `financialscore`, `technicalscore`, `contractor`, `comments`,`cost_variation`, `created_by`,`date_created`) VALUES( :projid, :contractrefno, :tenderno, :tendertitle, :tendertype, :tendercat, :tenderamount, :procurementmethod, :evaluationdate, :awarddate, :notificationdate, :signaturedate, :startdate, :enddate, :financialscore, :technicalscore, :contractor, :comments,:cost_variation, :created_by, :date_created)");
+            $insertSQL = $db->prepare("INSERT INTO `tbl_tenderdetails` (`projid`, `contractrefno`, `tenderno`, `tendertitle`,`tendertype`, `tendercat`, `tenderamount`, `procurementmethod`, `evaluationdate`, `awarddate`, `notificationdate`, `signaturedate`, `startdate`, `enddate`, `financialscore`, `technicalscore`, `contractor`, `comments`,`cost_variation`, `created_by`,`date_created`) VALUES( :projid, :contractrefno, :tenderno, :tendertitle, :tendertype, :tendercat, :tenderamount, :procurementmethod, :evaluationdate, :awarddate, :notificationdate, :signaturedate, :startdate, :enddate, :financialscore, :technicalscore, :contractor, :comments,:cost_variation, :created_by, :date_created)");
 
-          $insertSQL->execute(array(":projid" => $projid, ":contractrefno" => $contractrefno, ":tenderno" => $_POST['tenderno'], ":tendertitle" => $tendertitle, ":tendertype" => $tendertype, ":tendercat" => $tendercat, ":tenderamount" => $tenderamount, ":procurementmethod" => $procurementmethod, ":evaluationdate" => $evaluation, ":awarddate" => $award, ":notificationdate" => date('Y-m-d', strtotime($_POST['tendernotificationdate'])), ":signaturedate" => date('Y-m-d', strtotime($_POST['tendersignaturedate'])), ":startdate" => date('Y-m-d', strtotime($_POST['tenderstartdate'])), ":enddate" => date('Y-m-d', strtotime($_POST['tenderenddate'])), ":financialscore" => $financialscore, ":technicalscore" => $technicalscore, ":contractor" => $projcontractor, ":comments" => $comments, ":cost_variation" => $cost_variation, ":created_by" => $user_name, ":date_created" => $date_created));
-          $last_id = $db->lastInsertId();
+            $insertSQL->execute(array(":projid" => $projid, ":contractrefno" => $contractrefno, ":tenderno" => $_POST['tenderno'], ":tendertitle" => $tendertitle, ":tendertype" => $tendertype, ":tendercat" => $tendercat, ":tenderamount" => $tenderamount, ":procurementmethod" => $procurementmethod, ":evaluationdate" => $evaluation, ":awarddate" => $award, ":notificationdate" => date('Y-m-d', strtotime($_POST['tendernotificationdate'])), ":signaturedate" => date('Y-m-d', strtotime($_POST['tendersignaturedate'])), ":startdate" => date('Y-m-d', strtotime($_POST['tenderstartdate'])), ":enddate" => date('Y-m-d', strtotime($_POST['tenderenddate'])), ":financialscore" => $financialscore, ":technicalscore" => $technicalscore, ":contractor" => $projcontractor, ":comments" => $comments, ":cost_variation" => $cost_variation, ":created_by" => $user_name, ":date_created" => $date_created));
+            $last_id = $db->lastInsertId();
 
 
-          //--------------------------------------------------------------------------
-          // 1)Update project and add tender info
-          //--------------------------------------------------------------------------
-          $update = $db->prepare("UPDATE tbl_projects SET projtender = :projtender, projcontractor = :projcontractor WHERE projid = :projid");
-          $update->execute(array(':projtender' => $last_id, ':projcontractor' => $projcontractor, ':projid' => $projid));
+            //--------------------------------------------------------------------------
+            // 1)Update project and add tender info
+            //--------------------------------------------------------------------------
+            $update = $db->prepare("UPDATE tbl_projects SET projtender = :projtender, projcontractor = :projcontractor WHERE projid = :projid");
+            $update->execute(array(':projtender' => $last_id, ':projcontractor' => $projcontractor, ':projid' => $projid));
 
-          if (isset($_POST['guarantee']) && !empty($_POST['guarantee'])) {
-            $myUser = $user_name;
-            $count = count($_POST["guarantee"]);
-            if ($count > 0) {
-              for ($cnt = 0; $cnt < $count; $cnt++) {
-                $guarantee = $_POST["guarantee"][$cnt];
-                $start_date = $_POST["guarantee_start_date"][$cnt];
-                $duration = $_POST["guarantee_duration"][$cnt];
-                $notification = $_POST["guarantee_notification"][$cnt];
+            if (isset($_POST['guarantee']) && !empty($_POST['guarantee'])) {
+              $myUser = $user_name;
+              $count = count($_POST["guarantee"]);
+              if ($count > 0) {
+                for ($cnt = 0; $cnt < $count; $cnt++) {
+                  $guarantee = $_POST["guarantee"][$cnt];
+                  $start_date = $_POST["guarantee_start_date"][$cnt];
+                  $duration = $_POST["guarantee_duration"][$cnt];
+                  $notification = $_POST["guarantee_notification"][$cnt];
 
-                $insert_guarantee = $db->prepare("INSERT INTO tbl_contract_guarantees(projid, guarantee, start_date, duration, notification, date_created, created_by) VALUES (:projid, :guarantee, :start_date, :duration, :notification, :date_created, :created_by)");
-                $insert_guarantee->execute(array(':projid' => $projid, ':guarantee' => $guarantee, ':start_date' => $start_date, ':duration' => $duration, ':notification' => $notification, ':date_created' => $date_created, ':created_by' => $myUser));
+                  $insert_guarantee = $db->prepare("INSERT INTO tbl_contract_guarantees(projid, guarantee, start_date, duration, notification, date_created, created_by) VALUES (:projid, :guarantee, :start_date, :duration, :notification, :date_created, :created_by)");
+                  $insert_guarantee->execute(array(':projid' => $projid, ':guarantee' => $guarantee, ':start_date' => $start_date, ':duration' => $duration, ':notification' => $notification, ':date_created' => $date_created, ':created_by' => $myUser));
+                }
               }
             }
-          }
 
-          if (isset($_POST['attachmentpurpose'])) {
-            $myUser = $user_name;
-            $count = count($_POST["attachmentpurpose"]);
-            if ($count > 0) {
-              $filestage = $workflow_stage;
-              $filecategory = 0;
-              for ($cnt = 0; $cnt < $count; $cnt++) {
-                if (!empty($_FILES['tenderfile']['name'][$cnt])) {
-                  $purpose = $_POST["attachmentpurpose"][$cnt];
-                  $filename = basename($_FILES['tenderfile']['name'][$cnt]);
-                  $ext = substr($filename, strrpos($filename, '.') + 1);
-                  if (($ext != "exe") && ($_FILES["tenderfile"]["type"][$cnt] != "application/x-msdownload")) {
-                    $newname = time() . "-" . $cnt . "-" . $filestage . "-" . $filename;
-                    $filepath = "uploads/procurement/" . $newname;
-                    if (!file_exists($filepath)) {
-                      if (move_uploaded_file($_FILES['tenderfile']['tmp_name'][$cnt], $filepath)) {
-                        $qry2 = $db->prepare("INSERT INTO tbl_files (projid, projstage, filename, ftype, floc, fcategory, reason, uploaded_by, date_uploaded) VALUES (:projid, :projstage, :filename, :ftype, :floc, :fcat, :reason, :user, :date)");
-                        $qry2->execute(array(':projid' => $projid, ':projstage' => $filestage, ':filename' => $newname, ':ftype' => $ext, ':floc' => $filepath, ':fcat' => $filecategory, ':reason' => $purpose, ':user' => $myUser, ':date' => $date_created));
+            if (isset($_POST['attachmentpurpose'])) {
+              $myUser = $user_name;
+              $count = count($_POST["attachmentpurpose"]);
+              if ($count > 0) {
+                $filestage = $workflow_stage;
+                $filecategory = 0;
+                for ($cnt = 0; $cnt < $count; $cnt++) {
+                  if (!empty($_FILES['tenderfile']['name'][$cnt])) {
+                    $purpose = $_POST["attachmentpurpose"][$cnt];
+                    $filename = basename($_FILES['tenderfile']['name'][$cnt]);
+                    $ext = substr($filename, strrpos($filename, '.') + 1);
+                    if (($ext != "exe") && ($_FILES["tenderfile"]["type"][$cnt] != "application/x-msdownload")) {
+                      $newname = time() . "-" . $cnt . "-" . $filestage . "-" . $filename;
+                      $filepath = "uploads/procurement/" . $newname;
+                      if (!file_exists($filepath)) {
+                        if (move_uploaded_file($_FILES['tenderfile']['tmp_name'][$cnt], $filepath)) {
+                          $qry2 = $db->prepare("INSERT INTO tbl_files (projid, projstage, filename, ftype, floc, fcategory, reason, uploaded_by, date_uploaded) VALUES (:projid, :projstage, :filename, :ftype, :floc, :fcat, :reason, :user, :date)");
+                          $qry2->execute(array(':projid' => $projid, ':projstage' => $filestage, ':filename' => $newname, ':ftype' => $ext, ':floc' => $filepath, ':fcat' => $filecategory, ':reason' => $purpose, ':user' => $myUser, ':date' => $date_created));
+                        }
                       }
                     }
                   }
@@ -151,79 +148,61 @@ try {
               }
             }
           }
-        }
-        $hash = base64_encode("encodeprocprj{$projid}");
 
-        $results = "
-        <script type='text/javascript'>
-            swal({
-            title: 'Success!',
-            text: 'Contractor details were successfully created',
-            type: 'Success',
-            timer: 2000,
-            icon:'success',
-            showConfirmButton: false });
-            setTimeout(function(){
-              window.location.href = 'add-procurement-details?prj=$hash';
-                }, 2000);
-        </script>";
+          $hash = base64_encode("encodeprocprj{$projid}");
+          $results = success_message('Contractor details were successfully created', 2, "add-procurement-details.php?prj=" . $hash);
+        } else {
+          $hash = base64_encode("encodeprocprj{$projid}");
+          $results = error_message('Error occured please try again later', 2, "add-procurement-details.php?prj=" . $hash);
+        }
       }
 
       if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "store_payment_details")) {
-        $user_name = $_POST['user_name'];
-        $datecreated = date("Y-m-d");
-        $payment_plan = $_POST['payment_plan'];
+        if (validate_csrf_token($_POST['csrf_token'])) {
+          $datecreated = date("Y-m-d");
+          $payment_plan = $_POST['payment_plan'];
 
-        $update = $db->prepare("UPDATE tbl_projects SET payment_plan = :payment_plan WHERE projid = :projid");
-        $update->execute(array(':payment_plan' => $payment_plan, ':projid' => $projid));
+          $update = $db->prepare("UPDATE tbl_projects SET payment_plan = :payment_plan WHERE projid = :projid");
+          $update->execute(array(':payment_plan' => $payment_plan, ':projid' => $projid));
 
-        $sql = $db->prepare("DELETE FROM `tbl_project_payment_plan` WHERE projid=:projid ");
-        $results = $sql->execute(array(':projid' => $projid));
+          $sql = $db->prepare("DELETE FROM `tbl_project_payment_plan` WHERE projid=:projid ");
+          $results = $sql->execute(array(':projid' => $projid));
 
-        $sql = $db->prepare("DELETE FROM `tbl_project_payment_plan_details` WHERE projid=:projid ");
-        $results = $sql->execute(array(':projid' => $projid));
+          $sql = $db->prepare("DELETE FROM `tbl_project_payment_plan_details` WHERE projid=:projid ");
+          $results = $sql->execute(array(':projid' => $projid));
 
 
-        $count_mile = [];
-        if ($payment_plan == 1) {
-          if (isset($_POST['payment_phase'])) {
-            $total_payment_phase = count($_POST['payment_phase']);
-            for ($i = 0; $i < $total_payment_phase; $i++) {
-              $payment_phase = $_POST['payment_phase'][$i];
-              $percentage = $_POST['percentage'][$i];
-              $row = $_POST['row'][$i];
+          $count_mile = [];
+          if ($payment_plan == 1) {
+            if (isset($_POST['payment_phase'])) {
+              $total_payment_phase = count($_POST['payment_phase']);
+              for ($i = 0; $i < $total_payment_phase; $i++) {
+                $payment_phase = $_POST['payment_phase'][$i];
+                $percentage = $_POST['percentage'][$i];
+                $row = $_POST['row'][$i];
 
-              $sql = $db->prepare("INSERT INTO `tbl_project_payment_plan` (projid, payment_plan, percentage) VALUES(:projid, :payment_phase, :percentage)");
-              $result = $sql->execute(array(":projid" => $projid, ":payment_phase" => $payment_phase, ":percentage" => $percentage));
-              if (isset($_POST['milestone_name' . $row]) && $result) {
-                $payment_phase_id = $db->lastInsertId();
-                $total_milestone = count($_POST['milestone_name' . $row]);
-                $count_mile[] = $_POST['milestone_name' . $row];
-                for ($j = 0; $j < $total_milestone; $j++) {
-                  $milestone = $_POST['milestone_name' . $row][$j];
-                  $insertSQL = $db->prepare("INSERT INTO `tbl_project_payment_plan_details` (projid, payment_plan_id, milestone_id, created_by, created_at) VALUES(:projid,:payment_plan_id, :milestone_id, :created_by, :created_at)");
-                  $insertSQL->execute(array(":projid" => $projid, ":payment_plan_id" => $payment_phase_id, ":milestone_id" => $milestone, ":created_by" => $user_name, ":created_at" => $datecreated));
+                $sql = $db->prepare("INSERT INTO `tbl_project_payment_plan` (projid, payment_plan, percentage) VALUES(:projid, :payment_phase, :percentage)");
+                $result = $sql->execute(array(":projid" => $projid, ":payment_phase" => $payment_phase, ":percentage" => $percentage));
+                if (isset($_POST['milestone_name' . $row]) && $result) {
+                  $payment_phase_id = $db->lastInsertId();
+                  $total_milestone = count($_POST['milestone_name' . $row]);
+                  $count_mile[] = $_POST['milestone_name' . $row];
+                  for ($j = 0; $j < $total_milestone; $j++) {
+                    $milestone = $_POST['milestone_name' . $row][$j];
+                    $insertSQL = $db->prepare("INSERT INTO `tbl_project_payment_plan_details` (projid, payment_plan_id, milestone_id, created_by, created_at) VALUES(:projid,:payment_plan_id, :milestone_id, :created_by, :created_at)");
+                    $insertSQL->execute(array(":projid" => $projid, ":payment_plan_id" => $payment_phase_id, ":milestone_id" => $milestone, ":created_by" => $user_name, ":created_at" => $datecreated));
+                  }
                 }
               }
             }
           }
-        }
-        $hash = base64_encode("encodeprocprj{$projid}");
-        $redirect_url = $redirect_page ? "add-project-procurement-details.php" : "add-procurement-details?prj=$hash";
 
-        $results = "
-        <script type='text/javascript'>
-            swal({
-            title: 'Success!',
-            text: 'Payment plan successfully created',
-            type: 'Success',
-            timer: 2000,
-            icon:'success',
-            showConfirmButton: false });
-            setTimeout(function(){
-              window.location.href = '$redirect_url';
-                }, 2000);
-        </script>";
+          $hash = base64_encode("encodeprocprj{$projid}");
+          $results = success_message('Payment plan successfully created', 2, "add-procurement-details.php?prj=" . $hash);
+        } else {
+          $hash = base64_encode("encodeprocprj{$projid}");
+          $results = error_message('Error occured please try again later', 2, "add-procurement-details.php?prj=" . $hash);
+        }
       }
 
       $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
@@ -266,8 +245,6 @@ try {
         }
       }
 
-
-
       function validate_tender_details()
       {
         global $db, $projid;
@@ -289,10 +266,10 @@ try {
       function validate_output_details()
       {
         global $db, $projid;
-        $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND (cost_type= 1 || cost_type=5)");
+        $query_rs_output_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid=:projid AND cost_type= 1 ");
         $query_rs_output_cost_plan->execute(array(":projid" => $projid));
         $totalRows_rs_output_cost_plan = $query_rs_output_cost_plan->rowCount();
-        $outputs = [];
+        $outputs = $costlines = [];
         if ($totalRows_rs_output_cost_plan > 0) {
           while ($row_rsOther_cost_plan = $query_rs_output_cost_plan->fetch()) {
             $costlineid = $row_rsOther_cost_plan['id'];
@@ -313,8 +290,7 @@ try {
         <div class="container-fluid">
           <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
             <h4 class="contentheader">
-              <?= $icon ?>
-              <?php echo $pageTitle ?>
+              <?= $icon . " " . $pageTitle ?>
               <div class="btn-group" style="float:right">
                 <div class="btn-group" style="float:right">
                   <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">

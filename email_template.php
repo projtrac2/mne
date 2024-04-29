@@ -1,16 +1,8 @@
 <?php
 require('includes/head.php');
 if ($permission) {
-
 	try {
-
-		$editFormAction = $_SERVER['PHP_SELF'];
-		if (isset($_SERVER['QUERY_STRING'])) {
-			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-		}
-
 		$results = "";
-
 		if (isset($_POST["submit"])) {
 			$today = date('Y-m-d');
 			$title = $_POST["title"];
@@ -55,7 +47,6 @@ if ($permission) {
 			}
 		}
 
-
 		$query_rsUsers = $db->prepare("SELECT * FROM tbl_projteam2 WHERE ptid = '$user_name'");
 		$query_rsUsers->execute();
 		$row_rsUsers = $query_rsUsers->fetch();
@@ -81,7 +72,7 @@ if ($permission) {
 					<?= $pageTitle ?>
 					<div class="btn-group" style="float:right">
 						<div class="btn-group" style="float:right">
-						</div> 
+						</div>
 					</div>
 				</h4>
 			</div>

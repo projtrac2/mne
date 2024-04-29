@@ -29,6 +29,7 @@
             <div class="body">
                 <div class="row clearfix">
                     <form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
+                        <?= csrf_token_html(); ?>
                         <div class="col-md-3">
                             <select name="sector" id="sector" onchange="sectors()" class="form-control show-tick " style="border:#CCC thin solid; border-radius:5px; width:98%" data-live-search="false">
                                 <option value="">Select <?= $ministrylabel ?></option>
@@ -90,7 +91,7 @@
                         </thead>
                         <tbody>
                             <?php
-                            try { 
+                            try {
                                 function statuses($projstatus)
                                 {
                                     global $db;
@@ -220,7 +221,7 @@
                                             <td>' . number_format($projbudget, 2) . '</td>
                                             <td>' . number_format($projectcost, 2) . '</td>
                                             <td>' . statuses($projstatus) . '<br>' . progress($percent2) . '</td>';
-                                       
+
                                         echo '</tr>
 										<tr class="collapse project' . $itemId . '">
 											<td class="bg-grey text-center"></td><td colspan="6"><strong>Project Objective: </strong>' . $objective . '</td>
@@ -298,6 +299,7 @@
                             <div class="body">
                                 <div class="div-result">
                                     <form class="form-horizontal" id="addProjRemarksForm" action="assets/processor/reports-processor.php" method="POST" autocomplete="off">
+                                        <?= csrf_token_html(); ?>
                                         <br>
                                         <div id="result">
                                             <div class="col-md-12">

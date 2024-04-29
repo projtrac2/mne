@@ -115,46 +115,35 @@ try {
 				}
 
 				if (isset($_POST['submit'])) {
-					$current_date = date("Y-m-d");
 					$projid = $_POST['projid'];
-					$outputid = $_POST['output_id'];
-					$state_id = $_POST['state_id'];
-					$site_id = $_POST['site_id'];
-					$user_name = $_POST['user_name'];
-					$mapping_type = $_POST['mapping_type'];
-					$lats = $_POST['lat'];
-					$lngs = $_POST['lng'];
-					$total = count($lats);
+					if (validate_csrf_token($_POST['csrf_token'])) {
+						$current_date = date("Y-m-d");
+						$outputid = $_POST['output_id'];
+						$state_id = $_POST['state_id'];
+						$site_id = $_POST['site_id'];
+						$user_name = $_POST['user_name'];
+						$mapping_type = $_POST['mapping_type'];
+						$lats = $_POST['lat'];
+						$lngs = $_POST['lng'];
+						$total = count($lats);
 
-					$deleteQueryI = $db->prepare("DELETE FROM `tbl_markers` WHERE site_id=:site_id AND opid=:output_id");
-					$resultsI = $deleteQueryI->execute(array(':site_id' => $site_id, ":output_id" => $output_id));
+						$deleteQueryI = $db->prepare("DELETE FROM `tbl_markers` WHERE site_id=:site_id AND opid=:output_id");
+						$resultsI = $deleteQueryI->execute(array(':site_id' => $site_id, ":output_id" => $output_id));
 
-					for ($i = 0; $i < $total; $i++) {
-						$lat = $lats[$i];
-						$lng = $lngs[$i];
-						$sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
-						$result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+						for ($i = 0; $i < $total; $i++) {
+							$lat = $lats[$i];
+							$lng = $lngs[$i];
+							$sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
+							$result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+						}
+						$hashproc = base64_encode("projid54321{$projid}");
+						$results = success_message('Records created successfully added.', 2, "add-project-mapping?projid=" . $hashproc);
+					} else {
+						$hashproc = base64_encode("projid54321{$projid}");
+						$results = error_message('Error occured please try again later', 2, "add-project-mapping?projid=" . $hashproc);
 					}
-
-					$hashproc = base64_encode("projid54321{$projid}");
-					$msg = 'Records created successfully added.';
-					$results = "<script type=\"text/javascript\">
-						swal({
-						title: \"Success!\",
-						text: \" $msg\",
-						type: 'Success',
-						timer: 2000,
-						icon:'success',
-						showConfirmButton: false });
-						setTimeout(function(){
-								window.location.href = 'add-project-mapping?projid=$hashproc';
-							}, 3000);
-					</script>";
 				}
-
-
 				$projid_hashed = base64_encode("projid54321{$projid}");
-
 ?>
 				<style>
 					.mt-map-wrapper {

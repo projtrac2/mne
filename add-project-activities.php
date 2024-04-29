@@ -1,7 +1,7 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
@@ -12,7 +12,6 @@ if ($permission) {
 
         $query_risk_categories = $db->prepare("SELECT * FROM tbl_projrisk_categories");
         $query_risk_categories->execute();
-
 ?>
         <section class="content">
             <div class="container-fluid">
@@ -58,7 +57,6 @@ if ($permission) {
                                                     $project_directorate = $row_rsProjects['directorate'];
                                                     $projname = $row_rsProjects['projname'];
                                                     $projcode = $row_rsProjects['projcode'];
-                                                    $start_date = date('Y-m-d');
 
                                                     $query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE projid=:projid");
                                                     $query_rsMilestone->execute(array(":projid" => $projid));
@@ -89,21 +87,19 @@ if ($permission) {
                                                         $assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
                                                         $edit =  $assigned ? "edit" : "new";
                                                         $details = "{
-                                                        get_edit_details: 'details',
-                                                        projid:$projid,
-                                                        workflow_stage:$workflow_stage,
-                                                        sub_stage:$sub_stage,
-                                                        project_directorate:$project_directorate,
-                                                        project_name:'$projname',
-                                                        edit:'$edit'
-                                                    }";
-
-
+                                                            get_edit_details: 'details',
+                                                            projid:$projid,
+                                                            workflow_stage:$workflow_stage,
+                                                            sub_stage:$sub_stage,
+                                                            project_directorate:$project_directorate,
+                                                            project_name:'$projname',
+                                                            edit:'$edit'
+                                                        }"
                                             ?>
                                                         <tr>
                                                             <td align="center"><?= $counter ?></td>
                                                             <td><?= $projcode ?></td>
-                                                            <td><?= $projname ?></td>
+                                                            <td><?= $projname . " " . $projid ?></td>
                                                             <td><?= date('Y M d', strtotime($due_date)) ?></td>
                                                             <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                             <td>
@@ -215,7 +211,6 @@ if ($permission) {
                 <!-- /modal-content -->
             </div>
         </div>
-
 
         <!-- start issues modal  -->
         <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
@@ -375,15 +370,15 @@ if ($permission) {
         </div>
         <!-- end issues modal  -->
 <?php
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
-} else {
-    $results =  restriction();
-    echo $results;
-}
 
-require('includes/footer.php');
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script>

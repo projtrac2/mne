@@ -130,20 +130,20 @@ try {
                                                         $milestone_location = $row_rsMilestone['location'];
 
                                                         $milestone_details = "milestone_details:{
-                                                milestone_id: '$milestone_id',
-                                                milestone_name: '$milestone_name',
-                                                milestone_location: '$milestone_location',
-                                            },";
+                                                            milestone_id: '$milestone_id',
+                                                            milestone_name: '$milestone_name',
+                                                            milestone_location: '$milestone_location',
+                                                        },";
 
                                                         $task_id = $task_name =  "";
                                                         $options = "{
-                                                $other_details,
-                                                $milestone_details
-                                                task_details:{
-                                                task_id: '$task_id',
-                                                task_name: '$task_name',
-                                                },
-                                            }";
+                                                            $other_details,
+                                                            $milestone_details
+                                                            task_details:{
+                                                            task_id: '$task_id',
+                                                            task_name: '$task_name',
+                                                            },
+                                                        }";
 
                                                         $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE msid=:milestone");
                                                         $query_rsTasks->execute(array(":milestone" => $milestone_id));
@@ -190,16 +190,16 @@ try {
                                                                                     $task_id = $row_rsTasks['tkid'];
                                                                                     $unit_of_measure = $row_rsTasks['unit_of_measure'];
                                                                                     $task_details = "
-                                                                            task_details:{
-                                                                                task_id: '$task_id',
-                                                                                task_name: '$task_name',
-                                                                                unit_of_measure: '$unit_of_measure',
-                                                                            },";
+                                                                                        task_details:{
+                                                                                            task_id: '$task_id',
+                                                                                            task_name: '$task_name',
+                                                                                            unit_of_measure: '$unit_of_measure',
+                                                                                        },";
                                                                                     $options = "{
-                                                                            $other_details,
-                                                                            $milestone_details
-                                                                            $task_details
-                                                                        }";
+                                                                                        $other_details,
+                                                                                        $milestone_details
+                                                                                        $task_details
+                                                                                    }";
 
                                                                                     $query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = :unit_id");
                                                                                     $query_rsIndUnit->execute(array(":unit_id" => $unit_of_measure));
@@ -252,7 +252,6 @@ try {
                             </div>
                         </div>
                 </section>
-
                 <!-- Start Item more -->
                 <div class="modal fade" tabindex="-1" role="dialog" id="outputItemModal">
                     <div class="modal-dialog  modal-lg">

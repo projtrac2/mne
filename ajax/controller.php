@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 include_once("../../includes/system-labels.php");
+include_once("../../includes/app-security.php");
 
 require '../../vendor/autoload.php';
 require '../../Models/Connection.php';
@@ -95,4 +96,16 @@ function view_record($department, $section, $directorate, $allow_read_records)
         }
     }
     return $msg;
+}
+
+// Function to generate HTML with CSRF token input
+function csrf_token_html()
+{
+    return   '<input type="hidden" id="csrf_token" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+}
+
+// Validate CSRF token
+function validate_csrf_token($token)
+{
+    return isset($_SESSION['csrf_token']) && $token === $_SESSION['csrf_token'];
 }

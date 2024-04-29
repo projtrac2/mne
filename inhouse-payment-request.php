@@ -106,7 +106,7 @@ if ($permission) {
                                                         <i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $output ?>
                                                     </legend>
                                                     <?php
-                                                    if ($indicator_mapping_type == 1 ) {
+                                                    if ($indicator_mapping_type == 1) {
                                                         $querysSite = $db->prepare("SELECT * FROM tbl_project_sites d INNER JOIN tbl_output_disaggregation o ON d.site_id = o.output_site INNER JOIN tbl_state s ON s.id = d.state_id WHERE o.projid = :projid AND outputid = :output_id");
                                                         $querysSite->execute(array(":projid" => $projid, ":output_id" => $output_id));
                                                         $totalsSite = $querysSite->rowCount();
@@ -298,6 +298,7 @@ if ($permission) {
                                         <i class="fa fa-calendar" aria-hidden="true"></i> Request Details
                                     </legend>
                                     <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <label class="control-label">Due Date <span id="impunit"></span>*:</label>
                                             <div class="form-input">
@@ -642,7 +643,7 @@ require('includes/footer.php');
                 success: function(response) {
                     if (response.success) {
                         var mapping_type = response.mapping_type;
-                        if (mapping_type == 1 ) {
+                        if (mapping_type == 1) {
                             $("#site_div").show();
                             $("#site_id").html(response.sites);
                         } else {

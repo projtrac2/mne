@@ -1,6 +1,19 @@
 <?php
+function get_page_full_url()
+{
+    $path = $_SERVER['REQUEST_URI'];
+    $paths = explode("/", $path);
+    $url_path = isset($paths[2]) ? explode(".", $paths[2]) : explode(".", $paths[1]);
+    return $url_path[0];
+}
+
+$current_page_url = get_page_full_url();
+
 $inactivity_time = 15 * 60;
 $user_name = $contractor_email = $contractor_name = $avatar = '';
+$user_name = $designation_id = $department_id = $section_id = $directorate_id = $avatar = $fullname = $designation = $user_department = $user_section = $user_directorate = $user_designation = '';
+
+
 $auth_urls = array("index", "forgot-password", "reset-password");
 
 session_start();
@@ -11,7 +24,7 @@ session_start();
 // Function to generate HTML with CSRF token input
 function csrf_token_html()
 {
-    return   '<input type="hidden" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
+    return   '<input type="hidden" id="csrf_token" name="csrf_token" value="' . $_SESSION['csrf_token'] . '">';
 }
 
 // Validate CSRF token
@@ -24,7 +37,6 @@ session_start();
 
 // Set the inactivity time of 60 minutes (3600 seconds)
 $inactivity_time = 15 * 60;
-
 if (isset($_SESSION['MM_Username'])) { // projects / dashboard
     if (isset($_SESSION['last_timestamp']) && (time() - $_SESSION['last_timestamp']) > $inactivity_time) {
         session_unset();
@@ -37,7 +49,6 @@ if (isset($_SESSION['MM_Username'])) { // projects / dashboard
     }
 
     $_SESSION['last_accessed_url'] = $_SERVER['REQUEST_URI'];
-
 
     $user_name = $_SESSION['MM_Username'];
     $designation_id = $_SESSION['designation'];

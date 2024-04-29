@@ -1,11 +1,4 @@
 <?php
-function get_page_full_url()
-{
-    $path = $_SERVER['REQUEST_URI'];
-    $paths = explode("/", $path);
-    $url_path = isset($paths[2]) ? explode(".", $paths[2]) : explode(".", $paths[1]);
-    return $url_path[0];
-}
 
 function get_page_url()
 {
@@ -99,11 +92,11 @@ function get_page_actions($page_id, $read_allowed) // for getting the permission
     return $permissions;
 }
 
-function get_parent_id($page_detials)
+function get_parent_id($page_info)
 {
     global $db;
-    $parent = $page_detials['id'];
-    $parent_id = $page_detials['parent'];
+    $parent = $page_info['id'];
+    $parent_id = $page_info['parent'];
     if ($parent_id != 0) {
         $stmt = $db->prepare("SELECT * FROM tbl_pages  WHERE id=:id LIMIT 1");
         $stmt->execute(array(":id" => $parent_id));
@@ -115,11 +108,11 @@ function get_parent_id($page_detials)
     return $parent;
 }
 
-function get_child_id($page_detials)
+function get_child_id($page_info)
 {
     global $db;
-    $child = $page_detials['id'];
-    $parent_id = $page_detials['parent'];
+    $child = $page_info['id'];
+    $parent_id = $page_info['parent'];
     if ($parent_id != 0) {
         $stmt = $db->prepare("SELECT * FROM tbl_pages  WHERE id=:id LIMIT 1");
         $stmt->execute(array(":id" => $parent_id));
@@ -132,8 +125,8 @@ function get_child_id($page_detials)
 }
 
 $page_info = get_page_details();
-$full_page_url = get_page_full_url();
 $pageTitle = $icon = $allow_read_records = $workflow_stage = $Id = $subId = '';
+$permission = false;
 if ($page_info) {
     $page_id = $page_info['id'];
     $_SESSION['page_id'] = $page_id;
@@ -143,9 +136,6 @@ if ($page_info) {
     $workflow_stage = $page_info['workflow_stage'];
     $page_actions =  get_page_actions($page_id, $allow_read_records);
     $permission =  (in_array("read", $page_actions)) ? true : false;
-
-    $Id = get_parent_id($page_detials);
-    $subId = get_child_id($page_detials);
-} else {
-    $permission = false;
+    $Id = get_parent_id($page_info);
+    $subId = get_child_id($page_info);
 }

@@ -1,7 +1,7 @@
 <?php
 include 'includes/head.php';
-if ($permission) {   
-    try {       
+if ($permission) {
+	try {
 		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "financierstatusfrm")) {
 
 			$fnid = $_POST['fnid'];
@@ -12,7 +12,7 @@ if ($permission) {
 
 			if (!empty($fnid) && !empty($statusdate) && !empty($_POST['user_name'])) {
 				$insertSQL = $db->prepare("Update tbl_financiers SET active=:status, statusdate=:statusdate, updated_by=:user, date_updated=:recorddate WHERE id=:fnid");
-				//add the data into the database										  
+				//add the data into the database
 				$update = $insertSQL->execute(array(':status' => $status, ':statusdate' => $statusdate, ':user' => $_POST['user_name'], ':recorddate' => $current_date, ':fnid' => $fnid));
 
 				if ($update) {
@@ -115,57 +115,57 @@ if ($permission) {
 		} else {
 			$status =  "Inactive";
 		}
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
-	?>
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row clearfix">
-                <div class="col-md-12">
-                    <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                        <h4 class="contentheader">
-                            <?= $icon ?>
-                            <?= $pageTitle ?>
-                            <div class="btn-group" style="float:right">
-                                <div class="btn-group" style="float:right">
-                                    <?php
-                                    if ($add_financier) {
-                                    ?>
-                                        <a href="add-financier.php" class="btn btn-primary pull-right">Add Financier</a>
-                                    <?php
-                                    }
-                                    ?>
-                                </div>
-                            </div>
-                        </h4>
-                    </div>
-                </div>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <div class="col-md-12">
-                        <div class="header" style="padding-bottom:0px">
-                            <div class="button-demo" style="margin-top:-15px">
-                                <span class="label bg-black" style="font-size:18px">
-                                    <img src="assets/images/proj-icon.png" alt="Project" title="Project" style="vertical-align:middle; height:25px" /> Menu
-                                </span>
-                                <a href="view-financier-info.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Financier Details</a>
-                                <a href="view-financier-funds.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-5px">Funds Contributed</a>
-                                <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-5px">Financier Status</a>
-                            </div>
-                        </div>
-                    </div>
-                    <?= $results; ?>
-                </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- start body -->													
+	} catch (PDOException $ex) {
+		$results = flashMessage("An error occurred: " . $ex->getMessage());
+	}
+?>
+	<!-- start body  -->
+	<section class="content">
+		<div class="container-fluid">
+			<div class="row clearfix">
+				<div class="col-md-12">
+					<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+						<h4 class="contentheader">
+							<?= $icon ?>
+							<?= $pageTitle ?>
+							<div class="btn-group" style="float:right">
+								<div class="btn-group" style="float:right">
+									<?php
+									if ($add_financier) {
+									?>
+										<a href="add-financier.php" class="btn btn-primary pull-right">Add Financier</a>
+									<?php
+									}
+									?>
+								</div>
+							</div>
+						</h4>
+					</div>
+				</div>
+			</div>
+			<div class="row clearfix">
+				<div class="block-header">
+					<div class="col-md-12">
+						<div class="header" style="padding-bottom:0px">
+							<div class="button-demo" style="margin-top:-15px">
+								<span class="label bg-black" style="font-size:18px">
+									<img src="assets/images/proj-icon.png" alt="Project" title="Project" style="vertical-align:middle; height:25px" /> Menu
+								</span>
+								<a href="view-financier-info.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; padding-left:-5px">Financier Details</a>
+								<a href="view-financier-funds.php?fn=<?php echo $hash; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-5px">Funds Contributed</a>
+								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; margin-left:-5px">Financier Status</a>
+							</div>
+						</div>
+					</div>
+					<?= $results; ?>
+				</div>
+				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+					<div class="card">
+						<div class="body">
+							<!-- start body -->
 							<div style="margin-top:5px">
 								<form id="add_donation" method="POST" name="financierstatusfrm" action="" enctype="multipart/form-data" autocomplete="off">
-
+									<?= csrf_token_html(); ?>
 									<fieldset class="scheduler-border">
 										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
 										<div class="col-md-12">
@@ -262,12 +262,12 @@ if ($permission) {
 									</div>
 								</form>
 							</div>
-                            <!-- end body -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-    </section>
+							<!-- end body -->
+						</div>
+					</div>
+				</div>
+			</div>
+	</section>
 	<!-- Bootstrap Datepicker Plugin Js -->
 	<script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
 	<script type="text/javascript">
@@ -281,11 +281,11 @@ if ($permission) {
 			$('#' + rowno).remove();
 		}
 	</script>
-    <!-- end body  -->
+	<!-- end body  -->
 <?php
 } else {
-    $results =  restriction();
-    echo $results;
+	$results =  restriction();
+	echo $results;
 }
 require('includes/footer.php');
-?>	
+?>

@@ -138,6 +138,7 @@ if ($permission) {
 					</h3>
 				</div>
 				<form class="tagForm" action="inspectorassignment" method="post" id="assign-inspection-form" enctype="multipart/form-data" autocomplete="off">
+					<?= csrf_token_html(); ?>
 					<div class="modal-body">
 						<div class="row clearfix">
 							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

@@ -27,12 +27,12 @@ $(document).ready(function () {
             }
         });
     });
-	$("#adjust_quality").hide();
+    $("#adjust_quality").hide();
     $("#adjust_scope").hide();
-	$("#adjust_schedule").hide();
-	$("#adjust_cost").hide();
-	
-	
+    $("#adjust_schedule").hide();
+    $("#adjust_cost").hide();
+
+
     $("#add_issue_closure").submit(function (e) {
         e.preventDefault();
         $("#add_issue_closure-form-submit").prop("disabled", true);
@@ -48,12 +48,12 @@ $(document).ready(function () {
             timeout: 600000,
             dataType: "json",
             success: function (response) {
-				$("#add_issue_closure")[0].reset();
-				$("#add_issue_closure-form-submit").prop("disabled", false);
-				$(".modal").each(function () {
-					$(this).modal("hide");
-				});
-				
+                $("#add_issue_closure")[0].reset();
+                $("#add_issue_closure-form-submit").prop("disabled", false);
+                $(".modal").each(function () {
+                    $(this).modal("hide");
+                });
+
                 if (response.success) {
                     success_alert("Data successfully updated");
                 } else {
@@ -97,7 +97,7 @@ function add_issues() {
     var rand = Math.floor(Math.random() * 6) + 1;
     var rowno = $("#issues_table tr").length + "" + rand + "" + Math.floor(Math.random() * 7) + 1;
     $("#issues_table tr:last").after(
-    `<tr id="row${rowno}">
+        `<tr id="row${rowno}">
         <td>1</td>
         <td>
             <textarea name="issuedescription[]" id="issuedescription[]" class="form-control" placeholder="Describe the issue here" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" ></textarea>
@@ -220,7 +220,6 @@ function number_table() {
 function adjustscope() {
     var issue_type = $("#issue_area").val();
     var projid = $("#issue_projid").val();
-	console.log("projid: " + projid);
     if (projid != '') {
         $.ajax({
             type: "POST",
@@ -237,42 +236,42 @@ function adjustscope() {
             }
         });
     }
-	
-	/* var issue_area = $("#issue_area").val();
-	if ( issue_area == 1 ) {
-		$("#adjust_quality").show();
-		$("#adjust_scope").hide();
-		$("#adjust_schedule").hide();
-		$("#adjust_cost").hide();
-	} else if ( issue_area == 2 ){
-		$("#adjust_scope").show();
-		$("#adjust_quality").hide();
-		$("#adjust_schedule").hide();
-		$("#adjust_cost").hide();
-	} else if ( issue_area == 3 ){
-		$("#adjust_schedule").show();
-		$("#adjust_quality").hide();
-		$("#adjust_scope").hide();
-		$("#adjust_cost").hide();
-	} else if ( issue_area == 4 ){
-		$("#adjust_cost").show();
-		$("#adjust_quality").hide();
-		$("#adjust_schedule").hide();
-		$("#adjust_scope").hide();
-	} */
+
+    /* var issue_area = $("#issue_area").val();
+    if ( issue_area == 1 ) {
+        $("#adjust_quality").show();
+        $("#adjust_scope").hide();
+        $("#adjust_schedule").hide();
+        $("#adjust_cost").hide();
+    } else if ( issue_area == 2 ){
+        $("#adjust_scope").show();
+        $("#adjust_quality").hide();
+        $("#adjust_schedule").hide();
+        $("#adjust_cost").hide();
+    } else if ( issue_area == 3 ){
+        $("#adjust_schedule").show();
+        $("#adjust_quality").hide();
+        $("#adjust_scope").hide();
+        $("#adjust_cost").hide();
+    } else if ( issue_area == 4 ){
+        $("#adjust_cost").show();
+        $("#adjust_quality").hide();
+        $("#adjust_schedule").hide();
+        $("#adjust_scope").hide();
+    } */
 };
 
 function adjustedscopes(issueid) {
-	var clicked = $("#clicked").val();
-	if ( clicked == 0 ){
-		$("." + issueid).show();
-		clicks = clicked + 1;
-	}else{
-		$("." + issueid).hide();
-		clicks = clicked - 1;
-	}
-	
-	$('#clicked').val(clicks);
+    var clicked = $("#clicked").val();
+    if (clicked == 0) {
+        $("." + issueid).show();
+        clicks = clicked + 1;
+    } else {
+        $("." + issueid).hide();
+        clicks = clicked - 1;
+    }
+
+    $('#clicked').val(clicks);
 };
 
 function close_project_issue(issueid, projid) {

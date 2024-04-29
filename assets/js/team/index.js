@@ -124,7 +124,7 @@ const add_team_members = (user_id, role_id) => {
                     $("#department_id").html(response.departments);
                     $("#task_div").html(response.tasks);
                 } else {
-                    console.log("Could not find the data");
+                    error_alert("Could not find the data");
                 }
             }
         });
@@ -141,7 +141,7 @@ const add_team_members = (user_id, role_id) => {
                 if (response.success) {
                     $("#task_div").html(response.tasks);
                 } else {
-                    console.log("Could not find the data");
+                    error_alert("Could not find the data");
                 }
             }
         });
@@ -221,12 +221,13 @@ const delete_team_member = (details) => {
         .then((willDelete) => {
             if (willDelete) {
                 $.ajax({
-                    type: "get",
+                    type: "post",
                     url: ajax_url,
                     data: {
                         delete_team_member: "delete_team_member",
                         projid: details.projid,
                         member: details.user_id,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {

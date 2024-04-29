@@ -64,39 +64,48 @@ try {
     }
 
     if (isset($_POST['store_mapping_teams'])) {
-        $projid = $_POST['projid'];
-        $store_mapping_teams = $_POST['store_mapping_teams'];
-        $mapping_date = $_POST['mapping_date'];
-        $team = implode(",", $_POST['team']);
-        $responsible = $_POST['responsible'];
-        $message = "Error ! inserting records";
         $success = false;
-        if ($store_mapping_teams == "new") {
-            $message = "Successfully created record";
-            $sql = $db->prepare("INSERT INTO tbl_project_mapping (projid,ptid,responsible,mapping_date) VALUES(:projid,:ptid,:responsible,:mapping_date)");
-            $success = $sql->execute(array(":projid" => $projid, ":ptid" => $team, ":responsible" => $responsible, ":mapping_date" => $mapping_date));
-        } else {
-            $message = "Successfully updated record";
-            $sql = $db->prepare("UPDATE tbl_project_mapping SET ptid=:ptid,responsible=:responsible,mapping_date=:mapping_date) VALUES(:projid,:ptid,:responsible,:mapping_date)");
-            $success = $sql->execute(array(":ptid" => $team, ":responsible" => $responsible, ":mapping_date" => $mapping_date, ":projid" => $projid));
+        $message = "Error ! try again later";
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $store_mapping_teams = $_POST['store_mapping_teams'];
+            $mapping_date = $_POST['mapping_date'];
+            $team = implode(",", $_POST['team']);
+            $responsible = $_POST['responsible'];
+            $message = "Error ! inserting records";
+            if ($store_mapping_teams == "new") {
+                $message = "Successfully created record";
+                $sql = $db->prepare("INSERT INTO tbl_project_mapping (projid,ptid,responsible,mapping_date) VALUES(:projid,:ptid,:responsible,:mapping_date)");
+                $success = $sql->execute(array(":projid" => $projid, ":ptid" => $team, ":responsible" => $responsible, ":mapping_date" => $mapping_date));
+            } else {
+                $message = "Successfully updated record";
+                $sql = $db->prepare("UPDATE tbl_project_mapping SET ptid=:ptid,responsible=:responsible,mapping_date=:mapping_date) VALUES(:projid,:ptid,:responsible,:mapping_date)");
+                $success = $sql->execute(array(":ptid" => $team, ":responsible" => $responsible, ":mapping_date" => $mapping_date, ":projid" => $projid));
+            }
         }
         echo json_encode(array("success" => $success, "message" => $message));
     }
 
     if (isset($_POST['pin_location'])) {
-        $current_date = date("Y-m-d");
-        $projid = $_POST['projid'];
-        $outputid = $_POST['output_id'];
-        $state_id = $_POST['state_id'];
-        $site_id = $_POST['site_id'];
-        $user_name = $_POST['user_name'];
-        $mapping_type = $_POST['mapping_type']; 
-        $distance = $_POST['distance']; 
-        $lat = $_POST['lat'];
-        $lng = $_POST['lng'];
-        $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,state,site_id,lat,lng,distance_mapped,mapped_date,mapped_by)  VALUES(:projid,:opid,:state,:site_id,:lat,:lng,:distance,:mapped_date,:mapped_by)");
-        $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ":state" => $state_id, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng,":distance"=>$distance, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
-        echo json_encode(array("success" => $result, "message" => "Message Successfully"));
+        $message = "Error occured please try again later";
+        $success = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $success = true;
+            $message = "Message Successfully";
+            $current_date = date("Y-m-d");
+            $projid = $_POST['projid'];
+            $outputid = $_POST['output_id'];
+            $state_id = $_POST['state_id'];
+            $site_id = $_POST['site_id'];
+            $user_name = $_POST['user_name'];
+            $mapping_type = $_POST['mapping_type'];
+            $distance = $_POST['distance'];
+            $lat = $_POST['lat'];
+            $lng = $_POST['lng'];
+            $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,state,site_id,lat,lng,distance_mapped,mapped_date,mapped_by)  VALUES(:projid,:opid,:state,:site_id,:lat,:lng,:distance,:mapped_date,:mapped_by)");
+            $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ":state" => $state_id, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":distance" => $distance, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+        }
+        echo json_encode(array("success" => $success, "message" => $message));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

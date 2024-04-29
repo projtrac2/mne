@@ -34,7 +34,7 @@ if ($permission) {
 				$resultform = $formInsert->execute(array(":indid" => $indid, ":formid" => $formid, ":conclusion" => $conclusion, ":recommendation" => $recommendation, ":user" => $user, ":date" => $current_date));
 				//var_dump("YES");
 				if ($resultform) {
-					//$projstage = 3 for process evaluation; 4 for rapid evaluation; 5 for outcome evaluation 
+					//$projstage = 3 for process evaluation; 4 for rapid evaluation; 5 for outcome evaluation
 					$svystatus = 4;
 					$formstatus = 4;
 					$baseline = 1;
@@ -68,7 +68,7 @@ if ($permission) {
 								buttons: false,
 								dangerMode: true,
 								timer: 3000,
-								showConfirmButton: false 
+								showConfirmButton: false
 							});
 						</script>";
 					}
@@ -83,7 +83,7 @@ if ($permission) {
 						buttons: false,
 						dangerMode: true,
 						timer: 3000,
-						showConfirmButton: false 
+						showConfirmButton: false
 					});
 				</script>";
 			}
@@ -107,18 +107,18 @@ if ($permission) {
 		$query_surveysummary->execute();
 		$totalRows_surveysummary = $query_surveysummary->rowCount();
 
-		//get the submission number and date 
+		//get the submission number and date
 		$query_rsSubmission = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid'");
 		$query_rsSubmission->execute();
 		$totalRows_rsSubmission = $query_rsSubmission->rowCount();
 
-		//get the location and date 
+		//get the location and date
 		$query_rsSubLoc = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission s inner join tbl_state t on t.id=s.level3id WHERE indid='$indid' AND formid='$formid' GROUP BY level3id");
 		$query_rsSubLoc->execute();
 		$totalRows_rsSubLoc = $query_rsSubLoc->rowCount();
 
 		///////////////////////////////////////////
-		//Query the project name and form Name 
+		//Query the project name and form Name
 		///////////////////////////////////////////
 		$query_rsFormDetails = $db->prepare("SELECT f.form_name, i.indname, i.indcategory FROM `tbl_indicator_baseline_survey_submission` s INNER JOIN tbl_indicator_baseline_survey_forms f ON f.id=s.formid INNER JOIN tbl_indicator i ON i.indid =s.indid WHERE  s.indid=:indid AND s.formid=:formid GROUP BY i.indname");
 		$query_rsFormDetails->execute(array(":indid" => $indid, ":formid" => $formid));
@@ -126,7 +126,7 @@ if ($permission) {
 		$totalRows_rsFormDetails = $query_rsFormDetails->rowCount();
 
 		/////////////////////////////////////////////
-		//	Query section for the answers 
+		//	Query section for the answers
 		/////////////////////////////////////////////
 		$query_rsSection = $db->prepare("SELECT o.id, o.section  FROM tbl_indicator_baseline_survey_answers a INNER JOIN tbl_indicator_baseline_survey_form_question_fields q ON q.id=a.fieldid INNER JOIN tbl_indicator_baseline_survey_form_sections o ON o.id =q.sectionid WHERE o.formid=:formid GROUP BY q.sectionid ");
 		$query_rsSection->execute(array(":formid" => $formid));
@@ -134,7 +134,7 @@ if ($permission) {
 		$totalRows_rsSection = $query_rsSection->rowCount();
 
 		///////////////////////////////////////////
-		//	Query the form sections 
+		//	Query the form sections
 		///////////////////////////////////////////
 		$query_rsSections = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_form_sections WHERE  formid=:formid");
 		$query_rsSections->execute(array(":formid" => $formid));
@@ -333,7 +333,7 @@ if ($permission) {
 																					<th style="width:3%">ANS\QST</th>
 																					<?php
 																					$question = $row["label"];
-																					//$questionid = $query["id"];		
+																					//$questionid = $query["id"];
 																					?>
 																					<th><?= $question ?></th>
 																				</tr>
@@ -423,13 +423,13 @@ if ($permission) {
 															while ($row_rsSubLoc = $query_rsSubLoc->fetch()) {
 																$nm = $nm + 1;
 																$lv3id = $row_rsSubLoc["level3id"];
-																//get the submission number and date 
+																//get the submission number and date
 																$query_rsSubmEmail = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND level3id='$lv3id' GROUP BY email");
 																$query_rsSubmEmail->execute();
 																$row_rsSubmEmail = $query_rsSubmEmail->fetchAll();
 																$totalRows_rsSubmEmail = $query_rsSubmEmail->rowCount();
 
-																//get the number submissions 
+																//get the number submissions
 																$query_rsSubmissions = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND level3id='$lv3id'");
 																$query_rsSubmissions->execute();
 																$svySubmissions = $query_rsSubmissions->rowCount();
@@ -463,7 +463,7 @@ if ($permission) {
 																$sr = 0;
 																$submitterEmail = Explode(",", $submitters);
 																foreach ($submitterEmail as $submitter) {
-																	//get the submission number and date 
+																	//get the submission number and date
 																	$query_rsSubmission = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND email='$submitter' AND level3id='$lv3id'");
 																	$query_rsSubmission->execute();
 																	$totalRows_rsSubmission = $query_rsSubmission->rowCount();
@@ -642,7 +642,7 @@ if ($permission) {
 																	<?php
 																	foreach ($row_objquestions as $query) {
 																		$question = $query["label"];
-																		//$questionid = $query["id"];		
+																		//$questionid = $query["id"];
 																	?>
 																		<th><?= $question ?></th>
 																	<?php } ?>
@@ -709,6 +709,7 @@ if ($permission) {
 
 									<div class="tab-pane" role="tabpanel" id="step4">
 										<form class="form-horizontal" id="baselinesurveyForm" action="indicator-baseline-survey-form-processing.php" method="POST" enctype="multipart/form-data" autocomplete="off">
+											<?= csrf_token_html(); ?>
 											<div id="baselineupdate">
 												<?php
 												if ($row_formdetails["status"] == 2) {
@@ -716,7 +717,7 @@ if ($permission) {
 													<fieldset class="scheduler-border">
 														<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Baseline Values</legend>
 														<!--<div class="block-header" id="sweetalert">
-															<?php //echo $results; 
+															<?php //echo $results;
 															?>
 														</div>-->
 														<div class="col-md-3">
@@ -773,7 +774,7 @@ if ($permission) {
 																					<td>' . $nm . '.' . $sr . '</td>
 																					<td>' . $level2 . ' ' . $level2label . '</td>
 																					<td><input type="hidden" name="lvid' . $nm . '[]" value="' . $lv2id . '"></td>
-																					
+
 																				</tr>';
 
 																				$query_location_level3 =  $db->prepare("SELECT * FROM tbl_state WHERE parent = '$lv2id' and state NOT LIKE 'All%' ORDER BY state ASC");
@@ -918,6 +919,7 @@ if ($permission) {
 									<div class="tab-pane" role="tabpanel" id="step5">
 
 										<form action="" method="POST" role="form" id="conclusionform">
+											<?= csrf_token_html(); ?>
 											<fieldset class="scheduler-border">
 												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Conclusion & Recommendations</legend>
 												<div class="block-header" id="sweetalert">

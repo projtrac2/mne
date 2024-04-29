@@ -207,6 +207,7 @@ if ($permission) {
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <div class="body" style="margin-top:5px">
                                                 <form action="" method="post" enctype="multipart/form-data">
+                                                    <?= csrf_token_html(); ?>
                                                     <div class="row clearfix">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                             <h4>Chapter 1: Performance</h4>
@@ -550,6 +551,7 @@ if ($permission) {
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                             <div class="body" style="margin-top:5px">
                                                 <form action="" method="post" enctype="multipart/form-data">
+                                                    <?= csrf_token_html(); ?>
                                                     <div class="row clearfix">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                             <h4>Chapter 1: Performance</h4>
@@ -896,6 +898,7 @@ if ($permission) {
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="add_items" action="" method="POST" autocomplete="off" enctype="multipart/form-data">
+                                            <?= csrf_token_html(); ?>
                                             <br>
                                             <div id="result">
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

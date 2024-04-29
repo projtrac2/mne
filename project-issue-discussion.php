@@ -77,7 +77,7 @@ if ($permission) {
 					}
 				}
 			}
-			//query table issues 
+			//query table issues
 			$query_projissue = $db->prepare("SELECT i.id, i.origin, p.projid, p.projname AS projname,p.projcategory, category, observation, recommendation, status, i.created_by AS monitor, i.date_created AS issuedate FROM `tbl_projissues` i INNER JOIN tbl_projrisk_categories c on c.rskid=i.risk_category INNER JOIN tbl_projects p on p.projid =i.projid WHERE i.id ='$projisd'");
 			$query_projissue->execute();
 			$row_projissue = $query_projissue->fetch();
@@ -98,17 +98,17 @@ if ($permission) {
 			$issuedesc = $row_projissue['observation'];
 			$issuestatus = $row_projissue['status'];
 			$projname = $row_projissue["projname"];
-			$created_by  = $row_projissue["created_by"]; //owner  
+			$created_by  = $row_projissue["created_by"]; //owner
 			$owner  = $user_name;
 			$formid = $row_projissue["formid"];
 
-			//get active module 
+			//get active module
 			$query_rsRelated = $db->prepare("SELECT * FROM `tbl_projissues_discussions` WHERE issueid ='$projisd' and parent = 0 and (status = 1 or status = 2)");
 			$query_rsRelated->execute();
 			$row_rsRelated = $query_rsRelated->fetch();
 			$totalRows_rsRelated = $query_rsRelated->rowCount();
 
-			//if there is no active discussion create one 
+			//if there is no active discussion create one
 			if ($totalRows_rsRelated == 0) {
 				$parent = 0;
 				$comments = "";
@@ -122,7 +122,7 @@ if ($permission) {
 				$create_discussion = $db->prepare("INSERT INTO tbl_projissues_discussions (parent, projid, issueid, owner, comment, date_created) VALUES(:parent, :projid, :issueid, :owner, :comment, :date_created)");
 				$result = $create_discussion->execute(array(":parent" => $parent, ":projid" => $projid, ":issueid" => $projisd, ":owner" => $owner, ":comment" => $comments, ":date_created" => $date_created));
 				if ($result) {
-					//get the created discussion module 
+					//get the created discussion module
 					$query_rsRelated = $db->prepare("SELECT * FROM `tbl_projissues_discussions` WHERE issueid ='$projisd' and status = 1 and parent = 0");
 					$query_rsRelated->execute();
 					$row_rsRelated = $query_rsRelated->fetch();
@@ -137,7 +137,7 @@ if ($permission) {
 				$parentid = $row_rsRelated['id'];
 			}
 
-			// get related discussions 
+			// get related discussions
 			$query_issueby = $db->prepare("SELECT * FROM tbl_projissues i inner join users u on u.userid=i.created_by inner join tbl_projteam2 t on t.ptid = u.pt_id inner join tbl_pmdesignation r on r.moid = t.designation WHERE i.id ='$projisd'");
 			$query_issueby->execute();
 			$rows_issueby = $query_issueby->fetch();
@@ -146,7 +146,7 @@ if ($permission) {
 			$daterecorded = date("d M Y", strtotime($rows_issueby["date_created"]));
 			$issueownerdate = date("d M Y", strtotime($rows_issueby["date_assigned"]));
 
-			// issue owner 
+			// issue owner
 			$query_issueowner = $db->prepare("SELECT * FROM tbl_projissues_discussions d inner join users u on u.userid=d.owner inner join tbl_projteam2 t on t.ptid = u.pt_id inner join tbl_pmdesignation r on r.moid = t.designation WHERE issueid ='$projisd' and parent = 0");
 			$query_issueowner->execute();
 			$rows_issueowner = $query_issueowner->fetch();
@@ -156,13 +156,13 @@ if ($permission) {
 			$issueownerid = $rows_issueowner["owner"];
 
 
-			//get discussions on the issue details 
+			//get discussions on the issue details
 			$query_issuediscussion = $db->prepare("SELECT d.owner, t.title, t.fullname, t.floc as avatar, r.designation, d.comment, d.date_created FROM tbl_projissues_discussions d inner join users u on u.userid=d.owner inner join tbl_projteam2 t on t.ptid = u.pt_id inner join tbl_pmdesignation r on r.moid = t.designation WHERE issueid = '$projisd' ORDER BY d.`id` ASC");
 			$query_issuediscussion->execute();
 			$row_issuediscussion = $query_issuediscussion->fetch();
 			$totalRows_issuediscussion = $query_issuediscussion->rowCount();
 
-			//get active module 
+			//get active module
 			$query_discussionstatus = $db->prepare("SELECT status FROM `tbl_projissues_discussions` WHERE issueid ='$projisd' and parent = 0");
 			$query_discussionstatus->execute();
 			$row_discussionstatus = $query_discussionstatus->fetch();
@@ -201,8 +201,8 @@ if ($permission) {
 							</div>
 							<div class="col-md-4" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
 								<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
-									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?=$percent2?>" aria-valuemin="0" aria-valuemax="100" style="width: <?=$percent2?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
-										<?=$percent2?>%
+									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $percent2 ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $percent2 ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
+										<?= $percent2 ?>%
 									</div>
 								</div>
 							</div>
@@ -215,16 +215,16 @@ if ($permission) {
 							<div class="clearfix" style="margin-top:5px">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:15px">
 									<h4 class="pull-center">
-										Discussions Board 
+										Discussions Board
 										<?php
 										if ($pstatus == 2) {
-											?><a href="projectissueslist.php?proj=<?= $projid ?>" type="button" class="btn btn-success" style="float:right">Back to Issues</a>
-											<?php
+										?><a href="projectissueslist.php?proj=<?= $projid ?>" type="button" class="btn btn-success" style="float:right">Back to Issues</a>
+										<?php
 										} elseif ($pstatus == 1 && ($issueownerid == $user_name)  || ($role_group == 4 && $designation == 1)) {
 										?>
 											<a href="project-issue-discussion?issueid=<?= $projisd ?>&ds=2" type="button" class="btn btn-warning" style="float:right">Close Discussion</a>
-										<?php 
-										} 
+										<?php
+										}
 										?>
 									</h4>
 								</div>
@@ -298,15 +298,15 @@ if ($permission) {
 													</td>
 													<td>
 													' . $pdfname . '
-													</td> 
+													</td>
 													<td>
 													' . $type . '
-													</td> 
-													<td> 
-													' . $attachmentPurpose . '  
 													</td>
-													<td align="center"> 
-													' . $action . '  
+													<td>
+													' . $attachmentPurpose . '
+													</td>
+													<td align="center">
+													' . $action . '
 													</td>
 												</tr>';
 																	} while ($row_rsFile = $query_rsFile->fetch());
@@ -336,15 +336,15 @@ if ($permission) {
 													</td>
 													<td>
 													' . $pdfname . '
-													</td> 
+													</td>
 													<td>
 													' . $type . '
-													</td> 
-													<td> 
-													' . $attachmentPurpose . '  
 													</td>
-													<td> 
-													' . $action . '  
+													<td>
+													' . $attachmentPurpose . '
+													</td>
+													<td>
+													' . $action . '
 													</td>
 												</tr>';
 																	} while ($row_photos = $query_photos->fetch());
@@ -429,14 +429,14 @@ if ($permission) {
 																		?>">
 							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
 								<textarea placeholder="Type your message here" class="form-control " name="comments" disabled>
-									You cannot contribute any longer to this Discussion 
+									You cannot contribute any longer to this Discussion
 								</textarea>
 							</div>
 							<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12 text-right">
 								<!--<span id="counter"></span>
 								<button disabled class="btn btn-secondary btn-circle btn-sm" data-toggle="tooltip" data-placement="top" title="Attach file">
 									<i class="fa fa-paperclip" aria-hidden="true"></i>
-									<input id="file" type="file" hidden multiple name="file" disabled> 
+									<input id="file" type="file" hidden multiple name="file" disabled>
 								</button>
 								<button type="submit" class="btn btn-info btn-lg" disabled>Send</button>-
 							</div>
@@ -446,6 +446,7 @@ if ($permission) {
 										} else {
 										?>
 											<form action="" method="post" enctype="multipart/form-data">
+												<?= csrf_token_html(); ?>
 												<div style="margin-top:10px">
 													<input type="hidden" name="projid" value="<?php echo $projid ?>">
 													<input type="hidden" name="issueid" value="<?php echo $projisd ?>">

@@ -366,7 +366,7 @@ function chartdraws() {
       var selectedItem = chart.getSelection()[0];
       if (selectedItem) {
          var topping = guarantees_data.getValue(selectedItem.row, 0);
-         window.location.href = `/guarantees-chart-selection.php?data=${topping}`;
+         window.location.href = `guarantees-chart-selection.php?data=${topping}`;
       }
    }
 

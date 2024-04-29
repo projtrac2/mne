@@ -1,7 +1,4 @@
 const ajax_url1 = "ajax/programsOfWorks/index";
-
-
-
 $(document).ready(function () {
     $("#add_output").submit(function (e) {
         e.preventDefault();
@@ -146,47 +143,6 @@ $(document).ready(function () {
     });
 });
 
-function add_project_frequency(details) {
-    $("#projid").val(details.projid);
-    $("#activity_monitoring_frequency").val(details.activity_monitoring_frequency);
-    $("#monitoring_frequency").val(details.monitoring_frequency);
-
-    $("#m_site_id").val(details.site_id);
-    $("#m_output_id").val(details.output_id);
-    $("#m_task_id").val(details.task_id);
-    $("#m_subtask_id").val(details.subtask_id);
-}
-
-function add_project_frequency_data(projid, activity_monitoring_frequency, monitoring_frequency) {
-    $("#projid").val(projid);
-    $("#activity_monitoring_frequency").val(activity_monitoring_frequency);
-    get_monitoring_frequency(monitoring_frequency);
-}
-
-function get_monitoring_frequency(monitoring_frequency) {
-    var projid = $("#projid").val();
-    var frequency = $("#activity_monitoring_frequency").val();
-    if (projid != '' && frequency != '') {
-        $.ajax({
-            type: "get",
-            url: ajax_url1,
-            data: {
-                get_monitoring_frequency: "get_monitoring_frequency",
-                projid: projid,
-                frequency: frequency
-            },
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    $("#monitoring_frequency").html(response.frequency);
-                    $("#monitoring_frequency").val(monitoring_frequency);
-                } else {
-                    error_alert("Error occured please try again later");
-                }
-            }
-        });
-    }
-}
 
 function get_tasks(details) {
     var output_id = details.output_id;
@@ -242,6 +198,32 @@ function get_subtasks_adjust(details) {
     });
 }
 
+function get_frequency_tasks(details) {
+    var output_id = details.output_id;
+    var task_id = details.task_id;
+    var site_id = details.site_id;
+    var edit = details.edit;
+    $("#output_id").val(output_id);
+    $("#site_id").val(site_id);
+    $("#task_id").val(task_id);
+    var projid = $("#projid").val();
+    (edit == "1") ? $("#store_tasks").val(1) : $("#store_tasks").val(0);
+    $.ajax({
+        type: "get",
+        url: ajax_url1,
+        data: {
+            get_frequency_tasks: "get_frequency_tasks",
+            projid: projid,
+            output_id: output_id,
+            task_id: task_id,
+            site_id: site_id,
+        },
+        dataType: "json",
+        success: function (response) {
+            $("#tasks_table_body").html(response.tasks);
+        }
+    });
+}
 
 function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
     $("#t_output_id").val(output_id);
@@ -271,6 +253,7 @@ function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
                 $("#subtask_target").html(subtask.units_no + ' ' + subtask.unit);
                 $("#subtask_name").html(subtask.task);
                 $("#total_target").val(subtask.units_no);
+
             } else {
                 error_alert("Error please try again later");
             }
@@ -348,7 +331,6 @@ function calculate_end_date(task_id) {
 
 }
 
-
 function save_data_entry_project(details) {
     swal({
         title: "Are you sure?",
@@ -361,26 +343,20 @@ function save_data_entry_project(details) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: "ajax/master/index",
+                    url: ajax_url1,
                     data: {
                         save_data_entry: "save_data_entry",
                         projid: details.projid,
                         workflow_stage: details.workflow_stage,
+                        sub_stage: details.sub_stage,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response.success == true) {
-                            swal({
-                                title: "Project !",
-                                text: "Project proceeded to approval stage",
-                                icon: "success",
-                            });
+                            success_alert("Project proceeded to approval stage");
                         } else {
-                            swal({
-                                title: "Project !",
-                                text: "Error",
-                                icon: "error",
-                            });
+                            error_alert("error occured while processing");
                         }
                         setTimeout(function () {
                             window.location.href = redirect_url;
@@ -388,11 +364,10 @@ function save_data_entry_project(details) {
                     },
                 });
             } else {
-                swal("You cancelled the action!");
+                success_alert("You cancelled the action!");
             }
         });
 }
-
 
 function approve_project(details) {
     swal({
@@ -406,27 +381,20 @@ function approve_project(details) {
             if (willDelete) {
                 $.ajax({
                     type: "post",
-                    url: "ajax/master/index",
+                    url: ajax_url1,
                     data: {
                         approve_stage: "approve_stage",
                         projid: details.projid,
                         workflow_stage: details.workflow_stage,
                         sub_stage: details.sub_stage,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response.success == true) {
-                            swal({
-                                title: "Project !",
-                                text: "Successfully approved project",
-                                icon: "success",
-                            });
+                            success_alert("Successfully approved project")
                         } else {
-                            swal({
-                                title: "Project !",
-                                text: "Error approving project",
-                                icon: "error",
-                            });
+                            error_alert("Error approving project")
                         }
                         setTimeout(function () {
                             window.location.href = redirect_url;
@@ -434,7 +402,7 @@ function approve_project(details) {
                     },
                 });
             } else {
-                swal("You cancelled the action!");
+                error_alert("You cancelled the action!");
             }
         });
 }

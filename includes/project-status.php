@@ -232,4 +232,20 @@ function get_project_status($status_id)
     return $status;
 }
 
+function get_status($status_id)
+{
+    global $db;
+    $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :status_id");
+    $query_Projstatus->execute(array(":status_id" => $status_id));
+    $row_Projstatus = $query_Projstatus->fetch();
+    $total_Projstatus = $query_Projstatus->rowCount();
+    $status = "";
+    if ($total_Projstatus > 0) {
+        $status_name = $row_Projstatus['statusname'];
+        $status_class = $row_Projstatus['class_name'];
+        $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
+    }
+    return $status;
+}
+
 update_project_status();

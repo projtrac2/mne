@@ -1,4 +1,4 @@
-<?php 
+<?php
 $pageName = "Manage Financier";
 require('includes/head.php');
 require('includes/header.php');
@@ -40,6 +40,7 @@ try {
 <div class="body">
     <div style="margin-top:5px">
         <form id="add_financier" method="POST" name="addfinancierfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+            <?= csrf_token_html(); ?>
             <fieldset class="scheduler-border">
                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
                 <div class="col-md-8">
@@ -166,15 +167,15 @@ try {
                                                                 </td>
                                                                 <td>
                                                                 ' . $pdfname . '
-                                                                </td> 
+                                                                </td>
                                                                 <td>
                                                                 ' . $type . '
-                                                                </td> 
-                                                                <td> 
-                                                                ' . $attachmentPurpose . '  
                                                                 </td>
-                                                                <td align="center"> 
-                                                                ' . $action . '  
+                                                                <td>
+                                                                ' . $attachmentPurpose . '
+                                                                </td>
+                                                                <td align="center">
+                                                                ' . $action . '
                                                                 </td>
                                                             </tr>';
                                                     } while ($row_rsFile = $query_rsFile->fetch());

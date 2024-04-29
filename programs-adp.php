@@ -2,11 +2,11 @@
 require('includes/head.php');
 if ($permission) {
 	try {
-		//get financial years 
+		//get financial years
 		$year = date("Y");
 		$month = date("m");
-		
-		if($month >= 1 && $month <= 6){
+
+		if ($month >= 1 && $month <= 6) {
 			$year = $year - 1;
 		}
 		$query_rsYear =  $db->prepare("SELECT id, year FROM tbl_fiscal_year where yr='$year'");
@@ -73,11 +73,11 @@ if ($permission) {
 											$classstatus = "";
 											$classstatusin = "";
 										}
-										?>
-										<li class="<?=$classstatus?>">
+								?>
+										<li class="<?= $classstatus ?>">
 											<a data-toggle="tab" href="#<?= $link ?>"><i class="fa fa-caret-square-o<?= $linkclass ?>" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge <?= $linkclassbadge ?>">||</span></a>
 										</li>
-										<?php
+								<?php
 									}
 								}
 								?>
@@ -117,7 +117,7 @@ if ($permission) {
 												$classstatusin = "";
 												$color = "blue";
 											}
-											?>
+									?>
 											<div id="<?= $link ?>" class="tab-pane fade<?= $classstatusin ?>">
 												<div style="color:#333; background-color:#EEE; width:100%; height:30px">
 													<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:<?= $color ?>"></i> <?= $adp; ?> Programs </h4>
@@ -142,16 +142,16 @@ if ($permission) {
 
 														if ($rows_adp_approved_budget > 0) {
 															//$month = 8;
-															
+
 															$sn = 0;
 															while ($row_approved_budget = $query_adp_approved_budget->fetch()) {
 																$progid = $row_approved_budget['progid'];
-														
+
 																// get programs adps
 																$query_budget_programs = $db->prepare("SELECT * FROM tbl_programs WHERE progid=:progid");
 																$query_budget_programs->execute(array(":progid" => $progid));
 																$budget_programs = $query_budget_programs->fetch();
-																
+
 																$progname = $budget_programs["progname"];
 																$progsector = $budget_programs["projsector"];
 																$progdept = $budget_programs["projdept"];
@@ -166,19 +166,19 @@ if ($permission) {
 																$requested_budget = number_format($row_prgbudget['budget'], 2);
 																$adjusted_amount = number_format($row_prgbudget['adjusted_amount'], 2);
 
-																//get program sector 
+																//get program sector
 																$query_sector = $db->prepare("SELECT stid, sector FROM `tbl_sectors` WHERE stid=:progsector");
 																$query_sector->execute(array(":progsector" => $progsector));
 																$rowsector = $query_sector->fetch();
 																$sector = $rowsector["sector"];
 
-																//get adjusted program based budget 
+																//get adjusted program based budget
 																/* $query_sum = $db->prepare("SELECT SUM(budget) AS amount FROM `tbl_programs_based_budget` WHERE progid=:progid and finyear=:adpyr");
 																$query_sum->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																$rowsum = $query_sum->fetch();
 																$amount = number_format($rowsum["amount"], 2); */
 
-																// get department 
+																// get department
 																$query_dept =  $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE stid=:progdept");
 																$query_dept->execute(array(":progdept" => $progdept));
 																$row_dept = $query_dept->fetch();
@@ -187,17 +187,17 @@ if ($permission) {
 
 																$ministry = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $sector . '</span>';
 
-																// get program annual plan 
+																// get program annual plan
 																$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid = :progid and finyear = :adpyr");
 																$query_pbb->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																$norows_pbb = $query_pbb->rowCount();
 
 																if ($row_prgbudget['adjusted_amount'] == 0) {
-																	// get program quarterly targets 
+																	// get program quarterly targets
 																	$query_pbbtargets =  $db->prepare("SELECT * FROM  tbl_programs_quarterly_targets WHERE progid = :progid and year = :yrid");
 																	$query_pbbtargets->execute(array(":progid" => $progid, ":yrid" => $yrid));
 																	$norows_pbbtargets = $query_pbbtargets->rowCount();
-																	
+
 																	if ($norows_pbbtargets > 0) {
 																		$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
 																		$query_projects_count->execute();
@@ -226,7 +226,7 @@ if ($permission) {
 																		}
 
 																		//if (in_array("add_quarterly_targets", $page_actions)) {
-																			$buttonunapprov .= '
+																		$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="quarterlyTargetsModalBtn" data-target="#quarterlyTargetsModal" onclick="addQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
 																				<i class="fa fa-plus-square-o"></i> Add Quarterly Targets
@@ -236,14 +236,14 @@ if ($permission) {
 																	}
 																} else {
 																	//if (in_array("add_budget", $page_actions)) {
-																		if ($month >= 7 && $month <= 12) {
-																			$buttonunapprov .= '
+																	if ($month >= 7 && $month <= 12) {
+																		$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approvePADP(' . $progid . ')">
 																				<i class="fa fa-check-square-o"></i> Add Approved Budget
 																				</a>
 																			</li>';
-																		}
+																	}
 																	//}
 																}
 																$button = '<!-- Single button -->
@@ -253,14 +253,14 @@ if ($permission) {
 																	</button>
 																	<ul class="dropdown-menu">
 																		' . $buttonunapprov . '
-																		<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>      
-																	</ul> 
+																		<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>
+																	</ul>
 																</div>';
-																
+
 																$filter_department = view_record($progsector, $progdept, $project_directorate);
 																if ($filter_department) {
 																	$sn++;
-																	?>
+														?>
 																	<tr>
 																		<td align="center"><?php echo $sn; ?></td>
 																		<td><?php echo $progname; ?></td>
@@ -269,9 +269,9 @@ if ($permission) {
 																		<td><?php echo $ministry; ?></td>
 																		<td><?php echo $button; ?></td>
 																	</tr>
-																<?php
+														<?php
 																}
-															} // /while 
+															} // /while
 														}
 														?>
 													</tbody>
@@ -328,6 +328,7 @@ if ($permission) {
 				<div class="modal-body" style="max-height:450px; overflow:auto;">
 					<div class="div-result">
 						<form class="form-horizontal" id="approveItemForm" action="general-settings/action/approve-PADP-action.php" method="POST">
+							<?= csrf_token_html(); ?>
 							<br />
 							<div class="row clearfix">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -363,6 +364,7 @@ if ($permission) {
 				<div class="modal-body" style="max-height:450px; overflow:auto;">
 					<div class="div-result">
 						<form class="form-horizontal" id="editpbbItemForm" action="general-settings/action/adp-edit-action.php" method="POST">
+							<?= csrf_token_html(); ?>
 							<br />
 							<div class="row clearfix">
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -399,6 +401,7 @@ if ($permission) {
 				<div class="modal-body" style="max-height:450px; overflow:auto;">
 					<div class="div-result">
 						<form class="form-horizontal" id="quarterlyTargetsForm" action="general-settings/action/adp-edit-action.php" method="POST">
+							<?= csrf_token_html(); ?>
 							<br />
 							<div class="col-md-12" id="quarterlyTargetsBody">
 
@@ -510,7 +513,7 @@ require('includes/footer.php');
 		$('.tables').DataTable();
 
 
-		// submit approved pbb details  
+		// submit approved pbb details
 		$("#approveItemForm").submit(function(e) {
 			e.preventDefault();
 			var form_data = $(this).serialize();
@@ -532,7 +535,7 @@ require('includes/footer.php');
 			});
 		});
 
-		// submit editted approved pbb details  
+		// submit editted approved pbb details
 		$("#editpbbItemForm").submit(function(e) {
 			e.preventDefault();
 			var form_data = $(this).serialize();
@@ -598,7 +601,7 @@ require('includes/footer.php');
 			});
 		});
 	});
-	// get the program budget/target div from db 
+	// get the program budget/target div from db
 	function approvePADP(progid = null) {
 		if (progid) {
 			$.ajax({
@@ -616,7 +619,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db 
+	// get the program budget/target div from db
 	function editPADP(progid = null, adpyr = null) {
 		if (progid) {
 			$.ajax({
@@ -635,7 +638,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db 
+	// get the program budget/target div from db
 	function addQuarterlytargets(progid = null, adpyr = null) {
 		//console.log(progid);
 		if (progid) {
@@ -655,7 +658,7 @@ require('includes/footer.php');
 		}
 	}
 
-	// get the program budget/target div from db 
+	// get the program budget/target div from db
 	function editQuarterlytargets(progid = null, adpyr = null) {
 		//console.log(progid);
 		if (progid) {

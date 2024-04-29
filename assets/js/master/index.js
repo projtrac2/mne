@@ -2,7 +2,7 @@ const master_ajax_url = "ajax/master/index";
 $(document).ready(function () {
     $("#assign_responsible").submit(function (e) {
         e.preventDefault();
-        // $("#tag-form-submit").prop("disabled", true);
+        $("#tag-form-submit").prop("disabled", true);
         $.ajax({
             type: "post",
             url: master_ajax_url,
@@ -146,21 +146,14 @@ function approve_checklist_project(details) {
                         workflow_stage: details.workflow_stage,
                         sub_stage: details.sub_stage,
                         checklist: details.checklist,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response.success == true) {
-                            swal({
-                                title: "Project !",
-                                text: "Successfully approved project",
-                                icon: "success",
-                            });
+                            success_alert("Successfully approved project")
                         } else {
-                            swal({
-                                title: "Project !",
-                                text: "Error approving project",
-                                icon: "error",
-                            });
+                            success_alert("Error approving project");
                         }
                         setTimeout(function () {
                             window.location.href = redirect_url;
@@ -168,7 +161,7 @@ function approve_checklist_project(details) {
                     },
                 });
             } else {
-                swal("You cancelled the action!");
+                success_alert("You cancelled the action!");
             }
         });
 }
@@ -191,22 +184,14 @@ function approve_project(details) {
                         projid: details.projid,
                         workflow_stage: details.workflow_stage,
                         sub_stage: details.sub_stage,
-                        // checklist:details.checklist,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response.success == true) {
-                            swal({
-                                title: "Project !",
-                                text: "Successfully approved project",
-                                icon: "success",
-                            });
+                            success_alert("Successfully approved project");
                         } else {
-                            swal({
-                                title: "Project !",
-                                text: "Error approving project",
-                                icon: "error",
-                            });
+                            error_alert("Error approving project");
                         }
                         setTimeout(function () {
                             window.location.href = redirect_url;
@@ -214,7 +199,7 @@ function approve_project(details) {
                     },
                 });
             } else {
-                swal("You cancelled the action!");
+                success_alert("You cancelled the action!");
             }
         });
 }
@@ -237,21 +222,14 @@ function save_data_entry_project(details) {
                         save_data_entry: "save_data_entry",
                         projid: details.projid,
                         workflow_stage: details.workflow_stage,
+                        csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",
                     success: function (response) {
                         if (response.success == true) {
-                            swal({
-                                title: "Project !",
-                                text: "Project proceeded to approval stage",
-                                icon: "success",
-                            });
+                            success_alert("Project proceeded to approval stage")
                         } else {
-                            swal({
-                                title: "Project !",
-                                text: "Error",
-                                icon: "error",
-                            });
+                            error_alert("Error");
                         }
                         setTimeout(function () {
                             window.location.href = redirect_url;
@@ -259,7 +237,7 @@ function save_data_entry_project(details) {
                     },
                 });
             } else {
-                swal("You cancelled the action!");
+                success_alert("You cancelled the action!");
             }
         });
 }

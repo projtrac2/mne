@@ -207,6 +207,7 @@ if ($permission) {
 										</h2>
 										<div class="row clearfix">
 											<form id="searchform" name="searchform" method="get" style="margin-top:10px" action="">
+												<?= csrf_token_html(); ?>
 												<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
 													<label class="control-label">From *:</label>
 													<input type="date" name="start_date" id="start_date" class="form-control" onchange="get_records(<?= $projid ?>, <?= $implimentation_type ?>)">

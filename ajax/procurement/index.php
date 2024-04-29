@@ -1,9 +1,6 @@
 <?php
 
 include '../controller.php';
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
 try {
     if (isset($_POST['getcont'])) {
         $getcont = $_POST['getcont'];
@@ -30,14 +27,14 @@ try {
     }
 
 
-    if(isset($_GET['get_milestones'])){
+    if (isset($_GET['get_milestones'])) {
         $projid = $_GET['projid'];
         $query_rsMilestone = $db->prepare("SELECT * FROM tbl_project_milestone WHERE projid=:projid");
         $query_rsMilestone->execute(array(":projid" => $projid));
         $totalRows_rsMilestone = $query_rsMilestone->rowCount();
         $row_rsMilestone = $query_rsMilestone->fetchAll();
         $success = $totalRows_rsMilestone > 0 ? true : false;
-        echo json_encode(['success'=>$success, 'milestones'=>$row_rsMilestone]);
+        echo json_encode(['success' => $success, 'milestones' => $row_rsMilestone]);
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

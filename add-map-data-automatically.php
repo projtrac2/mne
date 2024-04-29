@@ -6,12 +6,14 @@ try {
         $d_state_id =  base64_decode($_GET['state_id']);
         $output_id =  base64_decode($_GET['opid']);
 
+
         $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE id = :output_id ");
         $query_Output->execute(array(":output_id" => $output_id));
         $row_rsOutput = $query_Output->fetch();
         $total_Output = $query_Output->rowCount();
 
         if ($total_Output > 0) {
+
             $indicator_id =  $row_rsOutput['indicator'];
             $projid = $row_rsOutput['projid'];
             $projid =  $row_rsOutput['projid'];
@@ -84,37 +86,29 @@ try {
                 $action =  $total_rsMapping > 0 ? 'Update' : "Submit";
 
                 if (isset($_POST['submit'])) {
-                    $current_date = date("Y-m-d");
                     $projid = $_POST['projid'];
-                    $outputid = $_POST['opid'];
-                    $state_id = $_POST['state_id'];
-                    $site_id = $_POST['site_id'];
-                    $user_name = $_POST['user_name'];
-                    $mapping_type = $_POST['mapping_type'];
-                    $lat = $_POST['latitude'];
-                    $lng = $_POST['longitude'];
+                    if (validate_csrf_token($_POST['csrf_token'])) {
+                        $current_date = date("Y-m-d");
+                        $projid = $_POST['projid'];
+                        $outputid = $_POST['opid'];
+                        $state_id = $_POST['state_id'];
+                        $site_id = $_POST['site_id'];
+                        $user_name = $_POST['user_name'];
+                        $mapping_type = $_POST['mapping_type'];
+                        $lat = $_POST['latitude'];
+                        $lng = $_POST['longitude'];
 
-                    $sql = $db->prepare("DELETE FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id");
-                    $sql->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
+                        $sql = $db->prepare("DELETE FROM tbl_markers  WHERE opid=:output_id AND site_id=:site_id");
+                        $sql->execute(array(":output_id" => $output_id, ':site_id' => $d_site_id));
 
-                    $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
-                    $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
-                    $msg = 'The Mapping was successfully.';
-
-                    $hashproc = base64_encode("projid54321{$projid}");
-                    $msg = 'Records created successfully added.';
-                    $results = "<script type=\"text/javascript\">
-                        swal({
-                            title: \"Success!\",
-                            text: \" $msg\",
-                            type: 'Success',
-                            timer: 2000,
-                            icon:'success',
-                            showConfirmButton: false });
-                            setTimeout(function(){
-                                    window.location.href = 'add-project-mapping?projid=$hashproc';
-                                }, 3000);
-                        </script>";
+                        $sql = $db->prepare("INSERT INTO tbl_markers (projid,opid,site_id,lat,lng,mapped_date,mapped_by)  VALUES(:projid,:opid,:site_id,:lat,:lng,:mapped_date,:mapped_by)");
+                        $result = $sql->execute(array(':projid' => $projid, ":opid" => $outputid, ':site_id' => $site_id, ':lat' => $lat, ':lng' => $lng, ":mapped_date" => $current_date, ":mapped_by" => $user_name));
+                        $hashproc = base64_encode("projid54321{$projid}");
+                        $results = success_message('Records created successfully added.', 2, "add-project-mapping?projid=" . $hashproc);
+                    } else {
+                        $hashproc = base64_encode("projid54321{$projid}");
+                        $results = error_message('Error occured please try again later', 2, "add-project-mapping?projid=" . $hashproc);
+                    }
                 }
 ?>
                 <style>

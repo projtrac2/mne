@@ -1,13 +1,13 @@
 <?php
-require('includes/head.php');
-if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
         $encoded_projid = $_GET['projid'];
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
-        $query_rsProjects->execute(array(":projid" => $projid));
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid AND p.projstage=:workflow_stage AND proj_substage < 4");
+        $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $approve_details = "";
@@ -29,6 +29,7 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                 $start_date = $row_rsTender['startdate'];
                 $end_date = $row_rsTender['enddate'];
             }
+            $approval_stage = $project_sub_stage > 1  ? true : false;
 ?>
             <!-- start body  -->
             <section class="content">
@@ -343,15 +344,13 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                     $proceed = true;
                                                     if ($proceed) {
                                                         $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
-                                                        $stage =  $workflow_stage;
                                                         $approve_details =
                                                             "{
                                                                 get_edit_details: 'details',
                                                                 projid:$projid,
                                                                 workflow_stage:$workflow_stage,
-                                                                project_directorate:$project_directorate,
                                                                 project_name:'$projname',
-                                                                sub_stage:'$project_sub_stage',
+                                                                sub_stage:'4',
                                                             }";
                                                         if ($assigned_responsible) {
                                                             if ($approval_stage) {
@@ -364,9 +363,8 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
                                                                         get_edit_details: 'details',
                                                                         projid:$projid,
                                                                         workflow_stage:$workflow_stage,
-                                                                        project_directorate:$project_directorate,
                                                                         project_name:'$projname',
-                                                                        sub_stage:'$project_sub_stage',
+                                                                        sub_stage:'2',
                                                                     }";
                                                             ?>
                                                                 <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
@@ -450,18 +448,18 @@ if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
-}
 
-require('includes/footer.php');
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script>
-    const redirect_url = "projects.php";
+    const redirect_url = "add-program-of-works.php";
 </script>
 <script src="assets/js/programofWorks/index.js"></script>

@@ -15,12 +15,12 @@ if ($permission) {
 			$formid = $_GET["frm"];
 		}
 
-		//get the location and date 
+		//get the location and date
 		$query_rsSubLoc = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission s inner join tbl_state t on t.id=s.level3id WHERE indid='$indid' AND formid='$formid' GROUP BY level3id");
 		$query_rsSubLoc->execute();
 		$totalRows_rsSubLoc = $query_rsSubLoc->rowCount();
 
-		//get the project name and form Name 
+		//get the project name and form Name
 		$query_rsFormDetails = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission s INNER JOIN tbl_indicator_baseline_survey_forms f ON f.id=s.formid INNER JOIN tbl_indicator i ON i.indid =s.indid WHERE s.indid=:indid AND s.formid=:formid GROUP BY i.indid");
 		$query_rsFormDetails->execute(array(":indid" => $indid, ":formid" => $formid));
 		$row_rsFormDetails = $query_rsFormDetails->fetch();
@@ -80,13 +80,13 @@ if ($permission) {
 												while ($row_rsSubLoc = $query_rsSubLoc->fetch()) {
 													$nm = $nm + 1;
 													$lv3id = $row_rsSubLoc["level3id"];
-													//get the submission number and date 
+													//get the submission number and date
 													$query_rsSubmEmail = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND level3id='$lv3id' GROUP BY email");
 													$query_rsSubmEmail->execute();
 													$row_rsSubmEmail = $query_rsSubmEmail->fetchAll();
 													$totalRows_rsSubmEmail = $query_rsSubmEmail->rowCount();
 
-													//get the number submissions 
+													//get the number submissions
 													$query_rsSubmissions = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND level3id='$lv3id'");
 													$query_rsSubmissions->execute();
 													$svySubmissions = $query_rsSubmissions->rowCount();
@@ -120,7 +120,7 @@ if ($permission) {
 													$sr = 0;
 													$submitterEmail = Explode(",", $submitters);
 													foreach ($submitterEmail as $submitter) {
-														//get the submission number and date 
+														//get the submission number and date
 														$query_rsSubmission = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_submission WHERE indid='$indid' AND formid='$formid' AND email='$submitter' AND level3id='$lv3id'");
 														$query_rsSubmission->execute();
 														$totalRows_rsSubmission = $query_rsSubmission->rowCount();
@@ -277,6 +277,7 @@ if ($permission) {
 					</h3>
 				</div>
 				<form class="tagForm" action="inspectorassignment" method="post" id="assign-inspection-form" enctype="multipart/form-data" autocomplete="off">
+					<?= csrf_token_html(); ?>
 					<div class="modal-body">
 						<div class="row clearfix">
 							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

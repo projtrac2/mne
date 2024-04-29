@@ -83,6 +83,7 @@ if ($permission && isset($_GET['fyid'])) {
 									</div>
 									<div class="body" style="margin-top:5px">
 										<form action="" method="post" enctype="multipart/form-data">
+											<?= csrf_token_html(); ?>
 											<div class="row clearfix">
 												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 													<h4>Chapter 1: Performance</h4>

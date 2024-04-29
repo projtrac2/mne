@@ -18,43 +18,10 @@ try {
          $projname = $row_rsProjects['projname'];
          $projcode = $row_rsProjects['projcode'];
          $projcost = $row_rsProjects['projcost'];
-         $projfscyear = $row_rsProjects['projfscyear'];
-         $projduration = $row_rsProjects['projduration'];
-         $mne_cost = $row_rsProjects['mne_budget'];
          $direct_cost = $row_rsProjects['direct_cost'];
          $administrative_cost = $row_rsProjects['administrative_cost'];
-         $implementation_cost = $projcost - $mne_cost;
-         $progid = $row_rsProjects['progid'];
-         $projstartdate = $row_rsProjects['projstartdate'];
-         $projenddate = $row_rsProjects['projenddate'];
          $project_sub_stage = $row_rsProjects['proj_substage'];
          $project_directorate = $row_rsProjects['directorate'];
-
-         $projstartyear = date('Y', strtotime($projstartdate));
-         $end_year = date('Y', strtotime($projenddate));
-
-         $years = ($end_year - $projstartyear) + 1;
-
-         $query_rsYear =  $db->prepare("SELECT * FROM tbl_fiscal_year where id ='$projfscyear'");
-         $query_rsYear->execute();
-         $row_rsYear = $query_rsYear->fetch();
-
-         $starting_year = $row_rsYear ? $row_rsYear['yr'] : false;
-         $s_date = $starting_year . "-07-01";
-         $project_end_date = date('Y-m-d', strtotime($s_date . ' + ' . $projduration . ' days'));
-         $end_month = date('m', strtotime($project_end_date));
-         $end_year_c = date('Y', strtotime($project_end_date));
-         $endyear = $end_month >= 7 && $end_month <= 12 ? $end_year_c : $end_year_c - 1;
-         $financial_years = ($endyear - $starting_year) + 1;
-
-         $query_rsOutputs = $db->prepare("SELECT p.output as  output, o.id as opid, p.indicator, o.budget as budget FROM tbl_project_details o INNER JOIN tbl_progdetails p ON p.id = o.outputid WHERE projid = :projid");
-         $query_rsOutputs->execute(array(":projid" => $projid));
-         $row_rsOutputs = $query_rsOutputs->fetch();
-         $totalRows_rsOutputs = $query_rsOutputs->rowCount();
-
-         $query_rsProjBudget = $db->prepare("SELECT SUM(budget) as budget FROM tbl_project_details WHERE projid = :projid");
-         $query_rsProjBudget->execute(array(":projid" => $projid));
-         $row_rsProjBudget = $query_rsProjBudget->fetch();
 
          // query the
          $query_rsProjFinancier =  $db->prepare("SELECT *, f.financier FROM tbl_myprojfunding m inner join tbl_financiers f ON f.id=m.financier WHERE projid = :projid ORDER BY amountfunding desc");
@@ -132,7 +99,6 @@ try {
                               </div>
                               <div class="tab-content">
                                  <div id="home" class="tab-pane fade in active">
-
                                     <div class="body">
                                        <?php
                                        $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");

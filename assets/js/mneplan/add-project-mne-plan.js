@@ -680,7 +680,6 @@ function getopdetails(opid) {
     $("#output_indicator").val(indicatorid);
 
     if (output_details_id == "") {
-        //console.log("Its empty!!");
         $("#addoutput").val("addoutput");
         $("#addoutput").attr("name", "addoutput");
         $("#modal-title").html('<i class="fa fa-edit"></i> Add Output Details');
@@ -698,7 +697,6 @@ function getopdetails(opid) {
         },
         dataType: "json",
         success: function (response) {
-            //console.log(response);
             $("#outputMonitorigFreq").val(response.monitoringfreq);
             $("#responsible_m").val(response.responsible);
             if (response.detailscount > 0) {
@@ -711,8 +709,6 @@ function getopdetails(opid) {
         }
     });
 }
-
-
 
 function get_frequency(opid) {
     $.ajax({

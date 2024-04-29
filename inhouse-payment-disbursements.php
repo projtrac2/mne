@@ -369,6 +369,7 @@ if ($permission) {
 					<h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Disburse Funds</span></h4>
 				</div>
 				<form class="form-horizontal" id="modal_form_submit_disburse" action="" method="POST" enctype="multipart/form-data">
+					<?= csrf_token_html(); ?>
 					<div class="modal-body" id="">
 						<!-- /modal-body -->
 						<div id="approve_budgetline_data">

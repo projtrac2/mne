@@ -1,5 +1,4 @@
 <?php
-
 include '../controller.php';
 try {
     function get_department($department_id)
@@ -338,13 +337,16 @@ try {
         echo json_encode(array("success" => true, "departments" => $departments,  "sections" => $sections, "directorates" => $directorates, 'members' => $members, "tasks" => $task_body));
     }
 
-    if (isset($_GET['delete_team_member'])) {
-        $projid = $_GET['projid'];
-        $implimentation_stage = 10;
-        $ptid = $_GET['member'];
+    if (isset($_POST['delete_team_member'])) {
+        $result = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $implimentation_stage = 9;
+            $ptid = $_POST['member'];
 
-        $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 4 AND responsible=:responsible");
-        $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage, ':responsible' => $ptid));
+            $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 4 AND responsible=:responsible");
+            $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage, ':responsible' => $ptid));
+        }
         echo json_encode(array("success" => $result));
     }
 
@@ -355,39 +357,43 @@ try {
     }
 
     if (isset($_POST['store_technical_team'])) {
-        $projid = $_POST['projid'];
-        $datecreated = date("Y-m-d");
-        $createdby = $_POST['user_name'];
-        $ptid = $_POST['member'];
-        $role = $_POST['role'];
-        $implimentation_stage = 9;
+        $success = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $success = true;
+            $projid = $_POST['projid'];
+            $datecreated = date("Y-m-d");
+            $createdby = $_POST['user_name'];
+            $ptid = $_POST['member'];
+            $role = $_POST['role'];
+            $implimentation_stage = 9;
 
-        $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 4 AND responsible=:responsible");
-        $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage, ':responsible' => $ptid));
+            $sql = $db->prepare("DELETE FROM `tbl_projmembers` WHERE projid=:projid AND stage=:stage AND team_type = 4 AND responsible=:responsible");
+            $result = $sql->execute(array(':projid' => $projid, ":stage" => $implimentation_stage, ':responsible' => $ptid));
 
-        $sql = $db->prepare("DELETE FROM `tbl_member_subtasks` WHERE projid=:projid AND member_id=:responsible");
-        $result = $sql->execute(array(':projid' => $projid, ':responsible' => $ptid));
+            $sql = $db->prepare("DELETE FROM `tbl_member_subtasks` WHERE projid=:projid AND member_id=:responsible");
+            $result = $sql->execute(array(':projid' => $projid, ':responsible' => $ptid));
 
-        $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
-        $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => $implimentation_stage, ':team_type' => 4, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
+            $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,role,stage,team_type,responsible,created_by,created_at) VALUES (:projid,:role,:stage,:team_type,:responsible,:created_by,:created_at)");
+            $result = $sql->execute(array(':projid' => $projid, ':role' => $role, ":stage" => $implimentation_stage, ':team_type' => 4, ':responsible' => $ptid, ':created_by' => $user_name, ':created_at' => $datecreated));
 
 
-        if (isset($_POST['site_id'])) {
-            $sites = $_POST['site_id'];
-            $count_sites = count($sites);
-            for ($s = 0; $s < $count_sites; $s++) {
-                $site_id = $sites[$s];
-                if (isset($_POST['output_id' . $site_id])) {
-                    $output_length = count($_POST['output_id' . $site_id]);
-                    for ($o = 0; $o < $output_length; $o++) {
-                        $output_id = $_POST['output_id' . $site_id][$o];
-                        if (isset($_POST['subtask_id' . $site_id . $output_id])) {
+            if (isset($_POST['site_id'])) {
+                $sites = $_POST['site_id'];
+                $count_sites = count($sites);
+                for ($s = 0; $s < $count_sites; $s++) {
+                    $site_id = $sites[$s];
+                    if (isset($_POST['output_id' . $site_id])) {
+                        $output_length = count($_POST['output_id' . $site_id]);
+                        for ($o = 0; $o < $output_length; $o++) {
+                            $output_id = $_POST['output_id' . $site_id][$o];
                             if (isset($_POST['subtask_id' . $site_id . $output_id])) {
-                                $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
-                                for ($i = 0; $i < $subtask_length; $i++) {
-                                    $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
-                                    $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:subtask_id)");
-                                    $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':subtask_id' => $subtask_id));
+                                if (isset($_POST['subtask_id' . $site_id . $output_id])) {
+                                    $subtask_length = count($_POST['subtask_id' . $site_id . $output_id]);
+                                    for ($i = 0; $i < $subtask_length; $i++) {
+                                        $subtask_id = $_POST['subtask_id' . $site_id . $output_id][$i];
+                                        $sql = $db->prepare("INSERT INTO tbl_member_subtasks (projid,member_id,output_id,site_id,subtask_id) VALUES (:projid,:member_id,:output_id,:site_id,:subtask_id)");
+                                        $result = $sql->execute(array(':projid' => $projid, ':member_id' => $ptid, ":output_id" => $output_id, ':site_id' => $site_id, ':subtask_id' => $subtask_id));
+                                    }
                                 }
                             }
                         }
@@ -396,7 +402,7 @@ try {
             }
         }
 
-        echo json_encode(array("success" => true));
+        echo json_encode(array("success" => $success));
     }
 } catch (PDOException $ex) {
     $result = flashMessage("An error occurred: " . $ex->getMessage());

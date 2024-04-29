@@ -1,14 +1,15 @@
 <div class="body">
 	<div style="margin-top:5px">
 		<form method="POST" name="addemailconffrm" id="email-conf" action="" enctype="multipart/form-data" autocomplete="off">
+			<?= csrf_token_html(); ?>
 			<fieldset class="scheduler-border">
-				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i>  Email Configurations</legend>
+				<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Email Configurations</legend>
 
 				<div class="form-group row">
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">SMTPAutoTLS <span style="color:red;font-size:15px;">*</span> :</label>
 					<div class="col-lg-6">
-						<input type="text" class="form-control" value="<?php echo $emailsetting['smtpAutoTLS']; ?>" name="autotls" placeholder="Enter SMTPAutoTLS" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" required/>
+						<input type="text" class="form-control" value="<?php echo $emailsetting['smtpAutoTLS']; ?>" name="autotls" placeholder="Enter SMTPAutoTLS" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" required />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -17,7 +18,7 @@
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">SMTPAuth <span style="color:red;font-size:15px;">*</span> :</label>
 					<div class="col-lg-6">
-						<input type="text" class="form-control" value="<?php echo $emailsetting['SMTPAuth']; ?>" name="SMTPAuth" placeholder="Enter SMTPAuth" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px"  required />
+						<input type="text" class="form-control" value="<?php echo $emailsetting['SMTPAuth']; ?>" name="SMTPAuth" placeholder="Enter SMTPAuth" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" required />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -26,7 +27,7 @@
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">Port <span style="color:red;font-size:15px;">*</span> :</label>
 					<div class="col-lg-6">
-						<input type="number" class="form-control" value="<?php echo $emailsetting['port'];?>" name="Port" placeholder="Enter email port" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px"  required />
+						<input type="number" class="form-control" value="<?php echo $emailsetting['port']; ?>" name="Port" placeholder="Enter email port" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" required />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -35,7 +36,7 @@
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">Security <span style="color:red;font-size:15px;">*</span></label>
 					<div class="col-lg-6">
-						<input type="text" class="form-control" value="<?php echo $emailsetting['SMTPSecure']; ?>" name="security" placeholder="Enter email security (SSL/TLS)" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px"  />
+						<input type="text" class="form-control" value="<?php echo $emailsetting['SMTPSecure']; ?>" name="security" placeholder="Enter email security (SSL/TLS)" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -44,7 +45,7 @@
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">Host <span style="color:red;font-size:15px;">*</span></label>
 					<div class="col-lg-6">
-						<input type="text" class="form-control" value="<?php echo $emailsetting['host']; ?>" name="host" placeholder="Enter email host" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px"  />
+						<input type="text" class="form-control" value="<?php echo $emailsetting['host']; ?>" name="host" placeholder="Enter email host" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -53,7 +54,7 @@
 					<div class="col-lg-2"></div>
 					<label class="col-lg-2" style="margin-top: 10px;">Username <span style="color:red;font-size:15px;">*</span></label>
 					<div class="col-lg-6">
-						<input type="text" class="form-control" value="<?php echo $emailsetting['username']; ?>" name="username" placeholder="Enter username" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px"  required />
+						<input type="text" class="form-control" value="<?php echo $emailsetting['username']; ?>" name="username" placeholder="Enter username" style="border:#CCC thin solid; border-radius: 5px; padding-left:5px" required />
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
@@ -66,8 +67,8 @@
 					</div>
 					<div class="col-lg-2"></div>
 				</div>
-				
-				<input type="hidden" value="<?php echo $emailsetting['id']; ?>" name="id" />	
+
+				<input type="hidden" value="<?php echo $emailsetting['id']; ?>" name="id" />
 				<div class="col-md-12" align="center">
 					<div class="form-line" align="center" style="padding-top:15px">
 						<div class="d-flex w-100 justify-content-center align-items-center">
@@ -75,9 +76,9 @@
 							<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Save" />
 						</div>
 					</div>
-				</div>					
-			</fieldset> 
-        </form>				
+				</div>
+			</fieldset>
+		</form>
 	</div>
 	<!-- /modal-dailog -->
 </div>

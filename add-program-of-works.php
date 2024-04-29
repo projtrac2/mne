@@ -1,9 +1,6 @@
 <?php
 try {
-
 	require('includes/head.php');
-	// 0 pending frwquency  1) Pending assignments 2) pending data entry 3) Pending Approval 4 (Assigned ) Pending Approval
-
 	if ($permission) {
 		$query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
 		$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
@@ -137,8 +134,6 @@ try {
 													$project_department = $row_rsProjects['projsector'];
 													$project_section = $row_rsProjects['projdept'];
 													$project_directorate = $row_rsProjects['directorate'];
-													$monitoring_frequency = ($row_rsProjects['monitoring_frequency'] != '') ? $row_rsProjects['monitoring_frequency'] : 0;
-													$activity_monitoring_frequency = ($row_rsProjects['activity_monitoring_frequency']  != '') ? $row_rsProjects['activity_monitoring_frequency'] : 0;
 													$start_date = date('Y-m-d');
 
 													$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid");
@@ -181,6 +176,9 @@ try {
 															}
 														}
 
+														//0 1 2 3 (Data entry)
+														// 4 5 6 7 (Frequency)
+														// 8 (Target Breakdown)
 
 														$responsible = daily_team($projid, 9, 2, $sub_stage);
 														$project_category = $implementation == 1 ? "In-House" : "Contractor";
@@ -213,6 +211,7 @@ try {
 																			</a>
 																		</li>
 																		<?php
+
 																		if ($responsible) {
 																			if ($program_of_works) {
 																		?>
@@ -221,11 +220,33 @@ try {
 																						<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
 																					</a>
 																				</li>
-																				<li>
-																					<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-																						<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
-																					</a>
-																				</li>
+																				<?php
+																				if ($sub_stage <= 3) {
+																				?>
+																					<li>
+																						<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																							<i class="fa fa-plus-square-o"></i> <?= $activity ?> Program of Works
+																						</a>
+																					</li>
+																				<?php
+																				} else if ($sub_stage <= 7) {
+																				?>
+																					<li>
+																						<a type="button" href="add-activity-frequency.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																							<i class="fa fa-plus-square-o"></i> <?= $activity ?> Frequency
+																						</a>
+																					</li>
+																				<?php
+																				} else if ($sub_stage == 8) {
+																				?>
+																					<li>
+																						<a type="button" href="add-target-breakdown.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																							<i class="fa fa-plus-square-o"></i> <?= $activity ?> Target Breakdown
+																						</a>
+																					</li>
+																				<?php
+																				}
+																				?>
 																		<?php
 																			}
 																		}
@@ -252,6 +273,7 @@ try {
 						</div>
 					</div>
 				</div>
+			</div>
 		</section>
 		<!-- end body  -->
 
@@ -275,59 +297,6 @@ try {
 		</div>
 		<!-- End Item more -->
 		<!-- Start Modal Item approve -->
-		<div class="modal fade" id="add_project_frequency_modal" tabindex="-1" role="dialog">
-			<div class="modal-dialog modal-md">
-				<div class="modal-content">
-					<div class="modal-header" style="background-color:#03A9F4">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Project Frequency</h4>
-					</div>
-					<form class="form-horizontal" id="add_project_frequency_data" action="" method="POST">
-						<?= csrf_token_html(); ?>
-						<div class="modal-body" style="max-height:450px; overflow:auto;">
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<label class="control-label">Activity Target breakdown Frequency *: </label>
-								<div class="form-line">
-									<select name="activity_monitoring_frequency" onchange="get_monitoring_frequency()" id="activity_monitoring_frequency" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-										<option value="">.... Select from list ....</option>
-										<?php
-										$query_frequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq WHERE status=1 ");
-										$query_frequency->execute();
-										$totalRows_frequency = $query_frequency->rowCount();
-										$input = '';
-										if ($totalRows_frequency > 0) {
-											while ($row_frequency = $query_frequency->fetch()) {
-												$input .= '<option value="' . $row_frequency['fqid'] . '" >' . $row_frequency['frequency'] . ' </option>';
-											}
-										}
-										echo $input;
-										?>
-									</select>
-								</div>
-							</div>
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<label class="control-label">Monitoring Frequency *: </label>
-								<div class="form-line">
-									<select name="monitoring_frequency" id="monitoring_frequency" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-										<option value="">.... Select from list ....</option>
-									</select>
-								</div>
-							</div>
-						</div> <!-- /modal-body -->
-						<div class="modal-footer frequencyItemFooter">
-							<div class="col-md-12 text-center">
-								<input type="hidden" name="projid" id="projid" value="">
-								<input type="hidden" name="store_project_frequency" id="store_project_frequency" value="new">
-								<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit-frequency" value="Submit" />
-								<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
-							</div>
-						</div> <!-- /modal-footer -->
-					</form> <!-- /.form -->
-				</div>
-				<!-- /modal-content -->
-			</div>
-		</div>
-		<!-- End Item more -->
 
 		<!-- Start Modal Item approve -->
 		<div class="modal fade" id="assign_modal" tabindex="-1" role="dialog">

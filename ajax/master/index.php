@@ -1,9 +1,5 @@
 <?php
 include '../controller.php';
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 try {
 
     function get_stage_details($workflow_stage)
@@ -32,12 +28,6 @@ try {
         $sql = $db->prepare("UPDATE tbl_projects SET projstage=:projstage, proj_substage=:proj_substage WHERE  projid=:projid");
         $result  = $sql->execute(array(":projstage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
 
-        // if ($workflow_stage == 5) {
-        //     $projstatus = 3;
-        //     $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus WHERE  projid=:projid");
-        //     $result  = $sql->execute(array(":projstatus" => $projstatus, ":projid" => $projid));
-        // }
-
         if ($result) {
             $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
             $result = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':created_by' => $user_name, ':created_at' => $today));
@@ -62,68 +52,73 @@ try {
 
     // assigning who shall be responsible for creating records/ approving a project
     if (isset($_POST['assign_responsible'])) {
-        $projid = $_POST['projid'];
-        $workflow_stage = $_POST['workflow_stage'];
-        $sub_stage = $_POST['sub_stage'];
-        $responsible = $_POST['responsible'];
-        $store = $_POST['assign_responsible'];
-        $projsubstage = $sub_stage + 1;
         $results = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $workflow_stage = $_POST['workflow_stage'];
+            $sub_stage = $_POST['sub_stage'];
+            $responsible = $_POST['responsible'];
+            $store = $_POST['assign_responsible'];
+            $projsubstage = $sub_stage + 1; 
+            $results = false;
 
-        if ($store == 'new') {
-            $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:responsible,:created_by,:created_at)");
-            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
-            $sub_stage += 1;
-            update_project_stage($projid, $workflow_stage, $sub_stage);
-        } else {
-            $substage = $projsubstage - 1;
-            $query_rsResponsible = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage ORDER BY pmid DESC LIMIT 1");
-            $query_rsResponsible->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
-            $total_rsResponsible = $query_rsResponsible->rowCount();
-            $row_rsResponsible = $query_rsResponsible->fetch();
-            if ($total_rsResponsible > 0) {
-                $assigned = $row_rsResponsible['responsible'];
-                if ($assigned != $responsible) {
-                    $sql = $db->prepare("UPDATE tbl_projmembers SET responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
-                    $results = $sql->execute(array(':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
-                    $results =  $mail->send_master_data_email($projid, 2, $assigned);
+            if ($store == 'new') {
+                $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:responsible,:created_by,:created_at)");
+                $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+                $sub_stage += 1;
+                update_project_stage($projid, $workflow_stage, $sub_stage);
+            } else {
+                $substage = $projsubstage - 1;
+                $query_rsResponsible = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage ORDER BY pmid DESC LIMIT 1");
+                $query_rsResponsible->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
+                $total_rsResponsible = $query_rsResponsible->rowCount();
+                $row_rsResponsible = $query_rsResponsible->fetch();
+                if ($total_rsResponsible > 0) {
+                    $assigned = $row_rsResponsible['responsible'];
+                    if ($assigned != $responsible) {
+                        $sql = $db->prepare("UPDATE tbl_projmembers SET responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
+                        $results = $sql->execute(array(':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
+                        $results =  $mail->send_master_data_email($projid, 2, $assigned);
+                    }
                 }
             }
+            $results =  $mail->send_master_data_email($projid, 1, $responsible);
         }
-        $results =  $mail->send_master_data_email($projid, 1, $responsible);
         echo json_encode(array('success' => $results));
     }
 
     if (isset($_POST['assign_mapping_responsible'])) {
-        $projid = $_POST['projid'];
-        $workflow_stage = $_POST['workflow_stage'];
-        $sub_stage = $_POST['sub_stage'];
-        $members = implode(",", $_POST['team']);
-        $responsible = $_POST['responsible'];
-        $store = $_POST['assign_mapping_responsible'];
-        $projsubstage = $sub_stage + 1;
         $results = false;
-        if ($store == 'new') {
-            $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,members,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:members,:responsible,:created_by,:created_at)");
-            $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':members' => $members, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
-            $sub_stage += 1;
-            update_project_stage($projid, $workflow_stage, $sub_stage);
-        } else {
-            $substage = $projsubstage - 1;
-            $query_rsResponsible = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage ORDER BY pmid DESC LIMIT 1");
-            $query_rsResponsible->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
-            $total_rsResponsible = $query_rsResponsible->rowCount();
-            $row_rsResponsible = $query_rsResponsible->fetch();
-            if ($total_rsResponsible > 0) {
-                $assigned = $row_rsResponsible['responsible'];
-                if ($assigned != $responsible) {
-                    $sql = $db->prepare("UPDATE tbl_projmembers SET members=:members, responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
-                    $results = $sql->execute(array(':members' => $members, ':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
-                    $results =  $mail->send_master_data_email($projid, 2, $assigned);
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $workflow_stage = $_POST['workflow_stage'];
+            $sub_stage = $_POST['sub_stage'];
+            $members = implode(",", $_POST['team']);
+            $responsible = $_POST['responsible'];
+            $store = $_POST['assign_mapping_responsible'];
+            $projsubstage = $sub_stage + 1;
+            if ($store == 'new') {
+                $sql = $db->prepare("INSERT INTO tbl_projmembers (projid,stage,sub_stage,members,responsible,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:members,:responsible,:created_by,:created_at)");
+                $results = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $projsubstage, ':members' => $members, ':responsible' => $responsible, ':created_by' => $user_name, ':created_at' => $currentdate));
+                $sub_stage += 1;
+                update_project_stage($projid, $workflow_stage, $sub_stage);
+            } else {
+                $substage = $projsubstage - 1;
+                $query_rsResponsible = $db->prepare("SELECT * FROM tbl_projmembers  WHERE projid =:projid AND stage=:workflow_stage ORDER BY pmid DESC LIMIT 1");
+                $query_rsResponsible->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
+                $total_rsResponsible = $query_rsResponsible->rowCount();
+                $row_rsResponsible = $query_rsResponsible->fetch();
+                if ($total_rsResponsible > 0) {
+                    $assigned = $row_rsResponsible['responsible'];
+                    if ($assigned != $responsible) {
+                        $sql = $db->prepare("UPDATE tbl_projmembers SET members=:members, responsible=:responsible, updated_by=:updated_by, updated_at=:updated_at WHERE projid=:projid");
+                        $results = $sql->execute(array(':members' => $members, ':responsible' => $responsible, ':updated_by' => $user_name, ':updated_at' => $currentdate, ":projid" => $projid));
+                        $results =  $mail->send_master_data_email($projid, 2, $assigned);
+                    }
                 }
             }
+            $results =  $mail->send_master_data_email($projid, 1, $responsible);
         }
-        $results =  $mail->send_master_data_email($projid, 1, $responsible);
         echo json_encode(array('success' => $results));
     }
 
@@ -150,18 +145,24 @@ try {
     }
 
     if (isset($_POST['save_data_entry'])) {
-        $projid = $_POST['projid'];
-        $workflow_stage = $_POST['workflow_stage'];
-        $result = update_project_stage($projid, $workflow_stage, 2);
-        $results =  $mail->send_master_data_email($projid, 6, '');
+        $results = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $workflow_stage = $_POST['workflow_stage'];
+            $result = update_project_stage($projid, $workflow_stage, 2);
+            $results =  $mail->send_master_data_email($projid, 6, '');
+        }
         echo json_encode(array('success' => $result));
     }
 
     if (isset($_POST['approve_stage'])) {
-        $projid = $_POST['projid'];
-        $workflow_stage = $_POST['workflow_stage'];
-        $result = update_stage($projid, $workflow_stage);
-        $results =  $mail->send_master_data_email($projid, 6, '');
+        $results = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $workflow_stage = $_POST['workflow_stage'];
+            $result = update_stage($projid, $workflow_stage);
+            $results =  $mail->send_master_data_email($projid, 6, '');
+        }
         echo json_encode(array('success' => $result));
     }
 
@@ -256,6 +257,5 @@ try {
         echo json_encode(array("responsible" => $users, "success" => true));
     }
 } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
-    echo json_encode(array("success" => false, "message" => $results));
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

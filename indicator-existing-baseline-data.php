@@ -122,6 +122,7 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                                 </div>
                                 <div class="body">
                                     <form id="addindfrm" method="POST" name="addindfrm" action="" enctype="multipart/form-data" autocomplete="off">
+                                        <?= csrf_token_html(); ?>
                                         <fieldset class="scheduler-border">
                                             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-exchange" aria-hidden="true"></i> Baseline Information</legend>
                                             <?php
@@ -343,6 +344,7 @@ if ($permission && isset($_GET['ind']) && !empty($_GET["ind"])) {
                             </h3>
                         </div>
                         <form class="tagForm" action="" method="post" id="indicator_baseline_form" enctype="multipart/form-data">
+                            <?= csrf_token_html(); ?>
                             <div class="row clearfix">
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <div class="modal-body">

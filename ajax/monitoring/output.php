@@ -208,7 +208,6 @@ try {
         return $comments_body;
     }
 
-
     if (isset($_GET['get_project_outputs'])) {
         $projid = $_GET['projid'];
         $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid AND complete <>1");

@@ -27,31 +27,31 @@ $(document).ready(function () {
 function set_milestone_parameters(mapping_type) {
     if (mapping_type == "1") {
         $("#milestone_table_head").html(`
-        <tr>
-            <th width="5%">#</th>
-            <th width="90%">Task</th>
-            <th width="5%">
-                <button type="button" name="addplus" id="addplus_output" onclick="add_row_items(1);" class="btn btn-success btn-sm addplus_output">
-                    <span class="glyphicon glyphicon-plus">
-                    </span>
-                </button>
-            </th>
-        </tr>`);
+            <tr>
+                <th width="5%">#</th>
+                <th width="90%">Task</th>
+                <th width="5%">
+                    <button type="button" name="addplus" id="addplus_output" onclick="add_row_items(1);" class="btn btn-success btn-sm addplus_output">
+                        <span class="glyphicon glyphicon-plus">
+                        </span>
+                    </button>
+                </th>
+            </tr>`);
         $("#sites_div").show();
         $("#sites").attr("required", "required");
         get_sites(0);
     } else {
         $("#milestone_table_head").html(`
-        <tr>
-            <th width="5%">#</th>
-            <th width="55%">Task</th>
-            <th width="5%">
-                <button type="button" name="addplus" id="addplus_output" onclick="add_row_items(1);" class="btn btn-success btn-sm addplus_output">
-                    <span class="glyphicon glyphicon-plus">
-                    </span>
-                </button>
-            </th>
-        </tr>`);
+            <tr>
+                <th width="5%">#</th>
+                <th width="55%">Task</th>
+                <th width="5%">
+                    <button type="button" name="addplus" id="addplus_output" onclick="add_row_items(1);" class="btn btn-success btn-sm addplus_output">
+                        <span class="glyphicon glyphicon-plus">
+                        </span>
+                    </button>
+                </th>
+            </tr>`);
     }
 }
 
@@ -115,7 +115,7 @@ function add_details(options, table, edit = "") {
         $("#tasks_div").show();
         $("#store_data").val("tasks");
         if (edit == 1) {
-        $("#sequence_id").show();
+            $("#sequence_id").show();
             $(".addplus_output").attr("disabled", true);
             $("#store_data").val("edit_tasks");
             $("#tasks_table_body").html(`
@@ -131,7 +131,7 @@ function add_details(options, table, edit = "") {
                 </td>
                 <td></td>
             </tr>`);
-            get_unit_of_measurements(1, task_details.unit_of_measure); 
+            get_unit_of_measurements(1, task_details.unit_of_measure);
         }
     }
 }
@@ -260,7 +260,7 @@ function get_unit_of_measurements(rowno, unit_of_measure) {
             }
         });
     } else {
-        console.log("please ensure you have a valid output");
+        error_alert("please ensure you have a valid output");
     }
 }
 
@@ -290,7 +290,7 @@ function get_sites(rowno, sites) {
             }
         });
     } else {
-        console.log("please ensure you have a valid output");
+        error_alert("please ensure you have a valid output");
     }
 }
 
@@ -311,7 +311,8 @@ function destroy_task(id, table) {
                         data: {
                             destroy_item: "destroy_item",
                             id: id,
-                            table: table
+                            table: table,
+                            csrf_token: $("#csrf_token").val(),
                         },
                         dataType: "json",
                         success: function (response) {
@@ -330,4 +331,37 @@ function destroy_task(id, table) {
                 }
             });
     }
+}
+
+function check_box(task_id) {
+    var checked = $(`.sub_task${task_id}`).is(':checked');
+    if (checked) {
+        $(`#checked${task_id}`).html("Check");
+        $(`.sub_task${task_id}`).prop("checked", false);
+    } else {
+        $(`.sub_task${task_id}`).prop("checked", true);
+        $(`#checked${task_id}`).html("Uncheck");
+        console.log("Checking")
+    }
+}
+
+function check_item(task_id) {
+    var checked = $(`.sub_task${task_id}`).is(':checked');
+    if (!checked) {
+        $(`#checked${task_id}`).html("Check");
+        $(`#all${task_id}`).prop("checked", false);
+    } else {
+        $(`#all${task_id}`).prop("checked", true);
+        $(`#checked${task_id}`).html("Uncheck");
+    }
+}
+
+function validateForm() {
+    var checked = $(`.tasks`).is(':checked');
+
+    if (!checked) {
+        error_alert("Ensure you have attached atleast one sub-task");
+        return false;
+    }
+    return checked;
 }

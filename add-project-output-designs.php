@@ -160,6 +160,7 @@ try {
                                     </div>
                                     <div class="row clearfix">
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                            <?= csrf_token_html(); ?>
                                             <?php
                                             $cost_val = validate_specifications();
                                             if ($cost_val) {
