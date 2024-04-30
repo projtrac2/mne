@@ -1,13 +1,14 @@
 <?php
-require('includes/head.php');
-if ($permission && isset($_GET['projid'])) {
-    $encoded_projid = $_GET['projid'];
-    $decode_projid = base64_decode($encoded_projid);
-    $projid_array = explode("projid54321", $decode_projid);
-    $projid = $projid_array[1];
-    try {
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid");
-        $query_rsProjects->execute(array(":projid" => $projid));
+try {
+
+    require('includes/head.php');
+    if ($permission && isset($_GET['projid'])) {
+        $encoded_projid = $_GET['projid'];
+        $decode_projid = base64_decode($encoded_projid);
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid = $projid_array[1];
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:workflow_stage");
+        $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
 
@@ -17,7 +18,6 @@ if ($permission && isset($_GET['projid'])) {
             $projcode = $row_rsProjects['projcode'];
             $workflow_stage = $row_rsProjects['projstage'];
             $team_type = 4;
-
             function validate_tasks($milestone_id)
             {
                 global $db, $projid, $user_designation, $team_type, $workflow_stage, $user_name;
@@ -162,6 +162,7 @@ if ($permission && isset($_GET['projid'])) {
                             </div>
                         </div>
                     </div>
+                </div>
             </section>
             <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
                 <div class="modal-dialog modal-lg">
@@ -298,13 +299,13 @@ if ($permission && isset($_GET['projid'])) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    $results = flashMessage("An error occurred: " . $ex->getMessage());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/js/monitoring/monitor.js"></script>

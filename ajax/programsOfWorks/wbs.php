@@ -165,7 +165,7 @@ try {
                             <td>
                                 <input type="hidden" value="' . $start_date . '" id="start_date" name="start_date[]" />
                                 <input type="hidden" value="' . $end_date . '" id="end_date" name="end_date[]" />
-                                <input type="number" value="' . $target . '" class="form-control target_breakdown  targets" placeholder="Enter Target" name="target[]" id="direct_cost_id' . $counter . '" onchange="calculate_total(' . $counter . ')" onkeyup="calculate_total(' . $counter . ')" min="0" step="0.01" required/>
+                                <input type="number" value="' . $target . '" class="form-control target_breakdown  targets" placeholder="Enter Target" name="target[]" id="direct_cost_id' . $span . '" onchange="calculate_total(' . $span . ')" onkeyup="calculate_total(' . $span . ')" min="0" step="0.01" required/>
                             </td> ';
                     } else {
                         $table_body .=
@@ -174,7 +174,7 @@ try {
                             <td>
                                 <input type="hidden" value="' . $start_date . '" id="start_date" name="start_date[]" />
                                 <input type="hidden" value="' . $end_date . '" id="end_date" name="end_date[]" />
-                                <input type="number" value="' . $target . '" class="form-control target_breakdown  targets" placeholder="Enter Target" name="target[]" id="direct_cost_id' . $counter . '" onchange="calculate_total(' . $counter . ')" onkeyup="calculate_total(' . $counter . ')" min="0" step="0.01" required/>
+                                <input type="number" value="' . $target . '" class="form-control target_breakdown  targets" placeholder="Enter Target" name="target[]" id="direct_cost_id' . $span . '" onchange="calculate_total(' . $span . ')" onkeyup="calculate_total(' . $span . ')" min="0" step="0.01" required/>
                             </td>
                         </tr>';
                     }
@@ -411,7 +411,6 @@ try {
             $site_id = $_POST['site_id'];
             $task_id = $_POST['task_id'];
             $subtask_id = $_POST['subtask_id'];
-            $frequency = $_POST['frequency'];
             $targets = $_POST['target'];
             $start_dates = $_POST['start_date'];
             $end_dates = $_POST['end_date'];
@@ -424,13 +423,14 @@ try {
                 $target = $targets[$i];
                 $start_date = $start_dates[$i];
                 $end_date = $end_dates[$i];
-                $sql = $db->prepare("INSERT INTO tbl_project_target_breakdown (projid, output_id, site_id, task_id, subtask_id,start_date,end_date, frequency, target, created_by, created_at) VALUES (:projid, :output_id, :site_id, :task_id, :subtask_id,:start_date,:end_date, :frequency, :target, :created_by, :created_at)");
-                $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':start_date' => $start_date, ':end_date' => $end_date, ":frequency" => $frequency, ":target" => $target, ":created_by" => $user_name, ':created_at' => $date));
+                $sql = $db->prepare("INSERT INTO tbl_project_target_breakdown (projid, output_id, site_id, task_id, subtask_id,start_date,end_date, target, created_by, created_at) VALUES (:projid, :output_id, :site_id, :task_id, :subtask_id,:start_date,:end_date, :target, :created_by, :created_at)");
+                $results = $sql->execute(array(':projid' => $projid, ":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':start_date' => $start_date, ':end_date' => $end_date, ":target" => $target, ":created_by" => $user_name, ':created_at' => $date));
             }
         }
+
         echo json_encode(array('success' => $success));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    var_dump($ex);
+    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

@@ -324,8 +324,8 @@ try {
             $projid = $_POST['projid'];
             $workflow_stage = $_POST['workflow_stage'];
             $sub_stage = $_POST['sub_stage'];
-            $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
-            $success  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+            $sql = $db->prepare("UPDATE tbl_projects SET projstage=:workflow_stage, proj_substage=:proj_substage WHERE  projid=:projid");
+            $success  = $sql->execute(array(":workflow_stage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
         }
         echo json_encode(array('success' => $success));
     }

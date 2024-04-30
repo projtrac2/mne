@@ -1,4 +1,5 @@
 const ajax_url1 = "ajax/programsOfWorks/index";
+const ajax_wbs_url = "ajax/programsOfWorks/wbs";
 $(document).ready(function () {
     $("#add_output").submit(function (e) {
         e.preventDefault();
@@ -62,31 +63,33 @@ $(document).ready(function () {
 
     $("#add_project_frequency_data").submit(function (e) {
         e.preventDefault();
-        var form_data = $(this).serialize();
-        $("#tag-form-submit-frequency").prop("disabled", true);
-        $.ajax({
-            type: "post",
-            url: ajax_url1,
-            data: form_data,
-            dataType: "json",
-            success: function (response) {
-                if (response.success) {
-                    success_alert("Record successfully created");
-                } else {
-                    error_alert("Record could not be created");
-                }
+        if (calculate_total1()) {
+            var form_data = $(this).serialize();
+            $("#tag-form-submit-frequency").prop("disabled", true);
+            $.ajax({
+                type: "post",
+                url: ajax_wbs_url,
+                data: form_data,
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        success_alert("Record successfully created");
+                    } else {
+                        error_alert("Record could not be created");
+                    }
 
-                $(".modal").each(function () {
-                    $(this).modal("hide");
-                    $(this)
-                        .find("form")
-                        .trigger("reset");
-                });
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-            }
-        });
+                    $(".modal").each(function () {
+                        $(this).modal("hide");
+                        $(this)
+                            .find("form")
+                            .trigger("reset");
+                    });
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000);
+                }
+            });
+        }
     });
 
     $("#add_project_frequency").submit(function (e) {
@@ -226,11 +229,10 @@ function get_frequency_tasks(details) {
 }
 
 function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
-    $("#t_output_id").val(output_id);
-    $("#t_site_id").val(site_id);
-    $("#t_task_id").val(task_id);
-    $("#t_subtask_id").val(subtask_id);
-    // if (subtask_id != '' && site_id != '') {
+    $("#output_id").val(output_id);
+    $("#site_id").val(site_id);
+    $("#task_id").val(task_id);
+    $("#subtask_id").val(subtask_id);
     $.ajax({
         type: "get",
         url: "ajax/programsOfWorks/wbs",
@@ -259,7 +261,6 @@ function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
             }
         }
     });
-    // }
 }
 
 function validate_dates(task_id) {

@@ -40,7 +40,7 @@ try {
                 return $totalRows_rsFrequency > 0 ?  $row_rsFrequency['frequency'] : '';
             }
 
-            $approval_stage = $project_sub_stage > 5  ? true : false;
+            $proceed = [];
 ?>
             <!-- start body  -->
             <section class="content">
@@ -167,6 +167,12 @@ try {
                                                                                                     $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                                                                     $frequenc_id = ($totalRows_rsTask_Start_Dates > 0) ? $row_rsTask_Start_Dates['frequency_id'] : '';
                                                                                                     $frequency = get_frequency($frequenc_id);
+
+
+                                                                                                    $query_rsTargetBreakdown = $db->prepare("SELECT * FROM  tbl_project_target_breakdown WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id");
+                                                                                                    $query_rsTargetBreakdown->execute(array(':task_id' => $msid, ':site_id' => $site_id, ":subtask_id" => $task_id));
+                                                                                                    $totalRows_rsTargetBreakdown = $query_rsTargetBreakdown->rowCount();
+                                                                                                    $proceed[] = $totalRows_rsTargetBreakdown > 0 ? true : false;
                                                                                             ?>
                                                                                                     <tr id="row">
                                                                                                         <td style="width:5%"><?= $tcounter ?></td>
@@ -175,7 +181,7 @@ try {
                                                                                                         <td style="width:15%"><?= $frequency ?></td>
                                                                                                         <td style="width:15%">
                                                                                                             <button type="button" onclick="get_subtasks_wbs(<?= $output_id ?>, <?= $site_id ?>, <?= $msid ?> , <?= $task_id ?>, <?= $subtask_frequency ?>)" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px">
-                                                                                                                <span class="glyphicon glyphicon-pencil"></span>
+                                                                                                                <span class="glyphicon  glyphicon-<?= $totalRows_rsTargetBreakdown > 0 ? 'pencil' : 'plus' ?>"></span>
                                                                                                             </button>
                                                                                                         </td>
                                                                                                     </tr>
@@ -273,6 +279,11 @@ try {
                                                                                         $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                                                         $frequenc_id = ($totalRows_rsTask_Start_Dates > 0) ? $row_rsTask_Start_Dates['frequency_id'] : '';
                                                                                         $frequency = get_frequency($frequenc_id);
+
+                                                                                        $query_rsTargetBreakdown = $db->prepare("SELECT * FROM  tbl_project_target_breakdown WHERE task_id=:task_id AND site_id=:site_id AND subtask_id=:subtask_id");
+                                                                                        $query_rsTargetBreakdown->execute(array(':task_id' => $msid, ':site_id' => 0, ":subtask_id" => $task_id));
+                                                                                        $totalRows_rsTargetBreakdown = $query_rsTargetBreakdown->rowCount();
+                                                                                        $proceed[] = $totalRows_rsTargetBreakdown > 0 ? true : false;
                                                                                 ?>
                                                                                         <tr id="row<?= $tcounter ?>">
                                                                                             <td style="width:5%"><?= $tcounter ?></td>
@@ -281,7 +292,7 @@ try {
                                                                                             <td style="width:15%"><?= $frequency ?></td>
                                                                                             <td style="width:15%">
                                                                                                 <button type="button" onclick="get_subtasks_wbs(<?= $output_id ?>, <?= $site_id ?>, <?= $msid ?> , <?= $task_id ?>, <?= $subtask_frequency ?>)" data-toggle="modal" data-target="#outputItemModals" data-backdrop="static" data-keyboard="false" class="btn btn-success btn-sm" style=" margin-top:-5px">
-                                                                                                    <span class="glyphicon glyphicon-pencil"></span>
+                                                                                                    <span class="glyphicon  glyphicon-<?= $totalRows_rsTargetBreakdown > 0 ? 'pencil' : 'plus' ?>"></span>
                                                                                                 </button>
                                                                                             </td>
                                                                                         </tr>
@@ -309,38 +320,21 @@ try {
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <?php
-                                                    $proceed = true;
-                                                    $query_rsProject = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid=:projid AND frequency_id IS NULL");
-                                                    $query_rsProject->execute(array(':projid' => $projid));
-                                                    $totalRows_rsProject = $query_rsProject->rowCount();
-                                                    if ($totalRows_rsProject == 0) {
+                                                    if (!in_array(false, $proceed)) {
                                                         $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
+                                                        $workflow_stage += 1;
                                                         $approve_details =
                                                             "{
                                                                 get_edit_details: 'details',
                                                                 projid:$projid,
                                                                 workflow_stage:$workflow_stage,
                                                                 project_name:'$projname',
-                                                                sub_stage:'8',
+                                                                sub_stage:'0',
                                                             }";
                                                         if ($assigned_responsible) {
-                                                            if ($approval_stage) {
                                                     ?>
-                                                                <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
-                                                            <?php
-                                                            } else {
-                                                                $data_entry_details =
-                                                                    "{
-                                                                        get_edit_details: 'details',
-                                                                        projid:$projid,
-                                                                        workflow_stage:$workflow_stage,
-                                                                        project_name:'$projname',
-                                                                        sub_stage:'6',
-                                                                    }";
-                                                            ?>
-                                                                <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
+                                                            <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Proceed</button>
                                                     <?php
-                                                            }
                                                         }
                                                     }
                                                     ?>
@@ -371,12 +365,12 @@ try {
                                     <li class="list-group-item">
                                         SubTask target: <span id="subtask_target"></span>
                                     </li>
-
                                 </ul>
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
-                                            <form class="form-horizontal" id="add_output" action="" method="POST">
+                                            <form class="form-horizontal" id="add_project_frequency_data" action="" method="POST">
+                                                <?= csrf_token_html(); ?>
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                                     <div class="table-responsive">
                                                         <div id="tasks_wbs_table_body"></div>
@@ -386,13 +380,14 @@ try {
                                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                         <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                         <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                                                        <input type="hidden" name="store_tasks" id="store_tasks" value="">
+                                                        <input type="hidden" name="store_target" id="store_target" value="">
                                                         <input type="hidden" name="output_id" id="output_id" value="">
                                                         <input type="hidden" name="task_id" id="task_id" value="">
                                                         <input type="hidden" name="site_id" id="site_id" value="">
+                                                        <input type="hidden" name="subtask_id" id="subtask_id" value="">
                                                         <input type="hidden" name="total_target" id="total_target">
                                                         <input type="hidden" name="today" id="today" value="<?= date('Y-m-d') ?>">
-                                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                                                        <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit-frequency" value="Save" />
                                                         <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                                     </div>
                                                 </div>
@@ -407,7 +402,6 @@ try {
                 </div>
                 <!-- /modal-dailog -->
             </div>
-
 <?php
         } else {
             $results =  restriction();

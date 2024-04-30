@@ -388,7 +388,7 @@ try {
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <div class="body">
-                                            <form class="form-horizontal" id="add_output" action="" method="POST">
+                                            <form class="form-horizontal" id="add_project_frequency" action="" method="POST">
                                                 <?= csrf_token_html(); ?>
                                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
                                                     <div class="table-responsive">
