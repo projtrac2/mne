@@ -1,8 +1,8 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission) {
-        $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : "";
+    if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
+        $decode_projid =   base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
@@ -15,9 +15,8 @@ try {
         $projcode = ($totalRows_rsProjects > 0) ? $row_rsProjects['projcode'] : "";
         $implimentation_type = $row_rsProjects["projcategory"];
 
-
-
         if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprojectfrm")) {
+            $redirect_url = 'project-output-monitoring-checklist';
             if (validate_csrf_token($_POST['csrf_token'])) {
                 $projid = $_POST['projid'];
                 $datecreated = date('Y-m-d');
@@ -64,29 +63,11 @@ try {
                         }
                     }
                 }
+                success_message('Project Successfully Added', 2, $redirect_url);
+            } else {
+                error_message("Error occured please try again later", 2, $redirect_url);
             }
-
-            $results = "<script type=\"text/javascript\">
-                swal({
-                    title: \"Success!\",
-                    text: \" $msg\",
-                    type: 'Success',
-                    timer: 2000,
-                    'icon':'success',
-                showConfirmButton: false });
-                setTimeout(function(){
-                    window.location.href = 'project-output-monitoring-checklist';
-                }, 2000);
-            </script>";
         }
-
-        $month = date('m');
-        $year = date('Y');
-        $start_date = 01 . ' ' . date('M') . ' ' . date('Y');
-        $end_date = date('t') . ' ' . date('M') . ' ' . date('Y');
-        $month_date = '(' . $start_date . ' - ' . $end_date  . ')';
-        $month = 9;
-        $year = 2023;
 ?>
         <section class="content">
             <div class="container-fluid">
@@ -780,63 +761,4 @@ try {
 }
 ?>
 
-<script>
-    const ajax_url = "ajax/monitoring/checklist-history.php";
-
-    function add_checklist(subtask_id, site_id) {
-        $.ajax({
-            type: "get",
-            url: ajax_url,
-            data: {
-                get_info: 'get_info',
-                subtask_id: subtask_id,
-                site_id: site_id,
-            },
-            dataType: "json",
-            success: function(response) {
-                if (response.success) {
-                    $("#attachments_table1").html(response.attachments);
-                    $("#remarks").html(response.remarks);
-                } else {
-                    $("#attachments_table1").html(`<tr><td colspan="3" class="text-center">No Files Found</td></tr>`);
-                }
-            }
-        });
-    }
-
-    function add_attachment() {
-        var rand = Math.floor(Math.random() * 6) + 1;
-        var rowno = $("#attachments_table tr").length + "" + rand + "" + Math.floor(Math.random() * 7) + 1;
-        $("#attachments_table tr:last").after(`
-        <tr id="rw${rowno}">
-            <td>1</td>
-            <td>
-                <input type="file" name="monitorattachment[]"  id="monitorattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" />
-            </td>
-            <td>
-                <input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control"  placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"/>
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm"  onclick=delete_attach("rw${rowno}")>
-                    <span class="glyphicon glyphicon-minus"></span>
-                </button>
-            </td>
-        </tr>
-    `);
-        number_table();
-    }
-
-    function delete_attach(rownm) {
-        $("#" + rownm).remove();
-        number_table();
-    }
-
-    function number_table() {
-        $("#attachments_table tr").each(function(idx) {
-            $(this)
-                .children()
-                .first()
-                .html(idx + 1);
-        });
-    }
-</script>
+<script src="assets/js/monitoring/observations.js"></script>
