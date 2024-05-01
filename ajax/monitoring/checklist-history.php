@@ -95,6 +95,5 @@ try {
         echo json_encode(array("success"=>true, "remarks"=>previous_remarks($site_id, $subtask_id), 'attachments' => previous_attachment($site_id, $subtask_id)));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

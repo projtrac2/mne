@@ -155,4 +155,4 @@
     </div><!-- /.modal -->
     <!-- End Item Delete -->
 
-    <script src="general-settings/js/fetch-titles-items.js"></script>
+    <script src="assets/js/settings/titles/fetch-titles-items.jss"></script>

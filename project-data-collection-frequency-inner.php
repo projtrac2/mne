@@ -41,7 +41,6 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form class="form-horizontal" id="submitItemForm" action="general-settings/action/project-data-collection-frequency-action.php" method="POST" enctype="multipart/form-data">
-                    <?= csrf_token_html(); ?>
                     <div class="modal-header" style="background-color:#03A9F4">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Data Collection Frequency</h4>
@@ -101,7 +100,6 @@
                                 <div class="body">
                                     <div class="div-result">
                                         <form class="form-horizontal" id="editItemForm" action="general-settings/action/project-data-collection-frequency-action.php" method="POST">
-                                            <?= csrf_token_html(); ?>
                                             <br />
                                             <div class="col-md-12 id=" edit-product-messages"></div>
                                             <div class="col-md-12 form-input">
@@ -117,7 +115,7 @@
                                                 <input type="text" class="form-control" id="editdays" placeholder="Days" name="editdays" required autocomplete="off">
                                             </div> <!-- /form-group-->
 
-
+                                            
                                             <div class="modal-footer editItemFooter">
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="edititem" id="edititem" value="edit">
@@ -161,6 +159,6 @@
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
-    <!-- End Item Delete -->
+    <!-- End Item Delete  -->
 
-    <script src="general-settings/js/fetch-data-collection-freq.js"></script>
+    <script src="assets/js/settings/data-collection-frequency/fetch-data-collection-freq.js"></script>

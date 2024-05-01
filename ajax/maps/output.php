@@ -1,5 +1,3 @@
-
-
 <?php
 include '../controller.php';
 try {
@@ -198,6 +196,5 @@ try {
         echo json_encode(array("success" => true, "markers" => $project_details, "indicator" => $row_rsOutput));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

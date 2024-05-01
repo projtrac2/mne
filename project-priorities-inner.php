@@ -165,4 +165,4 @@
 </div><!-- /.modal -->
 <!-- End Item Delete -->
 
-<script src="general-settings/js/fetch-priorities.js"></script>
+<script src="assets/js/settings/priorities/fetch-priorities.js"></script>

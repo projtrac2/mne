@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['answer_question'])) {
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];
@@ -42,6 +42,5 @@ try {
         echo json_encode(array("success" => true));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['store_handover'])) {
         $projid = $_POST['projid'];
         $remarks = $_POST['comments'];
@@ -51,7 +51,5 @@ try {
         echo json_encode(array('success' => $result));
     }
 } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
-    var_dump($ex);
-    // echo json_encode(array("success" => false, "message" => $results));
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

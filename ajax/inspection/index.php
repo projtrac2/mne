@@ -3,12 +3,7 @@
 include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 include_once("../../includes/system-labels.php");
- 
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-// get outputs
 if (isset($_POST['get_output'])) {
     $projid = $_POST['projid'];
     $query_rsOutputs = $db->prepare("SELECT g.output, d.id FROM `tbl_projects` p INNER JOIN tbl_project_details d ON d.projid = p.projid INNER JOIN tbl_progdetails g ON g.id = d.outputid WHERE p.projid = $projid");
@@ -134,15 +129,15 @@ if (isset($_POST['insepectform'])) {
     $attachment_path = '';
     if (!empty($_FILES["file"]["name"])) {
 
-        // File path config 
+        // File path config
         $fileName = basename($_FILES["file"]["name"]);
         $targetFilePath = $uploadDir . $fileName;
         $fileType = pathinfo($targetFilePath, PATHINFO_EXTENSION);
 
-        // Allow certain file formats 
+        // Allow certain file formats
         $allowTypes = array('pdf', 'doc', 'docx', 'jpg', 'png', 'jpeg');
         if (in_array($fileType, $allowTypes)) {
-            // Upload file to the server 
+            // Upload file to the server
             if (move_uploaded_file($_FILES["file"]["tmp_name"], $targetFilePath)) {
                 $uploadedFile = $fileName;
                 $attachment_path = $targetFilePath;
@@ -256,7 +251,7 @@ if(isset($_GET["get_milestones"])) {
 	$projid = $_GET['projid'];
 	$output_id = $_GET['output_id'];
 	$monitoringlocation = $_GET['location'];
-	
+
 	$query_milestones = $db->prepare("SELECT * FROM tbl_milestone WHERE projid = :projid and outputid = :opid and (status = 4 or status = 11)");
 	$query_milestones->execute(array(":projid" => $projid, ":opid" => $output_id));
 	$total_rows_milestones = $query_milestones->rowCount();
@@ -266,7 +261,7 @@ if(isset($_GET["get_milestones"])) {
 		while($row_milestones = $query_milestones->fetch()){
 			if(!empty($row_milestones["location"]) || $row_milestones["location"] != ''){
 				$milestonelocation = explode (",", $row_milestones["location"]);
-				if(in_array($monitoringlocation, $milestonelocation)){			
+				if(in_array($monitoringlocation, $milestonelocation)){
 					$msid = $row_milestones['msid'];
 					$milestone = $row_milestones['milestone'];
 					$milestonelist .= '<option value="'.$msid.'">'.$milestone.'</option>';
@@ -309,7 +304,7 @@ if (isset($_GET['get_task'])) {
                 $inspection_report = '';
                 if ($totalRows_rsInspection_details > 0) {
                     $inspection_report = '
-                    <li> 
+                    <li>
                         <a type="button" href="view-task-inspection-report.php?task_id=' . $hash_task_id . '">
                             <i class="fa fa-pencil-square"></i>  Inspection Report
                         </a>
@@ -317,7 +312,7 @@ if (isset($_GET['get_task'])) {
                 }
 
                 $task_table_body .= '
-               <tr> 
+               <tr>
                 <td>' . $counter . '</td>
                 <td>' . $task . '</td>
                 <td>
@@ -331,7 +326,7 @@ if (isset($_GET['get_task'])) {
                                     <i class="fa fa-pencil-square"></i> Inspect
                                 </a>
                             </li>
-                            ' . $inspection_report . ' 
+                            ' . $inspection_report . '
                         </ul>
                     </div>
                 </td>
@@ -367,7 +362,7 @@ if (isset($_GET['get_task_checklist'])) {
             $counter++;
             $selected = $inspection_status == 1 ? "selected" : "";
             $task_checklist .= '
-            <tr> 
+            <tr>
                 <td  style="width:5%">' . $counter . '</td>
                 <td style="width:65%">' . $description . '</td>
                 <td style="width:25%">' . $unit_st . '</td>

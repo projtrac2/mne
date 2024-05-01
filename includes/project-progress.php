@@ -263,3 +263,27 @@ function calculate_site_progress($implimentation_type, $site_id)
 
     return $progress;
 }
+
+
+function get_project_progress($progress)
+{
+    $project_progress = '
+    <div class="progress" style="height:20px; font-size:10px; color:black">
+        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+            ' . number_format($progress, 2) . '%
+        </div>
+    </div>';
+    if ($progress == 100) {
+        $project_progress = '
+        <div class="progress" style="height:20px; font-size:10px; color:black">
+            <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
+            ' . number_format($progress, 2) . '%
+            </div>
+        </div>';
+    }
+
+    return $project_progress;
+}
+
+
+

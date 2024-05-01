@@ -152,4 +152,4 @@
 </div><!-- /.modal -->
 <!-- End Item Delete -->
 
-<script src="general-settings/js/fetch-tender-categories.js"></script>
+<script src="assets/js/settings/tender/tender-categories.js"></script>

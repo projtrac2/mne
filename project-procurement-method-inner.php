@@ -147,4 +147,4 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 <!-- End Item Delete -->
-<script src="general-settings/js/fetch-procurement-method.js"></script>
+<script src="assets/js/settings/procurement-methods/fetch-procurement-method.js"></script>

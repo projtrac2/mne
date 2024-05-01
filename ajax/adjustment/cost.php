@@ -107,6 +107,5 @@ try {
         echo json_encode(array("success" => true, "tasks" => $input, "remaining_amount" => number_format($remaining_amount, 2), "task"=>$task));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

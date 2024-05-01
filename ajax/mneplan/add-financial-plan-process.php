@@ -15,28 +15,28 @@ try {
                 $projfinid = $row_rsFunding['id'];
                 $projamount = $row_rsFunding['amountfunding'];
                 $funderid = $row_rsFunding['financier'];
-                $sourcat =$row_rsFunding['sourcecategory'];
+                $sourcat = $row_rsFunding['sourcecategory'];
 
                 $query_rsPlanFunding =  $db->prepare("SELECT SUM(amount) as amount FROM tbl_project_cost_funders_share WHERE funder =:funderid AND projid=:projid");
                 $query_rsPlanFunding->execute(array(":funderid" => $funderid, ':projid' => $projid));
                 $row_rsPlanFunding = $query_rsPlanFunding->fetch();
                 $totalRows_rsPlanFunding = $query_rsPlanFunding->rowCount();
                 $spent_plan_amount = $row_rsPlanFunding['amount'];
-				if(is_null($spent_plan_amount)){
-					$spent_plan_amount = 0;
-				}
+                if (is_null($spent_plan_amount)) {
+                    $spent_plan_amount = 0;
+                }
 
 
                 //calculate amount remaining
                 $remaining = $projamount - $spent_plan_amount;
 
                 if ($remaining > 0) {
-					$query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$funderid'");
-					$query_rsFunder->execute();
-					$row_rsFunder = $query_rsFunder->fetch();
-					$totalRows_rsFunder = $query_rsFunder->rowCount();
-					$funder = $row_rsFunder['financier'];
-					echo '<option value="' . $funderid . '">' . $funder . '</option>';
+                    $query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$funderid'");
+                    $query_rsFunder->execute();
+                    $row_rsFunder = $query_rsFunder->fetch();
+                    $totalRows_rsFunder = $query_rsFunder->rowCount();
+                    $funder = $row_rsFunder['financier'];
+                    echo '<option value="' . $funderid . '">' . $funder . '</option>';
                 }
             } while ($row_rsFunding = $query_rsFunding->fetch());
         }
@@ -58,9 +58,9 @@ try {
         $row_rsPlanFunding = $query_rsPlanFunding->fetch();
         $totalRows_rsPlanFunding = $query_rsPlanFunding->rowCount();
         $spent_plan_amount = $row_rsPlanFunding['amount'];
-		if(is_null($spent_plan_amount)){
-			$spent_plan_amount = 0;
-		}
+        if (is_null($spent_plan_amount)) {
+            $spent_plan_amount = 0;
+        }
 
         //calculate amount remaining
         $remaining = $projamount - $spent_plan_amount;
@@ -92,22 +92,11 @@ try {
         // add the remarks
         if (isset($type) && !empty($type)) {
             $comments = trim(stripslashes($_POST['comments']));
-//             //remarks
-
-// plan_id
-// tasks
-// personnel
-// other_plan_id
-// description
-// unit
-// unit_cost
-// units_no
-
-
+            //             //remarks
 
 
             $insertSQL = $db->prepare("INSERT INTO tbl_project_direct_cost_plan (projid, outputid,plan_id,tasks, comments, cost_type, created_by, date_created) VALUES (:projid, :outputid, :comments, :type, :created_by, :date_created)");
-            $result2  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid, ":tasks"=>$planid, ":comments" => $comments, ":type" => $type, ':created_by' => $createdby, ':date_created' => $current_date));
+            $result2  = $insertSQL->execute(array(':projid' => $projid, ':outputid' => $outputid, ":tasks" => $planid, ":comments" => $comments, ":type" => $type, ':created_by' => $createdby, ':date_created' => $current_date));
             if ($result2) {
                 $remarkid = $db->lastInsertId();
             }
@@ -204,9 +193,9 @@ try {
         if (isset($_POST['timelinedate'])) {
             $timeline = $_POST['timelinedate'];
             $timelineid = $_POST['timelineid'];
-            $responsible =null;
-            if(!empty($_POST['responsible'])){
-               $responsible = $_POST['responsible'];
+            $responsible = null;
+            if (!empty($_POST['responsible'])) {
+                $responsible = $_POST['responsible'];
             }
 
             $insertSQL = $db->prepare("UPDATE tbl_project_expenditure_timeline SET disbursement_date=:disbursement_date, responsible=:responsible WHERE  id=:id");
@@ -214,7 +203,7 @@ try {
         }
 
         if ($result1  && $result2 && $result3) {
-            $projstage =4;
+            $projstage = 4;
             $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage=:projstage WHERE  projid=:projid");
             $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
             if ($results) {
@@ -378,16 +367,16 @@ try {
                     //calculate amount remaining
 
                     if ($ceiling > 0) {
-						$query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$financierId'");
-						$query_rsFunder->execute();
-						$row_rsFunder = $query_rsFunder->fetch();
+                        $query_rsFunder = $db->prepare("SELECT * FROM tbl_financiers WHERE id='$financierId'");
+                        $query_rsFunder->execute();
+                        $row_rsFunder = $query_rsFunder->fetch();
 
-						$funder = $row_rsFunder['financier'];
-						if ($fndid == $financierId) {
-							$option .= '<option value="' . $financierId . '" selected>' . $funder . '</option>';
-						} else {
-							$option .= '<option value="' . $financierId . '">' . $funder . '</option>';
-						}
+                        $funder = $row_rsFunder['financier'];
+                        if ($fndid == $financierId) {
+                            $option .= '<option value="' . $financierId . '" selected>' . $funder . '</option>';
+                        } else {
+                            $option .= '<option value="' . $financierId . '">' . $funder . '</option>';
+                        }
                     }
                 } while ($row_rsFunding = $query_rsFunding->fetch());
             }
@@ -551,9 +540,9 @@ try {
         $insertSQL = $db->prepare("UPDATE tbl_projects SET  projstage = :projstage WHERE  projid = :projid");
         $results  = $insertSQL->execute(array(":projstage" => $projstage, ":projid" => $projid));
         if ($results) {
-            echo json_encode(array('url'=> $url, 'msg' => true));
-        }else{
-            echo json_encode(array('url'=> $url, 'msg' => true));
+            echo json_encode(array('url' => $url, 'msg' => true));
+        } else {
+            echo json_encode(array('url' => $url, 'msg' => true));
         }
     }
 
@@ -582,6 +571,5 @@ try {
         $totalRows_rsProjFinancier = $query_rsProjFinancier->rowCount();
     }
 } catch (PDOException $ex) {
-    // $result = flashMessage("An error occurred: " .$ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -51,7 +51,5 @@ try {
         echo json_encode(array('success' => $result));
     }
 } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
-    var_dump($ex);
-    // echo json_encode(array("success" => false, "message" => $results));
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

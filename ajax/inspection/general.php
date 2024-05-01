@@ -1,11 +1,6 @@
 <?php
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
-include '../controller.php';
 try {
-
+   include '../controller.php';
    function get_members($responsible)
    {
       global $db;
@@ -187,7 +182,7 @@ try {
          if ($comment != '') {
             $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist_comments (projid, site_id, output_id, question_id, checklist_id, comment, created_by, created_at) VALUES (:projid, :site_id, :output_id, :question_id, :checklist_id, :comment, :created_by, :created_at)');
             $result_checklist = $checklist->execute([':projid' => $projid, ':site_id' => $site_id, ':output_id' => $output_id, 'question_id' => $question_id, ':checklist_id' => $checklist_id, ':comment' => $comment, ":created_by" => $user_name, ":created_at" => $datecreated]);
-         } 
+         }
 
       } else {
          $checklist = $db->prepare('INSERT INTO tbl_inspection_checklist (projid, site_id, output_id, question_id,answer, created_by, created_at) VALUES (:projid, :site_id, :output_id, :question_id, :answer, :created_by, :created_at )');
@@ -223,6 +218,5 @@ try {
       echo json_encode(array("success" => true));
    }
 } catch (PDOException $ex) {
-   $result = flashMessage("An error occurred: " . $ex->getMessage());
-   echo $ex->getMessage();
+   customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

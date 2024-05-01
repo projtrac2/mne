@@ -159,5 +159,5 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
     <!-- End Item Delete -->
-
-    <script src="general-settings/js/fetch-project-status.js"></script>
+<!--  -->
+    <script src="assets/js/settings/status/project-status.js"></script>

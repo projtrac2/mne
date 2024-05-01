@@ -261,4 +261,4 @@
 </div><!-- /.modal -->
 <!-- End Item Delete -->
 
-<script src="general-settings/js/fetch-project-workflow-timelines.js"></script> 
+<script src="/assets/js/settings/workflow/fetch-workflow-stages.js"></script> 

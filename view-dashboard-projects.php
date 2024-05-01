@@ -182,7 +182,6 @@ try {
                                                                 $totalRows_rsProjissues = $query_rsProjissues->rowCount();
 
                                                                 $projcontractor = "In House";
-
                                                                 if ($projcategory == 2) {
                                                                     $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
                                                                     $query_contractor->execute(array(":projid" => $projid));
@@ -198,33 +197,8 @@ try {
                                                                 }
 
 
-                                                                $projstatus = ($projstage == 9 && $substage_id == 6) ? 14 : $projstatus;
-
-                                                                $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-                                                                $query_Projstatus->execute(array(":projstatus" => $projstatus));
-                                                                $row_Projstatus = $query_Projstatus->fetch();
-                                                                $total_Projstatus = $query_Projstatus->rowCount();
-                                                                $status = "";
-                                                                if ($total_Projstatus > 0) {
-                                                                    $status_name = $row_Projstatus['statusname'];
-                                                                    $status_class = $row_Projstatus['class_name'];
-                                                                    $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-                                                                }
-
-                                                                $project_progress = '
-                                                            <div class="progress" style="height:20px; font-size:10px; color:black">
-                                                                <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $percent2 . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percent2 . '%; height:20px; font-size:10px; color:black">
-                                                                    ' . number_format($percent2, 2) . '%
-                                                                </div>
-                                                            </div>';
-                                                                if ($percent2 == 100) {
-                                                                    $project_progress = '
-                                                                <div class="progress" style="height:20px; font-size:10px; color:black">
-                                                                    <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $percent2 . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percent2 . '%; height:20px; font-size:10px; color:black">
-                                                                    ' . number_format($percent2, 2) . '%
-                                                                    </div>
-                                                                </div>';
-                                                                }
+                                                                $progress = get_project_progress($projstatus);
+                                                                $status = get_status($status_id);
 
                                                                 $locations = [];
                                                                 foreach ($location as $mystate) {
@@ -262,7 +236,7 @@ try {
                                                                         <?= $status  ?>
                                                                         <br />
                                                                         <strong>
-                                                                            <?= $project_progress ?>
+                                                                            <?= $progress ?>
                                                                         </strong>
                                                                         <br />
                                                                     </td>

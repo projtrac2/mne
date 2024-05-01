@@ -1,8 +1,6 @@
-
 <?php
-
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['store_specifications'])) {
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];
@@ -91,6 +89,5 @@ try {
         echo json_encode(array("success" => $msg, "specifications" => $data));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -21,6 +21,7 @@ try {
 		}
 		echo json_encode($valid);
 	}
+
 	if (isset($_POST["edititem"])) {
 		$priority = $_POST['editpriority'];
 		$description = $_POST['editdescription'];
