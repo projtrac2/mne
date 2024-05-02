@@ -1,7 +1,6 @@
 <?php
 include '../controller.php';
 try {
-
     if (isset($_GET['get_project_outputs'])) {
         $projid = $_GET['projid'];
         $outputs = '<option value="">Select Output from list</option>';
@@ -164,7 +163,7 @@ try {
         $created_at = date("Y-m-d");
         $formid = date("Y-m-d");
         $origin = 4;
-        
+
         $sql = $db->prepare("INSERT INTO tbl_monitoringoutput (projid,output_id,design_id,site_id,state_id,form_id,achieved,created_by,date_created) VALUES(:projid,:output_id,:design_id,:site_id,:state_id,:formid,:achieved,:created_by,:created_at)");
         $results = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id, ":design_id" => $design_id, ":site_id" => $site_id, ":state_id" => $state_id, ":formid" => $formid, ":achieved" => $achieved, ":created_by" => $created_by, ":created_at" => $created_at));
 
@@ -263,6 +262,5 @@ try {
         return $comments_body != "" ?  $c : "<h4>No Record</h4>";
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

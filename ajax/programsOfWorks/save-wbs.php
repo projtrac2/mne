@@ -1,20 +1,21 @@
 <?php
-include '../controller.php';
-
-$projid = $_POST['projid'];
-$output_id = $_POST['output_id'];
-$site_id = $_POST['site_id'];
-$task_id = $_POST['task_id'];
-$subtask_id = $_POST['subtask_id'];
-// $frequency = $_POST['frequency'];
-$frequency = 2;
-$target = $_POST['yearlyTargets'];
-$achieved = $_POST['yearlyAchieved'];
-$year = $_POST['year'];
-$date = date('Y-m-d');
-$recordExists = false;
-
 try {
+    include '../controller.php';
+
+    $projid = $_POST['projid'];
+    $output_id = $_POST['output_id'];
+    $site_id = $_POST['site_id'];
+    $task_id = $_POST['task_id'];
+    $subtask_id = $_POST['subtask_id'];
+    // $frequency = $_POST['frequency'];
+    $frequency = 2;
+    $target = $_POST['yearlyTargets'];
+    $achieved = $_POST['yearlyAchieved'];
+    $year = $_POST['year'];
+    $date = date('Y-m-d');
+    $recordExists = false;
+
+
 
     for ($i = 0; $i < count($target); $i++) {
         $stmt = $db->prepare('SELECT * FROM tbl_project_target_breakdown WHERE task_id = :task_id AND subtask_id = :subtask_id AND site_id = :site_id AND subtask_year = :subtask_year');
@@ -37,7 +38,7 @@ try {
                 $update_stmt->execute();
             }
         } else {
-            
+
             if ($target[$i]) {
                 // add transaction
                 $m_null = NULL;
@@ -49,7 +50,7 @@ try {
                 $save_query->bindParam(':subtask_id', $subtask_id);
                 $save_query->bindParam(':frequency', $frequency);
                 $save_query->bindParam(':subtask_target', $target[$i]);
-               
+
                 $save_query->bindParam(':subtask_year', $year[$i], PDO::PARAM_STR);
                 $save_query->bindParam(':created_by', $frequency);
                 $save_query->bindParam(':created_at', $date);
@@ -59,6 +60,6 @@ try {
     }
 
     echo json_encode(1);
-} catch (\PDOException $th) {
-    echo $th->getMessage();
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

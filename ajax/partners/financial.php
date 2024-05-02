@@ -9,6 +9,6 @@ try {
 
         echo json_encode(array("success"=>true));
     }
-} catch (\Throwable $th) {
-    throw $th;
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

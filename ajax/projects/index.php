@@ -1,11 +1,11 @@
 <?php
-
-include '../controller.php';
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 try {
+    include '../controller.php';
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+
+
     if (isset($_POST['insert_project'])) {
         $progid = $_POST['progid'];
         $projcode = $_POST['projcode'];
@@ -485,6 +485,5 @@ try {
         ));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

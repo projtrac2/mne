@@ -194,6 +194,5 @@ try {
         echo json_encode(array("success" => true, "details" => $rows_rsPayement_requests, 'project_details' => $rows_rsprojects, 'data' => $data, 'comments' => get_comments($request_id), 'disbursement' => $rows_rsDisbursement));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

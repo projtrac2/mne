@@ -1,5 +1,4 @@
 <?php
-
 include '../controller.php';
 try {
     if (isset($_POST['getcont'])) {
@@ -37,6 +36,5 @@ try {
         echo json_encode(['success' => $success, 'milestones' => $row_rsMilestone]);
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

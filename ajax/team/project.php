@@ -170,6 +170,5 @@ try {
         echo json_encode(array('success' => true, 'technical_team' => $technical_team, 'mne_team' => $mne_team));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

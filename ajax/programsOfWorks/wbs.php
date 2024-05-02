@@ -431,6 +431,5 @@ try {
         echo json_encode(array('success' => $success));
     }
 } catch (PDOException $ex) {
-    var_dump($ex);
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

@@ -3,13 +3,13 @@ include '../controller.php';
 try {
 	$valid['success'] = array('success' => false, 'messages' => array());
 
-	//approve item 
+	//approve item
 	if (isset($_POST["approveitem"])) {
 		$projid = $_POST['projid'];
 		$progid = $_POST['progid'];
 		$approved = $_POST['approveitem'];
-		$projcost = $_POST['projcost']; // cost of each output 
-		$projoutputduration = $_POST['opduration']; //output duration 
+		$projcost = $_POST['projcost']; // cost of each output
+		$projoutputduration = $_POST['opduration']; //output duration
 		$user_name = $_POST['user_name'];
 		$date = date("Y-m-d");
 
@@ -50,7 +50,7 @@ try {
 				$result1  = $insertSQL1->execute(array(":duration" => $duration, ":budget" => $budget, ":opid" => $projoutputid));
 			}
 
-			//  select data to be moved to the history table 
+			//  select data to be moved to the history table
 			$queryDetails = $db->prepare("SELECT * FROM tbl_project_output_details WHERE projid = '$projid'");
 			$queryDetails->execute();
 			$data_Details = $queryDetails->fetch();
@@ -61,7 +61,7 @@ try {
 			} while ($data_Details =  $queryDetails->fetch());
 
 
-			//  select data to be moved to the history table 
+			//  select data to be moved to the history table
 			$query_Diss_Details = $db->prepare("SELECT * FROM tbl_project_results_level_disaggregation WHERE projid = '$projid'");
 			$query_Diss_Details->execute();
 			$data_Diss_Details = $query_Diss_Details->fetch();
@@ -74,11 +74,11 @@ try {
 				} while ($data_Diss_Details =  $query_Diss_Details->fetch());
 			}
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_output_details` WHERE projid=:projid");
 			$results = $deleteQuery->execute(array(':projid' => $projid));
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_results_level_disaggregation` WHERE projid=:projid");
 			$results = $deleteQuery->execute(array(':projid' => $projid));
 
@@ -131,7 +131,7 @@ try {
 			if (isset($_POST['attachmentpurpose'])) {
 				$countP = count($_POST["attachmentpurpose"]);
 				$stage = 2;
-				// insert new data 
+				// insert new data
 				for ($cnt = 0; $cnt < $countP; $cnt++) {
 					$purpose = $_POST["attachmentpurpose"][$cnt];
 					if (!empty($_FILES['pfiles']['name'][$cnt])) {
@@ -200,8 +200,8 @@ try {
 		$projid = $_POST['projid'];
 		$progid = $_POST['progid'];
 		$approved = $_POST['approveitem'];
-		$projcost = $_POST['projcost']; // cost of each output 
-		$projoutputduration = $_POST['opduration']; //output duration 
+		$projcost = $_POST['projcost']; // cost of each output
+		$projoutputduration = $_POST['opduration']; //output duration
 		$user_name = $_POST['user_name'];
 		$date = date("Y-m-d");
 
@@ -231,7 +231,7 @@ try {
 				$result1  = $insertSQL1->execute(array(":duration" => $duration, ":budget" => $budget, ":opid" => $projoutputid));
 			}
 
-			//  select data to be moved to the history table 
+			//  select data to be moved to the history table
 			$queryDetails = $db->prepare("SELECT * FROM tbl_project_output_details WHERE projid = '$projid'");
 			$queryDetails->execute();
 			$data_Details = $queryDetails->fetch();
@@ -242,7 +242,7 @@ try {
 			} while ($data_Details =  $queryDetails->fetch());
 
 
-			//  select data to be moved to the history table 
+			//  select data to be moved to the history table
 			$query_Diss_Details = $db->prepare("SELECT * FROM tbl_project_results_level_disaggregation WHERE projid = '$projid'");
 			$query_Diss_Details->execute();
 			$data_Diss_Details = $query_Diss_Details->fetch();
@@ -255,11 +255,11 @@ try {
 				} while ($data_Diss_Details =  $query_Diss_Details->fetch());
 			}
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_output_details` WHERE projid=:projid");
 			$results = $deleteQuery->execute(array(':projid' => $projid));
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_results_level_disaggregation` WHERE projid=:projid");
 			$results = $deleteQuery->execute(array(':projid' => $projid));
 
@@ -312,7 +312,7 @@ try {
 			if (isset($_POST['attachmentpurpose'])) {
 				$countP = count($_POST["attachmentpurpose"]);
 				$stage = 2;
-				// insert new data 
+				// insert new data
 				for ($cnt = 0; $cnt < $countP; $cnt++) {
 					$purpose = $_POST["attachmentpurpose"][$cnt];
 					if (!empty($_FILES['pfiles']['name'][$cnt])) {
@@ -376,7 +376,7 @@ try {
 		echo json_encode($valid);
 	}
 
-	//Un approve single item 
+	//Un approve single item
 	if (isset($_POST["unapproveitem"])) {
 		$projid = $_POST['itemId'];
 		$approved = 0;
@@ -385,11 +385,11 @@ try {
 		$date = date("Y-m-d");
 		$sumCost = 0;
 
-		// // delete tbl_project_details table 
+		// // delete tbl_project_details table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_project_details` WHERE projid=:projid");
 		$results = $deleteQuery->execute(array(':projid' => $projid));
 
-		// // // restore the initial values 
+		// // // restore the initial values
 		$queryODetails = $db->prepare("SELECT * FROM tbl_project_details_history  WHERE projid = '$projid'");
 		$queryODetails->execute();
 		$data_ODetails =  $queryODetails->fetch();
@@ -398,17 +398,17 @@ try {
 		do {
 			$insertOutputHistory = $db->prepare("INSERT INTO `tbl_project_details`(progid, projid, outputid, indicator, year, duration, budget, mapping_type, total_target)  VALUES(:progid, :projid, :outputid,:indicator, :year, :duration, :budget,:mapping_type, :total_target)");
 			$resultOutputresults  = $insertOutputHistory->execute(array(":progid" => $data_ODetails['progid'], ":projid" => $projid, ":outputid" => $data_ODetails['outputid'], ":indicator" => $data_ODetails['indicator'], ":year" => $data_ODetails['year'], ":duration" => $data_ODetails['duration'], ":budget" => $data_ODetails['budget'], ":mapping_type" => $data_ODetails['mapping_type'], ":total_target" => $data_ODetails['total_target']));
-			$last_id = $db->lastInsertId(); // get the project id   
+			$last_id = $db->lastInsertId(); // get the project id
 			$projoutputid = $data_ODetails['pdid'];
 			$progid = $data_ODetails['progid'];
 
 
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_output_details` WHERE projoutputid=:projoutputid");
 			$results = $deleteQuery->execute(array(':projoutputid' => $projoutputid));
 
-			//  restore initial data 
+			//  restore initial data
 			$queryDetails = $db->prepare("SELECT * FROM tbl_project_output_details_history WHERE projid = '$projid' AND projoutputid ='$projoutputid' ");
 			$queryDetails->execute();
 			$data_Details = $queryDetails->fetch();
@@ -419,11 +419,11 @@ try {
 			} while ($data_Details =  $queryDetails->fetch());
 
 
-			// delete tbl_project_output_details table 
+			// delete tbl_project_output_details table
 			$deleteQuery = $db->prepare("DELETE FROM `tbl_project_results_level_disaggregation` WHERE projid=:projid AND projoutputid=:projoutputid");
 			$results = $deleteQuery->execute(array(':projid' => $projid, ':projoutputid' => $projoutputid));
 
-			//  select data to be moved to the  table 
+			//  select data to be moved to the  table
 			$query_Diss_Details = $db->prepare("SELECT * FROM tbl_project_history_results_level_disaggregation  WHERE projid = :projid AND projoutputid=:projoutputid");
 			$query_Diss_Details->execute(array(':projid' => $projid, ':projoutputid' => $projoutputid));
 			$data_Diss_Details = $query_Diss_Details->fetch();
@@ -442,26 +442,26 @@ try {
 
 
 
-		// delete the files in myprojfunding 
+		// delete the files in myprojfunding
 		$deleteQueryR = $db->prepare("DELETE FROM `tbl_myprojfunding` WHERE projid=:itemid");
 		$resultsR = $deleteQueryR->execute(array(':itemid' => $projid));
 
-		// unapprove and set cost to 0 
+		// unapprove and set cost to 0
 		$approveItemQuery = $db->prepare("UPDATE `tbl_projects` set projcost=:projcost,  projplanstatus=:approved, projstage=:stage WHERE projid=:projid");
 		$results = $approveItemQuery->execute(array(':projcost' => $sumCost, ":approved" => $approved, ":stage" => $stage, ':projid' => $projid));
 
 		$unapproveItemQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, unapproved_by=:approved_by, date_unapproved=:approved_date WHERE projid=:projid");
 		$unapproveItemQuery->execute(array(':status' => $status, ":approved_by" => $user_name, ":approved_date" => $date, ':projid' => $projid));
 
-		// delete the files in myprojfunding 
+		// delete the files in myprojfunding
 		$deleteQueryHistory = $db->prepare("DELETE FROM `tbl_project_details_history` WHERE projid=:itemid");
 		$resulryHistory = $deleteQueryHistory->execute(array(':itemid' => $projid));
 
-		// delete the files in myprojfunding 
+		// delete the files in myprojfunding
 		$deleteQueryHistory_plan = $db->prepare("DELETE FROM `tbl_project_output_details_history` WHERE projid=:itemid");
 		$resultsHistory_plan = $deleteQueryHistory_plan->execute(array(':itemid' => $projid));
 
-		// delete tbl_project_output_details table 
+		// delete tbl_project_output_details table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_project_history_results_level_disaggregation` WHERE projid=:projid");
 		$results = $deleteQuery->execute(array(':projid' => $projid));
 
@@ -491,7 +491,7 @@ try {
 		echo json_encode($valid);
 	}
 
-	//delete one item 
+	//delete one item
 	if (isset($_POST["deleteItem"])) {
 		$itemid = $_POST['itemId'];
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_projects` WHERE projid=:itemid");
@@ -554,7 +554,7 @@ try {
 		$counter = $_POST['counter'];
 
 		$Targets = '';
-		// get indicator name  
+		// get indicator name
 		$query_rsIndicator = $db->prepare("SELECT indname, indid FROM tbl_indicator WHERE indid ='$indicatorid'");
 		$query_rsIndicator->execute();
 		$row_rsIndicator = $query_rsIndicator->fetch();
@@ -565,13 +565,13 @@ try {
 		$row = $query_Indicator->fetch();
 		$unit = $row['unit'];
 
-		// Get outputstart year 
+		// Get outputstart year
 		$query_rsIndicatorYear =  $db->prepare("SELECT yr FROM tbl_fiscal_year WHERE id='$year'");
 		$query_rsIndicatorYear->execute();
 		$row_rsIndicatorYear = $query_rsIndicatorYear->fetch();
 		$projstartyear = $row_rsIndicatorYear['yr'];
 
-		// get output name  
+		// get output name
 		$query_rsOutput = $db->prepare("SELECT * FROM tbl_progdetails WHERE id='$output'");
 		$query_rsOutput->execute();
 		$row_rsOutput = $query_rsOutput->fetch();
@@ -624,16 +624,16 @@ try {
 			}
 
 			$spanYear .=
-				'<div id="proj' .  $projstartyear .  "/" .  $startyear . '" class="col-md-4"> 
-                        Project 
+				'<div id="proj' .  $projstartyear .  "/" .  $startyear . '" class="col-md-4">
+                        Project
                     <strong> ' .  $projstartyear . "/" . $startyear . ' </strong> Annual Target Plan<br>
                         <span id="projmsg' . $projstartyear .  $counter . '" style="color:red">' . $arr . '</span></div>';
 			$TargetPlan .=
 				'<input type="hidden" class="projdurationerow' . $counter . '" name="projTragetplan[]" value="' . $projstartyear . '" />';
 			if ($quaters > 4) {
 				$containerTH .=
-					'<th colspan="4">' . $projstartyear .  "/" . $startyear . ' 
-                        <input type="hidden" class="output' . $output . '"  name="projoutputYearValue[]" value="' . $projstartyear . '" /> 
+					'<th colspan="4">' . $projstartyear .  "/" . $startyear . '
+                        <input type="hidden" class="output' . $output . '"  name="projoutputYearValue[]" value="' . $projstartyear . '" />
                         <input type="hidden" name="targetPlan[]" value="' . $arr  .  '" id="targetVal' . $projstartyear .  $counter . '" >
                         Remaining Target <span id="targetmsg' . $projstartyear .  $counter . '" style="color:red"> (' . $arr . ')</span>  </th>';
 
@@ -644,7 +644,7 @@ try {
 						' Target</th>';
 					$containerTB .=
 						'<td width="300px"> <input type="hidden"  name="projoutputValue[]" value="' . $projoutputValue . '" />  ' .
-						'<input type="number" onkeyup=targetsBlur("' .  $counter  .  '","' .  $projstartyear . '") 
+						'<input type="number" onkeyup=targetsBlur("' .  $counter  .  '","' .  $projstartyear . '")
                             name="target[]" id="' .  $projstartyear . '" placeholder="Enter" data-id="' .  $projstartyear . '"
                             class="form-control selectSource' . $counter .  $projstartyear .
 						" selected" . $output . $projstartyear . '" required>' .
@@ -656,7 +656,7 @@ try {
 				$containerTH   .=
 					'<th colspan="' . $quaters .     '" >' . $projstartyear . "/" . $startyear .
 					'
-							<input type="hidden" class="output' . $output . '"  name="projoutputYearValue[]" value="' . $projstartyear . '" /> 
+							<input type="hidden" class="output' . $output . '"  name="projoutputYearValue[]" value="' . $projstartyear . '" />
                             <input type="hidden" name="targetPlan[]" value="' . $arr  .  '" id="targetVal' . $projstartyear .  $counter . '" >
                             Remaining Target <span id="targetmsg' . $projstartyear .  $counter . '" style="color:red"> (' . $arr . ')</span> </th>';
 				for ($j = 0; $j < $quaters; $j++) {
@@ -667,7 +667,7 @@ try {
 					$containerTB  .=
 						'<td width="300px">
 								<input type="hidden"  name="projoutputValue[]" value="' .  $projoutputValue . '" /> ' .
-						'<input type="number" name="target[]" id="' . $projstartyear . '" onkeyup=targetsBlur("' .  $counter  .  '","' .  $projstartyear . '")   
+						'<input type="number" name="target[]" id="' . $projstartyear . '" onkeyup=targetsBlur("' .  $counter  .  '","' .  $projstartyear . '")
                             placeholder="Enter" data-id="' . $projstartyear . '" class="form-control selectSource' . $counter . $projstartyear .
 						" selected" . $output . $projstartyear . '" required>
                             </td>';
@@ -694,7 +694,7 @@ try {
                                 <div class="col-md-4 clearfix" style="margin-top:5px; margin-bottom:5px">
                                     <h5 style="color:#FF5722"><strong> Unit : ' . $unit . '</strong></h5>
                                 </div>
-                                
+
                             </div>
                             <div class="body">
                                 <div class="row">
@@ -727,8 +727,8 @@ try {
 
 	if (isset($_POST['get_category'])) {
 		$projid = $_POST['projid'];
-		$query_rsFunding =  $db->prepare("SELECT p.amountfunding, p.sourcecategory, f.type 
-		 FROM tbl_projfunding p 
+		$query_rsFunding =  $db->prepare("SELECT p.amountfunding, p.sourcecategory, f.type
+		 FROM tbl_projfunding p
 		 INNER JOIN tbl_funding_type f ON  p.sourcecategory= f.id WHERE projid =:projid");
 		$query_rsFunding->execute(array(":projid" => $projid));
 		$row_rsFunding = $query_rsFunding->fetch();
@@ -756,7 +756,7 @@ try {
 		$category = $row_rsCategory['category'];
 
 
-		$query_rsFunder = $db->prepare("SELECT *, s.id as fnid FROM tbl_financiers s  
+		$query_rsFunder = $db->prepare("SELECT *, s.id as fnid FROM tbl_financiers s
 		INNER JOIN tbl_funds f ON s.id =f.funder WHERE f.financial_year=:financial_year AND s.type=:sourcecategory");
 		$query_rsFunder->execute(array(":financial_year" => $projfscyear, ":sourcecategory" => $source_category));
 		$row_rsFunder = $query_rsFunder->fetch();
@@ -768,9 +768,9 @@ try {
 			$fndid = $row_rsFunder['fnid'];
 			$funder = $row_rsFunder['financier'];
 			$rate = $row_rsFunder['exchange_rate'];
-			$funding_amount = $row_rsFunder['amount'] * $rate; // check 
+			$funding_amount = $row_rsFunder['amount'] * $rate; // check
 
-			// check amount that it has been used up 
+			// check amount that it has been used up
 			$query_rsUsedFunds = $db->prepare("SELECT sum(amountfunding) as amount FROM tbl_myprojfunding f INNER JOIN tbl_projects p ON  p.projid= f.projid WHERE p.projfscyear=:projfscyear AND financier=:fndid ");
 			$query_rsUsedFunds->execute(array(":fndid" => $fndid, ":projfscyear" => $projfscyear));
 			$row_rsUsedFunds = $query_rsUsedFunds->fetch();
@@ -841,7 +841,7 @@ try {
 		$fndid = $row_rsFunder['id'];
 		$funder = $row_rsFunder['financier'];
 		$rate = $row_rsFunder['exchange_rate'];
-		$funding_amount = $row_rsFunder['amount'] * $rate; // check 
+		$funding_amount = $row_rsFunder['amount'] * $rate; // check
 		$remaining  = $funding_amount - $amountprojFunding;
 
 		$arr = [];
@@ -905,10 +905,10 @@ try {
 
 			$containerTH .= '<th colspan="' . count($locations) . '">
 
-				<input type="hidden"   name="locate_output_name[]" id="locate_opid' . $outputids . '" value="' . $outputName . '"/>  
-				<input type="hidden"   name="level3label' . $state . $outputids . '[]" id="level3label' . $state . $outputids . '" value="' . $level3 . '"/>  
-				<input type="hidden"   name="unitName' . $state . $outputids . '[]" id="unitName' . $state . $outputids . '" value="' . $unit . '"/>  
-				<input type="hidden" data-id="' . $level3 . '"  name="outputstate' . $outputids . '[]" class="outputstate' . $outputids . '" value="' . $state . '" /> 
+				<input type="hidden"   name="locate_output_name[]" id="locate_opid' . $outputids . '" value="' . $outputName . '"/>
+				<input type="hidden"   name="level3label' . $state . $outputids . '[]" id="level3label' . $state . $outputids . '" value="' . $level3 . '"/>
+				<input type="hidden"   name="unitName' . $state . $outputids . '[]" id="unitName' . $state . $outputids . '" value="' . $unit . '"/>
+				<input type="hidden" data-id="' . $level3 . '"  name="outputstate' . $outputids . '[]" class="outputstate' . $outputids . '" value="' . $state . '" />
 				' . $level3label . ': ' . $level3 . '
 				<input type="number" class="form-control
 				  state_diss' . $outputids . '" onkeyup="target_state_distribution(' . $outputids . "," . $state . ')"
@@ -923,8 +923,8 @@ try {
 				$containerTH2 .= '<th>' . $locations[$j] . '</th> ';
 				$containerTB .= '
 					<td>
-						<input type="hidden"   name="outputlocation' . $state . $outputids . '[]" id="locate' . $number . '" value="' . trim($locations[$j]) . '"/>  
-						<input type="number"  disabled data-loc="' . trim($locations[$j]) . '"  data-id="' . $outputids . '" id="locate_numb' . $number . '" placeholder="' . $unit . '" class="form-control locate_total' . $state .  $outputids . '  loc_op' . $outputids . '" onkeyup=get_sum("' . $state . '","' . $number . '") onchange=get_sum("' . $state . '","' . $number . '")  name="outputlocationtarget' . $state . $outputids . '[]" value="" required />  
+						<input type="hidden"   name="outputlocation' . $state . $outputids . '[]" id="locate' . $number . '" value="' . trim($locations[$j]) . '"/>
+						<input type="number"  disabled data-loc="' . trim($locations[$j]) . '"  data-id="' . $outputids . '" id="locate_numb' . $number . '" placeholder="' . $unit . '" class="form-control locate_total' . $state .  $outputids . '  loc_op' . $outputids . '" onkeyup=get_sum("' . $state . '","' . $number . '") onchange=get_sum("' . $state . '","' . $number . '")  name="outputlocationtarget' . $state . $outputids . '[]" value="" required />
 					</td>';
 			}
 		} while ($row_rsStates = $query_rsStates->fetch());
@@ -935,7 +935,7 @@ try {
 
 		$Targets  = '
 					<div class="row clearfix" id="disstarget">
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"> 
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<div class="card">
 								<div class="header">
 									<div class="col-md-6" style="margin-top:5px; margin-bottom:5px">
@@ -945,15 +945,15 @@ try {
 										<h5 style="color:#2196F3"><strong> Indicator: ' . $indname . '</strong></h5>
 										<input type="hidden" value="' . $indname . '" id="indicatorName' . trim($outputids) . '">
 										<input type="hidden" value="' . $unit . '" id="unitNameL' . trim($outputids) . '">
-									</div> 
+									</div>
 								</div>
-								<div class="body"> 
+								<div class="body">
 									<div class="row clearfix" >
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12"> 
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 											<div class="table-responsive">
 												<table class="table table-bordered table-striped table-hover" id="" style="width:100%">
-													<thead> 
-															' . $containerTH . ' 
+													<thead>
+															' . $containerTH . '
 													</thead>
 													<tbody>
 														' . $containerTH2 . $containerTB . '
@@ -1050,13 +1050,13 @@ try {
 					$containerTH .= '<th>
 					' . $projstartyear . "/" . $endyear . '
 					<input type="hidden" class="output_years' . $outputIds  . '" name="output_years' . $outputIds  . '[]" value="' . $projstartyear . ' " >
-					<input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >  
-					<input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " > 
+					<input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >
+					<input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " >
 					<input type="hidden"   id="cyear_target' . $outputIds .  $projstartyear . '" name="cyear_target' . $outputIds . '[]" value="' . $arr . ' " >
 					  <span>Program Target Bal: </span><span style="color:red" id="year_target' . $outputIds .  $projstartyear . '" > ' . number_format($arr, 2) . '</span>
 					</th>';
 
-					$containerTB .= '<td> 
+					$containerTB .= '<td>
 					<input type="number" data-id=""  name="target_year' . $outputIds . '[]" placeholder="target"  id="target_year' . $outputIds . $projstartyear . '" class="form-control workplanTarget' . $outputIds . '"
 					 onkeyup=get_op_sum_target(' . $outputIds . ',' . $projstartyear . ') required >
 					</td>';
@@ -1064,12 +1064,12 @@ try {
 					$containerTH .= '<th>
 					' . $projstartyear . "/" . $endyear . '
 					<input type="hidden" class="output_years' . $outputIds  . '" name="output_years' . $outputIds  . '[]" value="' . $projstartyear . ' " >
-					<input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >  
-					<input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " > 
+					<input type="hidden" name="dboutputId[]" value="' . $outputName . ' " >
+					<input type="hidden" id="outputName' . $outputIds . '" name="outputName[]" value="' . $outputIds . ' " >
 					<input type="hidden"   id="cyear_target' . $outputIds .  $projstartyear . '" name="cyear_target' . $outputIds . '[]" value="' . $arr . ' " >
 					  <span>Program Target Bal: </span><span style="color:red" id="year_target' . $outputIds .  $projstartyear . '" > ' . number_format($arr, 2) . '</span>
 					</th>';
-					$containerTB .= '<td> 
+					$containerTB .= '<td>
 					<input type="number" data-id=""  name="target_year' . $outputIds . '[]" placeholder="target"  id="target_year' . $outputIds . $projstartyear . '" class="form-control workplanTarget' . $outputIds . '"
 					 onkeyup=get_op_sum_target(' . $outputIds . ',' . $projstartyear . ') required >
 					</td>';
@@ -1079,7 +1079,7 @@ try {
 
 
 
-			$data = ' 
+			$data = '
 				<div class="row clearfix " id="Targetrowcontainer">
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 						<div class="card">
@@ -1095,14 +1095,14 @@ try {
 								<div class="col-md-2 clearfix" style="margin-top:5px; margin-bottom:5px">
 									<h5 style="color:#2B982B"><strong> Unit : ' . $unit . '</strong></h5>
 									<input type="hidden" value="' . $unit . '" id="unit' . trim($outputIds) . '">
-								</div>  
+								</div>
 							</div>
 							<div class="body">
-								<div class="row clearfix "> 
+								<div class="row clearfix ">
 									<div class="col-md-12 ">
 										<div class="table-responsive">
 											<table class="table table-bordered table-striped table-hover" id="targets" style="width:100%">
-												<thead> 
+												<thead>
 
 													<tr>
 														<th colspan="' . $years . '" >
@@ -1150,18 +1150,18 @@ try {
 		$year = date("Y");
 		//$year = date("Y") - 1;
 
-		//get program sector 
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
 
-		// get program output details  
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY d.outputid");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1177,7 +1177,7 @@ try {
 									<input type="hidden" name="progid" value="' . $progid . '">
 									<input type="hidden" name="finyear" value="' . $year . '">
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1197,14 +1197,14 @@ try {
 		$sn = 0;
 		while ($row_inddetails = $query_inddetails->fetch()) {
 			$sn++;
-			
+
 			$outputid = $row_inddetails["outputid"];
 			$indicatorid = $row_inddetails["indicator"];
-			
+
 			$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE id ='$outputid' AND year='$year'");
 			$query_outputdetails->execute();
 			$row_outputdetails = $query_outputdetails->fetch();
-			
+
 			$output = $row_outputdetails["output"];
 
 
@@ -1247,7 +1247,7 @@ try {
 					<input type="hidden" name="opid[]" value="' . $outputid . '">
 				</tr>';
 		}
-		$optable  .= '	
+		$optable  .= '
 								</tbody>
 							</table>
 						</div>
@@ -1256,17 +1256,17 @@ try {
 			</div>';
 		echo $optable;
 	}
-	/* 	
+	/*
 	if (isset($_POST['create_padp_div'])) {
 		$progid = $_POST['progid'];
 		$year = date("Y");
 
-		// get program output details  
+		// get program output details
 		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE progid ='$progid' AND year='$year'");
 		$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1282,7 +1282,7 @@ try {
 									<input type="hidden" name="progid" value="'.$progid.'">
 									<input type="hidden" name="finyear" value="'.$year.'">
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1299,12 +1299,12 @@ try {
 											$outputid = $row_outputdetails["id"];
 											$output = $row_outputdetails["output"];
 											$indicatorid = $row_outputdetails["indicator"];
-											
+
 											$query_indicator =  $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indicatorid'");
 											$query_indicator->execute();
 											$row_indicator = $query_indicator->fetch();
 											$indicator = $row_indicator['indicator_name'];
-											
+
 											$optable  .= '<tr>
 												<td>'.$sn.'</td>
 												<td>'.$output.'</td>
@@ -1329,18 +1329,18 @@ try {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 
-		//get program sector 
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
 
-		// get program output details  
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1356,7 +1356,7 @@ try {
 									<input type="hidden" name="progid" value="' . $progid . '">
 									<input type="hidden" name="finyear" value="' . $year . '">
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1376,14 +1376,14 @@ try {
 		$sn = 0;
 		while ($row_inddetails = $query_inddetails->fetch()) {
 			$sn++;
-			
+
 			$outputid = $row_inddetails["outputid"];
 			$indicatorid = $row_inddetails["indicator"];
-			
+
 			$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE id ='$outputid' AND year='$year'");
 			$query_outputdetails->execute();
 			$row_outputdetails = $query_outputdetails->fetch();
-			
+
 			$output = $row_outputdetails["output"];
 
 			//get program budget
@@ -1412,11 +1412,11 @@ try {
 			$query_budgetdetails = $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND finyear='$year' AND opid='$outputid'");
 			$query_budgetdetails->execute();
 			$row_budgetdetails = $query_budgetdetails->fetch();
-			
+
 			$pbbid = $row_budgetdetails['id'];
 			$targetvalue = $row_budgetdetails['target'];
 			$budgetvalue = $row_budgetdetails['budget'];
-			
+
 			$optable  .= '<tr>
 												<td>' . $sn . '</td>
 												<td>' . $output . '</td>
@@ -1442,19 +1442,19 @@ try {
 	if (isset($_POST['view_padp_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
-		
-		//get program sector 
+
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
-		
-		// get program output details  
+
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid  inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1468,7 +1468,7 @@ try {
 								<h5>
 									<strong> Program: ' . $progname . '</strong>
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1484,14 +1484,14 @@ try {
 		$totaltarget = 0;
 		while ($row_inddetails = $query_inddetails->fetch()) {
 			$sn++;
-			
+
 			$outputid = $row_inddetails["outputid"];
 			$indicatorid = $row_inddetails["indicator"];
-			
+
 			$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.id ='$outputid' AND d.year='$year' GROUP BY d.id");
 			$query_outputdetails->execute();
 			$row_outputdetails = $query_outputdetails->fetch();
-			
+
 			$output = $row_outputdetails["output"];
 			$indicator = $row_outputdetails['indicator_name'];
 
@@ -1535,25 +1535,25 @@ try {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
-		
-		//get program sector 
+
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
-		
-		// get program output details  
+
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid  FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 		$total_inddetails = $query_inddetails->rowCount();
 
-		// get program output details 
+		// get program output details
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
 		//$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1572,7 +1572,7 @@ try {
 									<br>
 									<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1587,14 +1587,14 @@ try {
 											$sn = 0;
 											while ($row_inddetails = $query_inddetails->fetch()) {
 												$sn++;
-												
+
 												$outputid = $row_inddetails["outputid"];
 												$indicatorid = $row_inddetails["indicator"];
-												
+
 												$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.indicator ='$indicatorid' AND d.year='$year' GROUP BY d.id");
 												$query_outputdetails->execute();
 												$row_outputdetails = $query_outputdetails->fetch();
-												
+
 												$output = $row_outputdetails["output"];
 												$indicator = $row_outputdetails['indicator_name'];
 												$unitid = $row_outputdetails["indicator_unit"];
@@ -1640,12 +1640,12 @@ try {
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
 
-		// get program output details 
+		// get program output details
 		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
 		$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1664,7 +1664,7 @@ try {
 									<br>
 									<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 								</h5>
-							</div>                                
+							</div>
 						</div>
 						<div class="body">
 							<div class=" class="col-md-12" table-responsive">
@@ -1721,25 +1721,25 @@ try {
 	if (isset($_POST['edit_qtargets_div'])) {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
-		
-		//get program sector 
+
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
-		
-		// get program output details  
+
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid  FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 		$total_inddetails = $query_inddetails->rowCount();
 
-		// get program output details  
+		// get program output details
 		/* $query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
 		$query_outputdetails->execute(); */
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1755,7 +1755,7 @@ try {
 							<input type="hidden" name="progid" value="' . $progid . '">
 							<input type="hidden" name="finyear" value="' . $year . '">
 						</h5>
-					</div>                                
+					</div>
 				</div>
 				<div class="body">
 					<div class=" class="col-md-12" table-responsive">
@@ -1769,18 +1769,18 @@ try {
 								$sn = 0;
 								while ($row_inddetails = $query_inddetails->fetch()) {
 									$sn++;
-									
+
 									$outputid = $row_inddetails["outputid"];
 									$indicatorid = $row_inddetails["indicator"];
-									
+
 									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.id ='$outputid' AND d.year='$year' GROUP BY d.id");
 									$query_outputdetails->execute();
 									$row_outputdetails = $query_outputdetails->fetch();
-									
+
 									$output = $row_outputdetails["output"];
 									$indicator = $row_outputdetails['indicator_name'];
 									$unitid = $row_outputdetails["indicator_unit"];
-									
+
 									$query_pbb =  $db->prepare("SELECT * FROM tbl_programs_based_budget WHERE progid ='$progid' AND opid ='$outputid' AND finyear ='$year'");
 									$query_pbb->execute();
 									$rows_pbb = $query_pbb->fetch();
@@ -1830,12 +1830,12 @@ try {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
-		// get program output details  
+		// get program output details
 		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
 		$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1851,7 +1851,7 @@ try {
 							<input type="hidden" name="progid" value="' . $progid . '">
 							<input type="hidden" name="finyear" value="' . $year . '">
 						</h5>
-					</div>                                
+					</div>
 				</div>
 				<div class="body">
 					<div class=" class="col-md-12" table-responsive">
@@ -1915,19 +1915,19 @@ try {
 		$progid = $_POST['progid'];
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
-		
-		//get program sector 
+
+		//get program sector
 		$query_year = $db->prepare("SELECT id FROM `tbl_fiscal_year` WHERE yr=:adpyr");
 		$query_year->execute(array(":adpyr" => $year));
 		$rowyear = $query_year->fetch();
 		$yearid = $rowyear["id"];
-		
-		// get program output details  
+
+		// get program output details
 		$query_inddetails = $db->prepare("SELECT p.id, p.progid, p.projid, p.indicator, p.year, p.target, p.budget, d.outputid FROM tbl_project_output_details p inner join tbl_project_details d on d.id=p.projoutputid inner join tbl_annual_dev_plan a on a.projid=p.projid WHERE p.progid ='$progid' AND p.year='$year' GROUP BY indicator");
 		//$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails g inner join WHERE progid ='$progid' AND year='$year'");
 		$query_inddetails->execute();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -1944,7 +1944,7 @@ try {
 							<br>
 							<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 						</h5>
-					</div>                                
+					</div>
 				</div>
 				<div class="body">
 					<div class=" class="col-md-12" table-responsive">
@@ -1958,14 +1958,14 @@ try {
 								$sn = 0;
 								while ($row_inddetails = $query_inddetails->fetch()) {
 									$sn++;
-									
+
 									$outputid = $row_inddetails["outputid"];
 									$indicatorid = $row_inddetails["indicator"];
-									
+
 									$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.id ='$outputid' AND d.year='$year' GROUP BY d.id");
 									$query_outputdetails->execute();
 									$row_outputdetails = $query_outputdetails->fetch();
-									
+
 									$output = $row_outputdetails["output"];
 									$indicator = $row_outputdetails['indicator_name'];
 									$unitid = $row_outputdetails["indicator_unit"];
@@ -2018,12 +2018,12 @@ try {
 		$year = $_POST['adpyr'];
 		$yearnxt = $year + 1;
 
-		// get program output details  
+		// get program output details
 		$query_outputdetails = $db->prepare("SELECT * FROM tbl_progdetails d inner join tbl_indicator i on i.indid=d.indicator WHERE d.progid ='$progid' AND d.year='$year' GROUP BY d.id");
 		$query_outputdetails->execute();
 		//$row_outputdetails = $query_outputdetails->fetch();
 
-		// get program name  
+		// get program name
 		$query_program = $db->prepare("SELECT * FROM tbl_programs WHERE progid ='$progid'");
 		$query_program->execute();
 		$row_program = $query_program->fetch();
@@ -2040,7 +2040,7 @@ try {
 							<br>
 							<strong>Financial Year: ' . $year . '/' . $yearnxt . '</strong>
 						</h5>
-					</div>                                
+					</div>
 				</div>
 				<div class="body">
 					<div class=" class="col-md-12" table-responsive">
@@ -2125,6 +2125,5 @@ try {
 		echo json_encode($valid);
 	}
 } catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $ex->getMessage();
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

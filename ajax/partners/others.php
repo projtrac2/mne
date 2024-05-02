@@ -8,6 +8,6 @@ try {
         $sql = $db->prepare("UPDATE tbl_partners SET active=:active WHERE  id=:partner_id");
         $result  = $sql->execute(array(":active" => $active, ":partner_id" => $partner_id));
     }
-} catch (\Throwable $th) {
-    throw $th;
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

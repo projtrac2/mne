@@ -31,7 +31,7 @@ try {
     }
 
 
-    
+
     function get_caretaker($projid, $user_name)
     {
         global $db;
@@ -117,6 +117,5 @@ try {
         echo json_encode(array("success"=>true, "team"=>$team_body));
     }
 } catch (PDOException $ex) {
-    $result = flashMessage("An error occurred: " . $ex->getMessage());
-    echo $ex->getMessage();
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -35,7 +35,7 @@ try {
 		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
 
-		// delete tbl_programs_based_budget table 
+		// delete tbl_programs_based_budget table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_programs_based_budget` WHERE progid=:progid AND finyear=:finyear");
 		$results = $deleteQuery->execute(array(':progid' => $progid, ':finyear' => $finyear));
 
@@ -67,7 +67,7 @@ try {
 		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
 
-		// delete tbl_programs_based_budget table 
+		// delete tbl_programs_based_budget table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_programs_quarterly_targets` WHERE progid=:progid AND year=:finyear");
 		$results = $deleteQuery->execute(array(':progid' => $progid, ':finyear' => $finyear));
 
@@ -135,7 +135,7 @@ try {
 		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
 
-		// delete tbl_programs_based_budget table 
+		// delete tbl_programs_based_budget table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_programs_quarterly_targets` WHERE progid=:progid AND year=:finyear");
 		$results = $deleteQuery->execute(array(':progid' => $progid, ':finyear' => $finyear));
 
@@ -173,7 +173,7 @@ try {
 		$createdby = $_POST['user_name'];
 		$datecreated = date("Y-m-d");
 
-		// delete tbl_programs_based_budget table 
+		// delete tbl_programs_based_budget table
 		$deleteQuery = $db->prepare("DELETE FROM `tbl_independent_programs_quarterly_targets` WHERE progid=:progid AND year=:finyear");
 		$results = $deleteQuery->execute(array(':progid' => $progid, ':finyear' => $finyear));
 
@@ -200,6 +200,5 @@ try {
 		echo json_encode($valid);
 	}
 } catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $ex->getMessage();
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
