@@ -1,10 +1,10 @@
 <?php
-$stplan = "";
-require('includes/head.php');
-if ($permission) {
+try {
+	$stplan = "";
+	require('includes/head.php');
+	if ($permission) {
 
-	require('functions/strategicplan.php');
-	try {
+		require('functions/strategicplan.php');
 		$strategicPlan = get_strategic_plan();
 		if ($strategicPlan) {
 			$stplan = $strategicPlan['id'];
@@ -285,14 +285,13 @@ if ($permission) {
 			}, 3000);
 		</script>";
 		}
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
+	} else {
+		$results =  restriction();
+		echo $results;
 	}
-} else {
-	$results =  restriction();
-	echo $results;
-}
 
-require('includes/footer.php');
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>

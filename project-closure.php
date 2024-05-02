@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
+
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -105,6 +106,7 @@ if ($permission) {
                         </div>
                     </div>
                 </div>
+            </div>
         </section>
         <!-- end body  -->
 
@@ -181,14 +183,14 @@ if ($permission) {
         </div>
         <!-- End add item -->
 <?php
-    } catch (PDOException $ex) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script>
     const redirect_url = "project-closure.php";

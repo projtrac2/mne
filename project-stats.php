@@ -1,12 +1,9 @@
 <?php
-require('includes/head.php');
+try {
+	require('includes/head.php');
 
-if ($permission) {
-	try {
-		$currentPage = $_SERVER["PHP_SELF"];
-
+	if ($permission) {
 		$projid = $_GET['projid'];
-
 		$query_rsMyP = $db->prepare("SELECT *, FORMAT(projcost, 2), projstartdate AS sdate, projenddate AS edate, projcategory FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -14,17 +11,11 @@ if ($permission) {
 		if ($row_rsMyP) {
 			$projcategory = $row_rsMyP["projcategory"];
 			$projstatusid = $row_rsMyP["projstatus"];
-			//$projoutcome = $row_rsMyP["outcome"];
-			//$projoutcomeid = $row_rsMyP["outcome_indicator"];
 			$projectID =  $row_rsMyP['projid'];
 			$currentStatus =  $row_rsMyP['projstatus'];
 			$projcat = $row_rsMyP["projcategory"];
 		}
 
-		/* $query_proj_oc_id = $db->prepare("SELECT indicator_name FROM tbl_indicator WHERE indid = :indid");
-	$query_proj_oc_id->execute(array(":indid" => $projoutcomeid));
-	$row_proj_oc_id = $query_proj_oc_id->fetch(); */
-		// $projoutcomeindicator = $row_proj_oc_id["indicator_name"];
 
 		$query_proj_status = $db->prepare("SELECT statusname FROM tbl_status WHERE statusid = :statusid");
 		$query_proj_status->execute(array(":statusid" => $projstatusid));
@@ -39,15 +30,15 @@ if ($permission) {
 		if ($projcat == '2') {
 			$query_rsContractDates =  $db->prepare("SELECT startdate, enddate, tenderamount FROM tbl_tenderdetails WHERE projid = :projid");
 			$query_rsContractDates->execute(array(":projid" => $projectID));
-			
+
 			$query_tenderdetails =  $db->prepare("SELECT * FROM tbl_project_tender_details WHERE projid = :projid");
 			$query_tenderdetails->execute(array(":projid" => $projectID));
-			
+
 			$totalRows_tenderdetails = $query_tenderdetails->rowCount();
 			$tenderamount = 0;
-			
-			if($totalRows_tenderdetails > 0){
-				while($row_tenderdetails = $query_tenderdetails->fetch()){					
+
+			if ($totalRows_tenderdetails > 0) {
+				while ($row_tenderdetails = $query_tenderdetails->fetch()) {
 					$unitcost = $row_tenderdetails["unit_cost"];
 					$unitsno = $row_tenderdetails["units_no"];
 					$itemcost = $unitcost * $unitsno;
@@ -192,148 +183,149 @@ if ($permission) {
 		$prjprogress = $row_rsMlsProg["mlprogress"] / $row_rsMlsProg["nmb"];
 
 		$percent2 = round($prjprogress, 2);
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+
 ?>
-	<!-- start body  -->
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon ?>
-					<?= $pageTitle ?>
-					<div class="btn-group" style="float:right">
+		<!-- start body  -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?= $pageTitle ?>
 						<div class="btn-group" style="float:right">
-						</div>
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<h4>
-						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
-							Project Name: <font color="white"><?php echo $row_rsMyP['projname']; ?></font>
+							<div class="btn-group" style="float:right">
+							</div>
 						</div>
 					</h4>
 				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="row clearfix align-center" style="margin-top:5px">
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">
-										<strong><img src="images/progress.png" alt="progress" style="width:16px; height:16px" /> Project Status:
-											<?= $projstatus ?></strong>
-									</div>
-								</div>
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">&nbsp;
-									</div>
-								</div>
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">
-										<strong><img src="images/progress.png" alt="progress" style="width:16px; height:16px" /> Project Progress: <?php echo $percent2 . "%"; ?></strong>
-									</div>
-								</div>
+				<div class="row clearfix">
+					<div class="block-header">
+						<h4>
+							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
+								Project Name: <font color="white"><?php echo $row_rsMyP['projname']; ?></font>
 							</div>
-						</div>
-						<div class="header">
-							<div class="row clearfix align-center" style="margin-top:5px">
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Project Duration (Days):</strong></div>
-									<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $duration; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Time consumed(Days)</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $durationtodate; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Remaining Days</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $durationtoenddate; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Percentage time consumed</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px"><?php echo round($durationrate, 2) . "%"; ?></h5>
-								</div>
-							</div>
-						</div>
-						<div class="header">
-							<div class="row clearfix align-center" style="margin-top:5px">
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Project Budget:</strong></div>
-									<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $projcost; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Budget Consumed</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $consumed; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Budget Balance</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $balance; ?></h5>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
-									<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Utilization Rate (%)</strong>:</div>
-									<h5 style="padding-top:5px; padding-bottom:5px"><?php echo round($rate, 4) . "%"; ?></h5>
-								</div>
-							</div>
-						</div>
-						<div class="body">
-							<fieldset class="scheduler-border">
-								<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output Indicator/s</legend>
-								<div class="row clearfix" style="margin-top:5px">
-									<?php
-									$query_proj_inds =  $db->prepare("SELECT p.indicator AS indid, g.output AS output, p.id AS outputid FROM tbl_project_details p left join tbl_progdetails g on g.id=p.outputid WHERE projid = :projid GROUP BY p.indicator");
-									$query_proj_inds->execute(array(":projid" => $projectID));
-									while ($row_proj_inds = $query_proj_inds->fetch()) {
-										$indid = $row_proj_inds["indid"];
-										$output = $row_proj_inds["output"];
-										$outputid = $row_proj_inds["outputid"];
-
-										$query_proj_ind_target =  $db->prepare("SELECT SUM(total_target) AS target FROM tbl_project_details WHERE projid = :projid AND indicator = :indid");
-										$query_proj_ind_target->execute(array(":projid" => $projectID, ":indid" => $indid));
-										$row_proj_ind_target = $query_proj_ind_target->fetch();
-										$target = $row_proj_ind_target["target"];
-
-										$query_indicator =  $db->prepare("SELECT unit, indicator_name FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid = :indid");
-										$query_indicator->execute(array(":indid" => $indid));
-										$row_indicator = $query_indicator->fetch();
-										$unit = $row_indicator["unit"];
-										$indicatorname = $row_indicator["indicator_name"];
-
-										$query_proj_op_achieved =  $db->prepare("SELECT SUM(actualoutput) AS achieved FROM tbl_monitoringoutput WHERE projid = :projid AND opid = :outputid");
-										$query_proj_op_achieved->execute(array(":projid" => $projectID, ":outputid" => $outputid));
-										$row_proj_op_achieved = $query_proj_op_achieved->fetch();
-										$achieved = $row_proj_op_achieved["achieved"];
-									?>
-										<h5><strong>Indicator:</strong> <?php echo $unit . " of " . $indicatorname ?></h5>
-										<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-											<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-map"> </i> Target:</strong></div>
-											<h5 style="padding-top:5px; padding-bottom:5px"><?php echo number_format($target); ?></h5>
+						</h4>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="header">
+								<div class="row clearfix align-center" style="margin-top:5px">
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">
+											<strong><img src="images/progress.png" alt="progress" style="width:16px; height:16px" /> Project Status:
+												<?= $projstatus ?></strong>
 										</div>
-										<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-											<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-bar-chart"> </i> Achieved:</strong></div>
-											<h5 style="padding-top:5px; padding-bottom:5px"><?php echo number_format($achieved); ?></h5>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">&nbsp;
 										</div>
-									<?php
-									}
-									?>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<div style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px">
+											<strong><img src="images/progress.png" alt="progress" style="width:16px; height:16px" /> Project Progress: <?php echo $percent2 . "%"; ?></strong>
+										</div>
+									</div>
 								</div>
-							</fieldset>
+							</div>
+							<div class="header">
+								<div class="row clearfix align-center" style="margin-top:5px">
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Project Duration (Days):</strong></div>
+										<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $duration; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Time consumed(Days)</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $durationtodate; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Remaining Days</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px"><?php echo $durationtoenddate; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-calendar"> </i> Percentage time consumed</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px"><?php echo round($durationrate, 2) . "%"; ?></h5>
+									</div>
+								</div>
+							</div>
+							<div class="header">
+								<div class="row clearfix align-center" style="margin-top:5px">
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Project Budget:</strong></div>
+										<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $projcost; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Budget Consumed</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $consumed; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Budget Balance</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px">Ksh. <?php echo $balance; ?></h5>
+									</div>
+									<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+										<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><img src="images/money2.png" alt="img" style="width:16px; height:16px" /> Utilization Rate (%)</strong>:</div>
+										<h5 style="padding-top:5px; padding-bottom:5px"><?php echo round($rate, 4) . "%"; ?></h5>
+									</div>
+								</div>
+							</div>
+							<div class="body">
+								<fieldset class="scheduler-border">
+									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output Indicator/s</legend>
+									<div class="row clearfix" style="margin-top:5px">
+										<?php
+										$query_proj_inds =  $db->prepare("SELECT p.indicator AS indid, g.output AS output, p.id AS outputid FROM tbl_project_details p left join tbl_progdetails g on g.id=p.outputid WHERE projid = :projid GROUP BY p.indicator");
+										$query_proj_inds->execute(array(":projid" => $projectID));
+										while ($row_proj_inds = $query_proj_inds->fetch()) {
+											$indid = $row_proj_inds["indid"];
+											$output = $row_proj_inds["output"];
+											$outputid = $row_proj_inds["outputid"];
+
+											$query_proj_ind_target =  $db->prepare("SELECT SUM(total_target) AS target FROM tbl_project_details WHERE projid = :projid AND indicator = :indid");
+											$query_proj_ind_target->execute(array(":projid" => $projectID, ":indid" => $indid));
+											$row_proj_ind_target = $query_proj_ind_target->fetch();
+											$target = $row_proj_ind_target["target"];
+
+											$query_indicator =  $db->prepare("SELECT unit, indicator_name FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid = :indid");
+											$query_indicator->execute(array(":indid" => $indid));
+											$row_indicator = $query_indicator->fetch();
+											$unit = $row_indicator["unit"];
+											$indicatorname = $row_indicator["indicator_name"];
+
+											$query_proj_op_achieved =  $db->prepare("SELECT SUM(actualoutput) AS achieved FROM tbl_monitoringoutput WHERE projid = :projid AND opid = :outputid");
+											$query_proj_op_achieved->execute(array(":projid" => $projectID, ":outputid" => $outputid));
+											$row_proj_op_achieved = $query_proj_op_achieved->fetch();
+											$achieved = $row_proj_op_achieved["achieved"];
+										?>
+											<h5><strong>Indicator:</strong> <?php echo $unit . " of " . $indicatorname ?></h5>
+											<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+												<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-map"> </i> Target:</strong></div>
+												<h5 style="padding-top:5px; padding-bottom:5px"><?php echo number_format($target); ?></h5>
+											</div>
+											<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+												<div align="left" style="height:30px; font-size:14px; font-family:Verdana, Geneva, sans-serif; border-bottom:#CCC thin dashed; padding-top:5px; background-color:#EEE; padding-left:5px"><strong><i class="fa fa-bar-chart"> </i> Achieved:</strong></div>
+												<h5 style="padding-top:5px; padding-bottom:5px"><?php echo number_format($achieved); ?></h5>
+											</div>
+										<?php
+										}
+										?>
+									</div>
+								</fieldset>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-	</section>
-	<!-- end body  -->
+		</section>
+		<!-- end body  -->
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
-}
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
 
-require('includes/footer.php');
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 <script type="text/javascript">
 	$(document).ready(function() {

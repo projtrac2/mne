@@ -1,13 +1,12 @@
 <?php
-$decode_issue = (isset($_GET['issue']) && !empty($_GET["issue"])) ? base64_decode($_GET['issue']) : header("Location: projects-escalated-issues");
-$issueid_array = explode("issueid254", $decode_issue);
-$issueid = $issueid_array[1];
-require('PHPMailer/PHPMailerAutoload.php');
-require('includes/head.php');
+try {
+	$decode_issue = (isset($_GET['issue']) && !empty($_GET["issue"])) ? base64_decode($_GET['issue']) : header("Location: projects-escalated-issues");
+	$issueid_array = explode("issueid254", $decode_issue);
+	$issueid = $issueid_array[1];
+	require('PHPMailer/PHPMailerAutoload.php');
+	require('includes/head.php');
 
-if ($permission) {
-	try {
-
+	if ($permission) {
 		if ((isset($_POST["issueid"])) && !empty($_POST["issueid"])) {
 			/* echo $_POST["issueid"]."; ".$_POST["projstatuschange"];
 			return; */
@@ -937,173 +936,171 @@ if ($permission) {
 		$query_rsTender->execute();
 		$row_rsTender = $query_rsTender->fetch();
 		$totalRows_rsTender = $query_rsTender->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	}
-?>
-	<!-- start body  -->
-	<script type="text/javascript">
-		$(document).ready(function() {
 
-			$('#impact').on('change', function() {
-				var statusID = $(this).val();
-				var projID = $("#projid").val();
-				var projOrigID = $("#projorigstatus").val();
+?>
+		<!-- start body  -->
+		<script type="text/javascript">
+			$(document).ready(function() {
+
+				$('#impact').on('change', function() {
+					var statusID = $(this).val();
+					var projID = $("#projid").val();
+					var projOrigID = $("#projorigstatus").val();
+					$.ajax({
+						type: 'POST',
+						url: 'callchangeimpact',
+						//data: {'members_id': memberID},
+						data: "status_id=" + statusID + "&proj_id=" + projID + "&projOrig_id=" + projOrigID,
+						success: function(data) {
+							$('#formcontent').html(data);
+							$("#myModal").modal({
+								backdrop: "static"
+							});
+						}
+					});
+				});
+			});
+
+			function CallRiskResponse(projid) {
 				$.ajax({
-					type: 'POST',
-					url: 'callchangeimpact',
-					//data: {'members_id': memberID},
-					data: "status_id=" + statusID + "&proj_id=" + projID + "&projOrig_id=" + projOrigID,
+					type: 'post',
+					url: 'callriskresponse',
+					data: {
+						projid: projid
+					},
 					success: function(data) {
-						$('#formcontent').html(data);
-						$("#myModal").modal({
+						$('#riskresponse').html(data);
+						$("#riskModal").modal({
 							backdrop: "static"
 						});
 					}
 				});
-			});
-		});
+			}
+		</script><!-- Modal -->
+		<div class="modal fade" id="myModal" role="dialog">
+			<div class="modal-dialog modal-lg span5">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">&times;</button>
+						<h4 class="modal-title">
+							<font color="#000000">PROJECT STATUS CHANGE REASON(S)</font>
+						</h4>
+					</div>
+					<div class="modal-body" id="formcontent">
 
-		function CallRiskResponse(projid) {
-			$.ajax({
-				type: 'post',
-				url: 'callriskresponse',
-				data: {
-					projid: projid
-				},
-				success: function(data) {
-					$('#riskresponse').html(data);
-					$("#riskModal").modal({
-						backdrop: "static"
-					});
-				}
-			});
-		}
-	</script><!-- Modal -->
-	<div class="modal fade" id="myModal" role="dialog">
-		<div class="modal-dialog modal-lg span5">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">
-						<font color="#000000">PROJECT STATUS CHANGE REASON(S)</font>
-					</h4>
-				</div>
-				<div class="modal-body" id="formcontent">
-
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-brown" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon . ' ' . $pageTitle ?>
-					<div class="btn-group" style="float:right; padding-right:5px">
-						<input type="button" VALUE="Go Back" class="btn btn-warning pull-right" onclick="location.href='projects-escalated-issues'" id="btnback">
-					</div>
-				</h4>
-			</div>
-			<div class="block-header">
-				<div>
-					<?php echo $results; ?>
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-brown" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon . ' ' . $pageTitle ?>
+						<div class="btn-group" style="float:right; padding-right:5px">
+							<input type="button" VALUE="Go Back" class="btn btn-warning pull-right" onclick="location.href='projects-escalated-issues'" id="btnback">
+						</div>
+					</h4>
 				</div>
-			</div>
-			<?php if ($totalrows_issue_details > 0) { ?>
-				<div class="row clearfix" style="margin-top:10px">
-					<!-- Advanced Form Example With Validation -->
-					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="card">
-							<div class="body">
-								<div class="panel-group" id="accordion_17" role="tablist" aria-multiselectable="true">
-									<div class="panel panel-col-grey">
-										<div class="panel-heading" role="tab" id="headingOne_17">
-											<h4 class="panel-title">
-												<a role="button" data-toggle="collapse" data-parent="#accordion_17" href="#history" aria-expanded="true" aria-controls="history">
-													<img src="images/task.png" alt="task" /> Issue History
-												</a>
-											</h4>
-										</div>
-										<div id="history" class="panel-collapse collapse in clearfix" role="tabpanel" aria-labelledby="headingOne_17" style="padding-top: 20px; padding-bottom:-50px">
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<label>Project:</label>
-												<div <?= $style ?>><?= $projname ?></div>
+				<div class="block-header">
+					<div>
+						<?php echo $results; ?>
+					</div>
+				</div>
+				<?php if ($totalrows_issue_details > 0) { ?>
+					<div class="row clearfix" style="margin-top:10px">
+						<!-- Advanced Form Example With Validation -->
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="card">
+								<div class="body">
+									<div class="panel-group" id="accordion_17" role="tablist" aria-multiselectable="true">
+										<div class="panel panel-col-grey">
+											<div class="panel-heading" role="tab" id="headingOne_17">
+												<h4 class="panel-title">
+													<a role="button" data-toggle="collapse" data-parent="#accordion_17" href="#history" aria-expanded="true" aria-controls="history">
+														<img src="images/task.png" alt="task" /> Issue History
+													</a>
+												</h4>
 											</div>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<label>Issue Description:</label>
-												<div <?= $style ?>><?= $issuename ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Issue Category:</label>
-												<div <?= $style ?>><?= $issue_category ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Issue Area:</label>
-												<div <?= $style ?>><?= $issue_area ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Issue Severity Level:</label>
-												<div <?= $style ?>><?= $issue_severity ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Issue Priority:</label>
-												<div <?= $style ?>><?= $issue_priority ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Issue Owner:</label>
-												<div <?= $style ?>><?= $issue_owner ?></div>
-											</div>
-											<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-												<label>Date Recorded:</label>
-												<div <?= $style ?>><?= $daterecorded ?></div>
-											</div>
-											<?php
-											if ($issue_areaid != 1) {
-											?>
-												<input type="hidden" value="0" id="clicked">
+											<div id="history" class="panel-collapse collapse in clearfix" role="tabpanel" aria-labelledby="headingOne_17" style="padding-top: 20px; padding-bottom:-50px">
 												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-													<fieldset class="scheduler-border">
-														<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (<?= $issue_area ?>)</legend>
-														<?php if ($issue_areaid == 1) { ?>
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover">
-																	<?php
-																	$textclass = "text-primary";
-																	$issues_scope = "";
-																	$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
+													<label>Project:</label>
+													<div <?= $style ?>><?= $projname ?></div>
+												</div>
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<label>Issue Description:</label>
+													<div <?= $style ?>><?= $issuename ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Issue Category:</label>
+													<div <?= $style ?>><?= $issue_category ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Issue Area:</label>
+													<div <?= $style ?>><?= $issue_area ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Issue Severity Level:</label>
+													<div <?= $style ?>><?= $issue_severity ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Issue Priority:</label>
+													<div <?= $style ?>><?= $issue_priority ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Issue Owner:</label>
+													<div <?= $style ?>><?= $issue_owner ?></div>
+												</div>
+												<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+													<label>Date Recorded:</label>
+													<div <?= $style ?>><?= $daterecorded ?></div>
+												</div>
+												<?php
+												if ($issue_areaid != 1) {
+												?>
+													<input type="hidden" value="0" id="clicked">
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+														<fieldset class="scheduler-border">
+															<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-columns" aria-hidden="true"></i> Issue Area Details (<?= $issue_area ?>)</legend>
+															<?php if ($issue_areaid == 1) { ?>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover">
+																		<?php
+																		$textclass = "text-primary";
+																		$issues_scope = "";
+																		$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 
-																	$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
-																	$query_site_id->execute(array(":issueid" => $issueid));
+																		$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
+																		$query_site_id->execute(array(":issueid" => $issueid));
 
-																	$sites = 0;
-																	while ($rows_site_id = $query_site_id->fetch()) {
-																		$sites++;
-																		$site_id = $rows_site_id['site_id'];
+																		$sites = 0;
+																		while ($rows_site_id = $query_site_id->fetch()) {
+																			$sites++;
+																			$site_id = $rows_site_id['site_id'];
 
-																		if ($site_id == 0) {
-																			$allsites = '
+																			if ($site_id == 0) {
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="5">Site ' . $sites . ': Way Point Sub Tasks</th>
 																			</tr>';
-																		} else {
-																			$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
-																			$query_site->execute(array(":site_id" => $site_id));
-																			$row_site = $query_site->fetch();
-																			$site = $row_site['site'];
+																			} else {
+																				$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
+																				$query_site->execute(array(":site_id" => $site_id));
+																				$row_site = $query_site->fetch();
+																				$site = $row_site['site'];
 
-																			$allsites = '
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="5">Site ' . $sites . ': ' . $site . '</th>
 																			</tr>';
-																		}
+																			}
 
-																		$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
-																		$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
+																			$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
+																			$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
 
-																		$issues_scope .= $allsites . '
+																			$issues_scope .= $allsites . '
 																		<tr class="adjustments ' . $site_id . '" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
 																			<th style="width:50%">Sub-Task</th>
@@ -1112,66 +1109,66 @@ if ($permission) {
 																			<th style="width:15%">Additional Cost</th>
 																		</tr>
 																	</thead><tbody>';
-																		$scopecount = 0;
-																		while ($row_adjustments = $query_adjustments->fetch()) {
-																			$scopecount++;
-																			$subtask = $row_adjustments["task"];
-																			$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
-																			$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
-																			$timeline = $row_adjustments["timeline"] . " days";
-																			$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
+																			$scopecount = 0;
+																			while ($row_adjustments = $query_adjustments->fetch()) {
+																				$scopecount++;
+																				$subtask = $row_adjustments["task"];
+																				$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
+																				$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
+																				$timeline = $row_adjustments["timeline"] . " days";
+																				$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
 																			<td>' . $scopecount . '</td>
 																			<td>' . $subtask . '</td>
 																			<td>' . $units . ' </td>
 																			<td>' . $timeline . '</td>
 																			<td>' . number_format($totalcost, 2) . ' </td>
 																		</tr>';
+																			}
+																			$issues_scope .= '</tbody>';
 																		}
-																		$issues_scope .= '</tbody>';
-																	}
-																	echo $issues_scope;
-																	?>
-																</table>
-															</div>
-														<?php } elseif ($issue_areaid == 2) { ?>
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover">
-																	<?php
-																	$textclass = "text-primary";
-																	$issues_scope = "";
-																	$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
+																		echo $issues_scope;
+																		?>
+																	</table>
+																</div>
+															<?php } elseif ($issue_areaid == 2) { ?>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover">
+																		<?php
+																		$textclass = "text-primary";
+																		$issues_scope = "";
+																		$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 
-																	$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
-																	$query_site_id->execute(array(":issueid" => $issueid));
+																		$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
+																		$query_site_id->execute(array(":issueid" => $issueid));
 
-																	$sites = 0;
-																	while ($rows_site_id = $query_site_id->fetch()) {
-																		$sites++;
-																		$site_id = $rows_site_id['site_id'];
+																		$sites = 0;
+																		while ($rows_site_id = $query_site_id->fetch()) {
+																			$sites++;
+																			$site_id = $rows_site_id['site_id'];
 
-																		if ($site_id == 0) {
-																			$allsites = '
+																			if ($site_id == 0) {
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="5">Site ' . $sites . ': Way Point Sub Tasks</th>
 																			</tr>';
-																		} else {
-																			$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
-																			$query_site->execute(array(":site_id" => $site_id));
-																			$row_site = $query_site->fetch();
-																			$site = $row_site['site'];
+																			} else {
+																				$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
+																				$query_site->execute(array(":site_id" => $site_id));
+																				$row_site = $query_site->fetch();
+																				$site = $row_site['site'];
 
-																			$allsites = '
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="5">Site ' . $sites . ': ' . $site . '</th>
 																			</tr>';
-																		}
+																			}
 
-																		$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
-																		$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
+																			$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
+																			$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
 
-																		$issues_scope .= $allsites . '
+																			$issues_scope .= $allsites . '
 																		<tr class="adjustments ' . $site_id . '" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
 																			<th style="width:50%">Sub-Task</th>
@@ -1180,131 +1177,131 @@ if ($permission) {
 																			<th style="width:15%">Additional Cost</th>
 																		</tr>
 																	</thead><tbody>';
-																		$scopecount = 0;
-																		while ($row_adjustments = $query_adjustments->fetch()) {
-																			$scopecount++;
-																			$subtask = $row_adjustments["task"];
-																			$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
-																			$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
-																			$timeline = $row_adjustments["timeline"] . " days";
-																			$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
+																			$scopecount = 0;
+																			while ($row_adjustments = $query_adjustments->fetch()) {
+																				$scopecount++;
+																				$subtask = $row_adjustments["task"];
+																				$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
+																				$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
+																				$timeline = $row_adjustments["timeline"] . " days";
+																				$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
 																			<td>' . $scopecount . '</td>
 																			<td>' . $subtask . '</td>
 																			<td>' . $units . ' </td>
 																			<td>' . $timeline . '</td>
 																			<td>' . number_format($totalcost, 2) . ' </td>
 																		</tr>';
+																			}
+																			$issues_scope .= '</tbody>';
 																		}
-																		$issues_scope .= '</tbody>';
-																	}
-																	echo $issues_scope;
-																	?>
-																</table>
-															</div>
-														<?php } elseif ($issue_areaid == 3) { ?>
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover">
-																	<?php
-																	$textclass = "text-primary";
-																	$issues_scope = "";
-																	$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
+																		echo $issues_scope;
+																		?>
+																	</table>
+																</div>
+															<?php } elseif ($issue_areaid == 3) { ?>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover">
+																		<?php
+																		$textclass = "text-primary";
+																		$issues_scope = "";
+																		$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 
-																	$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
-																	$query_site_id->execute(array(":issueid" => $issueid));
+																		$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
+																		$query_site_id->execute(array(":issueid" => $issueid));
 
-																	$sites = 0;
-																	while ($rows_site_id = $query_site_id->fetch()) {
-																		$sites++;
-																		$site_id = $rows_site_id['site_id'];
+																		$sites = 0;
+																		while ($rows_site_id = $query_site_id->fetch()) {
+																			$sites++;
+																			$site_id = $rows_site_id['site_id'];
 
-																		if ($site_id == 0) {
-																			$allsites = '
+																			if ($site_id == 0) {
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="3">Site ' . $sites . ': Way Point Sub Tasks</th>
 																			</tr>';
-																		} else {
-																			$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
-																			$query_site->execute(array(":site_id" => $site_id));
-																			$row_site = $query_site->fetch();
-																			$site = $row_site['site'];
+																			} else {
+																				$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
+																				$query_site->execute(array(":site_id" => $site_id));
+																				$row_site = $query_site->fetch();
+																				$site = $row_site['site'];
 
-																			$allsites = '
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="3">Site ' . $sites . ': ' . $site . '</th>
 																			</tr>';
-																		}
+																			}
 
 
-																		$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
-																		$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
+																			$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, c.unit_cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
+																			$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
 
-																		$issues_scope .= $allsites . '
+																			$issues_scope .= $allsites . '
 																		<tr class="adjustments ' . $site_id . '" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
 																			<th style="width:80%">Sub-Task</th>
 																			<th style="width:15%">Additional Days</th>
 																		</tr>
 																	</thead><tbody>';
-																		$scopecount = 0;
-																		while ($row_adjustments = $query_adjustments->fetch()) {
-																			$scopecount++;
-																			$subtask = $row_adjustments["task"];
-																			$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
-																			$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
-																			$timeline = $row_adjustments["timeline"] . " days";
-																			$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
+																			$scopecount = 0;
+																			while ($row_adjustments = $query_adjustments->fetch()) {
+																				$scopecount++;
+																				$subtask = $row_adjustments["task"];
+																				$units =  number_format($row_adjustments["units"]) . " " . $row_adjustments["unit"];
+																				$totalcost = $row_adjustments["unit_cost"] * $row_adjustments["units"];
+																				$timeline = $row_adjustments["timeline"] . " days";
+																				$issues_scope .= '<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
 																			<td>' . $sites . '.' . $scopecount . '</td>
 																			<td>' . $subtask . '</td>
 																			<td>' . $timeline . '</td>
 																		</tr>';
+																			}
+																			$issues_scope .= '</tbody>';
 																		}
-																		$issues_scope .= '</tbody>';
-																	}
-																	echo $issues_scope;
-																	?>
-																</table>
-															</div>
-														<?php } elseif ($issue_areaid == 4) { ?>
-															<div class="table-responsive">
-																<table class="table table-bordered table-striped table-hover">
-																	<?php
-																	$textclass = "text-primary";
-																	$issues_scope = "";
-																	$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
+																		echo $issues_scope;
+																		?>
+																	</table>
+																</div>
+															<?php } elseif ($issue_areaid == 4) { ?>
+																<div class="table-responsive">
+																	<table class="table table-bordered table-striped table-hover">
+																		<?php
+																		$textclass = "text-primary";
+																		$issues_scope = "";
+																		$leftjoin = $projcategory == 2 ? "left join tbl_project_tender_details c on c.subtask_id=a.sub_task_id" : "left join tbl_project_direct_cost_plan c on c.subtask_id=a.sub_task_id";
 
-																	$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
-																	$query_site_id->execute(array(":issueid" => $issueid));
+																		$query_site_id = $db->prepare("SELECT site_id FROM tbl_project_adjustments WHERE issueid=:issueid GROUP BY site_id");
+																		$query_site_id->execute(array(":issueid" => $issueid));
 
-																	$sites = 0;
-																	while ($rows_site_id = $query_site_id->fetch()) {
-																		$sites++;
-																		$site_id = $rows_site_id['site_id'];
+																		$sites = 0;
+																		while ($rows_site_id = $query_site_id->fetch()) {
+																			$sites++;
+																			$site_id = $rows_site_id['site_id'];
 
-																		if ($site_id == 0) {
-																			$allsites = '
+																			if ($site_id == 0) {
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="4">Site ' . $sites . ': Way Point Sub Tasks</th>
 																			</tr>';
-																		} else {
-																			$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
-																			$query_site->execute(array(":site_id" => $site_id));
-																			$row_site = $query_site->fetch();
-																			$site = $row_site['site'];
+																			} else {
+																				$query_site = $db->prepare("SELECT site FROM tbl_project_sites WHERE site_id=:site_id");
+																				$query_site->execute(array(":site_id" => $site_id));
+																				$row_site = $query_site->fetch();
+																				$site = $row_site['site'];
 
-																			$allsites = '
+																				$allsites = '
 																		<thead>
 																			<tr style="background-color:#a9a9a9" onclick="adjustedscopes(' . $site_id . ')">
 																				<th colspan="4">Site ' . $sites . ': ' . $site . '</th>
 																			</tr>';
-																		}
+																			}
 
-																		$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, a.cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
-																		$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
+																			$query_adjustments = $db->prepare("SELECT t.task, a.units, a.timeline, a.cost, u.unit FROM tbl_project_adjustments a left join tbl_projissues i on i.id = a.issueid left join tbl_task t on t.tkid=a.sub_task_id " . $leftjoin . " left join tbl_measurement_units u on u.id=c.unit WHERE i.projid = :projid and issueid = :issueid and a.site_id=:site_id GROUP BY a.id");
+																			$query_adjustments->execute(array(":projid" => $projid, ":issueid" => $issueid, ":site_id" => $site_id));
 
-																		$issues_scope .= $allsites . '
+																			$issues_scope .= $allsites . '
 																		<tr class="adjustments ' . $site_id . '" style="background-color:#cccccc">
 																			<th style="width:5%">#</th>
 																			<th style="width:65%">Sub-Task</th>
@@ -1312,280 +1309,280 @@ if ($permission) {
 																			<th style="width:15%">Additional Cost</th>
 																		</tr>
 																	</thead><tbody>';
-																		$scopecount = 0;
-																		while ($row_adjustments = $query_adjustments->fetch()) {
-																			$scopecount++;
-																			$subtask = $row_adjustments["task"];
-																			$unit =  $row_adjustments["unit"];
-																			$cost = $row_adjustments["cost"];
+																			$scopecount = 0;
+																			while ($row_adjustments = $query_adjustments->fetch()) {
+																				$scopecount++;
+																				$subtask = $row_adjustments["task"];
+																				$unit =  $row_adjustments["unit"];
+																				$cost = $row_adjustments["cost"];
 
-																			$issues_scope .= '
+																				$issues_scope .= '
 																			<tr class="adjustments ' . $site_id . '" style="background-color:#e5e5e5">
 																				<td>' . $sites . '.' . $scopecount . '</td>
 																				<td>' . $subtask . '</td>
 																				<td>' . $unit . ' </td>
 																				<td>' . number_format($cost, 2) . ' </td>
 																			</tr>';
+																			}
+																			$issues_scope .= '</tbody>';
 																		}
-																		$issues_scope .= '</tbody>';
-																	}
-																	echo $issues_scope;
-																	?>
-																</table>
-															</div>
-														<?php } ?>
-													</fieldset>
-												</div>
-											<?php
-											}
-											?>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<fieldset class="scheduler-border">
-													<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-paperclip" aria-hidden="true"></i> Issue Attachments</legend>
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover">
-															<thead>
-																<tr>
-																	<th width="3%">#</th>
-																	<th width="40%">File Name</th>
-																	<th width="10%">File Type</th>
-																	<th width="37%">File Purpose</th>
-																	<th width="10%">Download</th>
-																</tr>
-															</thead>
-															<tbody>
-																<?php
-																$query_attachments = $db->prepare("SELECT * FROM tbl_files WHERE projid = :projid and projstage = :issueid and fcategory='Issue'");
-																$query_attachments->execute(array(":projid" => $projid, ":issueid" => $issueid));
-																//return;
+																		echo $issues_scope;
+																		?>
+																	</table>
+																</div>
+															<?php } ?>
+														</fieldset>
+													</div>
+												<?php
+												}
+												?>
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<fieldset class="scheduler-border">
+														<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px;"><i class="fa fa-paperclip" aria-hidden="true"></i> Issue Attachments</legend>
+														<div class="table-responsive">
+															<table class="table table-bordered table-striped table-hover">
+																<thead>
+																	<tr>
+																		<th width="3%">#</th>
+																		<th width="40%">File Name</th>
+																		<th width="10%">File Type</th>
+																		<th width="37%">File Purpose</th>
+																		<th width="10%">Download</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	<?php
+																	$query_attachments = $db->prepare("SELECT * FROM tbl_files WHERE projid = :projid and projstage = :issueid and fcategory='Issue'");
+																	$query_attachments->execute(array(":projid" => $projid, ":issueid" => $issueid));
+																	//return;
 
-																$attachmentcount = 0;
-																while ($row_attachments = $query_attachments->fetch()) {
-																	$attachmentcount++;
-																	$filename = $row_attachments["filename"];
-																	$filelocation =  $row_attachments["floc"];
-																	$filepurpose = $row_attachments["reason"];
-																	$filetype = $row_attachments["ftype"];
+																	$attachmentcount = 0;
+																	while ($row_attachments = $query_attachments->fetch()) {
+																		$attachmentcount++;
+																		$filename = $row_attachments["filename"];
+																		$filelocation =  $row_attachments["floc"];
+																		$filepurpose = $row_attachments["reason"];
+																		$filetype = $row_attachments["ftype"];
 
-																	echo '<tr >
+																		echo '<tr >
 																	<td>' . $attachmentcount . '</td>
 																	<td>' . $filename . '</td>
 																	<td>' . $filetype . ' </td>
 																	<td>' . $filepurpose . '</td>
 																	<td><a href="' . $filelocation . '" download="' . $filename . '" type="button" class="btn btn-primary"><i class="fa fa-download" aria-hidden="true"></i></a></td>
 																</tr>';
-																}
-																?>
-															</tbody>
-														</table>
-													</div>
-												</fieldset>
-											</div>
-											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-												<fieldset class="scheduler-border">
-													<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px; width:100%"><i class="fa fa-users" aria-hidden="true"></i> Project Team Members</legend>
-													<div class="table-responsive">
-														<table class="table table-bordered table-striped table-hover">
-															<thead>
-																<tr id="colrow">
-																	<th width="2%"><strong id="colhead">SN</strong></th>
-																	<th width="23%">Name</strong></td>
-																	<th width="15%">Role</th>
-																	<th width="15%">Designation</th>
-																	<th width="10%">Availability</th>
-																	<th width="15%">Phone</th>
-																	<th width="20%">Email</th>
-																</tr>
-															</thead>
-															<tbody>
-																<?php
-																//return;
-																$sn = 0;
-
-																while ($rows_project_members = $query_project_members->fetch()) {
-																	$sn = $sn + 1;
-																	$mbrid = $rows_project_members['ptid'];
-																	$member = $rows_project_members["title"] . "." . $rows_project_members["fullname"];
-																	$role = $rows_project_members['role'];
-																	$email = $rows_project_members['email'];
-																	$phone = $rows_project_members['phone'];
-																	$available = $rows_project_members['availability'];
-
-																	$query_member_designation =  $db->prepare("SELECT d.designation FROM tbl_projteam2 t inner join tbl_pmdesignation d on d.moid=t.designation where t.ptid='$mbrid'");
-																	$query_member_designation->execute();
-																	$row_member_designation = $query_member_designation->fetch();
-																	$designation = $row_member_designation['designation'];
-
-
-																	if ($available == 0) {
-
-																		$query_member_leave_details =  $db->prepare("SELECT assignee FROM tbl_project_team_leave where owner='$mbrid' and resumed_at IS NULL and projid=:projid");
-																		$query_member_leave_details->execute(array(":projid" => $projid));
-																		$row_member_leave_details = $query_member_leave_details->fetch;
-																		$totalRows_member_leave_details = $query_member_leave_details->rowCount();
-
-																		$query_member_leave =  $db->prepare("SELECT startdate, enddate FROM tbl_employee_leave where employee='$mbrid' and status=2");
-																		$query_member_leave->execute();
-																		$row_member_leave = $query_member_leave->fetch;
-																		$totalRows_member_leave = $query_member_leave->rowCount();
-																		if ($row_member_leave) {
-																			$leave_start_date = date("d M Y", strtotime($row_member_leave['startdate']));
-																			$leave_end_date = date("d M Y", strtotime($row_member_leave['enddate']));
-																		}
-
-																		$availability = "Unavailable";
-																		$reassignee = $rows['assignee'];
-
-																		$query_reassignee =  $db->prepare("SELECT fullname, d.title, phone, email FROM tbl_projteam2 t left join tbl_titles d on d.id=t.title where ptid='$reassignee'");
-																		$query_reassignee->execute();
-																		$row_reassignee = $query_reassignee->fetch();
-																		$reassigneedto = $row_reassignee["title"] . "." . $row_reassignee["fullname"];
-																		$reassigneedphone = $row_reassignee["phone"];
-																		$reassigneedemail = $row_reassignee["email"];
-																		$availclass = 'class="text-warning"';
-																	} else {
-																		$availability = "Available";
-																		$availclass = 'class="text-success"';
 																	}
-																?>
-																	<tr id="rowlines">
-																		<td><?php echo $sn; ?></td>
-																		<td><?php echo $member; ?></td>
-																		<td><?php echo $role; ?></td>
-																		<td><?php echo $designation; ?></td>
-																		<?php if ($available == 0) { ?>
-																			<td <?= $availclass ?>><span class="mytooltip tooltip-effect-1"><span class="tooltip-item2"><?php echo $availability; ?></span><span class="tooltip-content4 clearfix" style="background-color:#CDDC39; color:#000"><span class="tooltip-text2">
-																							<h4 align="center"><u>Details</u></h4><strong>Unavailable From Date:</strong> <?php echo $leave_start_date; ?><br> <strong>In-Place:</strong> <?php echo $reassigneedto; ?><br> <strong>In-Place Phone:</strong> <?php echo $reassigneedphone; ?><br> <strong>In-Place Email:</strong> <?php echo $reassigneedemail; ?>
-																						</span></span></span></td>
-																		<?php } else { ?>
-																			<td><?php echo $availability; ?></td>
-																		<?php } ?>
-																		<td><a href="tel:<?= $phone ?>"><?= $phone ?></a></td>
-																		<td><?php echo $email; ?></td>
+																	?>
+																</tbody>
+															</table>
+														</div>
+													</fieldset>
+												</div>
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<fieldset class="scheduler-border">
+														<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px; width:100%"><i class="fa fa-users" aria-hidden="true"></i> Project Team Members</legend>
+														<div class="table-responsive">
+															<table class="table table-bordered table-striped table-hover">
+																<thead>
+																	<tr id="colrow">
+																		<th width="2%"><strong id="colhead">SN</strong></th>
+																		<th width="23%">Name</strong></td>
+																		<th width="15%">Role</th>
+																		<th width="15%">Designation</th>
+																		<th width="10%">Availability</th>
+																		<th width="15%">Phone</th>
+																		<th width="20%">Email</th>
 																	</tr>
-																<?php
-																}
-																?>
-															</tbody>
-														</table>
-													</div>
-												</fieldset>
+																</thead>
+																<tbody>
+																	<?php
+																	//return;
+																	$sn = 0;
+
+																	while ($rows_project_members = $query_project_members->fetch()) {
+																		$sn = $sn + 1;
+																		$mbrid = $rows_project_members['ptid'];
+																		$member = $rows_project_members["title"] . "." . $rows_project_members["fullname"];
+																		$role = $rows_project_members['role'];
+																		$email = $rows_project_members['email'];
+																		$phone = $rows_project_members['phone'];
+																		$available = $rows_project_members['availability'];
+
+																		$query_member_designation =  $db->prepare("SELECT d.designation FROM tbl_projteam2 t inner join tbl_pmdesignation d on d.moid=t.designation where t.ptid='$mbrid'");
+																		$query_member_designation->execute();
+																		$row_member_designation = $query_member_designation->fetch();
+																		$designation = $row_member_designation['designation'];
+
+
+																		if ($available == 0) {
+
+																			$query_member_leave_details =  $db->prepare("SELECT assignee FROM tbl_project_team_leave where owner='$mbrid' and resumed_at IS NULL and projid=:projid");
+																			$query_member_leave_details->execute(array(":projid" => $projid));
+																			$row_member_leave_details = $query_member_leave_details->fetch;
+																			$totalRows_member_leave_details = $query_member_leave_details->rowCount();
+
+																			$query_member_leave =  $db->prepare("SELECT startdate, enddate FROM tbl_employee_leave where employee='$mbrid' and status=2");
+																			$query_member_leave->execute();
+																			$row_member_leave = $query_member_leave->fetch;
+																			$totalRows_member_leave = $query_member_leave->rowCount();
+																			if ($row_member_leave) {
+																				$leave_start_date = date("d M Y", strtotime($row_member_leave['startdate']));
+																				$leave_end_date = date("d M Y", strtotime($row_member_leave['enddate']));
+																			}
+
+																			$availability = "Unavailable";
+																			$reassignee = $rows['assignee'];
+
+																			$query_reassignee =  $db->prepare("SELECT fullname, d.title, phone, email FROM tbl_projteam2 t left join tbl_titles d on d.id=t.title where ptid='$reassignee'");
+																			$query_reassignee->execute();
+																			$row_reassignee = $query_reassignee->fetch();
+																			$reassigneedto = $row_reassignee["title"] . "." . $row_reassignee["fullname"];
+																			$reassigneedphone = $row_reassignee["phone"];
+																			$reassigneedemail = $row_reassignee["email"];
+																			$availclass = 'class="text-warning"';
+																		} else {
+																			$availability = "Available";
+																			$availclass = 'class="text-success"';
+																		}
+																	?>
+																		<tr id="rowlines">
+																			<td><?php echo $sn; ?></td>
+																			<td><?php echo $member; ?></td>
+																			<td><?php echo $role; ?></td>
+																			<td><?php echo $designation; ?></td>
+																			<?php if ($available == 0) { ?>
+																				<td <?= $availclass ?>><span class="mytooltip tooltip-effect-1"><span class="tooltip-item2"><?php echo $availability; ?></span><span class="tooltip-content4 clearfix" style="background-color:#CDDC39; color:#000"><span class="tooltip-text2">
+																								<h4 align="center"><u>Details</u></h4><strong>Unavailable From Date:</strong> <?php echo $leave_start_date; ?><br> <strong>In-Place:</strong> <?php echo $reassigneedto; ?><br> <strong>In-Place Phone:</strong> <?php echo $reassigneedphone; ?><br> <strong>In-Place Email:</strong> <?php echo $reassigneedemail; ?>
+																							</span></span></span></td>
+																			<?php } else { ?>
+																				<td><?php echo $availability; ?></td>
+																			<?php } ?>
+																			<td><a href="tel:<?= $phone ?>"><?= $phone ?></a></td>
+																			<td><?php echo $email; ?></td>
+																		</tr>
+																	<?php
+																	}
+																	?>
+																</tbody>
+															</table>
+														</div>
+													</fieldset>
+												</div>
 											</div>
 										</div>
-									</div>
-									<div class="panel panel-col-teal">
-										<div class="panel-heading" role="tab" id="headingTwo_17">
-											<h4 class="panel-title">
-												<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion_17" href="#recommendation" aria-expanded="false" aria-controls="recommendation">
-													<i class="fa fa-plus-square" aria-hidden="true"></i> Project Committee Recommendation
-												</a>
-											</h4>
-										</div>
-										<div id="recommendation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo_17" style="padding-top: 20px">
-											<form id="addcmtfrm" method="POST" name="addcmtfrm" action="" autocomplete="off">
-												<?= csrf_token_html(); ?>
-												<div class="row clearfix" style="padding-left:10px; padding-right:10px">
-													<?php
-													$query_projstatuschange =  $db->prepare("SELECT projcode, projstatus, projchangedstatus FROM tbl_projects WHERE projid = :projid");
-													$query_projstatuschange->execute(array(":projid" => $projid));
-													$row_projstatuschange = $query_projstatuschange->fetch();
-													$projstatus = $row_projstatuschange["projstatus"];
-													$projcode = $row_projstatuschange["projcode"];
+										<div class="panel panel-col-teal">
+											<div class="panel-heading" role="tab" id="headingTwo_17">
+												<h4 class="panel-title">
+													<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion_17" href="#recommendation" aria-expanded="false" aria-controls="recommendation">
+														<i class="fa fa-plus-square" aria-hidden="true"></i> Project Committee Recommendation
+													</a>
+												</h4>
+											</div>
+											<div id="recommendation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo_17" style="padding-top: 20px">
+												<form id="addcmtfrm" method="POST" name="addcmtfrm" action="" autocomplete="off">
+													<?= csrf_token_html(); ?>
+													<div class="row clearfix" style="padding-left:10px; padding-right:10px">
+														<?php
+														$query_projstatuschange =  $db->prepare("SELECT projcode, projstatus, projchangedstatus FROM tbl_projects WHERE projid = :projid");
+														$query_projstatuschange->execute(array(":projid" => $projid));
+														$row_projstatuschange = $query_projstatuschange->fetch();
+														$projstatus = $row_projstatuschange["projstatus"];
+														$projcode = $row_projstatuschange["projcode"];
 
-													$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and issueid='$issueid'");
-													$query_escalationstage->execute();
-													$escalationstage_count = $query_escalationstage->rowCount();
-													$assessmentcomments = array();
-													while ($row_escalationstage = $query_escalationstage->fetch()) {
-														$assessmentcomments[] = $row_escalationstage["issue_status"];
-													}
-
-													//6 is On Hold status
-													if ($projstatus == 6) {
-														$query_issueassessment = $db->prepare("SELECT assessment FROM tbl_projissues WHERE id=:issueid and projid=:projid");
-														$query_issueassessment->execute(array(":issueid" => $issueid, ":projid" => $projid));
-														$row_issueassessment = $query_issueassessment->fetch();
-														$assessment = $row_issueassessment["assessment"];
-
-														$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid");
-														$query_escalationstage->execute(array(":projid" => $projid, ":issueid" => $issueid));
+														$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid='$projid' and issueid='$issueid'");
+														$query_escalationstage->execute();
 														$escalationstage_count = $query_escalationstage->rowCount();
 														$assessmentcomments = array();
 														while ($row_escalationstage = $query_escalationstage->fetch()) {
 															$assessmentcomments[] = $row_escalationstage["issue_status"];
 														}
 
-														$query_escalationstage_comments = $db->prepare("SELECT comments FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid and issue_status='On Hold'");
-														$query_escalationstage_comments->execute(array(":projid" => $projid, ":issueid" => $issueid));
-														$count_comments = $query_escalationstage_comments->rowCount();
-														$escalationstage_comments = $query_escalationstage_comments->fetch();
-													?>
-														<div class="col-md-12">
-															<label>
-																<font color="#174082"><i class="fa fa-bar-chart" aria-hidden="true"></i> On Hold Remarks:</font>
-																</font>
-															</label>
-															<div class="form-control" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">
-																<?php echo $escalationstage_comments["comments"]; ?>
+														//6 is On Hold status
+														if ($projstatus == 6) {
+															$query_issueassessment = $db->prepare("SELECT assessment FROM tbl_projissues WHERE id=:issueid and projid=:projid");
+															$query_issueassessment->execute(array(":issueid" => $issueid, ":projid" => $projid));
+															$row_issueassessment = $query_issueassessment->fetch();
+															$assessment = $row_issueassessment["assessment"];
+
+															$query_escalationstage = $db->prepare("SELECT * FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid");
+															$query_escalationstage->execute(array(":projid" => $projid, ":issueid" => $issueid));
+															$escalationstage_count = $query_escalationstage->rowCount();
+															$assessmentcomments = array();
+															while ($row_escalationstage = $query_escalationstage->fetch()) {
+																$assessmentcomments[] = $row_escalationstage["issue_status"];
+															}
+
+															$query_escalationstage_comments = $db->prepare("SELECT comments FROM tbl_projissue_comments WHERE projid =:projid and issueid=:issueid and issue_status='On Hold'");
+															$query_escalationstage_comments->execute(array(":projid" => $projid, ":issueid" => $issueid));
+															$count_comments = $query_escalationstage_comments->rowCount();
+															$escalationstage_comments = $query_escalationstage_comments->fetch();
+														?>
+															<div class="col-md-12">
+																<label>
+																	<font color="#174082"><i class="fa fa-bar-chart" aria-hidden="true"></i> On Hold Remarks:</font>
+																	</font>
+																</label>
+																<div class="form-control" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">
+																	<?php echo $escalationstage_comments["comments"]; ?>
+																</div>
 															</div>
-														</div>
-														<div class="col-md-6">
-															<label>
-																<font color="#174082">Committee Final Action:</font>
-															</label>
-															<div class="form-line">
-																<select name="projstatuschange" id="issueaction" class="form-control show-tick" data-live-search="true" onchange="committee_action(<?= $projid ?>,<?= $issueid ?>)" style="border:#CCC thin solid; border-radius:5px" required>
-																	<option value="" selected="selected" class="selection">... Select ...</option>
-																	<option value="RestoreAndApprove">Restore the Project and Approve the Request</option>
-																	<option value="Restore">Restore the Project and Close the Issue!</option>
-																	<option value="Cancelled">Cancel the Project</option>
-																</select>
+															<div class="col-md-6">
+																<label>
+																	<font color="#174082">Committee Final Action:</font>
+																</label>
+																<div class="form-line">
+																	<select name="projstatuschange" id="issueaction" class="form-control show-tick" data-live-search="true" onchange="committee_action(<?= $projid ?>,<?= $issueid ?>)" style="border:#CCC thin solid; border-radius:5px" required>
+																		<option value="" selected="selected" class="selection">... Select ...</option>
+																		<option value="RestoreAndApprove">Restore the Project and Approve the Request</option>
+																		<option value="Restore">Restore the Project and Close the Issue!</option>
+																		<option value="Cancelled">Cancel the Project</option>
+																	</select>
+																</div>
 															</div>
-														</div>
-													<?php
-													} elseif ($projstatus !== 6) {
-														//$option1 = $issue_areaid == 2 ? '<option value="ApprovedScope">Approve the Request</option>' : '<option value="adjust">Adjust Project Affected Parameters</option>';
-													?>
-														<div class="col-md-6">
-															<label>
-																<font color="#174082">Committee Action:</font>
-															</label>
-															<div class="form-line">
-																<select name="projstatuschange" id="issueaction" class="form-control show-tick" data-live-search="true" onchange="committee_action(<?= $projid ?>,<?= $issueid ?>)" style="border:#CCC thin solid; border-radius:5px" required>
-																	<option value="" selected="selected" class="selection">... Select ...</option>
-																	<?php //echo $option1;
-																	?>
-																	<option value="Approved">Approve the Request</option>
-																	<option value="On Hold">Put the Project On Hold</option>
-																	<option value="Cancelled">Cancel the Project</option>
-																	<option value="Continue">Ignore and Close the Issue!</option>
-																</select>
+														<?php
+														} elseif ($projstatus !== 6) {
+															//$option1 = $issue_areaid == 2 ? '<option value="ApprovedScope">Approve the Request</option>' : '<option value="adjust">Adjust Project Affected Parameters</option>';
+														?>
+															<div class="col-md-6">
+																<label>
+																	<font color="#174082">Committee Action:</font>
+																</label>
+																<div class="form-line">
+																	<select name="projstatuschange" id="issueaction" class="form-control show-tick" data-live-search="true" onchange="committee_action(<?= $projid ?>,<?= $issueid ?>)" style="border:#CCC thin solid; border-radius:5px" required>
+																		<option value="" selected="selected" class="selection">... Select ...</option>
+																		<?php //echo $option1;
+																		?>
+																		<option value="Approved">Approve the Request</option>
+																		<option value="On Hold">Put the Project On Hold</option>
+																		<option value="Cancelled">Cancel the Project</option>
+																		<option value="Continue">Ignore and Close the Issue!</option>
+																	</select>
+																</div>
 															</div>
+														<?php
+														}
+														?>
+														<div id="content">
 														</div>
-													<?php
-													}
-													?>
-													<div id="content">
+														<input name="projid" type="hidden" id="projid" value="<?php echo $projid; ?>" />
+														<input name="user_name" type="hidden" id="user_name" value="<?php echo $username; ?>" />
+														<input name="deptid" type="hidden" id="deptid" value="<?php echo $opid; ?>" />
+														<input name="projstatus" type="hidden" id="projstatus" value="<?php echo $projstatus; ?>" />
+														<input name="escalator" type="hidden" id="escalator" value="<?php echo $escdby; ?>" />
+														<input name="projissueid" type="hidden" id="issueid" value="<?php echo $issueid; ?>" />
 													</div>
-													<input name="projid" type="hidden" id="projid" value="<?php echo $projid; ?>" />
-													<input name="user_name" type="hidden" id="user_name" value="<?php echo $username; ?>" />
-													<input name="deptid" type="hidden" id="deptid" value="<?php echo $opid; ?>" />
-													<input name="projstatus" type="hidden" id="projstatus" value="<?php echo $projstatus; ?>" />
-													<input name="escalator" type="hidden" id="escalator" value="<?php echo $escdby; ?>" />
-													<input name="projissueid" type="hidden" id="issueid" value="<?php echo $issueid; ?>" />
-												</div>
-											</form>
+												</form>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				<!-- #END# Advanced Form Example With Validation -->
+					<!-- #END# Advanced Form Example With Validation -->
 
-			<?php } else {
-				echo '
+				<?php } else {
+					echo '
 				<div class="row clearfix" style="margin-top:10px">
 					<!-- Advanced Form Example With Validation -->
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -1600,20 +1597,20 @@ if ($permission) {
 						</div>
 					</div>
 				</div>';
-			}
-			?>
-		</div>
-	</section>
-	<!-- end body  -->
-	<script src="assets/js/issues/index.js"></script>
+				}
+				?>
+			</div>
+		</section>
+		<!-- end body  -->
+		<script src="assets/js/issues/index.js"></script>
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
+
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-
-require('includes/footer.php');
 ?>
-</body>
-
-</html>

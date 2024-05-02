@@ -117,6 +117,7 @@ try {
                         </div>
                     </div>
                 </div>
+            </div>
         </section>
         <!-- end body  -->
         <!-- Start Item more -->
@@ -199,8 +200,8 @@ try {
     }
 
     require('includes/footer.php');
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
 <script type="text/javascript">

@@ -1,6 +1,5 @@
 <?php
 try {
-
     require('includes/head.php');
     if ($permission && isset($_GET['projid'])) {
         $encoded_projid = $_GET['projid'];
@@ -305,7 +304,7 @@ try {
     }
     require('includes/footer.php');
 } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
 <script src="assets/js/monitoring/monitor.js"></script>

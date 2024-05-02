@@ -1,8 +1,8 @@
 <?php
-require('includes/head.php');
+try {
+	require('includes/head.php');
 
-if ($permission) {
-	try {
+	if ($permission) {
 		if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
 			$encoded_userid = $_GET["ptid"];
 			$decode_userid = base64_decode($encoded_userid);
@@ -99,238 +99,240 @@ if ($permission) {
 		$query_rsPTeam = $db->prepare("SELECT *, t.designation AS designation FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id inner join tbl_pmdesignation d on d.moid=t.designation $where ORDER BY position ASC");
 		$query_rsPTeam->execute();
 		$totalRows_rsPTeam = $query_rsPTeam->rowCount();
-	} catch (PDOException $ex) {
-		$results = flashMessage("An error occurred: " . $ex->getMessage());
-	} ?>
 
-	<!-- start body  -->
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon ?>
-					<?= $pageTitle ?>
-					<div class="btn-group" style="float:right">
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<?= $results; ?>
+?>
+
+		<!-- start body  -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?= $pageTitle ?>
+						<div class="btn-group" style="float:right">
+						</div>
+					</h4>
 				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="body">
-							<!-- start body -->
-							<div class="table-responsive">
-								<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-									<thead>
-										<tr id="colrow">
-											<th width="3%"><strong>Photo</strong></th>
-											<th width="18%"><strong>Full name</strong></th>
-											<th width="13%"><strong>Designation</strong></th>
-											<th width="12%"><strong>Availability</strong></th>
-											<th width="13%"><strong><?= $ministrylabel ?></strong></th>
-											<th width="13%"><strong><?= $departmentlabel ?></strong></th>
-											<th width="12%"><strong><?= $directoratelabel ?></strong></th>
-											<th width="8%"><strong>Projects</strong></th>
-											<!--COLSPAN=4-->
-											<th width="8%"><strong>Action</strong></th>
-											<!--COLSPAN=4-->
-										</tr>
-									</thead>
-									<tbody>
-										<!-- =========================================== -->
-										<?php
-										function get_department_list($user_id, $department_id)
-										{
-											global $db;
-											$workflow_stage = 10;
-											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector<>:department_id GROUP BY m.projid");
-											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":department_id" => $department_id));
-											$technical_projects = $query_rsNoPrj->rowCount();
+				<div class="row clearfix">
+					<div class="block-header">
+						<?= $results; ?>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="body">
+								<!-- start body -->
+								<div class="table-responsive">
+									<table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+										<thead>
+											<tr id="colrow">
+												<th width="3%"><strong>Photo</strong></th>
+												<th width="18%"><strong>Full name</strong></th>
+												<th width="13%"><strong>Designation</strong></th>
+												<th width="12%"><strong>Availability</strong></th>
+												<th width="13%"><strong><?= $ministrylabel ?></strong></th>
+												<th width="13%"><strong><?= $departmentlabel ?></strong></th>
+												<th width="12%"><strong><?= $directoratelabel ?></strong></th>
+												<th width="8%"><strong>Projects</strong></th>
+												<!--COLSPAN=4-->
+												<th width="8%"><strong>Action</strong></th>
+												<!--COLSPAN=4-->
+											</tr>
+										</thead>
+										<tbody>
+											<!-- =========================================== -->
+											<?php
+											function get_department_list($user_id, $department_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector<>:department_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":department_id" => $department_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
 
-											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id ORDER BY p.projid DESC");
-											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id));
-											$department_projects = $query_rsProjects->rowCount();
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id));
+												$department_projects = $query_rsProjects->rowCount();
 
-											return $technical_projects + $department_projects;
-										}
-
-										function get_section_list($user_id, $section_id)
-										{
-											global $db;
-											$workflow_stage = 10;
-											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept<>:section_id GROUP BY m.projid");
-											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":section_id" => $section_id));
-											$technical_projects = $query_rsNoPrj->rowCount();
-
-											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id ORDER BY p.projid DESC");
-											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id));
-											$section_projects = $query_rsProjects->rowCount();
-											return $technical_projects + $section_projects;
-										}
-
-										function get_directorate_list($user_id, $directorate_id)
-										{
-											global $db;
-											$workflow_stage = 10;
-											$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate<>:directorate_id GROUP BY m.projid");
-											$query_rsNoPrj->execute(array(":responsible" => $user_id, ":directorate_id" => $directorate_id));
-											$technical_projects = $query_rsNoPrj->rowCount();
-
-											$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id ORDER BY p.projid DESC");
-											$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id));
-											$directorate_projects = $query_rsProjects->rowCount();
-											return $technical_projects + $directorate_projects;
-										}
-
-
-
-										while ($row_rsPTeam = $query_rsPTeam->fetch()) {
-											$mbrid = $row_rsPTeam['userid'];
-											$titleid = $row_rsPTeam['title'];
-											$desig = $row_rsPTeam["designation"];
-											$mnst = $row_rsPTeam["ministry"];
-											$dept = $row_rsPTeam["department"];
-											$directorateid = $row_rsPTeam["directorate"];
-											$avail = $row_rsPTeam["availability"];
-											$disabled = $row_rsPTeam["disabled"];
-
-
-											$query_rsNoPrj = $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible=:responsible AND team_type=4 GROUP BY projid");
-											$query_rsNoPrj->execute(array(":responsible" => $mbrid));
-											$row_num = $query_rsNoPrj->fetch();
-											$totalRows_rsNoPrj = $query_rsNoPrj->rowCount();
-
-											if ($desig == 7) {
-												$totalRows_rsNoPrj =  get_directorate_list($mbrid, $directorateid);
-											} else if ($desig == 6) {
-												$totalRows_rsNoPrj = get_section_list($mbrid, $dept);
-											} else if ($desig == 5) {
-												$totalRows_rsNoPrj = get_department_list($mbrid, $mnst);
+												return $technical_projects + $department_projects;
 											}
 
-											$query_title = $db->prepare("SELECT title FROM tbl_titles WHERE id='$titleid'");
-											$query_title->execute();
-											$row_title = $query_title->fetch();
+											function get_section_list($user_id, $section_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept<>:section_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":section_id" => $section_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
 
-											$query_rsPMDesignation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE moid='$desig'");
-											$query_rsPMDesignation->execute();
-											$row_rsPMDesignation = $query_rsPMDesignation->fetch();
-											$totalRows_rsPMDesignation = $query_rsPMDesignation->rowCount();
-											$projtmid = base64_encode("projmbr{$mbrid}");
-
-
-											$numberofprojects = '<a href="view-member-projects.php?mbrid=' . $projtmid . '" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">' . $totalRows_rsNoPrj . '</a>';
-
-											if ($mnst == 0) {
-												$ministry = "All " . $ministrylabelplural;
-												$numberofprojects = "N/A";
-											} else {
-												$query_rsSC = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$mnst'");
-												$query_rsSC->execute();
-												$row_rsSC = $query_rsSC->fetch();
-												$totalRows_rsSC = $query_rsSC->rowCount();
-												$ministry = $row_rsSC["sector"];
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id));
+												$section_projects = $query_rsProjects->rowCount();
+												return $technical_projects + $section_projects;
 											}
 
-											if ($dept == 0) {
-												$department = "All " . $departmentlabelplural;
-											} else {
-												$query_rsDept = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$dept'");
-												$query_rsDept->execute();
-												$row_rsDept = $query_rsDept->fetch();
-												$totalRows_rsDept = $query_rsDept->rowCount();
-												$department = $totalRows_rsDept > 0 ? $row_rsDept["sector"] : "";
-											}
+											function get_directorate_list($user_id, $directorate_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate<>:directorate_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":directorate_id" => $directorate_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
 
-											if ($directorateid == 0) {
-												$directorate = "All " . $directoratelabelplural;
-											} else {
-												$query_rsDirectorate = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$directorateid'");
-												$query_rsDirectorate->execute();
-												$row_rsDirectorate = $query_rsDirectorate->fetch();
-												$totalRows_rsDirectorate = $query_rsDirectorate->rowCount();
-												$directorate = $totalRows_rsDirectorate > 0 ? $row_rsDirectorate["sector"] : "";
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id));
+												$directorate_projects = $query_rsProjects->rowCount();
+												return $technical_projects + $directorate_projects;
 											}
 
 
-											if ($disabled == 1) {
-												$disabledstyle = ';background-color:orange; color:white';
-												$availability = "<font color='#FF5722'>Unavailable</font>";
-											} else {
-												$disabledstyle = "";
-												if ($avail == 0) {
+
+											while ($row_rsPTeam = $query_rsPTeam->fetch()) {
+												$mbrid = $row_rsPTeam['userid'];
+												$titleid = $row_rsPTeam['title'];
+												$desig = $row_rsPTeam["designation"];
+												$mnst = $row_rsPTeam["ministry"];
+												$dept = $row_rsPTeam["department"];
+												$directorateid = $row_rsPTeam["directorate"];
+												$avail = $row_rsPTeam["availability"];
+												$disabled = $row_rsPTeam["disabled"];
+
+
+												$query_rsNoPrj = $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible=:responsible AND team_type=4 GROUP BY projid");
+												$query_rsNoPrj->execute(array(":responsible" => $mbrid));
+												$row_num = $query_rsNoPrj->fetch();
+												$totalRows_rsNoPrj = $query_rsNoPrj->rowCount();
+
+												if ($desig == 7) {
+													$totalRows_rsNoPrj =  get_directorate_list($mbrid, $directorateid);
+												} else if ($desig == 6) {
+													$totalRows_rsNoPrj = get_section_list($mbrid, $dept);
+												} else if ($desig == 5) {
+													$totalRows_rsNoPrj = get_department_list($mbrid, $mnst);
+												}
+
+												$query_title = $db->prepare("SELECT title FROM tbl_titles WHERE id='$titleid'");
+												$query_title->execute();
+												$row_title = $query_title->fetch();
+
+												$query_rsPMDesignation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE moid='$desig'");
+												$query_rsPMDesignation->execute();
+												$row_rsPMDesignation = $query_rsPMDesignation->fetch();
+												$totalRows_rsPMDesignation = $query_rsPMDesignation->rowCount();
+												$projtmid = base64_encode("projmbr{$mbrid}");
+
+
+												$numberofprojects = '<a href="view-member-projects.php?mbrid=' . $projtmid . '" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">' . $totalRows_rsNoPrj . '</a>';
+
+												if ($mnst == 0) {
+													$ministry = "All " . $ministrylabelplural;
+													$numberofprojects = "N/A";
+												} else {
+													$query_rsSC = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$mnst'");
+													$query_rsSC->execute();
+													$row_rsSC = $query_rsSC->fetch();
+													$totalRows_rsSC = $query_rsSC->rowCount();
+													$ministry = $row_rsSC["sector"];
+												}
+
+												if ($dept == 0) {
+													$department = "All " . $departmentlabelplural;
+												} else {
+													$query_rsDept = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$dept'");
+													$query_rsDept->execute();
+													$row_rsDept = $query_rsDept->fetch();
+													$totalRows_rsDept = $query_rsDept->rowCount();
+													$department = $totalRows_rsDept > 0 ? $row_rsDept["sector"] : "";
+												}
+
+												if ($directorateid == 0) {
+													$directorate = "All " . $directoratelabelplural;
+												} else {
+													$query_rsDirectorate = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$directorateid'");
+													$query_rsDirectorate->execute();
+													$row_rsDirectorate = $query_rsDirectorate->fetch();
+													$totalRows_rsDirectorate = $query_rsDirectorate->rowCount();
+													$directorate = $totalRows_rsDirectorate > 0 ? $row_rsDirectorate["sector"] : "";
+												}
+
+
+												if ($disabled == 1) {
+													$disabledstyle = ';background-color:orange; color:white';
 													$availability = "<font color='#FF5722'>Unavailable</font>";
 												} else {
-													$availability = "<font color='#4CAF50'>Available</font>";
+													$disabledstyle = "";
+													if ($avail == 0) {
+														$availability = "<font color='#FF5722'>Unavailable</font>";
+													} else {
+														$availability = "<font color='#4CAF50'>Available</font>";
+													}
 												}
-											}
 
-										?>
-											<tr style="border-bottom:thin solid #EEE <?= $disabledstyle ?>">
-												<td align="center"><img src="<?php echo $row_rsPTeam['floc']; ?>" alt="" style="width:30px; height:30px; margin-bottom:0px" /></td>
-												<td><?php echo $row_title['title'] . '.' . $row_rsPTeam['fullname'] ?></td>
-												<td><?php echo ($totalRows_rsPMDesignation > 0) ? $row_rsPMDesignation['designation'] : ""; ?></td>
-												<td><?php echo $availability; ?></td>
-												<td><?php echo $ministry . $mnst ; ?></td>
-												<td><?php echo $department; ?></td>
-												<td><?php echo $directorate; ?></td>
-												<td align="center"><span class="badge bg-purple"><?= $numberofprojects ?></span></td>
-												<td align="center">
-													<div class="btn-group">
-														<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
-															Options <span class="caret"></span>
-														</button>
-														<ul class="dropdown-menu">
-															<li>
-																<a type="button" href="view-member-info.php?staff=<?= $projtmid ?>"><i class="fa fa-plus-square"></i> Manage</a>
-															</li>
-															<?php
-															if (in_array("update", $page_actions)) {
-															?>
+											?>
+												<tr style="border-bottom:thin solid #EEE <?= $disabledstyle ?>">
+													<td align="center"><img src="<?php echo $row_rsPTeam['floc']; ?>" alt="" style="width:30px; height:30px; margin-bottom:0px" /></td>
+													<td><?php echo $row_title['title'] . '.' . $row_rsPTeam['fullname'] ?></td>
+													<td><?php echo ($totalRows_rsPMDesignation > 0) ? $row_rsPMDesignation['designation'] : ""; ?></td>
+													<td><?php echo $availability; ?></td>
+													<td><?php echo $ministry . $mnst; ?></td>
+													<td><?php echo $department; ?></td>
+													<td><?php echo $directorate; ?></td>
+													<td align="center"><span class="badge bg-purple"><?= $numberofprojects ?></span></td>
+													<td align="center">
+														<div class="btn-group">
+															<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">
+																Options <span class="caret"></span>
+															</button>
+															<ul class="dropdown-menu">
 																<li>
-																	<a type="button" href="add-member.php?action=1&ptid=<?= $projtmid ?>"><i class="glyphicon glyphicon-edit"></i> Edit </a>
+																	<a type="button" href="view-member-info.php?staff=<?= $projtmid ?>"><i class="fa fa-plus-square"></i> Manage</a>
 																</li>
 																<?php
-															}
-															if (in_array("delete", $page_actions)) {
-																if ($disabled == 1) {
+																if (in_array("update", $page_actions)) {
 																?>
 																	<li>
-																		<a type="button" href="view-members.php?action=1&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to activate this user?')"><i class="glyphicon glyphicon-trash"></i> Activate </a>
+																		<a type="button" href="add-member.php?action=1&ptid=<?= $projtmid ?>"><i class="glyphicon glyphicon-edit"></i> Edit </a>
 																	</li>
-																<?php
-																} else {
-																?>
-																	<li>
-																		<a type="button" href="view-members.php?action=2&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to deactivate this user?')"><i class="glyphicon glyphicon-trash"></i> Deactivate </a>
-																	</li>
-															<?php
+																	<?php
 																}
-															}
-															?>
-														</ul>
-													</div>
-												</td>
-											</tr>
-										<?php
-										} ?>
-									</tbody>
-								</table>
+																if (in_array("delete", $page_actions)) {
+																	if ($disabled == 1) {
+																	?>
+																		<li>
+																			<a type="button" href="view-members.php?action=1&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to activate this user?')"><i class="glyphicon glyphicon-trash"></i> Activate </a>
+																		</li>
+																	<?php
+																	} else {
+																	?>
+																		<li>
+																			<a type="button" href="view-members.php?action=2&ptid=<?= $projtmid ?>" onclick="return confirm('Are you sure you want to deactivate this user?')"><i class="glyphicon glyphicon-trash"></i> Deactivate </a>
+																		</li>
+																<?php
+																	}
+																}
+																?>
+															</ul>
+														</div>
+													</td>
+												</tr>
+											<?php
+											} ?>
+										</tbody>
+									</table>
+								</div>
+								<!-- end body -->
 							</div>
-							<!-- end body -->
 						</div>
 					</div>
 				</div>
-			</div>
-	</section>
-	<!-- end body  -->
+		</section>
+		<!-- end body  -->
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>

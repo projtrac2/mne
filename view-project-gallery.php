@@ -1,7 +1,7 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
-   try {
       $count_rsTP  = 0;
       $decode_projid = (isset($_GET['projid']) && !empty($_GET["projid"])) ? base64_decode($_GET['projid']) : header("Location: myprojects");
       $projid_array = explode("projid54321", $decode_projid);
@@ -20,12 +20,10 @@ if ($permission) {
       $query_rsTP->execute(array(":projid" => $projid));
       $row_rsTP = $query_rsTP->fetch();
       $count_rsTP = $query_rsTP->rowCount();
-   } catch (PDOException $ex) {
-      $result = flashMessage("An error occurred: " . $ex->getMessage());
-   }
+
 ?>
    <style>
-      /* .gallery-item { 
+      /* .gallery-item {
          width: 200px;
          padding: 5px;
       } */
@@ -101,7 +99,7 @@ if ($permission) {
                </div>
             </div>
          </div>
-   </section>
+      </div>   </section>
    <!-- end body  -->
 <?php
 } else {
@@ -109,6 +107,9 @@ if ($permission) {
    echo $results;
 }
 require('includes/footer.php');
+} catch (PDOException $ex) {
+   customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/lightgallery@2.0.0-beta.3/lightgallery.umd.js"></script>

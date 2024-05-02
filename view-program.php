@@ -198,6 +198,7 @@ try {
                         </div>
                     </div>
                 </div>
+            </div>
         </section>
         <!-- end body  -->
         <!-- Start Item more -->

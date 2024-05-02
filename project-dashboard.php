@@ -1,14 +1,14 @@
 <?php
-$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : header("Location: projects");
-$projid_array = explode("projid54321", $decode_projid);
-$projid = $projid_array[1];
-
-$original_projid = $_GET['proj'];
-require('includes/head.php');
-
-if ($permission) {
-	try {
+try {
+	require('includes/head.php');
+	if ($permission && (isset($_GET['proj']) && !empty($_GET["proj"]))) {
+		$decode_projid =   base64_decode($_GET['proj']);
+		$projid_array = explode("projid54321", $decode_projid);
+		$projid = $projid_array[1];
 		$back_url = $_SESSION['back_url'];
+		$original_projid = $_GET['proj'];
+
+
 		$query_rsMyP = $db->prepare("SELECT * FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -328,351 +328,351 @@ if ($permission) {
 		$chart_data = get_budget_chart();
 		$series_chart = $chart_data['series_data'];
 		$subtasks_data = $chart_data['subtasks_data'];
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+
 ?>
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon ?>
-					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<?= $results; ?>
-					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="header" style="padding-bottom:0px">
-							<div class="" style="margin-top:-15px">
-								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
-								<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
-								<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
-								<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
-								<?php if ($projcat == 2 && $projstage > 4) { ?>
-									<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
-								<?php } ?>
-								<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
-								<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
-								<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
-								<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
-							</div>
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?php echo $pageTitle ?>
+						<div class="btn-group" style="float:right; margin-right:10px">
+							<input type="button" VALUE="Go Back to Projects Dashboard" class="btn btn-warning pull-right" onclick="location.href='<?= $back_url ?>'" id="btnback">
 						</div>
-						<h4>
-							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
-								Project Name: <font color="white"><?php echo $projname; ?></font>
-							</div>
-							<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
-								<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
-									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $percent2 ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $percent2 ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
-										<?= $percent2 ?>%
-									</div>
-								</div>
-							</div>
-						</h4>
-					</div>
+					</h4>
 				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="header">
-							<div class="row clearfix">
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<label>
-										Project Description:
-									</label>
-									<div>
-										<li class="list-group-item"><?= $projdesc ?></li>
+				<div class="row clearfix">
+					<div class="block-header">
+						<?= $results; ?>
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="header" style="padding-bottom:0px">
+								<div class="" style="margin-top:-15px">
+									<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; width:100px">Dashboard</a>
+									<a href="project-mne-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px"> M&E </a>
+									<a href="project-finance.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Finance</a>
+									<a href="project-timeline.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Timeline</a>
+									<?php if ($projcat == 2 && $projstage > 4) { ?>
+										<a href="project-contract-details.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Contract</a>
+									<?php } ?>
+									<a href="project-team-members.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Team</a>
+									<a href="project-issues.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Risks & Issues</a>
+									<a href="project-map.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Map</a>
+									<a href="project-media.php?proj=<?php echo $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; width:100px">Media</a>
+								</div>
+							</div>
+							<h4>
+								<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
+									Project Name: <font color="white"><?php echo $projname; ?></font>
+								</div>
+								<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
+									<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
+										<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $percent2 ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $percent2 ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
+											<?= $percent2 ?>%
+										</div>
 									</div>
 								</div>
-								&nbsp;
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<label>
-										Project Program:
-									</label>
-									<div>
-										<li class="list-group-item"><?= $progname ?></li>
+							</h4>
+						</div>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="header">
+								<div class="row clearfix">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<label>
+											Project Description:
+										</label>
+										<div>
+											<li class="list-group-item"><?= $projdesc ?></li>
+										</div>
+									</div>
+									&nbsp;
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<label>
+											Project Program:
+										</label>
+										<div>
+											<li class="list-group-item"><?= $progname ?></li>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-						<div class="body">
-							<div class="row clearfix">
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="highcharts-progress"></div>
-									</figure>
-								</div>
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="highcharts-time"></div>
-									</figure>
-								</div>
-								<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="highcharts-funds"></div>
-									</figure>
-								</div>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="body">
+								<div class="row clearfix">
 									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-										<li class="list-group-item">
-											<label>
-												<strong>PROJECT LOCATION</strong>
-											</label>
-											<div>
-												<strong><?= $level1label ?>:</strong> <?php echo implode(",", $level1); ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong><?= $level2label ?>:</strong> <?php echo implode(",", $level2); ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<!--<div>
+										<figure class="highcharts-figure">
+											<div id="highcharts-progress"></div>
+										</figure>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<figure class="highcharts-figure">
+											<div id="highcharts-time"></div>
+										</figure>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+										<figure class="highcharts-figure">
+											<div id="highcharts-funds"></div>
+										</figure>
+									</div>
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+											<li class="list-group-item">
+												<label>
+													<strong>PROJECT LOCATION</strong>
+												</label>
+												<div>
+													<strong><?= $level1label ?>:</strong> <?php echo implode(",", $level1); ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong><?= $level2label ?>:</strong> <?php echo implode(",", $level2); ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<!--<div>
 												<strong><? //= $level3label
 														?>:</strong> <?php //echo implode(",", $level3);
 																		?>
 											</div>-->
-										</li>
+											</li>
+										</div>
+										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+											<li class="list-group-item">
+												<label>
+													<strong>PROJECT TIMELINES</strong>
+												</label>
+												<div>
+													<strong>Duration Assigned: </strong><?= $duration ?> Days
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Duration Consumed: </strong><?= $durationtodate ?> Days
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Remaining Duration: </strong><?= $durationtoenddate ?> Days
+												</div>
+											</li>
+										</div>
+										<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+											<li class="list-group-item">
+												<label>
+													<strong>PROJECT FUNDS</strong>
+												</label>
+												<div>
+													<strong>Budget Allocated: </strong>Ksh.<?php echo $projcost; ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Budget Consumed: </strong>Ksh.<?php echo $consumed; ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Budget Balance: </strong>Ksh.<?php echo $balance; ?>
+												</div>
+											</li>
+										</div>
 									</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-										<li class="list-group-item">
-											<label>
-												<strong>PROJECT TIMELINES</strong>
-											</label>
-											<div>
-												<strong>Duration Assigned: </strong><?= $duration ?> Days
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Duration Consumed: </strong><?= $durationtodate ?> Days
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Remaining Duration: </strong><?= $durationtoenddate ?> Days
-											</div>
-										</li>
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<figure class="highcharts-figure">
+											<div id="container_project_cost" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
+										</figure>
 									</div>
-									<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-										<li class="list-group-item">
-											<label>
-												<strong>PROJECT FUNDS</strong>
-											</label>
-											<div>
-												<strong>Budget Allocated: </strong>Ksh.<?php echo $projcost; ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Budget Consumed: </strong>Ksh.<?php echo $consumed; ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Budget Balance: </strong>Ksh.<?php echo $balance; ?>
-											</div>
-										</li>
-									</div>
-								</div>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="container_project_cost" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
-									</figure>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	</section>
+		</section>
 
-	<script src="https://code.highcharts.com/highcharts.js"></script>
-	<script src="https://code.highcharts.com/highcharts-3d.js"></script>
-	<script src="https://code.highcharts.com/modules/exporting.js"></script>
-	<script src="https://code.highcharts.com/modules/export-data.js"></script>
-	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-	<script src="https://code.highcharts.com/modules/series-label.js"></script>
-	<script>
-		Highcharts.chart('highcharts-progress', {
-			chart: {
-				type: 'pie',
-				options3d: {
-					enabled: true,
-					alpha: 45,
-					beta: 0
-				}
-			},
-			title: {
-				text: 'Project % Progress',
-				align: 'left'
-			},
-			accessibility: {
-				point: {
-					valueSuffix: '%'
-				}
-			},
-			tooltip: {
-				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-			},
-			plotOptions: {
-				pie: {
-					allowPointSelect: true,
-					cursor: 'pointer',
-					depth: 35,
-					dataLabels: {
-						enabled: true,
-						format: '{point.name}'
-					}
-				}
-			},
-			series: [{
-				type: 'pie',
-				name: 'Percentage',
-				data: [{
-						name: 'Achieved',
-						y: <?php echo $percent2; ?>,
-						sliced: true,
-						selected: true
-					},
-					['Pending', <?php echo $percentage_progress_remaining; ?>]
-				],
-				colors: [
-					'#db03fc',
-					'#03e3fc'
-				]
-			}]
-		});
-
-		Highcharts.chart('highcharts-time', {
-			colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
-			chart: {
-				type: 'pie',
-				options3d: {
-					enabled: true,
-					alpha: 45,
-					beta: 0
-				}
-			},
-			title: {
-				text: 'Project % Time Consumed',
-				align: 'left'
-			},
-			accessibility: {
-				point: {
-					valueSuffix: '%'
-				}
-			},
-			tooltip: {
-				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-			},
-			plotOptions: {
-				pie: {
-					allowPointSelect: true,
-					cursor: 'pointer',
-					depth: 35,
-					dataLabels: {
-						enabled: true,
-						format: '{point.name}'
-					}
-				}
-			},
-			series: [{
-				type: 'pie',
-				name: 'Percentage',
-				data: [{
-						name: 'Consumed',
-						y: <?php echo $percentage_duration_consumed ?>,
-						sliced: true,
-						selected: true
-					},
-					['Pending', <?php echo $percentage_duration_remaining ?>]
-				],
-				colors: [
-					'#50B432',
-					'#FFF263'
-				]
-			}]
-		});
-
-		//Highcharts.chart('highcharts-funds', {colors: ['#6AF9C4', '#CB2326', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
-		Highcharts.chart('highcharts-funds', {
-			chart: {
-				type: 'pie',
-				options3d: {
-					enabled: true,
-					alpha: 45,
-					beta: 0
-				}
-			},
-			title: {
-				text: 'Project % Funds Consumed',
-				align: 'left'
-			},
-			accessibility: {
-				point: {
-					valueSuffix: '%'
-				}
-			},
-			tooltip: {
-				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-			},
-			plotOptions: {
-				pie: {
-					allowPointSelect: true,
-					cursor: 'pointer',
-					depth: 35,
-					dataLabels: {
-						enabled: true,
-						format: '{point.name}'
-					}
-				}
-			},
-			series: [{
-				type: 'pie',
-				name: 'Percentage',
-				data: [{
-						name: 'Consumed',
-						y: <?php echo $rate ?>,
-						sliced: true,
-						selected: true
-					},
-					['Pending', <?php echo $rate_balance ?>]
-				],
-				colors: [
-					'#6AF9C4',
-					'#CB2326'
-				]
-			}]
-		});
-
-		$(function() {
-			var chart = new Highcharts.Chart({
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/highcharts-3d.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+		<script src="https://code.highcharts.com/modules/export-data.js"></script>
+		<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+		<script src="https://code.highcharts.com/modules/series-label.js"></script>
+		<script>
+			Highcharts.chart('highcharts-progress', {
 				chart: {
-					renderTo: 'container_project_cost',
-					type: 'column'
+					type: 'pie',
+					options3d: {
+						enabled: true,
+						alpha: 45,
+						beta: 0
+					}
 				},
-				xAxis: {
-					categories: <?= $subtasks_data ?>
+				title: {
+					text: 'Project % Progress',
+					align: 'left'
+				},
+				accessibility: {
+					point: {
+						valueSuffix: '%'
+					}
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
 				},
 				plotOptions: {
-					series: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						depth: 35,
 						dataLabels: {
-							enabled: false
+							enabled: true,
+							format: '{point.name}'
 						}
 					}
 				},
-				series: <?= $series_chart ?>,
+				series: [{
+					type: 'pie',
+					name: 'Percentage',
+					data: [{
+							name: 'Achieved',
+							y: <?php echo $percent2; ?>,
+							sliced: true,
+							selected: true
+						},
+						['Pending', <?php echo $percentage_progress_remaining; ?>]
+					],
+					colors: [
+						'#db03fc',
+						'#03e3fc'
+					]
+				}]
 			});
-		});
-	</script>
-	<!-- end body  -->
-<?php
-} else {
-	$results =  restriction();
-	echo $results;
-}
 
-require('includes/footer.php');
+			Highcharts.chart('highcharts-time', {
+				colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
+				chart: {
+					type: 'pie',
+					options3d: {
+						enabled: true,
+						alpha: 45,
+						beta: 0
+					}
+				},
+				title: {
+					text: 'Project % Time Consumed',
+					align: 'left'
+				},
+				accessibility: {
+					point: {
+						valueSuffix: '%'
+					}
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						depth: 35,
+						dataLabels: {
+							enabled: true,
+							format: '{point.name}'
+						}
+					}
+				},
+				series: [{
+					type: 'pie',
+					name: 'Percentage',
+					data: [{
+							name: 'Consumed',
+							y: <?php echo $percentage_duration_consumed ?>,
+							sliced: true,
+							selected: true
+						},
+						['Pending', <?php echo $percentage_duration_remaining ?>]
+					],
+					colors: [
+						'#50B432',
+						'#FFF263'
+					]
+				}]
+			});
+
+			//Highcharts.chart('highcharts-funds', {colors: ['#6AF9C4', '#CB2326', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'],
+			Highcharts.chart('highcharts-funds', {
+				chart: {
+					type: 'pie',
+					options3d: {
+						enabled: true,
+						alpha: 45,
+						beta: 0
+					}
+				},
+				title: {
+					text: 'Project % Funds Consumed',
+					align: 'left'
+				},
+				accessibility: {
+					point: {
+						valueSuffix: '%'
+					}
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						depth: 35,
+						dataLabels: {
+							enabled: true,
+							format: '{point.name}'
+						}
+					}
+				},
+				series: [{
+					type: 'pie',
+					name: 'Percentage',
+					data: [{
+							name: 'Consumed',
+							y: <?php echo $rate ?>,
+							sliced: true,
+							selected: true
+						},
+						['Pending', <?php echo $rate_balance ?>]
+					],
+					colors: [
+						'#6AF9C4',
+						'#CB2326'
+					]
+				}]
+			});
+
+			$(function() {
+				var chart = new Highcharts.Chart({
+					chart: {
+						renderTo: 'container_project_cost',
+						type: 'column'
+					},
+					xAxis: {
+						categories: <?= $subtasks_data ?>
+					},
+					plotOptions: {
+						series: {
+							dataLabels: {
+								enabled: false
+							}
+						}
+					},
+					series: <?= $series_chart ?>,
+				});
+			});
+		</script>
+		<!-- end body  -->
+<?php
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
+
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>

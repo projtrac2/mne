@@ -125,7 +125,7 @@ try {
 												?>
 															<tr>
 																<td><?= $sn ?> </td>
-																<td><?= $projname ?> </td> 
+																<td><?= $projname ?> </td>
 																<td><?= number_format($budget, 2) ?> </td>
 																<td><?= $projYear ?> </td>
 																<td><?= $active ?> </td>

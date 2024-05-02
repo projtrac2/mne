@@ -1,14 +1,14 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-	try {
+try {
+	require('includes/head.php');
+	if ($permission) {
 		$query_stratplan =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE current_plan=1");
 		$query_stratplan->execute();
 		$row_stratplan = $query_stratplan->fetch();
 		$totalRows_stratplan = $query_stratplan->rowCount();
 
 		$stplan = $plan = $vision = $mission = $noyears = $styear =  $total_strategic_plan_years = $strategic_plan_start_year = 0;
-		$financial_year_details ="";
+		$financial_year_details = "";
 		if ($totalRows_stratplan > 0) {
 			$stplan = $row_stratplan["id"];
 			$plan = $row_stratplan["plan"];
@@ -18,7 +18,7 @@ if ($permission) {
 			$styear = $row_stratplan["starting_year"];
 			$total_strategic_plan_years = $row_stratplan["years"];
 			$strategic_plan_start_year = $row_stratplan["starting_year"];
-		} 
+		}
 
 		$current_date = date("Y-m-d");
 		$month =  date('m');
@@ -75,7 +75,7 @@ if ($permission) {
 			$row_pvfinyearbudget = $query_pvfinyearbudget->fetch();
 			$total_budget = $row_pvfinyearbudget["totalbudget"];
 			$total_budget = $total_budget > 0 ?  $total_budget : 0;
-			$totalpvfybudget = number_format($total_budget, 2); 
+			$totalpvfybudget = number_format($total_budget, 2);
 
 			$query_pvfinyearalloc = $db->prepare("SELECT sum(b.budget) as totalamt FROM tbl_programs_based_budget b inner join tbl_programs g on g.progid=b.progid WHERE program_type=1 AND b.finyear=$previousfinyear");
 			$query_pvfinyearalloc->execute();
@@ -221,153 +221,152 @@ if ($permission) {
 		$totalannualbdg = json_encode($budget_expenditure['totalannualbdg']);
 		$totalannualexp = json_encode($budget_expenditure['totalannualexp']);
 
-	
- 
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		// print($result);
-		var_dump($ex->getMessage());
-	}
+
+
+
 ?>
-	<!-- start body  -->
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon ?>
-					<?= $pageTitle ?> 
-					<div class="btn-group" style="float:right; margin: right 10px;">
-						<div class="btn-group" style="float:right">
+		<!-- start body  -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?= $pageTitle ?>
+						<div class="btn-group" style="float:right; margin: right 10px;">
+							<div class="btn-group" style="float:right">
+							</div>
 						</div>
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<?= $results; ?>
+					</h4>
 				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="body">
-							<!-- ============================================================== -->
-							<!-- Start Page Content -->
-							<!-- ============================================================== -->
-							<div class="row">
+				<div class="row clearfix">
+					<div class="block-header">
+						<?= $results; ?>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="body">
+								<!-- ============================================================== -->
+								<!-- Start Page Content -->
+								<!-- ============================================================== -->
+								<div class="row">
 
-								<!-- Start financial comparison-->
-								<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-									<div class="info-box bg-lime hover-expand-effect" style="height:130px">
-										<div class="icon" style="width:20%">
-											<i class="material-icons">verified_user</i>
-										</div>
-										<div class="content" style="width:80%">
-											<div class="text"><?= $prevfinyear ?> FIN YEAR
-												<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $last_financial_year_budget['totalpvfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $last_financial_year_budget['totalpvfinyearalloc'] ?></i></h5>
-											</div>
-											<span class="text-danger"><?= $last_financial_year_budget['pvfinyearrate'] ?>%</span>
-											<div class="progress" style="height: 10px">
-												<div class="progress-bar bg-primary" role="progressbar" style="width: <?= $last_financial_year_budget['pvfinyearrate'] ?>%; height: 10px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-											</div>
-										</div>
+									<!-- Start financial comparison-->
+									<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
 									</div>
-								</div>
-								<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-									<div class="info-box bg-light-blue hover-expand-effect" style="height:130px">
-										<?php
-										if ($last_financial_year_budget['totalpvfinyearallocation'] > $current_financial_year_budget['totalcrfinyearallocation']) {
-										?>
-											<div class="icon" style="color:red; width:20%">
-												<i class="material-icons">
-													<font color="#F44336">trending_down</font>
-												</i>
+									<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+										<div class="info-box bg-lime hover-expand-effect" style="height:130px">
+											<div class="icon" style="width:20%">
+												<i class="material-icons">verified_user</i>
 											</div>
-										<?php
-										} else {
-										?>
-											<div class="icon" style="color:lime; width:20%">
-												<i class="material-icons">
-													<font color="#CDDC39">trending_up</font>
-												</i>
-											</div>
-										<?php
-										}
-										?>
-										<div class="content">
-											<div class="text"><?= $currfinyear ?> FIN YEAR
-												<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $current_financial_year_budget['totalcrfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $current_financial_year_budget['totalcrfinyearamt'] ?></i></h5>
-											</div>
-											<span class="text-danger"><?= $current_financial_year_budget['crfinyearrate'] ?>%</span>
-											<div class="progress" style="height: 10px">
-												<div class="progress-bar bg-lime" role="progressbar" style="width: <?= $current_financial_year_budget['crfinyearrate'] ?>%; height: 10px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-											</div>
-										</div>
-									</div>
-								</div>
-								<!-- End of Financial comparison -->
-
-								<!-- Start of Fund Sources Per Year Column-->
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-									<div class="card" style="margin-bottom:-10px">
-										<div class="header">
-											<h5 class="card-title" style="margin:5px"><strong>Fund Sources (Ksh. in millions)</strong></h5>
-										</div>
-										<div class="card-body" style="padding-top:0px">
-											<div id="dynamicloaded" style="width:100%; height:400px;">
-												<div id="fund_sources">
+											<div class="content" style="width:80%">
+												<div class="text"><?= $prevfinyear ?> FIN YEAR
+													<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $last_financial_year_budget['totalpvfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $last_financial_year_budget['totalpvfinyearalloc'] ?></i></h5>
+												</div>
+												<span class="text-danger"><?= $last_financial_year_budget['pvfinyearrate'] ?>%</span>
+												<div class="progress" style="height: 10px">
+													<div class="progress-bar bg-primary" role="progressbar" style="width: <?= $last_financial_year_budget['pvfinyearrate'] ?>%; height: 10px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
 												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-								<!-- End of Fund Sources Per Year Column -->
-								<!-- column -->
-								<div class="col-md-12">
-									<div class="card" style="margin-bottom:-10px">
-										<div class="header">
-											<h5 class="card-title" style="margin:5px"><strong>Budget Vs Expenditure Per Year</strong></h5>
-										</div>
-										<div class="card-body" style="padding-top:10px">
-											<div id="budget_vs_expenditure" style="width:100%; height:400px;" align="center"></div>
-										</div>
-									</div>
-								</div>
-								<!-- column -->
-								<!-- Start Departments Ranking-->
-								<div class="col-lg-12">
-									<div class="card" style="margin-bottom:-10px">
-										<div class="header">
-											<h5 class="card-title" style="margin:5px"><strong><?= $ministrylabelplural ?>' Annual Funds Utilization Rate</strong></h5>
-										</div>
-										<div class="card-body" style="padding-top:0px">
-											<div id="dept-ranking" style="width:100%; height:400px;">
+									<div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+										<div class="info-box bg-light-blue hover-expand-effect" style="height:130px">
+											<?php
+											if ($last_financial_year_budget['totalpvfinyearallocation'] > $current_financial_year_budget['totalcrfinyearallocation']) {
+											?>
+												<div class="icon" style="color:red; width:20%">
+													<i class="material-icons">
+														<font color="#F44336">trending_down</font>
+													</i>
+												</div>
+											<?php
+											} else {
+											?>
+												<div class="icon" style="color:lime; width:20%">
+													<i class="material-icons">
+														<font color="#CDDC39">trending_up</font>
+													</i>
+												</div>
+											<?php
+											}
+											?>
+											<div class="content">
+												<div class="text"><?= $currfinyear ?> FIN YEAR
+													<h5 class="font-light" style="color:black"><i><strong>B:</strong> Ksh.<?= $current_financial_year_budget['totalcrfybudget'] ?></i><br><i style="color:white"><strong>A:</strong> Ksh.<?= $current_financial_year_budget['totalcrfinyearamt'] ?></i></h5>
+												</div>
+												<span class="text-danger"><?= $current_financial_year_budget['crfinyearrate'] ?>%</span>
+												<div class="progress" style="height: 10px">
+													<div class="progress-bar bg-lime" role="progressbar" style="width: <?= $current_financial_year_budget['crfinyearrate'] ?>%; height: 10px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+												</div>
 											</div>
 										</div>
 									</div>
+									<!-- End of Financial comparison -->
+
+									<!-- Start of Fund Sources Per Year Column-->
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="card" style="margin-bottom:-10px">
+											<div class="header">
+												<h5 class="card-title" style="margin:5px"><strong>Fund Sources (Ksh. in millions)</strong></h5>
+											</div>
+											<div class="card-body" style="padding-top:0px">
+												<div id="dynamicloaded" style="width:100%; height:400px;">
+													<div id="fund_sources">
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- End of Fund Sources Per Year Column -->
+									<!-- column -->
+									<div class="col-md-12">
+										<div class="card" style="margin-bottom:-10px">
+											<div class="header">
+												<h5 class="card-title" style="margin:5px"><strong>Budget Vs Expenditure Per Year</strong></h5>
+											</div>
+											<div class="card-body" style="padding-top:10px">
+												<div id="budget_vs_expenditure" style="width:100%; height:400px;" align="center"></div>
+											</div>
+										</div>
+									</div>
+									<!-- column -->
+									<!-- Start Departments Ranking-->
+									<div class="col-lg-12">
+										<div class="card" style="margin-bottom:-10px">
+											<div class="header">
+												<h5 class="card-title" style="margin:5px"><strong><?= $ministrylabelplural ?>' Annual Funds Utilization Rate</strong></h5>
+											</div>
+											<div class="card-body" style="padding-top:0px">
+												<div id="dept-ranking" style="width:100%; height:400px;">
+												</div>
+											</div>
+										</div>
+									</div>
+									<!-- End Departments Ranking -->
 								</div>
-								<!-- End Departments Ranking -->
+								<!-- ============================================================== -->
+								<!-- End PAge Content -->
+								<!-- ============================================================== -->
 							</div>
-							<!-- ============================================================== -->
-							<!-- End PAge Content -->
-							<!-- ============================================================== -->
 						</div>
 					</div>
 				</div>
-			</div>
-	</section>
-	<!-- end body  -->
-<?php 
-} else {
-	$results =  restriction();
-	echo $results;
+		</section>
+		<!-- end body  -->
+<?php
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/plugins/echarts/echarts-all.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
 
-<script>  
+<script>
 	let financial_years = '<?= $strategic_plan_financial_years ?>';
 	financial_years = JSON.parse(financial_years);
 	let fyears = '<?= $strategic_plan_years ?>';

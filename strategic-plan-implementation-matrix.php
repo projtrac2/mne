@@ -1,6 +1,5 @@
 <?php
 try {
-
 	require('includes/head.php');
 	require('functions/strategicplan.php');
 
@@ -313,8 +312,7 @@ try {
 
 	require('includes/footer.php');
 } catch (PDOException $ex) {
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	echo $result;
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
 <script>

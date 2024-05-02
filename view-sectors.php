@@ -328,7 +328,7 @@ try {
 
     require('includes/footer.php');
 } catch (PDOException $ex) {
-    $results = flashMessage("An error occurred: " . $ex->getMessage());
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
 

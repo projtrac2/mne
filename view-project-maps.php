@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-   try {
+try {
+   require('includes/head.php');
+   if ($permission) {
+
       if (isset($_GET['projid']) && !empty($_GET['projid'])) {
          $projid  = $_GET['projid'];
          $query_rsTPList = $db->prepare("SELECT projname, projcode, projmapping FROM tbl_projects WHERE projid=:projid");
@@ -34,113 +35,115 @@ if ($permission) {
          echo $results;
          return;
       }
-   } catch (PDOException $ex) {
-      $result = flashMessage("An error occurred: " . $ex->getMessage());
-   }
+
 ?>
-   <!-- start body  -->
-   <section class="content">
-      <div class="container-fluid">
-         <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-            <h4 class="contentheader">
-               <?= $icon ?>
-               <?= $pageTitle ?>
-               <div class="btn-group" style="float:right">
+      <!-- start body  -->
+      <section class="content">
+         <div class="container-fluid">
+            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+               <h4 class="contentheader">
+                  <?= $icon ?>
+                  <?= $pageTitle ?>
                   <div class="btn-group" style="float:right">
+                     <div class="btn-group" style="float:right">
 
+                     </div>
                   </div>
-               </div>
-            </h4>
-         </div>
-         <div class="row clearfix">
-            <div class="block-header">
-               <?= $results; ?>
+               </h4>
             </div>
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="card">
-                  <div class="body">
-                     <?php
-                     if ($mapping == 1) {
-                     ?>
-                        <div class="header">
+            <div class="row clearfix">
+               <div class="block-header">
+                  <?= $results; ?>
+               </div>
+               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                  <div class="card">
+                     <div class="body">
+                        <?php
+                        if ($mapping == 1) {
+                        ?>
+                           <div class="header">
 
-                           <h4 class="card-title">Project Name: <?= $projname ?></h4> <br>
-                           <h4 class="card-title">Project Code: <?= $projcode ?></h4>
-                           <form action="" id="searchform" method="get">
-                              <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                              <div class="form-group">
-                                 <select name="output" id="indicator" class="form-control show-tick " onchange="get_coordinates()" data-live-search="true" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
-                                    <option value="" selected="selected">Select Output</option>
-                                    <?php
-                                    while ($row_rsTP = $query_rsTP->fetch()) {
-                                    ?>
-                                       <option value="<?php echo $row_rsTP['indicator'] ?>"><?php echo ucfirst($row_rsTP['output']) ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                 </select>
-                              </div>
-                           </form>
-                        </div>
-                        <div class="body">
-                           <style>
-                              .mt-map-wrapper {
-                                 width: 100%;
-                                 padding-bottom: 41.6%;
-                                 height: 0;
-                                 overflow: hidden;
-                                 position: relative;
-                              }
+                              <h4 class="card-title">Project Name: <?= $projname ?></h4> <br>
+                              <h4 class="card-title">Project Code: <?= $projcode ?></h4>
+                              <form action="" id="searchform" method="get">
+                                 <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                                 <div class="form-group">
+                                    <select name="output" id="indicator" class="form-control show-tick " onchange="get_coordinates()" data-live-search="true" style="border:#CCC thin solid; border-radius:5px;" data-live-search-style="startsWith">
+                                       <option value="" selected="selected">Select Output</option>
+                                       <?php
+                                       while ($row_rsTP = $query_rsTP->fetch()) {
+                                       ?>
+                                          <option value="<?php echo $row_rsTP['indicator'] ?>"><?php echo ucfirst($row_rsTP['output']) ?></option>
+                                       <?php
+                                       }
+                                       ?>
+                                    </select>
+                                 </div>
+                              </form>
+                           </div>
+                           <div class="body">
+                              <style>
+                                 .mt-map-wrapper {
+                                    width: 100%;
+                                    padding-bottom: 41.6%;
+                                    height: 0;
+                                    overflow: hidden;
+                                    position: relative;
+                                 }
 
-                              .mt-map {
-                                 width: 100%;
-                                 height: 100%;
-                                 left: 0;
-                                 top: 0;
-                                 position: absolute;
-                              }
-                           </style>
+                                 .mt-map {
+                                    width: 100%;
+                                    height: 100%;
+                                    left: 0;
+                                    top: 0;
+                                    position: absolute;
+                                 }
+                              </style>
 
-                           <div class="mt-map-wrapper">
-                              <div class="mt-map propmap" id="map">
-                                 <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
+                              <div class="mt-map-wrapper">
+                                 <div class="mt-map propmap" id="map">
+                                    <div style="height: 100%; width: 100%; position: relative; overflow: hidden; background-color: rgb(229, 227, 223);">
+                                    </div>
                                  </div>
                               </div>
                            </div>
-                        </div>
-                        <input type="hidden" name="lat" id="lat" value=" -1.254337">
-                        <input type="hidden" name="long" id="long" value=" 36.681660">
-                        <!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
-                        <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
-                     <?php
-                     } else {
-                     ?>
-                        <div class="body">
-                           <div class="header">
-                              <h4 class="card-title">Project Name: <?= $projname ?></h4> <br>
-                              <h4 class="card-title">Project Code: <?= $projcode ?></h4>
+                           <input type="hidden" name="lat" id="lat" value=" -1.254337">
+                           <input type="hidden" name="long" id="long" value=" 36.681660">
+                           <!-- <script src="assets/js/maps/get_output_coordinates.js"></script> -->
+                           <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDiyrRpT1Rg7EUpZCUAKTtdw3jl70UzBAU"></script>
+                        <?php
+                        } else {
+                        ?>
+                           <div class="body">
+                              <div class="header">
+                                 <h4 class="card-title">Project Name: <?= $projname ?></h4> <br>
+                                 <h4 class="card-title">Project Code: <?= $projcode ?></h4>
+                              </div>
+                              <div class="card-body" style="margin-top: 60px;">
+                                 <h1 class="text-warning text-center">Sorry this project does not require mapping</h1>
+                              </div>
                            </div>
-                           <div class="card-body" style="margin-top: 60px;">
-                              <h1 class="text-warning text-center">Sorry this project does not require mapping</h1>
-                           </div>
-                        </div>
-                     <?php
-                     }
-                     ?>
+                        <?php
+                        }
+                        ?>
+                     </div>
                   </div>
                </div>
             </div>
          </div>
-   </section>
-   <!-- end body  -->
+      </section>
+      <!-- end body  -->
 
 <?php
-} else {
-   $results =  restriction();
-   echo $results;
-}
+   } else {
+      $results =  restriction();
+      echo $results;
+   }
 
-require('includes/footer.php');
+   require('includes/footer.php');
+} catch (PDOException $ex) {
+   customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script>
@@ -207,7 +210,7 @@ require('includes/footer.php');
       }
    }
 
-   // get financial year to 
+   // get financial year to
    function finyearfrom() {
       var fyfrom = $("#fyfrom").val();
       if (fyfrom != "") {

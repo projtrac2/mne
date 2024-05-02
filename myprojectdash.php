@@ -1,13 +1,12 @@
 <?php
-$decode_projid = (isset($_GET['proj']) && !empty($_GET["proj"])) ? base64_decode($_GET['proj']) : "";
-$projid_array = explode("projid54321", $decode_projid);
-$projid = $projid_array[1];
-$original_projid = $_GET['proj'];
-
-require('includes/head.php');
-include_once('projects-functions.php');
-if ($permission) {
-	try {
+try {
+	require('includes/head.php');
+	include_once('projects-functions.php');
+	if ($permission &&  (isset($_GET['proj']) && !empty($_GET["proj"]))) {
+		$decode_projid =  base64_decode($_GET['proj']);
+		$projid_array = explode("projid54321", $decode_projid);
+		$projid = $projid_array[1];
+		$original_projid = $_GET['proj'];
 		$query_rsMyP = $db->prepare("SELECT *, projstartdate AS sdate, projenddate AS edate FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
@@ -144,258 +143,258 @@ if ($permission) {
 		$percentage_duration_consumed = round($durationrate, 2);
 		$percentage_duration_remaining = 100 - $percentage_duration_consumed;
 		$rate_balance = 100 - $rate;
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
+
 ?>
-	<!-- start body  -->
-	<link rel="stylesheet" href="css/highcharts.css">
-	<script src="https://code.highcharts.com/highcharts.js"></script>
-	<script src="https://code.highcharts.com/highcharts-3d.js"></script>
-	<script src="https://code.highcharts.com/modules/exporting.js"></script>
-	<script src="https://code.highcharts.com/modules/export-data.js"></script>
-	<script src="https://code.highcharts.com/modules/accessibility.js"></script>
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<i class="fa fa-columns" aria-hidden="true"></i>
-					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right; margin-right:10px">
-						<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
+		<!-- start body  -->
+		<link rel="stylesheet" href="css/highcharts.css">
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/highcharts-3d.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+		<script src="https://code.highcharts.com/modules/export-data.js"></script>
+		<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<i class="fa fa-columns" aria-hidden="true"></i>
+						<?php echo $pageTitle ?>
+						<div class="btn-group" style="float:right; margin-right:10px">
+							<input type="button" VALUE="Go Back to Activities Monitoring" class="btn btn-warning pull-right" onclick="location.href='project-output-monitoring-checklist.php'" id="btnback">
+						</div>
+					</h4>
+				</div>
+				<div class="row clearfix">
+					<div class="block-header">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="header" style="padding-bottom:0px">
+								<div class="button-demo" style="margin-top:-15px">
+									<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
+									<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; padding-left:-5px">Dashboard</a>
+									<a href="myprojectmilestones.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Performance</a>
+									<a href="myproject-key-stakeholders.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Team</a>
+									<a href="my-project-issues.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues</a>
+									<a href="myprojectfiles.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Media</a>
+								</div>
+							</div>
+							<h4>
+								<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
+									Project Name: <font color="white"><?php echo $projname; ?></font>
+								</div>
+								<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
+									<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
+										<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $progress ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $progress ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
+											<?= $progress ?>%
+										</div>
+									</div>
+								</div>
+							</h4>
+						</div>
 					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
+
 					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-						<div class="header" style="padding-bottom:0px">
-							<div class="button-demo" style="margin-top:-15px">
-								<span class="label bg-black" style="font-size:17px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" />Menu</span>
-								<a href="#" class="btn bg-grey waves-effect" style="margin-top:10px; padding-left:-5px">Dashboard</a>
-								<a href="myprojectmilestones.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Performance</a>
-								<a href="myproject-key-stakeholders.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Team</a>
-								<a href="my-project-issues.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Issues</a>
-								<a href="myprojectfiles.php?proj=<?= $original_projid; ?>" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Media</a>
-							</div>
-						</div>
-						<h4>
-							<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border:#CDDC39 thin solid; border-radius:5px; margin-bottom:2px; height:25px; padding-top:2px; vertical-align:center">
-								Project Name: <font color="white"><?php echo $projname; ?></font>
-							</div>
-							<div class="col-lg-2 col-md-2 col-sm-12 col-xs-12" style="font-size:15px; background-color:#CDDC39; border-radius:5px; height:25px; margin-bottom:2px">
-								<div class="progress" style="height:23px; margin-bottom:1px; margin-top:1px; color:black">
-									<div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="<?= $progress ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= $progress ?>%; margin:auto; padding-left: 10px; padding-top: 3px; text-align:left; color:black">
-										<?= $progress ?>%
-									</div>
-								</div>
-							</div>
-						</h4>
-					</div>
-				</div>
-
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="body">
-							<div class="row clearfix">
-								<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="highcharts-time"></div>
-									</figure>
-								</div>
-								<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-									<figure class="highcharts-figure">
-										<div id="highcharts-funds"></div>
-									</figure>
-								</div>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="body">
+								<div class="row clearfix">
 									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<li class="list-group-item">
-											<label>
-												<strong>PROJECT TIMELINES</strong>
-											</label>
-											<div>
-												<strong>Duration Assigned: </strong><?= $duration ?> Days
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Duration Consumed: </strong><?= $durationtodate ?> Days
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Remaining Duration: </strong><?= $durationtoenddate ?> Days
-											</div>
-										</li>
+										<figure class="highcharts-figure">
+											<div id="highcharts-time"></div>
+										</figure>
 									</div>
 									<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-										<li class="list-group-item">
-											<label>
-												<strong>PROJECT FUNDS</strong>
-											</label>
-											<div>
-												<strong>Budget Allocated: </strong>Ksh.<?php echo $projcost; ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Budget Consumed: </strong>Ksh.<?php echo $consumed; ?>
-											</div>
-											<hr style="border-top: 1px dashed red;">
-											<div>
-												<strong>Budget Balance: </strong>Ksh.<?php echo $balance; ?>
-											</div>
-										</li>
+										<figure class="highcharts-figure">
+											<div id="highcharts-funds"></div>
+										</figure>
 									</div>
-								</div>
-							</div>
-
-							<div class="row clearfix">
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-
-									<fieldset class="scheduler-border row setup-content" id="step-2">
-										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> % Target Achieved</legend>
-										<?php
-										$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid ORDER BY d.id");
-										$query_Output->execute(array(":projid" => $projid));
-										$total_Output = $query_Output->rowCount();
-										$output_details = '';
-										if ($total_Output > 0) {
-											$counter = 0;
-											while ($row_rsOutput = $query_Output->fetch()) {
-												$counter++;
-												$output_id = $row_rsOutput['id'];
-												$indicator_name = $row_rsOutput['indicator_name'];
-												$unit_id = $row_rsOutput['indicator_unit'];
-												$target = $row_rsOutput['total_target'];
-
-												$query_rsSite_cumulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE output_id = :output_id AND record_type=1");
-												$query_rsSite_cumulative->execute(array(":output_id" => $output_id));
-												$rows_rsSite_cumulative = $query_rsSite_cumulative->fetch();
-												$total_rsSite_cumulative = $query_rsSite_cumulative->rowCount();
-												$cummulative =  $rows_rsSite_cumulative['cummulative'] != null ? $rows_rsSite_cumulative['cummulative'] : 0;
-
-												$percentage_target_achieved = $cummulative > 0 &&  $target > 0 ? $cummulative / $target * 100 : 0;
-												$percentage_target_remaininng = 100 - $percentage_target_achieved;
-												$remaining = $target - $cummulative;
-
-												$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = $unit_id");
-												$query_rsIndUnit->execute();
-												$row_rsIndUnit = $query_rsIndUnit->fetch();
-												$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
-												$unit = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : "";
-
-												// $output_details .= '
-												// <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-												// 	<li class="list-group-item">
-												// 		<div>
-												// 			<strong>Target: </strong> ' . $target . "  " . $unit . '
-												// 		</div>
-												// 		<hr style="border-top: 1px dashed red;">
-												// 		<div>
-												// 			<strong>Target Achieved: </strong> ' . $cummulative . "  " . $unit . '
-												// 		</div>
-												// 		<hr style="border-top: 1px dashed red;">
-												// 		<div>
-												// 			<strong>Remaining Target: </strong> ' . $remaining . "  " . $unit . '
-												// 		</div>
-												// 	</li> ';
-										?>
-												<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-													<figure class="highcharts-achieved<?= $output_id ?>">
-														<div id="highcharts-time<?= $output_id ?>"></div>
-													</figure>
-													<li class="list-group-item">
-														<div>
-															<strong>Target: </strong> <?= $target . "  " . $unit ?>
-														</div>
-														<hr style="border-top: 1px dashed red;">
-														<div>
-															<strong>Target Achieved: </strong> <?= $cummulative . "  " . $unit ?>
-														</div>
-														<hr style="border-top: 1px dashed red;">
-														<div>
-															<strong>Remaining Target: </strong> <?= $remaining . "  " . $unit ?>
-														</div>
-													</li>
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+										<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+											<li class="list-group-item">
+												<label>
+													<strong>PROJECT TIMELINES</strong>
+												</label>
+												<div>
+													<strong>Duration Assigned: </strong><?= $duration ?> Days
 												</div>
-												<script>
-													$(document).ready(function() {
-														Highcharts.chart('highcharts-time<?= $output_id ?>', {
-															colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
-															chart: {
-																type: 'pie',
-																options3d: {
-																	enabled: true,
-																	alpha: 45,
-																	beta: 0
-																}
-															},
-															title: {
-																text: 'Output <?= $counter ?>: <?= $indicator_name ?>',
-																align: 'left'
-															},
-															accessibility: {
-																point: {
-																	valueSuffix: '%'
-																}
-															},
-															tooltip: {
-																pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-															},
-															plotOptions: {
-																pie: {
-																	allowPointSelect: true,
-																	cursor: 'pointer',
-																	depth: 35,
-																	dataLabels: {
-																		enabled: true,
-																		format: '{point.name}'
-																	}
-																}
-															},
-															series: [{
-																type: 'pie',
-																name: 'Percentage',
-																data: [{
-																		name: 'Achieved',
-																		y: <?php echo $percentage_target_achieved ?>,
-																		sliced: true,
-																		selected: true
-																	},
-																	['Pending', <?php echo $percentage_target_remaininng ?>]
-																],
-																colors: [
-																	'#50B432',
-																	'#7BB4EC'
-																]
-															}]
-														});
-													});
-												</script>
-										<?php
-											}
-										} else {
-											echo "Sorry Project Has no outputs";
-										}
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Duration Consumed: </strong><?= $durationtodate ?> Days
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Remaining Duration: </strong><?= $durationtoenddate ?> Days
+												</div>
+											</li>
+										</div>
+										<div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+											<li class="list-group-item">
+												<label>
+													<strong>PROJECT FUNDS</strong>
+												</label>
+												<div>
+													<strong>Budget Allocated: </strong>Ksh.<?php echo $projcost; ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Budget Consumed: </strong>Ksh.<?php echo $consumed; ?>
+												</div>
+												<hr style="border-top: 1px dashed red;">
+												<div>
+													<strong>Budget Balance: </strong>Ksh.<?php echo $balance; ?>
+												</div>
+											</li>
+										</div>
+									</div>
+								</div>
 
-										echo $output_details;
-										?>
-									</fieldset>
+								<div class="row clearfix">
+									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+
+										<fieldset class="scheduler-border row setup-content" id="step-2">
+											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> % Target Achieved</legend>
+											<?php
+											$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid ORDER BY d.id");
+											$query_Output->execute(array(":projid" => $projid));
+											$total_Output = $query_Output->rowCount();
+											$output_details = '';
+											if ($total_Output > 0) {
+												$counter = 0;
+												while ($row_rsOutput = $query_Output->fetch()) {
+													$counter++;
+													$output_id = $row_rsOutput['id'];
+													$indicator_name = $row_rsOutput['indicator_name'];
+													$unit_id = $row_rsOutput['indicator_unit'];
+													$target = $row_rsOutput['total_target'];
+
+													$query_rsSite_cumulative = $db->prepare("SELECT SUM(achieved) as cummulative FROM tbl_monitoringoutput  WHERE output_id = :output_id AND record_type=1");
+													$query_rsSite_cumulative->execute(array(":output_id" => $output_id));
+													$rows_rsSite_cumulative = $query_rsSite_cumulative->fetch();
+													$total_rsSite_cumulative = $query_rsSite_cumulative->rowCount();
+													$cummulative =  $rows_rsSite_cumulative['cummulative'] != null ? $rows_rsSite_cumulative['cummulative'] : 0;
+
+													$percentage_target_achieved = $cummulative > 0 &&  $target > 0 ? $cummulative / $target * 100 : 0;
+													$percentage_target_remaininng = 100 - $percentage_target_achieved;
+													$remaining = $target - $cummulative;
+
+													$query_rsIndUnit = $db->prepare("SELECT * FROM  tbl_measurement_units WHERE id = $unit_id");
+													$query_rsIndUnit->execute();
+													$row_rsIndUnit = $query_rsIndUnit->fetch();
+													$totalRows_rsIndUnit = $query_rsIndUnit->rowCount();
+													$unit = $totalRows_rsIndUnit > 0 ? $row_rsIndUnit['unit'] : "";
+
+													// $output_details .= '
+													// <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+													// 	<li class="list-group-item">
+													// 		<div>
+													// 			<strong>Target: </strong> ' . $target . "  " . $unit . '
+													// 		</div>
+													// 		<hr style="border-top: 1px dashed red;">
+													// 		<div>
+													// 			<strong>Target Achieved: </strong> ' . $cummulative . "  " . $unit . '
+													// 		</div>
+													// 		<hr style="border-top: 1px dashed red;">
+													// 		<div>
+													// 			<strong>Remaining Target: </strong> ' . $remaining . "  " . $unit . '
+													// 		</div>
+													// 	</li> ';
+											?>
+													<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+														<figure class="highcharts-achieved<?= $output_id ?>">
+															<div id="highcharts-time<?= $output_id ?>"></div>
+														</figure>
+														<li class="list-group-item">
+															<div>
+																<strong>Target: </strong> <?= $target . "  " . $unit ?>
+															</div>
+															<hr style="border-top: 1px dashed red;">
+															<div>
+																<strong>Target Achieved: </strong> <?= $cummulative . "  " . $unit ?>
+															</div>
+															<hr style="border-top: 1px dashed red;">
+															<div>
+																<strong>Remaining Target: </strong> <?= $remaining . "  " . $unit ?>
+															</div>
+														</li>
+													</div>
+													<script>
+														$(document).ready(function() {
+															Highcharts.chart('highcharts-time<?= $output_id ?>', {
+																colors: ['#FF9655', '#FFF263', '#24CBE5', '#64E572', '#50B432', '#ED561B', '#DDDF00', '#6AF9C4'],
+																chart: {
+																	type: 'pie',
+																	options3d: {
+																		enabled: true,
+																		alpha: 45,
+																		beta: 0
+																	}
+																},
+																title: {
+																	text: 'Output <?= $counter ?>: <?= $indicator_name ?>',
+																	align: 'left'
+																},
+																accessibility: {
+																	point: {
+																		valueSuffix: '%'
+																	}
+																},
+																tooltip: {
+																	pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+																},
+																plotOptions: {
+																	pie: {
+																		allowPointSelect: true,
+																		cursor: 'pointer',
+																		depth: 35,
+																		dataLabels: {
+																			enabled: true,
+																			format: '{point.name}'
+																		}
+																	}
+																},
+																series: [{
+																	type: 'pie',
+																	name: 'Percentage',
+																	data: [{
+																			name: 'Achieved',
+																			y: <?php echo $percentage_target_achieved ?>,
+																			sliced: true,
+																			selected: true
+																		},
+																		['Pending', <?php echo $percentage_target_remaininng ?>]
+																	],
+																	colors: [
+																		'#50B432',
+																		'#7BB4EC'
+																	]
+																}]
+															});
+														});
+													</script>
+											<?php
+												}
+											} else {
+												echo "Sorry Project Has no outputs";
+											}
+
+											echo $output_details;
+											?>
+										</fieldset>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-	</section>
-	<!-- end body  -->
+		</section>
+		<!-- end body  -->
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
-}
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
 
-require('includes/footer.php');
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 
