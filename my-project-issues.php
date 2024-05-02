@@ -6,7 +6,7 @@ $projid = $projid_array[1];
 $original_projid = $_GET['proj'];
 require('includes/head.php');
 
-if ($permission) {
+if ($permission) { 
 	try {
 		$query_projdetails = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
 		$query_projdetails->execute(array(":projid" => $projid));

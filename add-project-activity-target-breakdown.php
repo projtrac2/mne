@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
+
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage >= :workflow_stage AND proj_substage >= 3 ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -33,67 +34,64 @@ if ($permission) {
             }
             return $output_responsible || $standin_responsible ? true : false;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
 ?>
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?php echo $pageTitle ?>
-                    <div class="btn-group" style="float:right">
+        <!-- start body  -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <?= $icon ?>
+                        <?php echo $pageTitle ?>
                         <div class="btn-group" style="float:right">
+                            <div class="btn-group" style="float:right">
+                            </div>
                         </div>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                    <thead>
-                                        <tr style="background-color:#0b548f; color:#FFF">
-                                            <th style="width:5%" align="center">#</th>
-                                            <th style="width:10%">Code</th>
-                                            <th style="width:40%">Project </th>
-                                            <th style="width:10%">Project Category </th>
-                                            <th style="width:10">Due Date</th>
-                                            <th style="width:10">Status</th>
-                                            <th style="width:5%">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        if ($totalRows_rsProjects > 0) {
-                                            $counter = 0;
-                                            while ($row_rsProjects = $query_rsProjects->fetch()) {
-                                                $projid = $row_rsProjects['projid'];
-                                                $projid_hashed = base64_encode("projid54321{$projid}");
-                                                $implementation = $row_rsProjects['projcategory'];
-                                                $sub_stage = $row_rsProjects['proj_substage'];
-                                                $project_department = $row_rsProjects['projsector'];
-                                                $project_section = $row_rsProjects['projdept'];
-                                                $project_directorate = $row_rsProjects['directorate'];
-                                                $start_date = date('Y-m-d');
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                        <thead>
+                                            <tr style="background-color:#0b548f; color:#FFF">
+                                                <th style="width:5%" align="center">#</th>
+                                                <th style="width:10%">Code</th>
+                                                <th style="width:40%">Project </th>
+                                                <th style="width:10%">Project Category </th>
+                                                <th style="width:10">Due Date</th>
+                                                <th style="width:10">Status</th>
+                                                <th style="width:5%">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            if ($totalRows_rsProjects > 0) {
+                                                $counter = 0;
+                                                while ($row_rsProjects = $query_rsProjects->fetch()) {
+                                                    $projid = $row_rsProjects['projid'];
+                                                    $projid_hashed = base64_encode("projid54321{$projid}");
+                                                    $implementation = $row_rsProjects['projcategory'];
+                                                    $sub_stage = $row_rsProjects['proj_substage'];
+                                                    $project_department = $row_rsProjects['projsector'];
+                                                    $project_section = $row_rsProjects['projdept'];
+                                                    $project_directorate = $row_rsProjects['directorate'];
+                                                    $start_date = date('Y-m-d');
 
-                                                $query_rsPlan = $db->prepare("SELECT * FROM tbl_activity_target_work_breakdown WHERE projid = :projid");
-                                                $query_rsPlan->execute(array(":projid" => $projid));
-                                                $totalRows_plan = $query_rsPlan->rowCount();
+                                                    $query_rsPlan = $db->prepare("SELECT * FROM tbl_activity_target_work_breakdown WHERE projid = :projid");
+                                                    $query_rsPlan->execute(array(":projid" => $projid));
+                                                    $totalRows_plan = $query_rsPlan->rowCount();
 
-                                                $query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid");
-                                                $query_rsAdjustments->execute(array(":projid" => $projid));
-                                                $totalRows_Adjustments = $query_rsAdjustments->rowCount();
+                                                    $query_rsAdjustments = $db->prepare("SELECT * FROM tbl_project_adjustments WHERE projid = :projid");
+                                                    $query_rsAdjustments->execute(array(":projid" => $projid));
+                                                    $totalRows_Adjustments = $query_rsAdjustments->rowCount();
 
-                                                $filter_department = view_record($project_department, $project_section, $project_directorate);
-                                                $details = "{
+                                                    $filter_department = view_record($project_department, $project_section, $project_directorate);
+                                                    $details = "{
                                                     get_edit_details: 'details',
                                                     projid:$projid,
                                                     workflow_stage:$workflow_stage,
@@ -101,138 +99,141 @@ if ($permission) {
                                                     project_directorate:$project_directorate,
                                                 }";
 
-                                                $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
-                                                $assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
+                                                    $assigned_responsible = check_if_assigned($projid, $workflow_stage, $sub_stage, 1);
+                                                    $assign_responsible = (in_array("assign_data_entry_responsible", $page_actions) && $sub_stage == 0) || (in_array("assign_approval_responsible", $page_actions) && $sub_stage == 2) ? true : false;
 
-                                                if ($filter_department) {
-                                                    $counter++;
-                                                    $activity = $totalRows_plan == 0 ? "Add" : "Edit";
-                                                    $activity_status = "Pending";
-                                                    if ($sub_stage == 5) {
-                                                        $activity_status = "Pending Approval";
-                                                        $activity = "Approve";
-                                                    }
-                                                    $responsible = daily_team($projid, 10, 2);
-                                                    $project_category = $implementation == 1 ? "In-House" : "Contractor";
-                                        ?>
-                                                    <tr>
-                                                        <td align="center"><?= $counter ?></td>
-                                                        <td><?= $row_rsProjects['projcode'] ?></td>
-                                                        <td><?= $row_rsProjects['projname'] ?></td>
-                                                        <td><?= $project_category  ?></td>
-                                                        <td><?= date('Y M d') ?></td>
-                                                        <td><label class='label label-success'><?= $activity_status; ?></label></td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                                    Options <span class="caret"></span>
-                                                                </button>
-                                                                <ul class="dropdown-menu">
-                                                                    <li>
-                                                                        <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
-                                                                            <i class="fa fa-file-text"></i> View More
-                                                                        </a>
-                                                                    </li>
-                                                                    <?php
-                                                                    if ($implementation == 1) {
-                                                                        if ($responsible || $assign_responsible) {
-                                                                    ?>
-                                                                            <li>
-                                                                                <a type="button" href="add-activity-target-breakdown.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-                                                                                    <i class="fa fa-plus-square-o"></i> <?= $activity ?> Activity Target Breakdown
-                                                                                </a>
-                                                                            </li>
+                                                    if ($filter_department) {
+                                                        $counter++;
+                                                        $activity = $totalRows_plan == 0 ? "Add" : "Edit";
+                                                        $activity_status = "Pending";
+                                                        if ($sub_stage == 5) {
+                                                            $activity_status = "Pending Approval";
+                                                            $activity = "Approve";
+                                                        }
+                                                        $responsible = daily_team($projid, 10, 2);
+                                                        $project_category = $implementation == 1 ? "In-House" : "Contractor";
+                                            ?>
+                                                        <tr>
+                                                            <td align="center"><?= $counter ?></td>
+                                                            <td><?= $row_rsProjects['projcode'] ?></td>
+                                                            <td><?= $row_rsProjects['projname'] ?></td>
+                                                            <td><?= $project_category  ?></td>
+                                                            <td><?= date('Y M d') ?></td>
+                                                            <td><label class='label label-success'><?= $activity_status; ?></label></td>
+                                                            <td>
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                        Options <span class="caret"></span>
+                                                                    </button>
+                                                                    <ul class="dropdown-menu">
+                                                                        <li>
+                                                                            <a type="button" data-toggle="modal" data-target="#moreModal" id="moreModalBtn" onclick="project_info(<?= $projid ?>)">
+                                                                                <i class="fa fa-file-text"></i> View More
+                                                                            </a>
+                                                                        </li>
                                                                         <?php
-                                                                        }
-                                                                    } else {
-                                                                        if ($sub_stage == 1 && $responsible) {
+                                                                        if ($implementation == 1) {
+                                                                            if ($responsible || $assign_responsible) {
                                                                         ?>
-                                                                            <li>
-                                                                                <a type="button" href="add-activity-target-breakdown.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-                                                                                    <i class="fa fa-plus-square-o"></i> Approve Activity Target Breakdown
-                                                                                </a>
-                                                                            </li>
-                                                                    <?php
+                                                                                <li>
+                                                                                    <a type="button" href="add-activity-target-breakdown.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+                                                                                        <i class="fa fa-plus-square-o"></i> <?= $activity ?> Activity Target Breakdown
+                                                                                    </a>
+                                                                                </li>
+                                                                            <?php
+                                                                            }
+                                                                        } else {
+                                                                            if ($sub_stage == 1 && $responsible) {
+                                                                            ?>
+                                                                                <li>
+                                                                                    <a type="button" href="add-activity-target-breakdown.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+                                                                                        <i class="fa fa-plus-square-o"></i> Approve Activity Target Breakdown
+                                                                                    </a>
+                                                                                </li>
+                                                                        <?php
+                                                                            }
                                                                         }
-                                                                    }
-                                                                    ?>
-                                                                </ul>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                        <?php
+                                                                        ?>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                            <?php
+                                                    }
                                                 }
                                             }
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-    </section>
-    <!-- end body  -->
+        </section>
+        <!-- end body  -->
 
-    <!-- Start Item more -->
-    <div class="modal fade" tabindex="-1" role="dialog" id="moreModal">
-        <div class="modal-dialog  modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> More Information</h4>
-                </div>
-                <div class="modal-body" id="moreinfo">
-                </div>
-                <div class="modal-footer">
-                    <div class="col-md-12 text-center">
-                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
+        <!-- Start Item more -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="moreModal">
+            <div class="modal-dialog  modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:#03A9F4">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> More Information</h4>
                     </div>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div>
-    <!-- End Item more -->
-    <!-- Start Modal Item approve -->
-    <div class="modal fade" id="assign_modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-md">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Assign Project</h4>
-                </div>
-                <form class="form-horizontal" id="assign_responsible" action="" method="POST">
-                    <?= csrf_token_html(); ?>
-                    <div class="modal-body" style="max-height:450px; overflow:auto;">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                            <label for="projduration">Responsible *:</label>
-                            <div class="form-line">
-                                <select name="responsible" id="responsible" class="form-control" required="required">
-                                </select>
-                            </div>
-                        </div>
-                    </div> <!-- /modal-body -->
-                    <div class="modal-footer approveItemFooter">
+                    <div class="modal-body" id="moreinfo">
+                    </div>
+                    <div class="modal-footer">
                         <div class="col-md-12 text-center">
-                            <input type="hidden" name="projid" id="projid" value="">
-                            <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
-                            <input type="hidden" name="sub_stage" id="sub_stage" value="">
-                            <input type="hidden" name="assign_responsible" id="assign_responsible" value="new">
-                            <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
-                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> <i class="fa fa-remove"></i> Close</button>
                         </div>
-                    </div> <!-- /modal-footer -->
-                </form> <!-- /.form -->
-            </div>
-            <!-- /modal-content -->
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
         </div>
-    </div>
+        <!-- End Item more -->
+        <!-- Start Modal Item approve -->
+        <div class="modal fade" id="assign_modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:#03A9F4">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Assign Project</h4>
+                    </div>
+                    <form class="form-horizontal" id="assign_responsible" action="" method="POST">
+                        <?= csrf_token_html(); ?>
+                        <div class="modal-body" style="max-height:450px; overflow:auto;">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                <label for="projduration">Responsible *:</label>
+                                <div class="form-line">
+                                    <select name="responsible" id="responsible" class="form-control" required="required">
+                                    </select>
+                                </div>
+                            </div>
+                        </div> <!-- /modal-body -->
+                        <div class="modal-footer approveItemFooter">
+                            <div class="col-md-12 text-center">
+                                <input type="hidden" name="projid" id="projid" value="">
+                                <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
+                                <input type="hidden" name="sub_stage" id="sub_stage" value="">
+                                <input type="hidden" name="assign_responsible" id="assign_responsible" value="new">
+                                <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Assign" />
+                                <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                            </div>
+                        </div> <!-- /modal-footer -->
+                    </form> <!-- /.form -->
+                </div>
+                <!-- /modal-content -->
+            </div>
+        </div>
 <?php
-} else {
-    $results =  restriction();
-    echo $results;
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/js/projects/view-project.js"></script>

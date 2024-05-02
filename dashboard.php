@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
+
         $project_distribution_data = $tender_projects = $tender_cost = $budget_data = [];
         $allprojectsurl = $prjfyfrom = $prjfyto = $prjsc = $prjward = '';
         $financial_year_from = $financial_year_to = $level_one_id = $level_two_id = '';
@@ -823,15 +824,15 @@ if ($permission) {
         <script src="https://code.highcharts.com/modules/heatmap.js"></script>
 
 <?php
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-        var_dump($ex);
+
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="./assets/js/dashboard/index.js"></script>
 <script>

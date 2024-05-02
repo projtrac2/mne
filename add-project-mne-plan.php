@@ -1,8 +1,8 @@
 <?php
+try {
+    require('includes/head.php');
+    if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
 
-require('includes/head.php');
-if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
-    try {
         $decode_projid =  base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
@@ -656,14 +656,14 @@ if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/js/mneplan/add-project-mne-plan.js"></script>
 <script src="assets/js/mneplan/index.js"></script>

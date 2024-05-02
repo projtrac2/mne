@@ -1,8 +1,8 @@
 <?php
-$riskid = (isset($_GET['risk'])) ? base64_decode($_GET['risk']) : "";
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission && (isset($_GET['risk']))) {
+        $riskid =   base64_decode($_GET['risk']);
         $action = "Add";
         $button = "Add";
         $actionName = "MM_insert";
@@ -125,75 +125,76 @@ if ($permission) {
                 </script>";
             }
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
+
 ?>
 
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?php echo $pageTitle ?>
-                    <div class="btn-group" style="float:right">
+        <!-- start body  -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <?= $icon ?>
+                        <?php echo $pageTitle ?>
                         <div class="btn-group" style="float:right">
-                            <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
-                                Go Back
-                            </button>
+                            <div class="btn-group" style="float:right">
+                                <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+                                    Go Back
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- start body -->
-                            <form id="addprojrisks" method="POST" name="addprojrisks" action="" enctype="multipart/form-data" autocomplete="off">
-                                <?= csrf_token_html(); ?>
-                                <fieldset class="scheduler-border">
-                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> <?= $action ?> Risk/Issue Category</legend>
-                                    <div class="col-md-12">
-                                        <label>Risk/Issue Category Name *:</label>
-                                        <div>
-                                            <input name="riskcat" type="text" class="form-control" id="riskcat" value="<?php echo (isset($_GET['risk'])) ?  htmlentities($riskcategory) : "" ?>" placeholder="Add write category name here" style="border:#CCC thin solid; border-radius: 5px" required />
-                                        </div>
-                                    </div>
-
-                                    <div class="row clearfix">
-                                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-                                        </div>
-                                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
-                                            <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
-                                            <input type="hidden" name="<?= $actionName ?>" value="<?= $action ?>" />
-                                            <?php
-                                            echo (isset($_GET['risk'])) ?  '<input type="hidden" name="riskid" value="' . $riskid . '" />' : "";
-                                            ?>
-                                            <div class="btn-group">
-                                                <input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="<?= $button ?>" />
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="body">
+                                <!-- start body -->
+                                <form id="addprojrisks" method="POST" name="addprojrisks" action="" enctype="multipart/form-data" autocomplete="off">
+                                    <?= csrf_token_html(); ?>
+                                    <fieldset class="scheduler-border">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> <?= $action ?> Risk/Issue Category</legend>
+                                        <div class="col-md-12">
+                                            <label>Risk/Issue Category Name *:</label>
+                                            <div>
+                                                <input name="riskcat" type="text" class="form-control" id="riskcat" value="<?php echo (isset($_GET['risk'])) ?  htmlentities($riskcategory) : "" ?>" placeholder="Add write category name here" style="border:#CCC thin solid; border-radius: 5px" required />
                                             </div>
                                         </div>
-                                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+
+                                        <div class="row clearfix">
+                                            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                                            </div>
+                                            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
+                                                <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
+                                                <input type="hidden" name="<?= $actionName ?>" value="<?= $action ?>" />
+                                                <?php
+                                                echo (isset($_GET['risk'])) ?  '<input type="hidden" name="riskid" value="' . $riskid . '" />' : "";
+                                                ?>
+                                                <div class="btn-group">
+                                                    <input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="<?= $button ?>" />
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                                            </div>
                                         </div>
-                                    </div>
-                                </fieldset>
-                            </form>
-                            <!-- end body -->
+                                    </fieldset>
+                                </form>
+                                <!-- end body -->
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-    </section>
-    <!-- end body  -->
+        </section>
+        <!-- end body  -->
 <?php
-} else {
-    $results =  restriction();
-    echo $results;
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>

@@ -509,11 +509,11 @@ try {
         $results =  restriction();
         echo $results;
     }
-} catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
-}
 
 require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script>

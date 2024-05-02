@@ -1,8 +1,8 @@
 <?php
-require('includes/head.php');
 try {
+    require('includes/head.php');
     if ($permission && (isset($_GET['output_id']) && !empty($_GET["output_id"]))) {
-        $decode_output_id = (isset($_GET['output_id']) && !empty($_GET["output_id"])) ? base64_decode($_GET['output_id']) : "";
+        $decode_output_id =  base64_decode($_GET['output_id']);
         $output_id_array = explode("projid54321", $decode_output_id);
         $output_id = $output_id_array[1];
 
@@ -347,10 +347,10 @@ try {
         $results =  restriction();
         echo $results;
     }
+    require('includes/footer.php');
 } catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script>
     const ajax_url = "ajax/activities/index";

@@ -1,25 +1,13 @@
-<?php 
-require('includes/head.php'); 
-if ($permission) {
-	try {
-
-		$editFormAction = $_SERVER['PHP_SELF'];
-		if (isset($_SERVER['QUERY_STRING'])) {
-			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-		} 
-
-		$results = "";
+<?php
+try {
+	require('includes/head.php');
+	if ($permission) {
 
 		$query_rsUsers = $db->prepare("SELECT ptid FROM tbl_projteam2 t inner join tbl_users u on u.pt_id=t.ptid WHERE username = '$user_name'");
 		$query_rsUsers->execute();
 		$row_rsUsers = $query_rsUsers->fetch();
 		$totalRows_rsUsers = $query_rsUsers->rowCount();
 		$user_name = $row_rsUsers["ptid"];
-		/* if(isset($_GET['formid'])){
-				$user_name = 1; 
-			}else{
-				$user_name = $row_rsUsers["ptid"];
-			} */
 
 		$queryString_rsIndicators = "";
 		$totalRows_rsIndicators = "";
@@ -84,7 +72,7 @@ if ($permission) {
 
 					$category = $categorys[$j];
 					$value = $values[$j];
-					$insertSQL = $db->prepare("INSERT INTO tbl_indicator_baseline_values (form_id,key_unique, level3, location, measurement_variable,disaggregations, value, respondent, form_type, type) 
+					$insertSQL = $db->prepare("INSERT INTO tbl_indicator_baseline_values (form_id,key_unique, level3, location, measurement_variable,disaggregations, value, respondent, form_type, type)
 						VALUES (:form_id,:key_unique, :level3, :location, :measurement_variable, :disaggregations, :value, :respondent, :form_type, :category)");
 					$result = 	$insertSQL->execute(array(
 						":form_id" => $form_id, ":key_unique" => $key, ":level3" => $level3, ":location" => $location, ":measurement_variable" => $measurement_variable_id,
@@ -113,7 +101,7 @@ if ($permission) {
 		function makeTree($indid, $category)
 		{
 			global $db;
-			$query_rsdata = $db->prepare("SELECT disaggregation_type as id, parent, t.category as name 
+			$query_rsdata = $db->prepare("SELECT disaggregation_type as id, parent, t.category as name
 				FROM tbl_indicator_measurement_variables_disaggregation_type m
 				INNER JOIN tbl_indicator_disaggregation_types t ON t.id = m.disaggregation_type
 				WHERE indicatorid ='$indid' AND m.type='$category'");
@@ -165,9 +153,9 @@ if ($permission) {
 						$indparenchild = $query_rschild->rowCount();
 						$row = $query_rschild->fetch();
 						print("<div class='row clearfix'>
-								<div class='col-md-12' id=''> 
+								<div class='col-md-12' id=''>
 								 <p>
-								 <input type='hidden' name='measurement_variable[]' value='{$row_measurement_variables['id']}' id='financierceiling'> 
+								 <input type='hidden' name='measurement_variable[]' value='{$row_measurement_variables['id']}' id='financierceiling'>
 								 <strong>{$row_measurement_variables['measurement_variable']} </strong></p></div>");
 
 						do {
@@ -175,9 +163,9 @@ if ($permission) {
 							print('
 								<div class="col-md-6" id="">
 									<span for="" id="" >' . $row['disaggregation'] . ' *:</span>
-									<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="' . $data . '" id=""> 
+									<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="' . $data . '" id="">
 									<input type="hidden" name="category' . $row_measurement_variables["id"] . '[]" value="' . $category . '">
-									<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]"" value="' . $row['id'] . '" id=""> 
+									<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]"" value="' . $row['id'] . '" id="">
 									<div class="form-input">
 										<input type="number" name="value' . $row_measurement_variables['id'] . '[]" id="outputcost" value="" placeholder="' . $placeholder . '" class="form-control" >
 									</div>
@@ -191,15 +179,15 @@ if ($permission) {
 				} else {
 					print("<div class='row clearfix'>");
 					do {
-						print("  
-								<div class='col-md-6' id=''> 
+						print("
+								<div class='col-md-6' id=''>
 								 <p>
-								 <input type='hidden' name='measurement_variable[]' value='{$row_measurement_variables['id']}' id='financierceiling'> 
+								 <input type='hidden' name='measurement_variable[]' value='{$row_measurement_variables['id']}' id='financierceiling'>
 								 <strong>{$row_measurement_variables['measurement_variable']} </strong></p>");
-						print(' 
-									<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="" id=""> 
+						print('
+									<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="" id="">
 									<input type="hidden" name="category' . $row_measurement_variables["id"] . '[]" value="' . $category . '">
-									<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]"" value="" id=""> 
+									<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]"" value="" id="">
 									<div class="form-input">
 										<input type="number" name="value' . $row_measurement_variables['id'] . '[]" id="outputcost" value="" placeholder="' . $placeholder . '" class="form-control" >
 									</div> ');
@@ -219,7 +207,7 @@ if ($permission) {
 					$row = $query_rschild->fetch();
 					do {
 						$field++;
-						print("<div class='row clearfix'><div class='col-md-12' id=''>  
+						print("<div class='row clearfix'><div class='col-md-12' id=''>
 							<p><strong> =>  {$row['disaggregation']}   </strong></p></div></div>");
 						foreach ($node['children'] as $child) {
 							$islast1 = false;
@@ -261,10 +249,10 @@ if ($permission) {
 						<div class="col-md-6" id="">
 							<label for="" id="" class="control-label">' . $row_measurement_variables['measurement_variable'] . ' *:</label>
 							<div class="form-input">
-								<input type="hidden" name="measurement_variable[]" value="' . $row_measurement_variables["id"] . '" id=""> 
+								<input type="hidden" name="measurement_variable[]" value="' . $row_measurement_variables["id"] . '" id="">
 								<input type="hidden" name="category' . $row_measurement_variables["id"] . '[]" value="' . $category . '">
-								<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="" id=""> 
-								<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]" value="" id=""> 
+								<input type="hidden" name="key' . $row_measurement_variables["id"] . '[]"" value="" id="">
+								<input type="hidden" name="disaggregation' . $row_measurement_variables["id"] . '[]" value="" id="">
 								<input type="number" name="value' . $row_measurement_variables["id"] . '[]" id="outputcost" value="" placeholder="' . $placeholder . '" class="form-control" >
 							</div>
 						</div>');
@@ -314,11 +302,11 @@ if ($permission) {
 
 			$query_form_details = $db->prepare("SELECT p.projid,p.projcode, p.projname,i.indid,i.indicator_name,i.indicator_category,
 				i.indicator_disaggregation, f.form_name, f.respondents_type, m.unit, s.respondents, f.form_type, f.type, s.level3, s.location_disaggregation
-				FROM tbl_indicator_baseline_survey_forms f 
+				FROM tbl_indicator_baseline_survey_forms f
 				INNER JOIN tbl_projects p ON p.projid = f.projid
 				INNER JOIN tbl_indicator i ON i.indid = f.indid
 				INNER JOIN tbl_measurement_units m ON i.indicator_unit = m.id
-				INNER JOIN tbl_indicator_baseline_survey_details s ON s.formid = f.id 
+				INNER JOIN tbl_indicator_baseline_survey_details s ON s.formid = f.id
 				WHERE f.id=:formid 	and s.respondents =:user_name");
 			$query_form_details->execute(array(":formid" => $form_id, ":user_name" => $user_name));
 			$row_form_details = $query_form_details->fetch();
@@ -391,10 +379,7 @@ if ($permission) {
 				$data_source = $row_impact['data_source'];
 				$typeName = $row_impact['impact'];
 			} else if ($form_type == 9 && $indicator_type == 2) {
-				$query_outcome = 'SELECT e.data_source, g.outcome FROM tbl_project_expected_outcome_details e 
-				  INNER JOIN tbl_projects p ON p.projid = e.projid
-				  INNER JOIN tbl_programs g ON g.progid = p.progid
-				  WHERE p.projid=:projid';
+				$query_outcome = 'SELECT e.data_source, g.outcome FROM tbl_project_expected_outcome_details e INNER JOIN tbl_projects p ON p.projid = e.projid INNER JOIN tbl_programs g ON g.progid = p.progid WHERE p.projid=:projid';
 				$stmt_outcome = $db->prepare($query_outcome);
 				$stmt_outcome->execute(array(":projid" => $projid));
 				$row_outcome = $stmt_outcome->fetch();
@@ -402,171 +387,165 @@ if ($permission) {
 				$typeName = $row_outcome['outcome'];
 			}
 		}
-	} catch (PDOException $ex) {
 
-		function flashMessage($flashMessages)
-		{
-			return $flashMessages;
-		}
-
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-		echo $result;
-	}
 ?>
-	<!-- start body  -->
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-				<?=$icon?>
-				<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">
+		<!-- start body  -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?php echo $pageTitle ?>
 						<div class="btn-group" style="float:right">
-						</div>
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<?= $results; ?>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="card-header">
-							<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-								<ul class="list-group">
-									<li class="list-group-item list-group-item list-group-item-action active"> <?= $form_name ?> </li>
-									<li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
-									<li class="list-group-item"><strong>Project Name:</strong> <?= $projname ?> </li>
-									<li class="list-group-item"><strong><?= $level3label ?>: </strong> <?= $state ?> </li>
-									<?php echo $locationName ?>
-									<li class="list-group-item"><strong>Indicator: </strong> <?= $indicator_name ?> </li>
-									<li class="list-group-item"><strong>Unit of Measure: </strong> <?= $measurement_unit ?> </li>
-								</ul>
+							<div class="btn-group" style="float:right">
 							</div>
 						</div>
-						<div class="body">
-							<form action="" method="post" id="submitform">
-								<div class="col-md-12">
-									<fieldset class="scheduler-border row">
-										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Questions</legend>
-										<?php
-										if ($indicator_type == 1) {
-											$category = 1;
-											if ($disaggregated == 1) {
-										?>
-												<div class="row clearfix">
-													<div class="col-md-12">
-														<?php
-														$tree = makeTree($indid, $category);
-														printNode($tree[0], $category, $placeholder);
-														?>
-													</div>
-												</div>
+					</h4>
+				</div>
+				<div class="row clearfix">
+					<div class="block-header">
+						<?= $results; ?>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="card-header">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<ul class="list-group">
+										<li class="list-group-item list-group-item list-group-item-action active"> <?= $form_name ?> </li>
+										<li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
+										<li class="list-group-item"><strong>Project Name:</strong> <?= $projname ?> </li>
+										<li class="list-group-item"><strong><?= $level3label ?>: </strong> <?= $state ?> </li>
+										<?php echo $locationName ?>
+										<li class="list-group-item"><strong>Indicator: </strong> <?= $indicator_name ?> </li>
+										<li class="list-group-item"><strong>Unit of Measure: </strong> <?= $measurement_unit ?> </li>
+									</ul>
+								</div>
+							</div>
+							<div class="body">
+								<form action="" method="post" id="submitform">
+									<div class="col-md-12">
+										<fieldset class="scheduler-border row">
+											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Questions</legend>
 											<?php
-											} else {
+											if ($indicator_type == 1) {
+												$category = 1;
+												if ($disaggregated == 1) {
 											?>
-												<div class="row clearfix">
-													<div class="col-md-12">
-														<?php
-														non_disaggregated($indid, $category, $placeholder);
-														?>
-													</div>
-												</div>
-											<?php
-											}
-										} else if ($indicator_type == 2) {
-											if ($disaggregated == 1) {
-											?>
-												<div class="row clearfix">
-													<div class="col-md-12">
-														<h4><u>Direct Beneficiary</u></h4>
-														<?php
-														$category = 2;
-														$tree = makeTree($indid, $category);
-														printNode($tree[0], $category, $placeholder);
-														?>
-													</div>
-												</div>
-												<?php
-												$category = 3;
-												$query = 'SELECT * FROM tbl_indicator_measurement_variables WHERE indicatorid =:indid and category=3';
-												$query_rsindid = $db->prepare($query);
-												$query_rsindid->execute(array(":indid" => $indid));
-												$row_rsindid = $query_rsindid->rowCount();
-												if ($row_rsindid > 0) {
-												?>
 													<div class="row clearfix">
 														<div class="col-md-12">
-															<h4><u>Indirect Beneficiary</u></h4>
 															<?php
-															$category = 3;
 															$tree = makeTree($indid, $category);
 															printNode($tree[0], $category, $placeholder);
 															?>
 														</div>
 													</div>
 												<?php
-												}
-											} else {
-												?>
-												<div class="row clearfix">
-													<div class="col-md-12">
-														<h4>Direct Beneficiary</h4>
-														<?php
-														$category = 2;
-														non_disaggregated($indid, $category, $placeholder);
-														?>
-													</div>
-												</div>
-												<?php
-												$category = 3;
-												$query = 'SELECT * FROM tbl_indicator_measurement_variables WHERE indicatorid =:indid and category=3';
-												$query_rsindid = $db->prepare($query);
-												$query_rsindid->execute(array(":indid" => $indid));
-												$row_rsindid = $query_rsindid->rowCount();
-												if ($row_rsindid > 0) {
+												} else {
 												?>
 													<div class="row clearfix">
 														<div class="col-md-12">
-															<h4>Indirect Beneficiary</h4>
 															<?php
-															$category = 3;
 															non_disaggregated($indid, $category, $placeholder);
 															?>
 														</div>
 													</div>
-										<?php
+												<?php
+												}
+											} else if ($indicator_type == 2) {
+												if ($disaggregated == 1) {
+												?>
+													<div class="row clearfix">
+														<div class="col-md-12">
+															<h4><u>Direct Beneficiary</u></h4>
+															<?php
+															$category = 2;
+															$tree = makeTree($indid, $category);
+															printNode($tree[0], $category, $placeholder);
+															?>
+														</div>
+													</div>
+													<?php
+													$category = 3;
+													$query = 'SELECT * FROM tbl_indicator_measurement_variables WHERE indicatorid =:indid and category=3';
+													$query_rsindid = $db->prepare($query);
+													$query_rsindid->execute(array(":indid" => $indid));
+													$row_rsindid = $query_rsindid->rowCount();
+													if ($row_rsindid > 0) {
+													?>
+														<div class="row clearfix">
+															<div class="col-md-12">
+																<h4><u>Indirect Beneficiary</u></h4>
+																<?php
+																$category = 3;
+																$tree = makeTree($indid, $category);
+																printNode($tree[0], $category, $placeholder);
+																?>
+															</div>
+														</div>
+													<?php
+													}
+												} else {
+													?>
+													<div class="row clearfix">
+														<div class="col-md-12">
+															<h4>Direct Beneficiary</h4>
+															<?php
+															$category = 2;
+															non_disaggregated($indid, $category, $placeholder);
+															?>
+														</div>
+													</div>
+													<?php
+													$category = 3;
+													$query = 'SELECT * FROM tbl_indicator_measurement_variables WHERE indicatorid =:indid and category=3';
+													$query_rsindid = $db->prepare($query);
+													$query_rsindid->execute(array(":indid" => $indid));
+													$row_rsindid = $query_rsindid->rowCount();
+													if ($row_rsindid > 0) {
+													?>
+														<div class="row clearfix">
+															<div class="col-md-12">
+																<h4>Indirect Beneficiary</h4>
+																<?php
+																$category = 3;
+																non_disaggregated($indid, $category, $placeholder);
+																?>
+															</div>
+														</div>
+											<?php
+													}
 												}
 											}
-										}
-										?>
-										<input type="hidden" name="form_id" value="<?= $form_id ?>">
-										<input type="hidden" name="form_type" value="<?= $form_type ?>">
-										<input type="hidden" name="respondent" value="<?= $respondent ?>">
-										<input type="hidden" name="level3" value="<?= $stid ?>">
-										<input type="hidden" name="location" value="<?= $location_disaggregation ?>">
-										<input type="hidden" name="lat" id="lat" value="">
-										<input type="hidden" name="lng" id="lng" value="">
-										<div class="col-md-12" align="center">
-											<button type="submit" name="submit" class="btn btn-success">Submit</button>
-										</div>
-									</fieldset>
-								</div>
-							</form>
+											?>
+											<input type="hidden" name="form_id" value="<?= $form_id ?>">
+											<input type="hidden" name="form_type" value="<?= $form_type ?>">
+											<input type="hidden" name="respondent" value="<?= $respondent ?>">
+											<input type="hidden" name="level3" value="<?= $stid ?>">
+											<input type="hidden" name="location" value="<?= $location_disaggregation ?>">
+											<input type="hidden" name="lat" id="lat" value="">
+											<input type="hidden" name="lng" id="lng" value="">
+											<div class="col-md-12" align="center">
+												<button type="submit" name="submit" class="btn btn-success">Submit</button>
+											</div>
+										</fieldset>
+									</div>
+								</form>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-	</section>
-	<!-- end body  -->
+		</section>
+		<!-- end body  -->
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
-}
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
 
-require('includes/footer.php');
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 <script src="assets/custom js/indicator-details.js"></script>
 <script src="assets/custom js/survey.js"></script>

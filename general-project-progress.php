@@ -1,6 +1,5 @@
 <?php
 try {
-
     require('includes/head.php');
     if ($permission) {
         $workflow_stage = 9;
@@ -360,10 +359,11 @@ try {
         $results =  restriction();
         echo $results;
     }
-} catch (PDOException $th) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/inspection/assign.js"></script>

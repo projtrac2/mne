@@ -1,9 +1,8 @@
 <?php
-$mtid = (isset($_GET['mtid'])) ? base64_decode($_GET['mtid']) : "";
-require('includes/head.php');
-if ($permission) {
-
-    try {
+try {
+    require('includes/head.php');
+    if ($permission && (isset($_GET['mtid']))) {
+        $mtid =   base64_decode($_GET['mtid']);
         $query_allcategories = $db->prepare("SELECT rskid, category FROM tbl_projrisk_categories");
         $query_allcategories->execute();
         $rows_allcategories = $query_allcategories->fetch();
@@ -61,87 +60,87 @@ if ($permission) {
 
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $result = flashMessage("An error occurred: " . $ex->getMessage());
-    }
 ?>
 
-    <!-- start body  -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <i class="fa fa-columns" aria-hidden="true"></i>
-                    <?php echo $pageTitle ?>
-                    <div class="btn-group" style="float:right">
+        <!-- start body  -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <i class="fa fa-columns" aria-hidden="true"></i>
+                        <?php echo $pageTitle ?>
                         <div class="btn-group" style="float:right">
+                            <div class="btn-group" style="float:right">
 
+                            </div>
                         </div>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="body">
-                            <!-- start body -->
-                            <form id="addinspectionchecklist" method="POST" name="addinspectionchecklist" action="" enctype="multipart/form-data" autocomplete="off">
-                                <?= csrf_token_html(); ?>
-                                <fieldset class="scheduler-border">
-                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Mitigation Measures</legend>
-                                    <div class="col-md-12" style="padding-left:0px">
-                                        <label>Risk Category *:</label>
-                                        <div class="form-line">
-                                            <select name="category" id="category" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
-                                                <option value="" selected="selected" class="selection">.... Select Category ....</option>
-                                                <?php
-                                                do {
-                                                    $selected = $cat == $rows_allcategories['rskid'] ? "selected" : "";
-                                                ?>
-                                                    <option value="<?php echo $rows_allcategories['rskid'] ?>" <?= $selected ?>><?php echo $rows_allcategories['category'] ?></option>
-                                                <?php
-                                                } while ($rows_allcategories = $query_allcategories->fetch());
-                                                ?>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row clearfix">
-                                        <div class="col-md-12">
-                                            <input type="text" name="mitigation" id="mitigation" value="<?= $response ?>" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
-                                        </div>
-                                    </div>
-                                    <div class="row clearfix">
-                                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-                                        </div>
-                                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
-                                            <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
-
-                                            <div class="btn-group">
-                                                <input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Submit" />
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="body">
+                                <!-- start body -->
+                                <form id="addinspectionchecklist" method="POST" name="addinspectionchecklist" action="" enctype="multipart/form-data" autocomplete="off">
+                                    <?= csrf_token_html(); ?>
+                                    <fieldset class="scheduler-border">
+                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><i class="fa fa-plus-square" aria-hidden="true"></i> Add Mitigation Measures</legend>
+                                        <div class="col-md-12" style="padding-left:0px">
+                                            <label>Risk Category *:</label>
+                                            <div class="form-line">
+                                                <select name="category" id="category" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
+                                                    <option value="" selected="selected" class="selection">.... Select Category ....</option>
+                                                    <?php
+                                                    do {
+                                                        $selected = $cat == $rows_allcategories['rskid'] ? "selected" : "";
+                                                    ?>
+                                                        <option value="<?php echo $rows_allcategories['rskid'] ?>" <?= $selected ?>><?php echo $rows_allcategories['category'] ?></option>
+                                                    <?php
+                                                    } while ($rows_allcategories = $query_allcategories->fetch());
+                                                    ?>
+                                                </select>
                                             </div>
-                                            <input type="hidden" name="MM_edit" value="editmitigation" />
-                                            <input type="hidden" name="mtid" value="<?= $mtid ?>" />
                                         </div>
-                                        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                                        <div class="row clearfix">
+                                            <div class="col-md-12">
+                                                <input type="text" name="mitigation" id="mitigation" value="<?= $response ?>" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
+                                            </div>
                                         </div>
-                                    </div>
-                                </fieldset>
-                            </form>
-                            <!-- end body -->
+                                        <div class="row clearfix">
+                                            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                                            </div>
+                                            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
+                                                <input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
+
+                                                <div class="btn-group">
+                                                    <input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Submit" />
+                                                </div>
+                                                <input type="hidden" name="MM_edit" value="editmitigation" />
+                                                <input type="hidden" name="mtid" value="<?= $mtid ?>" />
+                                            </div>
+                                            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </form>
+                                <!-- end body -->
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-    </section>
-    <!-- end body  -->
+        </section>
+        <!-- end body  -->
 <?php
-} else {
-    $results =  restriction();
-    echo $results;
-}
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
 
-require('includes/footer.php');
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>

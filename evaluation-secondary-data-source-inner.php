@@ -34,7 +34,7 @@ try {
 								$projname = $rows_baseline_survey['projname'];
 								$startdate = date_format(date_create($rows_baseline_survey['projstartdate']), "d M Y");
 								$enddate = date_format(date_create($rows_baseline_survey['projenddate']), "d M Y");
-								// $status = $rows_baseline_survey['status'];                                
+								// $status = $rows_baseline_survey['status'];
 								$projstage = $rows_baseline_survey['projstage'];
 								$form_id = $rows_baseline_survey['id'];
 								$projstatus = $rows_baseline_survey['projstatus'];
@@ -64,7 +64,7 @@ try {
 										<td style="width:20%">' . $outcomeindicator . '</td>
 										<td style="width:35%">' . $projname . '</td>
 										<td style="width:12%">' . $evaluationtype . '</td>
-										<td style="width:10%"> 
+										<td style="width:10%">
 											<a type="button" class="badge bg-purple" href="secondary-data-evaluation?prj=' . $projid . '">
 												Add Data
 											</a>
@@ -103,12 +103,6 @@ try {
 	</div>
 <?php
 } catch (PDOException $ex) {
-	function flashMessage($err)
-	{
-		return $err;
-	}
-
-	$result = flashMessage("An error occurred: " . $ex->getMessage());
-	print($result);
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

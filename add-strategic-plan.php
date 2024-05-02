@@ -1,7 +1,7 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
         function get_end_year()
         {
             global $db;
@@ -152,14 +152,14 @@ if ($permission) {
         </section>
         <!-- end body  -->
 <?php
-    } catch (PDOException $ex) {
-        customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
 <script src="assets/js/strategicplan/add-strategic-plan.js"></script>

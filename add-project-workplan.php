@@ -1,7 +1,8 @@
 <?php
+try {
 require('includes/head.php');
 if ($permission) {
-    try {
+
         $results = "";
         $editFormAction = $_SERVER['PHP_SELF'];
         $today = date("Y-m-d");
@@ -90,10 +91,7 @@ if ($permission) {
 					</script>";
             }
         }
-    } catch (PDOException $ex) {
-        $result = "An error occurred: " . $ex->getMessage();
-        print($result);
-    }
+
 ?>
     <!-- start body  -->
     <section class="content">
@@ -307,6 +305,9 @@ if ($permission) {
 }
 
 require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 <script type="text/javascript">
     $(document).ready(function() {

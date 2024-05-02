@@ -1,11 +1,12 @@
 <?php
-require('includes/head.php');
-$decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
-if ($permission && $decode_progid != "") {
-    $progid_array = explode("progid54321", $decode_progid);
-    $progid = $progid_array[1];
-    $stplane = $_GET['plan'];
-    try {
+try {
+    require('includes/head.php');
+    $decode_progid = (isset($_GET['progid']) && !empty($_GET["progid"])) ? base64_decode($_GET['progid']) : "";
+    if ($permission && $decode_progid != "") {
+        $progid_array = explode("progid54321", $decode_progid);
+        $progid = $progid_array[1];
+        $stplane = $_GET['plan'];
+
         $query_rsProgram =  $db->prepare("SELECT * FROM tbl_programs WHERE progid =:progid");
         $query_rsProgram->execute(array(":progid" => $progid));
         $row_rsProgram = $query_rsProgram->fetch();
@@ -249,14 +250,14 @@ if ($permission && $decode_progid != "") {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 
 <script>

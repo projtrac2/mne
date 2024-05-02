@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
+
         $program_type = $planid = $strategic_plan_program_id = $progid = $projid = $projcode = $projname = $projdescription = $projtype = $projendyear = "";
         $projbudget  = $projduration = $projevaluation = $projimpact  = $projimpact = $asset = "";
         $project_budget = 0;
@@ -556,15 +557,15 @@ if ($permission) {
         </section>
         <!-- end body  -->
 <?php
-    } catch (PDOException $ex) {
-        var_dump($ex);
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <!-- validation cdn files  -->
 <script>

@@ -437,10 +437,11 @@ try {
         $results =  restriction();
         echo $results;
     }
+
+    require('includes/footer.php');
 } catch (PDOException $ex) {
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script>
     const details = {

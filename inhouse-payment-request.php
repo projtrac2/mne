@@ -1,7 +1,7 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-    try {
+try {
+    require('includes/head.php');
+    if ($permission) {
         if (isset($_GET['projid'])) {
             $encoded_projid = $_GET['projid'];
             $decode_projid = base64_decode($encoded_projid);
@@ -491,15 +491,15 @@ if ($permission) {
             $results =  restriction();
             echo $results;
         }
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
-}
 
-require('includes/footer.php');
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script>

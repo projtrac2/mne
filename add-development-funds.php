@@ -1,7 +1,8 @@
 <?php
-require('includes/head.php');
-if ($permission) {
-	try {
+try {
+	require('includes/head.php');
+	if ($permission) {
+
 		$editFormAction = $_SERVER['PHP_SELF'];
 		if (isset($_SERVER['QUERY_STRING'])) {
 			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
@@ -228,239 +229,237 @@ if ($permission) {
 
 		$query_programs =  $db->prepare("SELECT progid, progname FROM tbl_programs ORDER BY progid ASC");
 		$query_programs->execute();
-	} catch (PDOException $ex) {
-		$result = flashMessage("An error occurred: " . $ex->getMessage());
-	}
+
 ?>
 
-	<!-- start body  -->
-	<section class="content">
-		<div class="container-fluid">
-			<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-				<h4 class="contentheader">
-					<?= $icon ?>
-					<?php echo $pageTitle ?>
-					<div class="btn-group" style="float:right">
-						<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
-							Go Back
-						</button>
-					</div>
-				</h4>
-			</div>
-			<div class="row clearfix">
-				<div class="block-header">
-					<?= $results; ?>
+		<!-- start body  -->
+		<section class="content">
+			<div class="container-fluid">
+				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+					<h4 class="contentheader">
+						<?= $icon ?>
+						<?php echo $pageTitle ?>
+						<div class="btn-group" style="float:right">
+							<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+								Go Back
+							</button>
+						</div>
+					</h4>
 				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-					<div class="card">
-						<div class="body">
-							<!-- start body -->
-							<form id="add_funds" method="POST" name="<?= $fundsfrm ?>" action="" enctype="multipart/form-data" autocomplete="off">
-								<?= csrf_token_html(); ?>
-								<fieldset class="scheduler-border">
-									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
-									<div class="col-md-8">
-										<label>Financier *:</label>
-										<div class="form-line">
-											<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $financiername ?></div>
-											<input type="hidden" name="financier" value="<?= $fnd ?>">
-											<input type="hidden" name="fundingtype" id="fundingtype" value="<?= $fundtype ?>">
-										</div>
-									</div>
-									<div class="col-md-4">
-										<label>Fund Type *:</label>
-										<?php
-										if ($fundtype == 1 || $fundtype == 2) {
-										?>
+				<div class="row clearfix">
+					<div class="block-header">
+						<?= $results; ?>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="card">
+							<div class="body">
+								<!-- start body -->
+								<form id="add_funds" method="POST" name="<?= $fundsfrm ?>" action="" enctype="multipart/form-data" autocomplete="off">
+									<?= csrf_token_html(); ?>
+									<fieldset class="scheduler-border">
+										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>
+										<div class="col-md-8">
+											<label>Financier *:</label>
 											<div class="form-line">
-												<select name="fund_type" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
-													<option value="" selected="selected" class="selection">...Select Fund Type...</option>
-													<option value="1"> Local Revenue</option>
-													<option value="2"> Equitable Share</option>
+												<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $financiername ?></div>
+												<input type="hidden" name="financier" value="<?= $fnd ?>">
+												<input type="hidden" name="fundingtype" id="fundingtype" value="<?= $fundtype ?>">
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label>Fund Type *:</label>
+											<?php
+											if ($fundtype == 1 || $fundtype == 2) {
+											?>
+												<div class="form-line">
+													<select name="fund_type" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
+														<option value="" selected="selected" class="selection">...Select Fund Type...</option>
+														<option value="1"> Local Revenue</option>
+														<option value="2"> Equitable Share</option>
+													</select>
+												</div>
+											<?php
+											} else {
+												$fund_name = "";
+												if ($fundtype == 3) {
+													$fund_name = "Grant";
+												} else if ($fundtype == 4) {
+													$fund_name = "Donor";
+												} else if ($fundtype == 4) {
+													$fund_name = "Others";
+												}
+											?>
+												<div class="form-line">
+													<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $fund_name ?></div>
+												</div>
+											<?php
+											}
+											?>
+										</div>
+										<div class="col-md-4">
+											<label>Funds Code *:</label>
+											<div class="form-line">
+												<input type="text" class="form-control" name="code" id="code" placeholder="Enter funds identification number" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $fundcode : "" ?>" required>
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label>Financial Year *:</label>
+											<div class="form-line">
+												<select name="year" id="year" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
+													<option value="" selected="selected" class="selection">...Select...</option>
+													<?php
+													while ($row_rsFyear = $query_rsFyear->fetch()) {
+														if ($edit_form) {
+															if ($row_rsFyear['id'] == $finyear) {
+													?>
+																<option value="<?php echo $row_rsFyear['id'] ?>" selected="selected"><?php echo $row_rsFyear['year'] ?></option>
+															<?php
+															} else {
+															?>
+																<option value="<?php echo $row_rsFyear['id'] ?>"><?php echo $row_rsFyear['year'] ?></option>
+															<?php
+															}
+														} else {
+															?>
+															<option value="<?php echo $row_rsFyear['id'] ?>"><?php echo $row_rsFyear['year'] ?></option>
+													<?php
+														}
+													}
+													?>
 												</select>
+											</div>
+										</div>
+										<script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
+										<script type="text/javascript">
+											webshims.setOptions('forms-ext', {
+												replaceUI: 'auto',
+												types: 'number'
+											});
+											webshims.polyfill('forms forms-ext');
+										</script>
+										<div class="col-md-4">
+											<label>Funding Amount *:</label>
+											<div class="form-line">
+												<input name="amount" type="number" onchange="calculate_funds()" onkeyup="calculate_funds()" id="amount_funds" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label>Financier Currency *:</label>
+											<div class="form-line">
+												<select name="currency" id="currency" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
+													<option value="" selected="selected" class="selection">...Select Currency...</option>
+													<?php
+													while ($row_financiercurrency = $query_financiercurrency->fetch()) {
+														if ($edit_form) {
+															if ($row_financiercurrency['id'] == $currency) {
+													?>
+																<option value="<?php echo $row_financiercurrency['id'] ?>" selected="selected"><?php echo $row_financiercurrency['currency'] ?></option>
+															<?php
+															} else {
+															?>
+																<option value="<?php echo $row_financiercurrency['id'] ?>"><?php echo $row_financiercurrency['currency'] ?></option>
+															<?php
+															}
+														} else {
+															?>
+															<option value="<?php echo $row_financiercurrency['id'] ?>"><?php echo $row_financiercurrency['currency'] ?></option>
+													<?php
+														}
+													}
+													?>
+												</select>
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label>Financier Exchange Rate *:</label>
+											<div class="form-line">
+												<input name="rate" type="number" class="form-control" placeholder="Enter financier exchange rate" value="<?= ($edit_form) ? $rate : ""; ?>" style="border:#CCC thin solid; border-radius: 5px; padding-left:10px">
+											</div>
+										</div>
+										<div class="col-md-4">
+											<label>Date Funds Release *:</label>
+											<div class="form-line">
+												<input name="fundsdate" type="date" class="form-control" placeholder="Please choose a date..." value="<?= ($edit_form) ? $funddate : ""; ?>" style="border:#CCC thin solid; border-radius: 5px; padding-left:10px">
+											</div>
+										</div>
+										<?php
+										if ($fundtype == 3 || $fundtype == 4) {
+										?>
+											<div class="col-md-12" id="ppprogram">
+												<label>Funds Purpose *:</label>
+												<div class="form-line">
+													<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
+												</div>
 											</div>
 										<?php
 										} else {
-											$fund_name = "";
-											if ($fundtype == 3) {
-												$fund_name = "Grant";
-											} else if ($fundtype == 4) {
-												$fund_name = "Donor";
-											} else if ($fundtype == 4) {
-												$fund_name = "Others";
-											}
 										?>
-											<div class="form-line">
-												<div class="form-control" style="border:#CCC thin solid; border-radius: 5px"><?= $fund_name ?></div>
+											<div class="col-md-12" id="ppgeneral">
+												<label>Funds Purpose *:</label>
+												<div class="form-line">
+													<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
+												</div>
 											</div>
 										<?php
 										}
 										?>
-									</div>
-									<div class="col-md-4">
-										<label>Funds Code *:</label>
-										<div class="form-line">
-											<input type="text" class="form-control" name="code" id="code" placeholder="Enter funds identification number" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $fundcode : "" ?>" required>
-										</div>
-									</div>
-									<div class="col-md-4">
-										<label>Financial Year *:</label>
-										<div class="form-line">
-											<select name="year" id="year" class="form-control show-tick" data-live-search="true" style="border:#CCC thin solid; border-radius:5px" required>
-												<option value="" selected="selected" class="selection">...Select...</option>
-												<?php
-												while ($row_rsFyear = $query_rsFyear->fetch()) {
-													if ($edit_form) {
-														if ($row_rsFyear['id'] == $finyear) {
-												?>
-															<option value="<?php echo $row_rsFyear['id'] ?>" selected="selected"><?php echo $row_rsFyear['year'] ?></option>
-														<?php
-														} else {
-														?>
-															<option value="<?php echo $row_rsFyear['id'] ?>"><?php echo $row_rsFyear['year'] ?></option>
-														<?php
-														}
-													} else {
-														?>
-														<option value="<?php echo $row_rsFyear['id'] ?>"><?php echo $row_rsFyear['year'] ?></option>
-												<?php
-													}
-												}
-												?>
-											</select>
-										</div>
-									</div>
-									<script src="http://afarkas.github.io/webshim/js-webshim/minified/polyfiller.js"></script>
-									<script type="text/javascript">
-										webshims.setOptions('forms-ext', {
-											replaceUI: 'auto',
-											types: 'number'
-										});
-										webshims.polyfill('forms forms-ext');
-									</script>
-									<div class="col-md-4">
-										<label>Funding Amount *:</label>
-										<div class="form-line">
-											<input name="amount" type="number" onchange="calculate_funds()" onkeyup="calculate_funds()" id="amount_funds" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $amount : ""; ?>" required>
-										</div>
-									</div>
-									<div class="col-md-4">
-										<label>Financier Currency *:</label>
-										<div class="form-line">
-											<select name="currency" id="currency" class="form-control show-tick" style="border:#CCC thin solid; border-radius:5px" data-live-search="true" required>
-												<option value="" selected="selected" class="selection">...Select Currency...</option>
-												<?php
-												while ($row_financiercurrency = $query_financiercurrency->fetch()) {
-													if ($edit_form) {
-														if ($row_financiercurrency['id'] == $currency) {
-												?>
-															<option value="<?php echo $row_financiercurrency['id'] ?>" selected="selected"><?php echo $row_financiercurrency['currency'] ?></option>
-														<?php
-														} else {
-														?>
-															<option value="<?php echo $row_financiercurrency['id'] ?>"><?php echo $row_financiercurrency['currency'] ?></option>
-														<?php
-														}
-													} else {
-														?>
-														<option value="<?php echo $row_financiercurrency['id'] ?>"><?php echo $row_financiercurrency['currency'] ?></option>
-												<?php
-													}
-												}
-												?>
-											</select>
-										</div>
-									</div>
-									<div class="col-md-4">
-										<label>Financier Exchange Rate *:</label>
-										<div class="form-line">
-											<input name="rate" type="number" class="form-control" placeholder="Enter financier exchange rate" value="<?= ($edit_form) ? $rate : ""; ?>" style="border:#CCC thin solid; border-radius: 5px; padding-left:10px">
-										</div>
-									</div>
-									<div class="col-md-4">
-										<label>Date Funds Release *:</label>
-										<div class="form-line">
-											<input name="fundsdate" type="date" class="form-control" placeholder="Please choose a date..." value="<?= ($edit_form) ? $funddate : ""; ?>" style="border:#CCC thin solid; border-radius: 5px; padding-left:10px">
-										</div>
-									</div>
-									<?php
-									if ($fundtype == 3 || $fundtype == 4) {
-									?>
-										<div class="col-md-12" id="ppprogram">
-											<label>Funds Purpose *:</label>
-											<div class="form-line">
-												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
+										<div id="grants">
+											<div class="col-md-4" id="grantperiod">
+												<label>Projected Grant Lifespan *:</label>
+												<div class="form-line">
+													<input name="grantlifespan" type="number" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantspan : ""; ?>" required>
+												</div>
+											</div>
+											<div class="col-md-4" id="grantinstallment">
+												<label>Grant Installments *:</label>
+												<div class="form-line">
+													<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
+												</div>
 											</div>
 										</div>
-									<?php
-									} else {
-									?>
-										<div class="col-md-12" id="ppgeneral">
-											<label>Funds Purpose *:</label>
-											<div class="form-line">
-												<input name="purpose" type="text" placeholder="Describe the funds purpose" class="form-control" style="border:#CCC thin solid; border-radius: 5px" value="<?= $edit_form ? $purpose : ""; ?>" required>
-											</div>
-										</div>
-									<?php
-									}
-									?>
-									<div id="grants">
-										<div class="col-md-4" id="grantperiod">
-											<label>Projected Grant Lifespan *:</label>
-											<div class="form-line">
-												<input name="grantlifespan" type="number" placeholder="Enter funding amount" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantspan : ""; ?>" required>
-											</div>
-										</div>
-										<div class="col-md-4" id="grantinstallment">
-											<label>Grant Installments *:</label>
-											<div class="form-line">
-												<input name="grantinstallments" type="number" placeholder="Enter proposed payment schedule" min="0" step="1" data-number-to-fixed="0" data-number-stepfactor="100" class="form-control" id="c2" style="border:#CCC thin solid; border-radius: 5px" value="<?= ($edit_form) ? $grantinstallments : ""; ?>" required>
-											</div>
-										</div>
-									</div>
-								</fieldset>
-								<fieldset class="scheduler-border">
-									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FUND ATTACHMENTS</legend>
-									<!-- File Upload | Drag & Drop OR With Click & Choose -->
-									<div class="row clearfix">
-										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-											<div class="card" style="margin-bottom:-20px">
-												<?php
-												if (isset($_GET["edit"]) && !empty($_GET["edit"])) {
-													$counter = 0;
-													$fcategory = "Funding";
-													$query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE fcategory=:cat and projstage=:projstage");
-													$query_rsFile->execute(array(":cat" => $fcategory, ":projstage" => $fnd));
-													$row_rsFile = $query_rsFile->fetch();
-													$totalRows_rsFile = $query_rsFile->rowCount();
+									</fieldset>
+									<fieldset class="scheduler-border">
+										<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">FUND ATTACHMENTS</legend>
+										<!-- File Upload | Drag & Drop OR With Click & Choose -->
+										<div class="row clearfix">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<div class="card" style="margin-bottom:-20px">
+													<?php
+													if (isset($_GET["edit"]) && !empty($_GET["edit"])) {
+														$counter = 0;
+														$fcategory = "Funding";
+														$query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE fcategory=:cat and projstage=:projstage");
+														$query_rsFile->execute(array(":cat" => $fcategory, ":projstage" => $fnd));
+														$row_rsFile = $query_rsFile->fetch();
+														$totalRows_rsFile = $query_rsFile->rowCount();
 
-													if ($totalRows_rsFile > 0) {
-												?>
-														<div class="header table-responsive">
-															<i class="ti-link"></i>MULTIPLE FILES UPLOAD - WITH CLICK & CHOOSE
-															<table class="table table-bordered" id="donation-attachment">
-																<thead>
-																	<tr>
-																		<th style="width:2%">#</th>
-																		<th style="width:45%">File Name</th>
-																		<th style="width:45%">Attachment Purpose</th>
-																		<th style="width:8%">Action</th>
-																	</tr>
-																</thead>
-																<tbody>
-																	<?php
-																	do {
-																		$flid = $row_rsFile['fid'];
-																		$fname = $row_rsFile['filename'];
-																		$type = $row_rsFile['ftype'];
-																		$filepath = $row_rsFile['floc'];
-																		$attachmentPurpose = $row_rsFile['reason'];
-																		$act =  '<a href="' . $filepath . '" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a>
+														if ($totalRows_rsFile > 0) {
+													?>
+															<div class="header table-responsive">
+																<i class="ti-link"></i>MULTIPLE FILES UPLOAD - WITH CLICK & CHOOSE
+																<table class="table table-bordered" id="donation-attachment">
+																	<thead>
+																		<tr>
+																			<th style="width:2%">#</th>
+																			<th style="width:45%">File Name</th>
+																			<th style="width:45%">Attachment Purpose</th>
+																			<th style="width:8%">Action</th>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		<?php
+																		do {
+																			$flid = $row_rsFile['fid'];
+																			$fname = $row_rsFile['filename'];
+																			$type = $row_rsFile['ftype'];
+																			$filepath = $row_rsFile['floc'];
+																			$attachmentPurpose = $row_rsFile['reason'];
+																			$act =  '<a href="' . $filepath . '" style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Download File" target="new"><i class="fa fa-cloud-download fa-2x" aria-hidden="true"></i></a>
 																		<a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $flid . ')"> <i class="glyphicon glyphicon-trash"></i></a>';
-																		//<a style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Delete File"><i class="fa fa-clse fa-2x" aria-hidden="true"></i></a>';
+																			//<a style="color:#06C; padding-left:2px; padding-right:2px; font-weight:bold" title="Delete File"><i class="fa fa-clse fa-2x" aria-hidden="true"></i></a>';
 
-																		$counter++;
-																		echo '<tr>
+																			$counter++;
+																			echo '<tr>
 																			<td>
 																			  ' . $counter . '
 																			</td>
@@ -474,84 +473,87 @@ if ($permission) {
 																			' . $act . '
 																			</td>
 																		</tr>';
-																	} while ($row_rsFile = $query_rsFile->fetch());
-																	?>
-																</tbody>
-															</table>
-														</div>
-												<?PHP
+																		} while ($row_rsFile = $query_rsFile->fetch());
+																		?>
+																	</tbody>
+																</table>
+															</div>
+													<?PHP
+														}
 													}
-												}
 
-												?>
-												<div class="body">
-													<table class="table table-bordered" id="donation_table">
-														<tr>
-															<th style="width:40%">Attachments</th>
-															<th style="width:58%">Attachment Purpose</th>
-															<th style="width:2%"><button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span></button></th>
-														</tr>
-														<tr>
-															<td>
-																<input type="file" name="fundsattachment[]" multiple id="fundsattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
-															</td>
-															<td>
-																<input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control" placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
-															</td>
-															<td></td>
-														</tr>
-													</table>
-													<script type="text/javascript">
-														function add_row() {
-															$rowno = $("#donation_table tr").length;
-															$rowno = $rowno + 1;
-															$("#donation_table tr:last").after('<tr id="row' + $rowno + '"><td><input type="file" name="fundsattachment[]" multiple id="fundsattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control"  placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><button type="button" class="btn btn-danger btn-sm"  onclick=delete_row("row' + $rowno + '")><span class="glyphicon glyphicon-minus"></span></button></td></tr>');
-															// <input type='text' name='funding[]' placeholder='Enter Name'></td><td><input type='button' value='DELETE' onclick=delete_row('row"+$rowno+"')></td></tr>");
-														}
+													?>
+													<div class="body">
+														<table class="table table-bordered" id="donation_table">
+															<tr>
+																<th style="width:40%">Attachments</th>
+																<th style="width:58%">Attachment Purpose</th>
+																<th style="width:2%"><button type="button" name="addplus" onclick="add_row();" title="Add another document" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span></button></th>
+															</tr>
+															<tr>
+																<td>
+																	<input type="file" name="fundsattachment[]" multiple id="fundsattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
+																</td>
+																<td>
+																	<input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control" placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif">
+																</td>
+																<td></td>
+															</tr>
+														</table>
+														<script type="text/javascript">
+															function add_row() {
+																$rowno = $("#donation_table tr").length;
+																$rowno = $rowno + 1;
+																$("#donation_table tr:last").after('<tr id="row' + $rowno + '"><td><input type="file" name="fundsattachment[]" multiple id="fundsattachment[]" class="form-control" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><input type="text" name="attachmentpurpose[]" id="attachmentpurpose[]" class="form-control"  placeholder="Enter the purpose of this document" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"  required></td><td><button type="button" class="btn btn-danger btn-sm"  onclick=delete_row("row' + $rowno + '")><span class="glyphicon glyphicon-minus"></span></button></td></tr>');
+																// <input type='text' name='funding[]' placeholder='Enter Name'></td><td><input type='button' value='DELETE' onclick=delete_row('row"+$rowno+"')></td></tr>");
+															}
 
-														function delete_row(rowno) {
-															$('#' + rowno).remove();
-														}
-													</script>
+															function delete_row(rowno) {
+																$('#' + rowno).remove();
+															}
+														</script>
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-									<!-- #END# File Upload | Drag & Drop OR With Click & Choose -->
-								</fieldset>
-								<div class="row clearfix">
-									<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-									</div>
-									<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
-										<input name="fundtype" type="hidden" id="fundtype" value="<?php echo $fundtype; ?>" />
-										<input name="funderid" type="hidden" id="funderid" value="<?php echo $fnd; ?>" />
-										<input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
-										<div class="btn-group">
-											<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="<?= $action ?>" />
+										<!-- #END# File Upload | Drag & Drop OR With Click & Choose -->
+									</fieldset>
+									<div class="row clearfix">
+										<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
 										</div>
-										<input type="hidden" name="<?= $fundsfrmid ?>" value="<?= $fundsfrm ?>" />
+										<div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" align="center">
+											<input name="fundtype" type="hidden" id="fundtype" value="<?php echo $fundtype; ?>" />
+											<input name="funderid" type="hidden" id="funderid" value="<?php echo $fnd; ?>" />
+											<input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
+											<div class="btn-group">
+												<input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="<?= $action ?>" />
+											</div>
+											<input type="hidden" name="<?= $fundsfrmid ?>" value="<?= $fundsfrm ?>" />
+										</div>
+										<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
+										</div>
 									</div>
-									<div class="col-lg-5 col-md-5 col-sm-5 col-xs-5">
-									</div>
-								</div>
-							</form>
-							<!-- end body -->
+								</form>
+								<!-- end body -->
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	</section>
-	<!-- end body  -->
-	<!-- Bootstrap Datepicker Plugin Js -->
-	<!-- <script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script> -->
+		</section>
+		<!-- end body  -->
+		<!-- Bootstrap Datepicker Plugin Js -->
+		<!-- <script src="projtrac-dashboard/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script> -->
 <?php
-} else {
-	$results =  restriction();
-	echo $results;
-}
+	} else {
+		$results =  restriction();
+		echo $results;
+	}
 
-require('includes/footer.php');
+	require('includes/footer.php');
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}
 ?>
 
 <script src="assets/custom js/funding.js"></script>

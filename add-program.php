@@ -1,12 +1,13 @@
 <?php
-require('includes/head.php');
-if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
-    $decode_stplanid =   base64_decode($_GET['plan']);
-    $stplanid_array = explode("strplan1", $decode_stplanid);
-    $spid = $stplanid_array[1];
-    $stplan = $stplanid_array[1];
-    $stplane = $_GET['plan'];
-    try {
+try {
+    require('includes/head.php');
+    if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
+        $decode_stplanid =   base64_decode($_GET['plan']);
+        $stplanid_array = explode("strplan1", $decode_stplanid);
+        $spid = $stplanid_array[1];
+        $stplan = $stplanid_array[1];
+        $stplane = $_GET['plan'];
+
         if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprogramfrm")) {
             $currentdate = date("Y-m-d");
             $progname = $_POST['progname'];
@@ -197,15 +198,15 @@ if ($permission && (isset($_GET['plan']) && !empty($_GET["plan"]))) {
         </section>
         <!-- end body  -->
 <?php
-    } catch (PDOException $ex) {
-        var_dump($ex);
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
+
+    } else {
+        $results =  restriction();
+        echo $results;
     }
-} else {
-    $results =  restriction();
-    echo $results;
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 
 <script>

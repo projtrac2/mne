@@ -1,8 +1,8 @@
 <?php
+try {
+    require('includes/head.php');
+    if ($permission) {
 
-require('includes/head.php');
-if ($permission) {
-    try {
         $decode_output_id = (isset($_GET['output_id']) && !empty($_GET["output_id"])) ? base64_decode($_GET['output_id']) : "";
         $output_id_array = explode("projid54321", $decode_output_id);
         $output_id = $output_id_array[1];
@@ -28,239 +28,239 @@ if ($permission) {
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $progid = $project = $sectorid = "";
         $project_name = ($totalRows_rsProjects > 0) ? $row_rsProjects['projname'] : "";
-    } catch (PDOException $ex) {
-        $results = flashMessage("An error occurred: " . $ex->getMessage());
-    }
 ?>
-    <section class="content">
-        <div class="container-fluid">
-            <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
-                <h4 class="contentheader">
-                    <?= $icon ?>
-                    <?php echo $pageTitle ?>
-                    <div class="btn-group" style="float:right">
-                        <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
-                            Go Back
-                        </a>
-                    </div>
-                </h4>
-            </div>
-            <div class="row clearfix">
-                <div class="block-header">
-                    <?= $results; ?>
+        <section class="content">
+            <div class="container-fluid">
+                <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
+                    <h4 class="contentheader">
+                        <?= $icon ?>
+                        <?php echo $pageTitle ?>
+                        <div class="btn-group" style="float:right">
+                            <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
+                                Go Back
+                            </a>
+                        </div>
+                    </h4>
                 </div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="row clearfix">
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <ul class="list-group">
-                                        <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $project_name ?> </li>
-                                        <li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
-                                    </ul>
+                <div class="row clearfix">
+                    <div class="block-header">
+                        <?= $results; ?>
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row clearfix">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <ul class="list-group">
+                                            <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $project_name ?> </li>
+                                            <li class="list-group-item"><strong>Output: </strong> <?= $output_name ?> </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="body">
-                            <div class="row clearfix">
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <?php
-                                    if ($mapping_type == 2) {
-                                    ?>
-                                        <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Monitoring Checklist</legend>
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped table-hover js-basic-example">
-                                                        <thead>
-                                                            <tr style="background-color:#0b548f; color:#FFF">
-                                                                <th style="width:5%" align="center">#</th>
-                                                                <th style="width:85%">Task</th>
-                                                                <th style="width:10%">Action</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <?php
-                                                            $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid ASC");
-                                                            $query_rsTasks->execute(array(":output_id" => $output_id));
-                                                            $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                            if ($totalRows_rsTasks > 0) {
-                                                                $mcounter = 0;
-                                                                while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                    $mcounter++;
-                                                                    $task_name = $row_rsTasks['task'];
-                                                                    $task_id = $row_rsTasks['tkid'];
+                            <div class="body">
+                                <div class="row clearfix">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <?php
+                                        if ($mapping_type == 2) {
+                                        ?>
+                                            <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Monitoring Checklist</legend>
+                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered table-striped table-hover js-basic-example">
+                                                            <thead>
+                                                                <tr style="background-color:#0b548f; color:#FFF">
+                                                                    <th style="width:5%" align="center">#</th>
+                                                                    <th style="width:85%">Task</th>
+                                                                    <th style="width:10%">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php
+                                                                $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid ASC");
+                                                                $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                if ($totalRows_rsTasks > 0) {
+                                                                    $mcounter = 0;
+                                                                    while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                        $mcounter++;
+                                                                        $task_name = $row_rsTasks['task'];
+                                                                        $task_id = $row_rsTasks['tkid'];
 
-                                                                    $query_rsSpecifions = $db->prepare("SELECT * FROM tbl_project_specifications WHERE task_id=:task_id");
-                                                                    $query_rsSpecifions->execute(array(":task_id" => $task_id));
-                                                                    $row_rsSpecifions = $query_rsSpecifions->fetch();
-                                                                    $totalRows_rsSpecifions = $query_rsSpecifions->rowCount();
-                                                                    $edit = $totalRows_rsSpecifions > 0 ? 1 : 0;
-                                                                    $details = "
+                                                                        $query_rsSpecifions = $db->prepare("SELECT * FROM tbl_project_specifications WHERE task_id=:task_id");
+                                                                        $query_rsSpecifions->execute(array(":task_id" => $task_id));
+                                                                        $row_rsSpecifions = $query_rsSpecifions->fetch();
+                                                                        $totalRows_rsSpecifions = $query_rsSpecifions->rowCount();
+                                                                        $edit = $totalRows_rsSpecifions > 0 ? 1 : 0;
+                                                                        $details = "
                                                                     {
                                                                         task_id:$task_id,
                                                                         edit_id:'$edit',
                                                                         site_id:0,
                                                                     }";
-                                                            ?>
-                                                                    <tr class="bg-grey">
-                                                                        <td align="center"><?php echo  $mcounter ?></td>
-                                                                        <td><?= $task_name ?></td>
-                                                                        <td>
-                                                                            <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" name="addplus" title="<?= $edit == 1 ? "Edit" : "Add" ?> Checklist" class="btn btn-success btn-sm" onclick="add_specification_details(<?= $details ?>)">
-                                                                                <span class="glyphicon glyphicon-<?= $edit == 1 ? "pencil" : "plus" ?>"></span>
-                                                                            </button>
-                                                                        </td>
-                                                                    </tr>
-                                                            <?php
+                                                                ?>
+                                                                        <tr class="bg-grey">
+                                                                            <td align="center"><?php echo  $mcounter ?></td>
+                                                                            <td><?= $task_name ?></td>
+                                                                            <td>
+                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" name="addplus" title="<?= $edit == 1 ? "Edit" : "Add" ?> Checklist" class="btn btn-success btn-sm" onclick="add_specification_details(<?= $details ?>)">
+                                                                                    <span class="glyphicon glyphicon-<?= $edit == 1 ? "pencil" : "plus" ?>"></span>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                <?php
+                                                                    }
                                                                 }
-                                                            }
-                                                            ?>
-                                                        </tbody>
-                                                    </table>
+                                                                ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </fieldset>
-                                        <?php
-                                    } else {
-                                        $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
-                                        $query_Output->execute(array(":output_id" => $output_id));
-                                        $total_Output = $query_Output->rowCount();
-                                        if ($total_Output > 0) {
-                                            while ($row_rsOutput = $query_Output->fetch()) {
-                                                $site_name = $row_rsOutput['site'];
-                                                $site_id = $row_rsOutput['site_id'];
-                                        ?>
-                                                <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?= $site_name ?></legend>
-                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                        <div class="table-responsive">
-                                                            <table class="table table-bordered table-striped table-hover js-basic-example">
-                                                                <thead>
-                                                                    <tr style="background-color:#0b548f; color:#FFF">
-                                                                        <th style="width:5%" align="center">#</th>
-                                                                        <th style="width:85%">Task</th>
-                                                                        <th style="width:10%">Action</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <?php
-                                                                    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid ASC");
-                                                                    $query_rsTasks->execute(array(":output_id" => $output_id));
-                                                                    $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                                    if ($totalRows_rsTasks > 0) {
-                                                                        $mcounter = 0;
-                                                                        while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                            $mcounter++;
-                                                                            $task_name = $row_rsTasks['task'];
-                                                                            $task_id = $row_rsTasks['tkid'];
-                                                                            $query_rsSpecifions = $db->prepare("SELECT * FROM tbl_project_specifications WHERE task_id=:task_id AND site_id=:site_id");
-                                                                            $query_rsSpecifions->execute(array(":task_id" => $task_id, ':site_id' => $site_id));
-                                                                            $row_rsSpecifions = $query_rsSpecifions->fetch();
-                                                                            $totalRows_rsSpecifions = $query_rsSpecifions->rowCount();
-                                                                            $edit = $totalRows_rsSpecifions > 0 ? 1 : 0;
-                                                                            $details = "
+                                            </fieldset>
+                                            <?php
+                                        } else {
+                                            $query_Output = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
+                                            $query_Output->execute(array(":output_id" => $output_id));
+                                            $total_Output = $query_Output->rowCount();
+                                            if ($total_Output > 0) {
+                                                while ($row_rsOutput = $query_Output->fetch()) {
+                                                    $site_name = $row_rsOutput['site'];
+                                                    $site_id = $row_rsOutput['site_id'];
+                                            ?>
+                                                    <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                                                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"><?= $site_name ?></legend>
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                            <div class="table-responsive">
+                                                                <table class="table table-bordered table-striped table-hover js-basic-example">
+                                                                    <thead>
+                                                                        <tr style="background-color:#0b548f; color:#FFF">
+                                                                            <th style="width:5%" align="center">#</th>
+                                                                            <th style="width:85%">Task</th>
+                                                                            <th style="width:10%">Action</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <?php
+                                                                        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id ORDER BY tkid ASC");
+                                                                        $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                        $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                        if ($totalRows_rsTasks > 0) {
+                                                                            $mcounter = 0;
+                                                                            while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                                $mcounter++;
+                                                                                $task_name = $row_rsTasks['task'];
+                                                                                $task_id = $row_rsTasks['tkid'];
+                                                                                $query_rsSpecifions = $db->prepare("SELECT * FROM tbl_project_specifications WHERE task_id=:task_id AND site_id=:site_id");
+                                                                                $query_rsSpecifions->execute(array(":task_id" => $task_id, ':site_id' => $site_id));
+                                                                                $row_rsSpecifions = $query_rsSpecifions->fetch();
+                                                                                $totalRows_rsSpecifions = $query_rsSpecifions->rowCount();
+                                                                                $edit = $totalRows_rsSpecifions > 0 ? 1 : 0;
+                                                                                $details = "
                                                                             {
                                                                                 task_id:$task_id,
                                                                                 edit_id:'$edit',
                                                                                 site_id:$site_id,
                                                                             }";
-                                                                    ?>
-                                                                            <tr class="bg-grey">
-                                                                                <td align="center"><?php echo  $mcounter ?></td>
-                                                                                <td><?= $task_name ?></td>
-                                                                                <td>
-                                                                                    <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" name="addplus" title="<?= $edit == 1 ? "Edit" : "Add" ?> Specifications" class="btn btn-success btn-sm" onclick="add_specification_details(<?= $details ?>)">
-                                                                                        <span class="glyphicon glyphicon-<?= $edit == 1 ? "pencil" : "plus" ?>"></span>
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>
-                                                                    <?php
+                                                                        ?>
+                                                                                <tr class="bg-grey">
+                                                                                    <td align="center"><?php echo  $mcounter ?></td>
+                                                                                    <td><?= $task_name ?></td>
+                                                                                    <td>
+                                                                                        <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" name="addplus" title="<?= $edit == 1 ? "Edit" : "Add" ?> Specifications" class="btn btn-success btn-sm" onclick="add_specification_details(<?= $details ?>)">
+                                                                                            <span class="glyphicon glyphicon-<?= $edit == 1 ? "pencil" : "plus" ?>"></span>
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                        <?php
+                                                                            }
                                                                         }
-                                                                    }
-                                                                    ?>
-                                                                </tbody>
-                                                            </table>
+                                                                        ?>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </fieldset>
-                                        <?php
+                                                    </fieldset>
+                                            <?php
+                                                }
                                             }
+                                            ?>
+                                        <?php
                                         }
                                         ?>
-                                    <?php
-                                    }
-                                    ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-    </section>
+        </section>
 
-    <!-- Start Item more -->
-    <div class="modal fade" tabindex="-1" role="dialog" id="outputItemModal">
-        <div class="modal-dialog  modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color:#03A9F4">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Output Specifications</h4>
-                </div>
-                <form class="form-horizontal" id="add_items" action="" method="POST">
-                    <?= csrf_token_html(); ?>
-                    <div class="modal-body">
-                        <fieldset class="scheduler-border" id="tasks_parameters_div">
-                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Specifications </legend>
-                            <div class="col-md-12" id="projoutputTable">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped table-hover" id="tasks_parameter_table" style="width:100%">
-                                        <thead>
-                                            <tr>
-                                                <th width="5%">#</th>
-                                                <th width="50%">Specification</th>
-                                                <th width="40%">Standard (Optional)</th>
-                                                <th width="5%">
-                                                    <button type="button" name="addplus" id="addplus_output" onclick="add_row_specifications();" class="btn btn-success btn-sm addplus_output">
-                                                        <span class="glyphicon glyphicon-plus">
-                                                        </span>
-                                                    </button>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tasks_specifications_table_body">
-                                            <tr></tr>
-                                            <tr id="hideinfo3" align="center">
-                                                <td colspan="3">Add Specifications!!</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+        <!-- Start Item more -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="outputItemModal">
+            <div class="modal-dialog  modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:#03A9F4">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-info-circle"></i> Project Output Specifications</h4>
+                    </div>
+                    <form class="form-horizontal" id="add_items" action="" method="POST">
+                        <?= csrf_token_html(); ?>
+                        <div class="modal-body">
+                            <fieldset class="scheduler-border" id="tasks_parameters_div">
+                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Add Specifications </legend>
+                                <div class="col-md-12" id="projoutputTable">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped table-hover" id="tasks_parameter_table" style="width:100%">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">#</th>
+                                                    <th width="50%">Specification</th>
+                                                    <th width="40%">Standard (Optional)</th>
+                                                    <th width="5%">
+                                                        <button type="button" name="addplus" id="addplus_output" onclick="add_row_specifications();" class="btn btn-success btn-sm addplus_output">
+                                                            <span class="glyphicon glyphicon-plus">
+                                                            </span>
+                                                        </button>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tasks_specifications_table_body">
+                                                <tr></tr>
+                                                <tr id="hideinfo3" align="center">
+                                                    <td colspan="3">Add Specifications!!</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <div class="modal-footer">
-                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                            <input type="hidden" name="store_specifications" id="store_specifications" value="specifications">
-                            <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
-                            <input type="hidden" name="output_id" id="output_id" value="<?= $output_id ?>">
-                            <input type="hidden" name="task_id" id="task_id" value="">
-                            <input type="hidden" name="site_id" id="site_id" value="">
-                            <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
-                            <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
-                            <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                            </fieldset>
                         </div>
-                    </div>
-                </form>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div>
-    <!-- End Item more -->
+                        <div class="modal-footer">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                <input type="hidden" name="store_specifications" id="store_specifications" value="specifications">
+                                <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                                <input type="hidden" name="output_id" id="output_id" value="<?= $output_id ?>">
+                                <input type="hidden" name="task_id" id="task_id" value="">
+                                <input type="hidden" name="site_id" id="site_id" value="">
+                                <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
+                                <input name="submtt" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />
+                                <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+                            </div>
+                        </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div>
+        <!-- End Item more -->
 <?php
-} else {
-    $results =  restriction();
-    echo $results;
+    } else {
+        $results =  restriction();
+        echo $results;
+    }
+    require('includes/footer.php');
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-require('includes/footer.php');
 ?>
 <script src="assets/js/inspection/specification.js"></script>

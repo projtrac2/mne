@@ -1,8 +1,6 @@
 <?php
 
 include_once '../../controller.php';
-
-
 $sql = $db->prepare("SELECT * FROM `tbl_project_implementation_method` ORDER BY `id` ASC");
 $sql->execute();
 $rows_count = $sql->rowCount();
@@ -15,7 +13,7 @@ if ($rows_count > 0) {
 		$sn++;
 		$itemId = $row['id'];
 		$method = $row["method"];
-		// status 
+		// status
 		if ($row['status'] == 1) {
 			$active = "<label class='label label-success'>Enabled</label>";
 			$wordings = 'disable';
@@ -33,7 +31,7 @@ if ($rows_count > 0) {
 			</button>
 			<ul class="dropdown-menu">
 				<li><a type="button" data-toggle="modal" id="editItemModalBtn" data-target="#editItemModal" onclick="editItem(' . $itemId . ')"> <i class="glyphicon glyphicon-edit"></i> Edit</a></li>
-				<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>       
+				<li><a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(' . $itemId . ')"> <i class="glyphicon glyphicon-trash"></i> Remove</a></li>
 				<li>
 					<a type="button" id="disableBtn" class="disableBtn" onclick="disable('.$itemId.',\''.$method.'\',\''.$wordings.'\')">
 						<i class="glyphicon glyphicon-trash"></i> ' . $wordingsCapital . '
@@ -50,7 +48,7 @@ if ($rows_count > 0) {
 			$active,
 			$button
 		);
-	} // /while 
+	} // /while
 
 } // if num_rows
 

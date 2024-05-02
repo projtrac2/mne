@@ -899,9 +899,8 @@ try {
       echo $results;
    }
 } catch (PDOException $ex) {
-   customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+   customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
-
 require('includes/footer.php');
 ?>
 
