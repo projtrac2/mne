@@ -8,8 +8,7 @@ try {
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                     <h4 class="contentheader">
-                        <?= $icon ?>
-                        <?= $pageTitle ?>
+                        <?= $icon  . ' ' . $pageTitle ?>
                         <div class="btn-group" style="float:right">
                             <div class="btn-group" style="float:right">
                             </div>
