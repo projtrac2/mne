@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_GET['get_total_number_of_programs'])) {
         if (isset($_GET["type"]) && $_GET["type"] == 1) {
             $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid WHERE g.program_type=0 ORDER BY `projfscyear` ASC");
@@ -89,7 +90,7 @@ try {
             $unit = $row['unit'];
             $indicator_name = $row['indicator_name'];
         }
-        echo json_encode(array('success' => true, 'unit' => $unit,'indicator_name' => $indicator_name));
+        echo json_encode(array('success' => true, 'unit' => $unit, 'indicator_name' => $indicator_name));
     }
 } catch (PDOException $ex) {
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());

@@ -1,6 +1,7 @@
 <?php
-include_once "../controller.php";
 try {
+    include_once "../controller.php";
+
     // get financiers // select
     if (isset($_POST['getfinancier'])) {
         $projid = $_POST['getfinancier'];

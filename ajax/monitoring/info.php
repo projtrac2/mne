@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function previous_remarks($site_id, $subtask_id, $task_id)
     {
         global $db;
@@ -26,15 +27,16 @@ try {
         return $previous_records;
     }
 
-    function previous_attachment($site_id, $subtask_id, $task_id){
+    function previous_attachment($site_id, $subtask_id, $task_id)
+    {
         global $db;
         $query_project_videos = $db->prepare("SELECT * FROM tbl_files WHERE site_id=:site_id and ftype='mp4'");
         $query_project_videos->execute(array(":site_id" => $site_id));
         $count_project_videos = $query_project_videos->rowCount();
-        $data ='';
+        $data = '';
         if ($count_project_videos > 0) {
             $rowno = 0;
-            while ($rows_project_videos = $query_project_videos->fetch()){
+            while ($rows_project_videos = $query_project_videos->fetch()) {
                 $rowno++;
                 $projstageid = $rows_project_videos['projstage'];
                 $filename = $rows_project_videos['filename'];
@@ -45,14 +47,14 @@ try {
                 $query_project_stage->execute(array(":projstageid" => $projstageid));
                 $rows_project_stage = $query_project_stage->fetch();
                 $projstage = $rows_project_stage['stage'];
-                $data .='
+                $data .= '
                 <tr>
-                    <td width="5%">'. $rowno .'</td>
-                    <td width="35%">'. $filename .'</td>
-                    <td width="35%">'. $purpose .'</td>
-                    <td width="10%">'. $projstage .'</td>
+                    <td width="5%">' . $rowno . '</td>
+                    <td width="35%">' . $filename . '</td>
+                    <td width="35%">' . $purpose . '</td>
+                    <td width="10%">' . $projstage . '</td>
                     <td width="15%">
-                        <a href="'. $filepath .'" watch target="_balnk">Download</a>
+                        <a href="' . $filepath . '" watch target="_balnk">Download</a>
                     </td>
                 </tr>';
             }

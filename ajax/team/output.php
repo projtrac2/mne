@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_GET['get_project_outputs'])) {
         $projid = $_GET['projid'];
         $outputs = '<option value="">Select Output from list</option>';
@@ -32,7 +33,7 @@ try {
         $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE site_id=:site_id AND output_id=:output_id");
         $query_rsTargetUsed->execute(array(":site_id" => $site_id, ":output_id" => $output_id));
         $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-        $achieved =$Rows_rsTargetUsed['achieved'] !=null ? $Rows_rsTargetUsed['achieved'] : 0;
+        $achieved = $Rows_rsTargetUsed['achieved'] != null ? $Rows_rsTargetUsed['achieved'] : 0;
         return  $target -  $achieved;
     }
 
@@ -48,7 +49,7 @@ try {
         $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE milestone_id=:milestone_id AND output_id=:output_id");
         $query_rsTargetUsed->execute(array(":site_id" => $milestone_id, ":output_id" => $output_id));
         $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-        $achieved =$Rows_rsTargetUsed['achieved'] !=null ? $Rows_rsTargetUsed['achieved'] : 0;
+        $achieved = $Rows_rsTargetUsed['achieved'] != null ? $Rows_rsTargetUsed['achieved'] : 0;
         return  $target -  $achieved;
     }
 
@@ -59,12 +60,12 @@ try {
         $query_rsOutput->execute(array(":output_id" => $output_id));
         $Rows_rsOutput = $query_rsOutput->fetch();
         $totalRows_rsOutput = $query_rsOutput->rowCount();
-        $output_target = ($totalRows_rsOutput > 0) ? $Rows_rsOutput['total_target'] : 0 ;
+        $output_target = ($totalRows_rsOutput > 0) ? $Rows_rsOutput['total_target'] : 0;
 
         $query_rsTargetUsed = $db->prepare("SELECT SUM(achieved) as achieved FROM tbl_monitoringoutput WHERE output_id=:output_id");
         $query_rsTargetUsed->execute(array(":output_id" => $output_id));
         $Rows_rsTargetUsed = $query_rsTargetUsed->fetch();
-        $achieved_output_target =$Rows_rsTargetUsed['achieved'] !=null ? $Rows_rsTargetUsed['achieved'] : 0;
+        $achieved_output_target = $Rows_rsTargetUsed['achieved'] != null ? $Rows_rsTargetUsed['achieved'] : 0;
 
         $site_target = get_site_target($site_id, $output_id);
         $milestone_target = get_output_milestone_target($milestone_id, $output_id);
@@ -73,7 +74,7 @@ try {
 
         $milestone_achieved = 0;
 
-        $data = array("site_target" => $site_target, "site_achieved" => $cumulative_measurement, "milestone_target" => $previous, 'milestone_achieved'=>$milestone_achieved);
+        $data = array("site_target" => $site_target, "site_achieved" => $cumulative_measurement, "milestone_target" => $previous, 'milestone_achieved' => $milestone_achieved);
         return $data;
     }
 
@@ -171,7 +172,7 @@ try {
             if (isset($_POST['comments'])) {
                 $observ = $_POST['comments'];
                 $SQLinsert = $db->prepare("INSERT INTO tbl_monitoring_observations (projid,output_id,milestone_id,site_id,task_id,subtask_id,formid,observation,created_at,created_by) VALUES (:projid,:output_id,:milestone_id,:site_id,:task_id,:subtask_id,:formid,:observation,:created_at,:created_by)");
-                $Rst  = $SQLinsert->execute(array(":projid" => $projid, ":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':formid' => $formid, ':observation' => $observ,':created_at' => $currentdate, ':created_by' => $user_name));
+                $Rst  = $SQLinsert->execute(array(":projid" => $projid, ":output_id" => $output_id, ":milestone_id" => $milestone_id, ":site_id" => $site_id, ":task_id" => $task_id, ":subtask_id" => $subtask_id, ':formid' => $formid, ':observation' => $observ, ':created_at' => $currentdate, ':created_by' => $user_name));
             }
 
             if (isset($_POST["attachmentpurpose"])) {

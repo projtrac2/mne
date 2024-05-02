@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_POST['store_topic'])) {
         $results = false;
         if (validate_csrf_token($_POST['csrf_token'])) {

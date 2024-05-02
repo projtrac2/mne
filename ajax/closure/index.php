@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['store_closure'])) {
         $projid = $_POST['projid'];
         $remarks = $_POST['comments'];

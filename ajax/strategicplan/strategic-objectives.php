@@ -1,10 +1,7 @@
 <?php
-include_once '../../projtrac-dashboard/resource/Database.php';
-include_once '../../projtrac-dashboard/resource/utilities.php';
-include_once("../../includes/system-labels.php");
-require('../../functions/strategicplan.php');
-
 try {
+	include '../controller.php';
+	require('../../functions/strategicplan.php');
 	$valid['success'] = array('success' => false, 'messages' => array());
 	if (isset($_POST['more'])) {
 		$itemId = $_POST['itemId'];
@@ -250,14 +247,14 @@ try {
 							</tr>
 						</thead>
 						<tbody>';
-							$query_strategy = $db->prepare("SELECT * FROM tbl_objective_strategy WHERE objid = '$itemId'");
-							$query_strategy->execute();
-							$row_strategy = $query_strategy->fetch();
-							$counter = 1;
-							do {
-								$counter++;
-								$strategy = $row_strategy['strategy'];
-								$input .= '<tr id = "row' . $counter . '">
+		$query_strategy = $db->prepare("SELECT * FROM tbl_objective_strategy WHERE objid = '$itemId'");
+		$query_strategy->execute();
+		$row_strategy = $query_strategy->fetch();
+		$counter = 1;
+		do {
+			$counter++;
+			$strategy = $row_strategy['strategy'];
+			$input .= '<tr id = "row' . $counter . '">
 									<td>
 										<input type="text" name="strategic[]" id="strategic" class="form-control" value="' . $strategy . '" placeholder="Enter the Strategic Objective" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required>
 									</td>
@@ -266,8 +263,8 @@ try {
 										<span class="glyphicon glyphicon-minus"></span></button>
 									</td>
 								</tr>';
-							} while ($row_strategy = $query_strategy->fetch());
-							$input .= '
+		} while ($row_strategy = $query_strategy->fetch());
+		$input .= '
 						</tbody>
 					</table>
 					<input name="username" type="hidden" id="username" value="<?php echo $user_name; ?>" />
@@ -393,11 +390,11 @@ try {
 		echo json_encode($valid);
 	}
 
-	if(isset($_GET['get_kpi_more_info'])){
+	if (isset($_GET['get_kpi_more_info'])) {
 		$kpi_id = $_GET['kpi_id'];
 
 		$query_kpi_details = $db->prepare("SELECT indicator_name, objective, data_source, frequency, responsible FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id left join tbl_strategic_plan_objectives o on o.id=k.strategic_objective_id left join tbl_datacollectionfreq f on f.fqid=k.data_frequency WHERE k.id=:kpi_id");
-		$query_kpi_details->execute(array(":kpi_id"=>$kpi_id));
+		$query_kpi_details->execute(array(":kpi_id" => $kpi_id));
 		$rows_kpi_details = $query_kpi_details->fetch();
 
 		$strategic_objective = $rows_kpi_details["objective"];
@@ -407,52 +404,52 @@ try {
 		$responsible_id = $rows_kpi_details["responsible"];
 
 		$query_responsible_designation = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid=:responsible_id");
-		$query_responsible_designation->execute(array(":responsible_id"=>$responsible_id));
+		$query_responsible_designation->execute(array(":responsible_id" => $responsible_id));
 		$rows_responsible_designation = $query_responsible_designation->fetch();
 		$responsible_designation = $rows_responsible_designation["designation"];
 
 		$query_responsible = $db->prepare("SELECT tt.title AS title, fullname FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title WHERE u.userid=:responsible_id");
-		$query_responsible->execute(array(":responsible_id"=>$responsible_id));
+		$query_responsible->execute(array(":responsible_id" => $responsible_id));
 		$rows_responsible = $query_responsible->fetch();
 		$title = $rows_responsible["title"];
 		$full_name = $rows_responsible["fullname"];
-		$responsible = $title.".".$full_name;
+		$responsible = $title . "." . $full_name;
 
 		$query_kpi_initial_baseline = $db->prepare("SELECT initial_baseline FROM tbl_kpi WHERE id=:kpi_id");
-		$query_kpi_initial_baseline->execute(array(":kpi_id"=>$kpi_id));
+		$query_kpi_initial_baseline->execute(array(":kpi_id" => $kpi_id));
 		$rows_kpi_initial_baseline = $query_kpi_initial_baseline->fetch();
 		$initial_baseline = $rows_kpi_initial_baseline["initial_baseline"];
 
-		$kpi_details ='
+		$kpi_details = '
 		<input type="hidden" value="0" id="clicked">
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Key Performnce Indicator (KPI):</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$indicator_name.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $indicator_name . '</div>
 			</div>
 		</div>
 		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Data Source:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$data_source.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $data_source . '</div>
 			</div>
 		</div>
 		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Initial Basevalue:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$initial_baseline.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $initial_baseline . '</div>
 			</div>
 		</div>
 		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Data Collection Frequency:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$data_frequency.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $data_frequency . '</div>
 			</div>
 		</div>
 		<div class="col-lg-6 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Responsible:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$responsible_designation.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $responsible_designation . '</div>
 			</div>
 		</div>
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -466,26 +463,26 @@ try {
 						</tr>
 					</thead>
 					<tbody>';
-					$query_kpi_targets = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id");
-					$query_kpi_targets->execute(array(":kpi_id"=>$kpi_id));
+		$query_kpi_targets = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id");
+		$query_kpi_targets->execute(array(":kpi_id" => $kpi_id));
 
-					$achieved = $counter = 0;
-					while($rows_kpi_targets = $query_kpi_targets->fetch()){
-						$counter++;
-						$target_id = $rows_kpi_targets["id"];
-						$year = $rows_kpi_targets["year"];
-						$end_year = $year + 1;
-						$fn_year = $year."/".$end_year;
-						$target = $rows_kpi_targets["target"];
+		$achieved = $counter = 0;
+		while ($rows_kpi_targets = $query_kpi_targets->fetch()) {
+			$counter++;
+			$target_id = $rows_kpi_targets["id"];
+			$year = $rows_kpi_targets["year"];
+			$end_year = $year + 1;
+			$fn_year = $year . "/" . $end_year;
+			$target = $rows_kpi_targets["target"];
 
-						$kpi_details .='
+			$kpi_details .= '
 						<tr>
-							<td>'. $counter .'</td>
-							<td>'. $fn_year .'</td>
-							<td>'. $target .'%</td>
+							<td>' . $counter . '</td>
+							<td>' . $fn_year . '</td>
+							<td>' . $target . '%</td>
 						</tr>';
-					}
-					$kpi_details .='
+		}
+		$kpi_details .= '
 					<tbody>
 				</table>
 			</div>
@@ -494,11 +491,11 @@ try {
 		echo json_encode(["kpi_more_details_body" => $kpi_details]);
 	}
 
-	if(isset($_GET['get_kpi_score_details'])){
+	if (isset($_GET['get_kpi_score_details'])) {
 		$kpi_id = $_GET['kpi_id'];
 
 		$query_kpi_details = $db->prepare("SELECT indicator_name, objective, data_source, initial_baseline, frequency, responsible, weighting FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id left join tbl_strategic_plan_objectives o on o.id=k.strategic_objective_id left join tbl_datacollectionfreq f on f.fqid=k.data_frequency WHERE k.id=:kpi_id");
-		$query_kpi_details->execute(array(":kpi_id"=>$kpi_id));
+		$query_kpi_details->execute(array(":kpi_id" => $kpi_id));
 		$rows_kpi_details = $query_kpi_details->fetch();
 
 		$strategic_objective = $rows_kpi_details["objective"];
@@ -510,41 +507,41 @@ try {
 		$kpi_weighting = $rows_kpi_details["weighting"];
 
 		$query_responsible_designation = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid=:responsible_id");
-		$query_responsible_designation->execute(array(":responsible_id"=>$responsible_id));
+		$query_responsible_designation->execute(array(":responsible_id" => $responsible_id));
 		$rows_responsible_designation = $query_responsible_designation->fetch();
 		$responsible_designation = $rows_responsible_designation["designation"];
 
 		$query_responsible = $db->prepare("SELECT tt.title AS title, fullname FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title WHERE u.userid=:responsible_id");
-		$query_responsible->execute(array(":responsible_id"=>$responsible_id));
+		$query_responsible->execute(array(":responsible_id" => $responsible_id));
 		$rows_responsible = $query_responsible->fetch();
 		$title = $rows_responsible["title"];
 		$full_name = $rows_responsible["fullname"];
-		$responsible = $title.".".$full_name;
+		$responsible = $title . "." . $full_name;
 
-		$kpi_details ='
+		$kpi_details = '
 		<input type="hidden" value="0" id="clicked">
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Key Performnce Indicator (KPI):</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$indicator_name.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $indicator_name . '</div>
 			</div>
 		</div>
 		<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Initial Basevalue:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$initial_baseline.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $initial_baseline . '</div>
 			</div>
 		</div>
 		<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Weighting:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$kpi_weighting.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $kpi_weighting . '</div>
 			</div>
 		</div>
 		<div class="col-lg-4 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:10px">
 			<div class="form-inline">
 				<label for="">Data Collection Frequency:</label>
-				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">'.$data_frequency.'</div>
+				<div id="severityname" style="border:#CCC thin solid; border-radius:5px; padding-top: 7px; padding-left: 10px; height: auto; width:98%">' . $data_frequency . '</div>
 			</div>
 		</div>
 		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -562,88 +559,88 @@ try {
 						</tr>
 					</thead>
 					<tbody>';
-					$query_kpi_targets = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id");
-					$query_kpi_targets->execute(array(":kpi_id"=>$kpi_id));
+		$query_kpi_targets = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id");
+		$query_kpi_targets->execute(array(":kpi_id" => $kpi_id));
 
-					$query_first_kpi_target = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id ORDER BY id ASC Limit 1");
-					$query_first_kpi_target->execute(array(":kpi_id"=>$kpi_id));
-					$rows_first_kpi_target = $query_first_kpi_target->fetch();
-					$first_kpi_target_id = $rows_first_kpi_target["id"];
-					$first_kpi_target = $rows_first_kpi_target["target"];
+		$query_first_kpi_target = $db->prepare("SELECT * FROM tbl_kpi_targets WHERE kpi_id=:kpi_id ORDER BY id ASC Limit 1");
+		$query_first_kpi_target->execute(array(":kpi_id" => $kpi_id));
+		$rows_first_kpi_target = $query_first_kpi_target->fetch();
+		$first_kpi_target_id = $rows_first_kpi_target["id"];
+		$first_kpi_target = $rows_first_kpi_target["target"];
 
-					$achieved = $counter = 0;
-					while($rows_kpi_targets = $query_kpi_targets->fetch()){
-						$counter++;
-						$target_id = $rows_kpi_targets["id"];
-						$year = $rows_kpi_targets["year"];
-						$end_year = $year + 1;
-						$fn_year = $year."/".$end_year;
-						$target = $rows_kpi_targets["target"];
+		$achieved = $counter = 0;
+		while ($rows_kpi_targets = $query_kpi_targets->fetch()) {
+			$counter++;
+			$target_id = $rows_kpi_targets["id"];
+			$year = $rows_kpi_targets["year"];
+			$end_year = $year + 1;
+			$fn_year = $year . "/" . $end_year;
+			$target = $rows_kpi_targets["target"];
 
-						$query_kpi_score = $db->prepare("SELECT score, date_created FROM tbl_kpi_scores WHERE kpi_id=:kpi_id AND year=:year ORDER BY id ASC Limit 1");
-						$query_kpi_score->execute(array(":kpi_id"=>$kpi_id, ":year"=>$year));
-						$rows_kpi_score = $query_kpi_score->fetch();
+			$query_kpi_score = $db->prepare("SELECT score, date_created FROM tbl_kpi_scores WHERE kpi_id=:kpi_id AND year=:year ORDER BY id ASC Limit 1");
+			$query_kpi_score->execute(array(":kpi_id" => $kpi_id, ":year" => $year));
+			$rows_kpi_score = $query_kpi_score->fetch();
 
-						$achieved = $performance = 0;
-						$record_date = "N/A";
-						if($first_kpi_target_id == $target_id){
-							$baseline = $initial_baseline;
-						} else {
-							$baseline_year = $year - 1;
-							$query_kpi_baseline = $db->prepare("SELECT score FROM tbl_kpi_scores WHERE kpi_id=:kpi_id AND year=:year ORDER BY id ASC Limit 1");
-							$query_kpi_baseline->execute(array(":kpi_id"=>$kpi_id, ":year"=>$baseline_year));
-							$rows_kpi_baseline = $query_kpi_baseline->fetch();
-							$baseline = $rows_kpi_baseline["score"];
-						}
+			$achieved = $performance = 0;
+			$record_date = "N/A";
+			if ($first_kpi_target_id == $target_id) {
+				$baseline = $initial_baseline;
+			} else {
+				$baseline_year = $year - 1;
+				$query_kpi_baseline = $db->prepare("SELECT score FROM tbl_kpi_scores WHERE kpi_id=:kpi_id AND year=:year ORDER BY id ASC Limit 1");
+				$query_kpi_baseline->execute(array(":kpi_id" => $kpi_id, ":year" => $baseline_year));
+				$rows_kpi_baseline = $query_kpi_baseline->fetch();
+				$baseline = $rows_kpi_baseline["score"];
+			}
 
-						if($rows_kpi_score){
-							$achieved = $rows_kpi_score["score"];
-							$record_date = $rows_kpi_score["date_created"];
+			if ($rows_kpi_score) {
+				$achieved = $rows_kpi_score["score"];
+				$record_date = $rows_kpi_score["date_created"];
 
-							//$achieved = 2 + ($achieved + $counter);
-							$performance = number_format((($achieved - $baseline) / $baseline) * 100, 2);
-						}
+				//$achieved = 2 + ($achieved + $counter);
+				$performance = number_format((($achieved - $baseline) / $baseline) * 100, 2);
+			}
 
-						$query_kpi_target_threshold = $db->prepare("SELECT * FROM tbl_kpi_target_thresholds WHERE kpi_target_id=:target_id");
-						$query_kpi_target_threshold->execute(array(":target_id"=>$target_id));
-						$rows_target_thresholds = $query_kpi_target_threshold->fetch();
-						$threshold_1 = $rows_target_thresholds["threshold_1"];
-						$threshold_2 = $rows_target_thresholds["threshold_2"];
-						$threshold_3 = $rows_target_thresholds["threshold_3"];
-						$threshold_4 = $rows_target_thresholds["threshold_4"];
+			$query_kpi_target_threshold = $db->prepare("SELECT * FROM tbl_kpi_target_thresholds WHERE kpi_target_id=:target_id");
+			$query_kpi_target_threshold->execute(array(":target_id" => $target_id));
+			$rows_target_thresholds = $query_kpi_target_threshold->fetch();
+			$threshold_1 = $rows_target_thresholds["threshold_1"];
+			$threshold_2 = $rows_target_thresholds["threshold_2"];
+			$threshold_3 = $rows_target_thresholds["threshold_3"];
+			$threshold_4 = $rows_target_thresholds["threshold_4"];
 
-						$progress_bar_success = "";
-						if($performance < $threshold_1){
-							$progress_bar_success = "progress-bar-danger";
-						} elseif($performance >= $threshold_1 && $performance < $threshold_2){
-							$progress_bar_success = "progress-bar-warning";
-						} elseif($performance >= $threshold_2 && $performance < $threshold_3){
-							$progress_bar_success = "progress-bar-primary";
-						} elseif(($performance >= $threshold_3 && $performance <= $threshold_4) || $performance > $threshold_4){
-							$progress_bar_success = "progress-bar-success";
-						}
+			$progress_bar_success = "";
+			if ($performance < $threshold_1) {
+				$progress_bar_success = "progress-bar-danger";
+			} elseif ($performance >= $threshold_1 && $performance < $threshold_2) {
+				$progress_bar_success = "progress-bar-warning";
+			} elseif ($performance >= $threshold_2 && $performance < $threshold_3) {
+				$progress_bar_success = "progress-bar-primary";
+			} elseif (($performance >= $threshold_3 && $performance <= $threshold_4) || $performance > $threshold_4) {
+				$progress_bar_success = "progress-bar-success";
+			}
 
-						$performance = $performance > 100 ? 100:$performance;
-						$performance_progress = number_format(($performance/$target) * 100, 2);
+			$performance = $performance > 100 ? 100 : $performance;
+			$performance_progress = number_format(($performance / $target) * 100, 2);
 
-						$kpi_details .='
+			$kpi_details .= '
 						<tr>
-							<td>'. $counter .'</td>
-							<td>'. $fn_year .'</td>
-							<td>'. $target .'%</td>
-							<td>'. $baseline .'</td>
-							<td>'. $achieved .'</td>
+							<td>' . $counter . '</td>
+							<td>' . $fn_year . '</td>
+							<td>' . $target . '%</td>
+							<td>' . $baseline . '</td>
+							<td>' . $achieved . '</td>
 							<td>
                                 <div class="progress" style="height:20px; font-size:10px; color:black">
-                                    <div class="progress-bar '.$progress_bar_success.' progress-bar-striped active" role="progressbar" aria-valuenow="' . $performance_progress . '" aria-valuemin="0" aria-valuemax="'. $target .'" style="width: ' . $performance_progress . '%; height:20px; font-size:10px; color:black">
+                                    <div class="progress-bar ' . $progress_bar_success . ' progress-bar-striped active" role="progressbar" aria-valuenow="' . $performance_progress . '" aria-valuemin="0" aria-valuemax="' . $target . '" style="width: ' . $performance_progress . '%; height:20px; font-size:10px; color:black">
                                         ' . $performance . '%
 									</div>
 								</div>
 							</td>
-							<td>'. $record_date .'</td>
+							<td>' . $record_date . '</td>
 						</tr>';
-					}
-					$kpi_details .='
+		}
+		$kpi_details .= '
 					<tbody>
 				</table>
 			</div>
@@ -662,7 +659,7 @@ try {
 		if ($results === TRUE) {
 			$rows_kpi = $query_kpi->fetch();
 			$kpi = $rows_kpi["indicator_name"];
-			$unit = "Score (".$rows_kpi["unit"].") *:";
+			$unit = "Score (" . $rows_kpi["unit"] . ") *:";
 
 			echo json_encode(["kpi" => $kpi, "unit" => $unit]);
 		}
@@ -678,19 +675,19 @@ try {
 			$rows_unit = $query_unit->fetch();
 			$unit = $rows_unit["unit"];
 			$calculation_method = $rows_unit["indicator_calculation_method"];
-			$threshold_placeholder = $calculation_method == 1 ? "#":"%";
+			$threshold_placeholder = $calculation_method == 1 ? "#" : "%";
 
 			echo json_encode(["unit" => $unit, "threshold_placeholder" => $threshold_placeholder]);
 		}
 	}
 
 
-    if (isset($_POST['save_kpi_evaluation'])) {
-        $current_date = date("Y-m-d");
-        $current_year = date("Y");
-        $kpi_id = $_POST['kpi_id'];
-        $score = $_POST['kpi_value'];
-        $username = $_POST['username'];
+	if (isset($_POST['save_kpi_evaluation'])) {
+		$current_date = date("Y-m-d");
+		$current_year = date("Y");
+		$kpi_id = $_POST['kpi_id'];
+		$score = $_POST['kpi_value'];
+		$username = $_POST['username'];
 
 		/* if(!empty($riskid) || $riskid !=""){
 			$update_risk = $db->prepare("UPDATE tbl_risk_register SET risk_description=:risk, risk_category=:risk_category, updated_by=:user_name, date_updated=:date_entered WHERE id=:riskid");
@@ -715,8 +712,8 @@ try {
 			$message = "KPI successfully evaluated";
 		}
 		//}
-        echo json_encode(array("success" => $success_status, "message" => $message));
-    }
+		echo json_encode(array("success" => $success_status, "message" => $message));
+	}
 } catch (PDOException $ex) {
 	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

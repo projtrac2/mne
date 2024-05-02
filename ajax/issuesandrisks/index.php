@@ -3,7 +3,6 @@ try {
 	include '../controller.php';
 	if (isset($_GET['get_issue_more_info'])) {
 		$issueid = $_GET['issueid'];
-
 		$query_issue_details = $db->prepare("SELECT i.projid, i.issue_area, i.issue_priority, issue_description, m.description AS impact, category, recommendation, i.status, i.created_by AS monitor, i.date_created AS issuedate FROM tbl_projissues i INNER JOIN tbl_projrisk_categories c ON c.catid=i.risk_category inner join tbl_risk_impact m on m.id=i.issue_impact WHERE i.id=:issueid");
 		$query_issue_details->execute(array(":issueid" => $issueid));
 		$row_issue_details = $query_issue_details->fetch();

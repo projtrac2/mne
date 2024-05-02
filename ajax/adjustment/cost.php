@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['store_cost'])) {
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];
@@ -48,7 +48,7 @@ try {
         $row_rsMilestone = $query_rsMilestone->fetch();
         $totalRows_rsMilestone = $query_rsMilestone->rowCount();
 
-        $input = $task ="";
+        $input = $task = "";
         $remaining_amount = 0;
         if ($totalRows_rsMilestone > 0) {
             $task = $row_rsMilestone['task'];
@@ -95,7 +95,7 @@ try {
                         ' . number_format($remaining_units, 2) . '
                     </td>
                     <td>
-                        <input name="unit_cost" type="number" min="1"  max="' . $remaining_amount . '" step="1" placeholder="Enter Unit Cost Adjustment" value="'.$subtask_cost.'" id="unit_cost' . $tkid . '" class="form-control" required="required" onkeyup="change_calculate_adjust_cost(' . $tkid . ', ' . $remaining_units . ', ' . $remaining_amount . ')" onchange="change_calculate_adjust_cost(' . $tkid . ', ' . $remaining_units . ', ' . $remaining_amount . ')" required/>
+                        <input name="unit_cost" type="number" min="1"  max="' . $remaining_amount . '" step="1" placeholder="Enter Unit Cost Adjustment" value="' . $subtask_cost . '" id="unit_cost' . $tkid . '" class="form-control" required="required" onkeyup="change_calculate_adjust_cost(' . $tkid . ', ' . $remaining_units . ', ' . $remaining_amount . ')" onchange="change_calculate_adjust_cost(' . $tkid . ', ' . $remaining_units . ', ' . $remaining_amount . ')" required/>
                         <input name="tasks" type="hidden" value="' . $tkid . '" />
                         <input name="no_units" type="hidden" value="' . $remaining_units . '" id="no_units' . $tkid . '"/>
                         <input name="remaining_amount" type="hidden" value="' . $remaining_amount . '" id="remaining_amount' . $tkid . '"/>
@@ -104,7 +104,7 @@ try {
                 </tr>';
             }
         }
-        echo json_encode(array("success" => true, "tasks" => $input, "remaining_amount" => number_format($remaining_amount, 2), "task"=>$task));
+        echo json_encode(array("success" => true, "tasks" => $input, "remaining_amount" => number_format($remaining_amount, 2), "task" => $task));
     }
 } catch (PDOException $ex) {
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());

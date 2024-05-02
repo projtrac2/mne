@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_POST['store_checklists'])) {
         $projid = $_POST['projid'];
         $output_id = $_POST['output_id'];

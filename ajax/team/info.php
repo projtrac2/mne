@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function get_roles($role)
     {
         global $db;
@@ -59,7 +60,7 @@ try {
 
     if (isset($_GET['get_team_members'])) {
         $projid = $_GET['projid'];
-        $team_body ='';
+        $team_body = '';
         $query_rsMembers = $db->prepare("SELECT * FROM `tbl_projmembers` WHERE projid=:projid AND team_type=4");
         $query_rsMembers->execute(array(":projid" => $projid));
         $total_rsMembers = $query_rsMembers->rowCount();
@@ -114,7 +115,7 @@ try {
             }
         }
 
-        echo json_encode(array("success"=>true, "team"=>$team_body));
+        echo json_encode(array("success" => true, "team" => $team_body));
     }
 } catch (PDOException $ex) {
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());

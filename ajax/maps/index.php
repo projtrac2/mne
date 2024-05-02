@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function get_responsible($members, $responsible)
     {
         global $db;

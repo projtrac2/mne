@@ -1,7 +1,6 @@
 <?php
-
-include '../controller.php';
 try {
+    include '../controller.php';
 
     function get_roles($role)
     {

@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     // notification types
     if (isset($_POST['update_notification_type_status'])) {
         $notification_type_id = $_POST['notification_type_id'];

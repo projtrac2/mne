@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_GET['get_edit_questions'])) {
         $projid = $_GET['projid'];
         $output_id = $_GET['output_id'];

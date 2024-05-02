@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_POST['getcont'])) {
         $getcont = $_POST['getcont'];
         $query_cont = $db->prepare("SELECT pinno, busregno, type  FROM tbl_contractor left join tbl_contractorbusinesstype on tbl_contractor.businesstype=tbl_contractorbusinesstype.id WHERE contrid='$getcont'");

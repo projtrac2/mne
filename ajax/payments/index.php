@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+   include '../controller.php';
 
    function incrementalHash($len = 5)
    {

@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function previous_remarks($site_id, $subtask_id)
     {
         global $db;

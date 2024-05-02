@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function timeline_chart($projid, $site_id)
     {
         global $db;
@@ -22,7 +23,7 @@ try {
             $inner->id = 'p' . $projid;
             $inner->owner = 'owner';
 
-            array_push($series->data,$inner);
+            array_push($series->data, $inner);
 
             $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
             $query_Output->execute(array(":projid" => $projid));

@@ -1,7 +1,7 @@
 <?php
-
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_GET['get_sites'])) {
         $msg = false;
         $output_id = $_GET['output_id'];

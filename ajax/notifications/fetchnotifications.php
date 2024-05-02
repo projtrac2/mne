@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_GET['get_alerts'])) {
         $view = $_GET['view'];
         if ($view != '') {

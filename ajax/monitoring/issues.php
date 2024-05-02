@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+	include '../controller.php';
+
 
 	if (isset($_GET['get_risk_category'])) {
 		$projid = $_GET['projid'];

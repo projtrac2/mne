@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_GET['get_location_details'])) {
         $state_id = $_GET['state_id'];
         $query_rsComm =  $db->prepare("SELECT * FROM tbl_state WHERE id=:state_id");

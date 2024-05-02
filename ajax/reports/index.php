@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_POST['store'])) {
         $record_type = $_POST['record_type'];
         $store = $_POST['store'];

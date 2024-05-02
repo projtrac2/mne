@@ -1,9 +1,6 @@
 <?php
 try {
-
 	include_once '../controller.php';
-
-
 	function get_access_level()
 	{
 		global $user_designation, $user_department, $user_section, $user_directorate;

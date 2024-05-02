@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     function validate_output($output_id)
     {
         global $db, $projid, $user_designation, $team_type, $workflow_stage, $user_name;

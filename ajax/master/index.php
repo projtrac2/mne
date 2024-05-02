@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
 
     function get_stage_details($workflow_stage)
     {
@@ -59,7 +59,7 @@ try {
             $sub_stage = $_POST['sub_stage'];
             $responsible = $_POST['responsible'];
             $store = $_POST['assign_responsible'];
-            $projsubstage = $sub_stage + 1; 
+            $projsubstage = $sub_stage + 1;
             $results = false;
 
             if ($store == 'new') {

@@ -1,11 +1,6 @@
 <?php
 try {
     include '../controller.php';
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-
-
     if (isset($_POST['insert_project'])) {
         $progid = $_POST['progid'];
         $projcode = $_POST['projcode'];

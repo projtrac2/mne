@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
 
     function get_unit_of_measure($unit)
     {

@@ -1,6 +1,6 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
     if (isset($_POST['create_independent_qtargets_div'])) {
         $progid = $_POST['progid'];
 

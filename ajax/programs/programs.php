@@ -1,13 +1,9 @@
 <?php
 try {
-	include_once '../../projtrac-dashboard/resource/Database.php';
-	include_once '../../projtrac-dashboard/resource/utilities.php';
-	include_once("../../includes/system-labels.php");
-
+	include '../controller.php';
 	require('../../functions/programs.php');
 	require('../../functions/department.php');
 	require('../../functions/funding.php');
-	include_once("../../includes/system-labels.php");
 	require('../../functions/strategicplan.php');
 
 	$valid['success'] = array('success' => false, 'messages' => array());

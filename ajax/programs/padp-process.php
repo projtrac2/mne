@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+	include '../controller.php';
+
 	$valid['success'] = array('success' => false, 'messages' => array());
 	if (isset($_POST['approveitem'])) {
 		$progid = $_POST['progid'];

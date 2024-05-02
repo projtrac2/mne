@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_GET['get_company_coordinates'])) {
         $query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
         $query_company->execute();

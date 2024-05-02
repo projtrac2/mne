@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
 
     function get_start_date($from)
     {
@@ -134,7 +135,7 @@ try {
 
                         if ($rows_outputs > 0) {
                             $output_id = $row_outputs['id'];
-                            if ($mapping_type == 1 ) {
+                            if ($mapping_type == 1) {
                                 $query_sites = $db->prepare("SELECT * FROM tbl_project_sites p INNER JOIN tbl_output_disaggregation s ON s.output_site = p.site_id WHERE outputid = :output_id ");
                                 $query_sites->execute(array(":output_id" => $output_id));
                                 if (!empty($subcounty_id)) {

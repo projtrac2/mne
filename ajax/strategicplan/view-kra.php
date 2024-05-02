@@ -1,7 +1,6 @@
 <?php
 try {
     include_once("../controller.php");
-
     require('../../functions/strategicplan.php');
     $valid['success'] = array('success' => false, 'messages' => array());
     if (isset($_POST['more'])) {

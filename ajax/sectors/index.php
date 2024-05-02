@@ -1,6 +1,7 @@
 <?php
-include '../controller.php';
 try {
+    include '../controller.php';
+
     if (isset($_POST["newitem"])) {
         $results = false;
         if (validate_csrf_token($_POST['csrf_token'])) {
