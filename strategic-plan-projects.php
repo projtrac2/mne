@@ -19,13 +19,28 @@ try {
 			function get_source_categories()
 			{
 				global $db;
-				$query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_funding_type");
+				$query_rsFunding_type =  $db->prepare("SELECT * FROM tbl_financier_type WHERE status=1");
 				$query_rsFunding_type->execute();
 				$totalRows_rsFunding_type = $query_rsFunding_type->rowCount();
 				$input = '';
 				if ($totalRows_rsFunding_type > 0) {
 					while ($row_rsFunding_type = $query_rsFunding_type->fetch()) {
 						$input .= '<option value="' . $row_rsFunding_type['id'] . '"> ' . $row_rsFunding_type['type'] . '</option>';
+					}
+				}
+				return $input;
+			}
+
+			function get_partners()
+			{
+				global $db;
+				$query_rsParners =  $db->prepare("SELECT * FROM tbl_partners WHERE active=1");
+				$query_rsParners->execute();
+				$totalRows_rsParners = $query_rsParners->rowCount();
+				$input = '';
+				if ($totalRows_rsParners > 0) {
+					while ($row_rsParners = $query_rsParners->fetch()) {
+						$input .= '<option value="' . $row_rsParners['id'] . '"> ' . $row_rsParners['partner'] . '</option>';
 					}
 				}
 				return $input;
@@ -48,6 +63,65 @@ try {
 
 			$source_categories = get_source_categories();
 			$partner_roles  = get_partner_roles();
+			$partners = get_partners();
+
+			function mne_plan($projevaluation, $projimpact, $monitoring_frequency)
+			{
+				global $db, $projid;
+				$query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
+				$query_rsOutput->execute(array(":projid" => $projid));
+				$totalRows_rsOutput = $query_rsOutput->rowCount();
+				$output = $totalRows_rsOutput > 0 ? true : false;
+
+
+				$outcome = true;
+				if ($projevaluation == 1) {
+					$sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+					$sql->execute(array(":projid" => $projid));
+					$rows_count = $sql->rowCount();
+					$outcome = $rows_count > 0 ? true : false;
+				}
+
+				$impact = true;
+				if ($projimpact == 1) {
+					$sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+					$sql->execute(array(":projid" => $projid));
+					$row_count = $sql->rowCount();
+					$impact = $row_count > 0 ? true : false;
+				}
+
+				$result = false;
+
+				if ($projevaluation == 1) {
+					if ($projimpact == 1) {
+						$result = $output || $outcome || $impact || $monitoring_frequency != '' ? true : false;
+					} else {
+						$result = $output || $outcome  || $monitoring_frequency != '' ? true : false;
+					}
+				} else {
+					$result = $output  || $monitoring_frequency != '' ? true : false;
+				}
+
+				return $result;
+			}
+
+			function check_risk_details($projid)
+			{
+				global $db;
+				$query_project_risk_details =  $db->prepare("SELECT * from tbl_project_risk_details WHERE projid =:projid");
+				$query_project_risk_details->execute(array(":projid" => $projid));
+				$row_project_risk_details = $query_project_risk_details->fetch();
+
+				$query_project_risks =  $db->prepare("SELECT * FROM tbl_project_risks WHERE projid =:projid");
+				$query_project_risks->execute(array(":projid" => $projid));
+				$row_project_risks = $query_project_risks->fetch();
+
+				$query_project_risk_strategic_measures =  $db->prepare("SELECT * FROM tbl_project_risk_strategic_measures WHERE projid =:projid");
+				$query_project_risk_strategic_measures->execute(array(":projid" => $projid));
+				$row_project_risk_strategic_measures = $query_project_risk_strategic_measures->fetch();
+
+				return $row_project_risk_details || $row_project_risks || $row_project_risk_strategic_measures ? true : false;
+			}
 ?>
 			<!-- start body  -->
 			<section class="content">
@@ -94,7 +168,7 @@ try {
 													<th width="20%">Program Name</th>
 													<th width="15%"><?= $ministrylabel ?></th>
 													<th width="10%">Budget</th>
-													<th width="8%">Stage/Substage/Status</th>
+													<th width="8%">Stage / Substage / Status</th>
 													<th width="8%">Action</th>
 												</tr>
 											</thead>
@@ -120,11 +194,12 @@ try {
 														$project_directorate = $row['directorate'];
 														$projevaluation = $row['projevaluation'];
 														$projimpact = $row['projimpact'];
+														$monitoring_frequency = $row['monitoring_frequency'];
 														$stage_id = $row['stage_id'];
 														$child_stage_id = $row['projstage'];
 														$status_id = $row['projstatus'];
 														$projid_hashed = base64_encode("projid54321{$projid}");
-														$project_status =	get_project_status($status_id);
+														$project_status = get_all_projects_status($status_id);
 
 														$query_adp =  $db->prepare("SELECT *, p.status as status FROM tbl_annual_dev_plan p inner join tbl_fiscal_year y ON y.id=p.financial_year WHERE projid = :projid");
 														$query_adp->execute(array(":projid" => $projid));
@@ -152,30 +227,31 @@ try {
 														$row_rsDept = $query_rsDept->fetch();
 														$department = $row_rsDept['sector'];
 														$totalRows_rsDept = $query_rsDept->rowCount();
-
 														$progname = $rowprog["progname"];
 														$sector = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $row_sector["sector"] . '</span>';
 														$button = '';
 														$details = "{
-														plan:'$plan',
-														projid:'$projid',
-														currentfy:'$currentfy'
-													}";
+															plan:'$plan',
+															projid:'$projid',
+															currentfy:'$currentfy'
+														}";
 
 
-														$active = '<label class="label label-warning" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">Pending</label>';
+														$stage =  get_project_stage($stage_id);
+														$substage =  get_project_stage($child_stage_id);
 														$filter_department = view_record($project_department, $project_section, $project_directorate);
+														$add_mne_plan =	mne_plan($projevaluation, $projimpact, $monitoring_frequency);
+														$add_risk_plan = check_risk_details($projid);
 														if ($filter_department) {
 															$sn++;
 												?>
 															<tr>
-
 																<td><?= $sn ?> </td>
 																<td><?= $projname ?> </td>
 																<td><?= $progname ?> </td>
 																<td><?= $sector  ?> </td>
 																<td><?= number_format($budget, 2) ?> </td>
-																<td><?= $project_status ?> </td>
+																<td><strong><?= "Stage:&nbsp;</strong>" . $stage . " <br/> <strong>Substage:&nbsp;</strong>" . $substage . " <br/><strong>Status: </strong>" . $project_status  ?> </td>
 																<td>
 																	<input type="hidden" name="projname" id="projname<?= $projid ?>" value="<?= $projname ?>">
 																	<!-- Single button -->
@@ -190,12 +266,12 @@ try {
 																				</a>
 																			</li>
 																			<?php
-																			if ($stage_id == 1) {
+																			if ($stage_id == 0) {
 																				if ($child_stage_id == 4) {
 																			?>
 																					<li>
 																						<a type="button" href="add-project-mne-plan.php?projid=<?= $projid_hashed ?>">
-																							<i class="glyphicon glyphicon-plus"></i>Add M&E Plan
+																							<i class="glyphicon glyphicon-plus"></i> <?= $add_mne_plan ?  "Edit" : "Add" ?> M&E Plan
 																						</a>
 																					</li>
 																					<li>
@@ -212,23 +288,13 @@ try {
 																				} else if ($child_stage_id == 5) {
 																				?>
 																					<li>
-																						<a type="button" href="add-project-mne-plan.php?projid=<?= $projid_hashed ?>">
-																							<i class="glyphicon glyphicon-plus"></i>Edit M&E Plan
-																						</a>
-																					</li>
-																					<li>
 																						<a type="button" href="add-project-risks.php?projid=<?= $projid_hashed ?>">
-																							<i class="glyphicon glyphicon-plus"></i>Add Risk Plan
+																							<i class="glyphicon glyphicon-plus"></i> <?= $add_risk_plan ?  "Edit" : "Add" ?> Risk Plan
 																						</a>
 																					</li>
 																				<?php
 																				} else if ($child_stage_id == 6) {
 																				?>
-																					<li>
-																						<a type="button" href="add-project-risks.php?projid=<?= $projid_hashed ?>">
-																							<i class="glyphicon glyphicon-plus"></i>Edit Risk Plan
-																						</a>
-																					</li>
 																					<li>
 																						<a type="button" onclick="add_to_adp(<?= $details ?>)">
 																							<i class="glyphicon glyphicon-plus"></i> Add to ADP
@@ -240,6 +306,14 @@ try {
 																					<li>
 																						<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
 																							<i class="glyphicon glyphicon-edit"></i> Remove from ADP
+																						</a>
+																					</li>
+																				<?php
+																				} else if ($child_stage_id == 8 && $project_type == 0) {
+																				?>
+																					<li>
+																						<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(<?= $projid ?>)">
+																							<i class="fa fa-check-square-o"></i> Add Partners
 																						</a>
 																					</li>
 																			<?php
@@ -265,6 +339,35 @@ try {
 					</div>
 			</section>
 			<!-- end body  -->
+
+			<!-- Start Modal Item approve -->
+			<div class="modal fade" id="approveItemModal" tabindex="-1" role="dialog">
+				<div class="modal-dialog modal-lg">
+					<div class="modal-content">
+						<div class="modal-header" style="background-color:#03A9F4">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-edit"></i> Add Project Partners</h4>
+						</div>
+						<div class="modal-body" style=" overflow:auto;">
+							<div class="div-result">
+								<form class="form-horizontal" id="approveItemForm" action="general-settings/action/project-edit-action.php" method="POST">
+									<br />
+									<div class="col-md-12" id="aproveBody"></div>
+									<div class="modal-footer approveItemFooter">
+										<div class="col-md-12 text-center">
+											<input type="hidden" name="approveitem" id="approveitem" value="1">
+											<input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
+											<input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Submit" />
+											<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+										</div>
+									</div> <!-- /modal-footer -->
+								</form> <!-- /.form -->
+							</div>
+						</div> <!-- /modal-body -->
+					</div>
+					<!-- /modal-content -->
+				</div>
+			</div>
 
 			<!-- Start Item more Info -->
 			<div class="modal fade" tabindex="-1" role="dialog" id="moreItemModal">
@@ -359,10 +462,13 @@ try {
 
 <script>
 	const details = {
+		partners: '<?= $partners ?>',
 		partner_roles: '<?= $partner_roles ?>',
 		source_categories: '<?= $source_categories ?>',
 	}
 </script>
 <script src="projtrac-dashboard/js/pages/ui/tooltips-popovers.js"></script>
 <script src="assets/js/projects/view-project.js"></script>
-<script src="assets/js/master/index.js"></script>
+<script src="assets/js/projects/approve.js"></script>
+
+<!-- <script src="assets/js/master/index.js"></script> -->

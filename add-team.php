@@ -3,8 +3,6 @@ try {
 
     require('includes/head.php');
     if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
-        $edit = false;
-        $project_team_stage = 8;
         $decode_projid =   base64_decode($_GET['projid']);
         $projid_array = explode("encodeprocprj", $decode_projid);
         $projid = $projid_array[1];
@@ -176,9 +174,7 @@ try {
                                                 $totalRows_rsTasks = $query_rsTasks->rowCount();
                                                 $result = [];
                                                 if ($totalRows_rsTasks > 0) {
-                                                    $t_counter = 0;
                                                     while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                        $t_counter++;
                                                         $site_id = $row_rsTasks['site_id'];
                                                         $task_id = $row_rsTasks['subtask_id'];
                                                         $query_rsSubTask = $db->prepare("SELECT * FROM tbl_member_subtasks WHERE subtask_id=:subtask_id AND site_id=:site_id ");
@@ -191,8 +187,7 @@ try {
                                                 $query_rsTeamLeader = $db->prepare("SELECT role FROM tbl_projmembers WHERE role=2 AND projid=:projid");
                                                 $query_rsTeamLeader->execute(array(":projid" => $projid));
                                                 $totalRows_rsTeamLeader = $query_rsTeamLeader->rowCount();
-
-                                                return !empty($result) && in_array(false, $result)  && $totalRows_rsTeamLeader > 0 ? false : true;
+                                                return !empty($result) && !in_array(false, $result)  && $totalRows_rsTeamLeader > 0 ? true : false;
                                             }
 
                                             $proceed = validate_team();

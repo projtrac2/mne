@@ -140,13 +140,13 @@ try {
                                                             $role = $row_projrole ? $row_projrole['role'] : "";
 
                                                             $details = "{
-                                                            design_id:$design_id,
-                                                            user_id:$ptid,
-                                                            ministry_id:$department_id,
-                                                            sector_id:$section_id,
-                                                            edit:'1',
-                                                            role_id:$role_id
-                                                        }";
+                                                                design_id:$design_id,
+                                                                user_id:$ptid,
+                                                                ministry_id:$department_id,
+                                                                sector_id:$section_id,
+                                                                edit:'1',
+                                                                role_id:$role_id
+                                                            }";
                                                     ?>
                                                             <tr id="finrow<?= $rowno ?>">
                                                                 <td><?= $rowno  ?></td>

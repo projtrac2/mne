@@ -1,4 +1,4 @@
-<form method="POST" name="submitsvyfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+<form method="POST" name="submitsvyfrm" action="" enctype="multipart/form-data" autocomplete="off">
 	<?= csrf_token_html(); ?>
 	<?php
 	if (isset($_GET['fm']) && !empty($_GET['fm'])) {

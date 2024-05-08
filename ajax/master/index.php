@@ -256,6 +256,7 @@ try {
 
         echo json_encode(array("responsible" => $users, "success" => true));
     }
-} catch (PDOException $ex) {
+} catch (PDOException $th) {
+    var_dump($th);
     customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
 }

@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function () {
   // manage Project Main Menu  data table
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-measurement-units.php",
+    ajax: "general-settings/selected-items/fetch-selected-measurement-units",
     order: [],
     'columnDefs': [{
       'targets': [4],
@@ -116,7 +116,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-measurement-unit.php",
+      url: "general-settings/selected-items/fetch-selected-measurement-unit",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -185,7 +185,7 @@ function editItem(itemId = null) {
               var formData = new FormData(this);
 
               $.ajax({
-                url: "general-settings/action/measurement-units-action.php",
+                url: "general-settings/action/measurement-units-action",
                 type: form.attr("method"),
                 data: formData,
                 dataType: "json",
@@ -232,7 +232,7 @@ function disable(id, name, action) {
     if (willUpdate) {
       $.ajax({
         type: "post",
-        url: 'general-settings/action/measurement-units-action.php',
+        url: 'general-settings/action/measurement-units-action',
         data: {
           deleteItem: "deleteItem",
           itemId: id,

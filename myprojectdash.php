@@ -7,10 +7,12 @@ try {
 		$projid_array = explode("projid54321", $decode_projid);
 		$projid = $projid_array[1];
 		$original_projid = $_GET['proj'];
+
 		$query_rsMyP = $db->prepare("SELECT *, projstartdate AS sdate, projenddate AS edate FROM tbl_projects WHERE projid = :projid");
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
 		$count_rsMyP = $query_rsMyP->rowCount();
+		
 		$projname = $projstartdate = $projenddate = $implimentation_method = "";
 		if ($count_rsMyP > 0) {
 			$projstatusid = $row_rsMyP["projstatus"];

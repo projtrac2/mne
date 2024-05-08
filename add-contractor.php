@@ -96,8 +96,6 @@ try {
 					$insertSQL = $db->prepare("INSERT INTO tbl_contractordirectors (contrid, fullname, pinpassport, nationality, created_by, date_created) VALUES (:contrid, :fullname, :pinpassport, :nationality, :createdby, :datecreated)");
 					$insertSQL->execute(array(':contrid' => $last_id, ':fullname' => $fullname, ':pinpassport' => $pinpassport, ':nationality' => $nationality, ':createdby' => $username, ':datecreated' => $current_date));
 				}
-				// Warning: move_uploaded_file(): Unable to move '/tmp/phpB0o6U1' to 'uploads/contractordirectors/4_6566_File_8-GWDTL-63-New Text Document.txt' in /home/biwottech/Documents/mne/add-contractor.php on line 125
-
 
 				$deleteQuery = $db->prepare("DELETE FROM `tbl_contractordocuments` WHERE contrid=:contrid");
 				$results = $deleteQuery->execute(array(':contrid' => $contrid));

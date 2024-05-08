@@ -1,7 +1,6 @@
 <?php
 try {
     include '../controller.php';
-
     function get_frequency($frequency_id)
     {
         global $db;
@@ -24,8 +23,7 @@ try {
         $start_date = date('Y-m-d', strtotime($_GET["start_date"]));
         $duration = $_GET["duration"];
         $end_date = date('Y-m-d', strtotime($start_date . ' + ' . $duration . ' days'));
-        $success = $project_end_date >= $end_date ? true : false;
-        echo json_encode(array("success" => $success, "subtask_end_date" => $end_date));
+        echo json_encode(array("success" => true, "subtask_end_date" => $end_date));
     }
 
     if (isset($_GET['get_tasks'])) {
@@ -325,11 +323,12 @@ try {
             $projid = $_POST['projid'];
             $workflow_stage = $_POST['workflow_stage'];
             $sub_stage = $_POST['sub_stage'];
-            $sql = $db->prepare("UPDATE tbl_projects SET projstage=:workflow_stage, proj_substage=:proj_substage WHERE  projid=:projid");
-            $success  = $sql->execute(array(":workflow_stage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
+            $stage_id = $_POST['stage_id'];
+            $sql = $db->prepare("UPDATE tbl_projects SET stage_id=:stage_id, projstage=:workflow_stage, proj_substage=:proj_substage WHERE  projid=:projid");
+            $success  = $sql->execute(array(":stage_id" => $stage_id, ":workflow_stage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
         }
         echo json_encode(array('success' => $success));
     }
 } catch (PDOException $ex) {
-    customErrorHandler($th->getCode(), $th->getMessage(), $th->getFile(), $th->getLine());
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

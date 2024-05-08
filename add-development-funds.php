@@ -2,12 +2,6 @@
 try {
 	require('includes/head.php');
 	if ($permission) {
-
-		$editFormAction = $_SERVER['PHP_SELF'];
-		if (isset($_SERVER['QUERY_STRING'])) {
-			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-		}
-
 		$fnd = '';
 		if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
 			$hash = $_GET['fn'];
@@ -58,41 +52,6 @@ try {
 			}
 		}
 
-		function success_message($msg, $msg_type)
-		{
-			if ($msg_type == "1") {
-				$results = "
-				<script type=\"text/javascript\">
-					swal({
-						title: \"Error!\",
-						text: \" $msg \",
-						type: 'Danger',
-						timer: 3000,
-						'icon':'error',
-						showConfirmButton: false
-					});
-
-					setTimeout(function(){
-						window.location.href = 'view-financiers.php';
-					}, 2000);
-				</script>";
-			} else {
-				$results = "<script type=\"text/javascript\">
-					swal({
-						title: \"Success!\",
-						text: \" $msg\",
-						type: 'Success',
-						timer: 2000,
-                        'icon':'success',
-						showConfirmButton: false });
-						setTimeout(function(){
-							window.location.href = 'view-financiers.php';
-						}, 2000);
-					</script>";
-			}
-
-			return $results;
-		}
 
 		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addfundsfrm")) {
 			$grantlifespan = $grantinstallments = $grantinstallmentdate = NULL;
@@ -135,20 +94,19 @@ try {
 									}
 								} else {
 									$msg = 'File you are uploading already exists, try another file!!';
-									$results = success_message($msg, 1);
+									$results = error_message($msg, 2, 'view-financiers.php');
 								}
 							} else {
 								$msg = 'This file type is not allowed, try another file!!';
-								$results = success_message($msg, 1);
+								$results = error_message($msg, 2, 'view-financiers.php');
 							}
 						} else {
 							$msg = 'You have not attached any file!!';
-							$results = success_message($msg, 1);
+							$results = error_message($msg, 2, 'view-financiers.php');
 						}
 					}
-
 					$msg = 'Funds successfully added.';
-					$results = success_message($msg, 2);
+					$results = success_message($msg, 2, 'view-financiers.php');
 					echo $results;
 				}
 			}
@@ -192,19 +150,19 @@ try {
 									}
 								} else {
 									$msg = 'File you are uploading already exists, try another file!!';
-									$results = success_message($msg, 1);
+									$results = error_message($msg, 2, 'view-financiers.php');
 								}
 							} else {
 								$msg = 'This file type is not allowed, try another file!!';
-								$results = success_message($msg, 1);
+								$results = error_message($msg, 2, 'view-financiers.php');
 							}
 						} else {
 							$msg = 'You have not attached any file!!';
-							$results = success_message($msg, 1);
+							$results = error_message($msg, 2, 'view-financiers.php');
 						}
 					}
 					$msg = 'Funds successfully updated.';
-					$results = success_message($msg, 2);
+					$results = success_message($msg, 2, 'view-financiers.php');
 				}
 			}
 		}
@@ -552,6 +510,7 @@ try {
 
 	require('includes/footer.php');
 } catch (PDOException $ex) {
+	var_dump($ex);
 	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

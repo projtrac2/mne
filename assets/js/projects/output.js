@@ -107,6 +107,31 @@ $(document).ready(function () {
       error_alert("Ensure you have distributed the target defined");
     }
   });
+
+  $("#add_monitoring_frequency").submit(function (e) {
+    e.preventDefault();
+    $.ajax({
+      type: "post",
+      url: ajax_url1,
+      data: $(this).serialize(),
+      dataType: "json",
+      success: function (response) {
+        if (response.success) {
+          success_alert("Successfully created record");
+        } else {
+          error_alert("Sorry record could not be saved");
+        }
+        $(".modal").each(function () {
+          $(this).modal("hide");
+        });
+
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 3000);
+      }
+    });
+  });
+
 });
 
 function get_option_one() {
@@ -282,7 +307,6 @@ function get_output_details(rowno) {
   var output_id = $(`#output${rowno}`).val();
   var progid = $("#progid").val();
   var projid = $("#myprojid").val();
-  var key_unique = $("#key_unique").val();
   $("#output_id").val(output_id);
   $("#indicator_id").val(indicator_id);
   $("#rowno").val(rowno);
@@ -294,7 +318,6 @@ function get_output_details(rowno) {
         get_output_details: "get_output_details",
         indicator_id: indicator_id,
         progid: progid,
-        unique_key: key_unique,
         projid: projid
       },
       dataType: "json",

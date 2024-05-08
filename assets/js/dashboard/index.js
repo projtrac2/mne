@@ -69,11 +69,10 @@ function set_details(details, projects_link) {
    $("#planned").html(details.stage_two);
    $("#ongoing").html(details.stage_three);
    $("#complete").html(details.stage_four);
-
-   $("#stage_one").attr("href", `view-dashboard-projects.php?stage=1${projects_link}`);
-   $("#stage_two").attr("href", `view-dashboard-projects.php?stage=2${projects_link}`);
-   $("#stage_three").attr("href", `view-dashboard-projects.php?stage=3${projects_link}`);
-   $("#stage_four").attr("href", `view-dashboard-projects.php?stage=4${projects_link}`);
+   $("#stage_one").attr("href", `view-dashboard-projects.php?stage=cHJvamlkNTQzMjF7MH0=${projects_link}`);
+   $("#stage_two").attr("href", `view-dashboard-projects.php?stage=cHJvamlkNTQzMjF7MX0=${projects_link}`);
+   $("#stage_three").attr("href", `view-dashboard-projects.php?stage=cHJvamlkNTQzMjF7Mn0=${projects_link}`);
+   $("#stage_four").attr("href", `view-dashboard-projects.php?stage=cHJvamlkNTQzMjF7M30=${projects_link}`);
 }
 
 

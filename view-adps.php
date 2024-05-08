@@ -10,6 +10,7 @@ try {
 		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$progid = $_GET["prg"];
 		}
+
 		// get adps
 		$query_adps =  $db->prepare("SELECT * FROM tbl_annual_dev_plan d left join tbl_fiscal_year y on y.id=d.financial_year GROUP BY financial_year ORDER BY d.id ASC");
 		$query_adps->execute();

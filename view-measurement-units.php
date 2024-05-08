@@ -181,9 +181,9 @@ try {
         echo $results;
     }
     require('includes/footer.php');
-} catch (PDOException $ex) {
+} catch (PDOException $ex) { 
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
 
-<script src="general-settings/js/fetch-measurement-units.js"></script>
+<script src="general-settings/settings/fetch-measurement-units.js"></script>

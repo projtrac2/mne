@@ -10,9 +10,13 @@ try {
         $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+        $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) AS end_date FROM tbl_program_of_works WHERE projid=:projid ");
+        $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+        $row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
         $approve_details = "";
 
-        if ($totalRows_rsProjects > 0) {
+        if ($totalRows_rsProjects > 0 && !is_null($row_rsTask_Start_Dates['start_date'])) {
             $projname = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
             $progid = $row_rsProjects['progid'];
@@ -20,15 +24,9 @@ try {
             $end_date = $row_rsProjects['projenddate'];
             $project_sub_stage = $row_rsProjects['proj_substage'];
             $workflow_stage = $row_rsProjects['projstage'];
+            $start_date = date("d M Y", strtotime($row_rsTask_Start_Dates['start_date']));
+            $end_date = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
 
-            $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid");
-            $query_rsTender->execute(array(":projid" => $projid));
-            $row_rsTender = $query_rsTender->fetch();
-            $totalRows_rsTender = $query_rsTender->rowCount();
-            if ($totalRows_rsTender > 0) {
-                $start_date = $row_rsTender['startdate'];
-                $end_date = $row_rsTender['enddate'];
-            }
 
             function get_frequency($frequenc_id)
             {
@@ -69,7 +67,11 @@ try {
                                             <ul class="list-group">
                                                 <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
                                                 <li class="list-group-item"> </li>
-                                                <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Contract Start Date: </strong> <?= date('d M Y', strtotime($start_date)); ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Contract End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?></li>
+                                                <li class="list-group-item">
+                                                    <strong>Project Code: </strong> <?= $projcode ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <strong>Start Date: </strong> <?= date('d M Y', strtotime($start_date)); ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <strong>End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?>
+                                                </li>
                                                 <input type="hidden" name="project_start_date" id="project_start_date" value="<?= $start_date ?>">
                                                 <input type="hidden" name="project_end_date" id="project_end_date" value="<?= $end_date ?>">
                                             </ul>
@@ -320,7 +322,64 @@ try {
                                             <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
                                                 <div class="col-md-12 text-center">
                                                     <?php
-                                                    if (!in_array(false, $proceed)) {
+                                                    function validate()
+                                                    {
+                                                        global $db, $projid;
+                                                        $proceed = [];
+                                                        $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
+                                                        $query_Sites->execute(array(":projid" => $projid));
+                                                        $rows_sites = $query_Sites->rowCount();
+                                                        if ($rows_sites > 0) {
+                                                            while ($row_Sites = $query_Sites->fetch()) {
+                                                                $site_id = $row_Sites['site_id'];
+                                                                $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
+                                                                $query_Site_Output->execute(array(":site_id" => $site_id));
+                                                                $rows_Site_Output = $query_Site_Output->rowCount();
+                                                                if ($rows_Site_Output > 0) {
+                                                                    while ($row_Site_Output = $query_Site_Output->fetch()) {
+                                                                        $output_id = $row_Site_Output['outputid'];
+                                                                        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                                        $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                        $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                        if ($totalRows_rsTasks > 0) {
+                                                                            while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                                $task_id = $row_rsTasks['tkid'];
+                                                                                $query_rsTargetBreakdown = $db->prepare("SELECT * FROM  tbl_project_target_breakdown WHERE  site_id=:site_id AND subtask_id=:subtask_id");
+                                                                                $query_rsTargetBreakdown->execute(array(':site_id' => $site_id, ":subtask_id" => $task_id));
+                                                                                $totalRows_rsTargetBreakdown = $query_rsTargetBreakdown->rowCount();
+                                                                                $proceed[] = $totalRows_rsTargetBreakdown > 0 ? true : false;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
+                                                        $query_Output->execute(array(":projid" => $projid));
+                                                        $total_Output = $query_Output->rowCount();
+                                                        if ($total_Output > 0) {
+                                                            while ($row_rsOutput = $query_Output->fetch()) {
+                                                                $output_id = $row_rsOutput['id'];
+                                                                $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                                $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                if ($totalRows_rsTasks > 0) {
+                                                                    while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                        $task_id = $row_rsTasks['tkid'];
+                                                                        $query_rsTargetBreakdown = $db->prepare("SELECT * FROM  tbl_project_target_breakdown WHERE  site_id=:site_id AND subtask_id=:subtask_id");
+                                                                        $query_rsTargetBreakdown->execute(array(':site_id' => 0, ":subtask_id" => $task_id));
+                                                                        $totalRows_rsTargetBreakdown = $query_rsTargetBreakdown->rowCount();
+                                                                        $proceed[] = $totalRows_rsTargetBreakdown > 0 ? true : false;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        return !empty($proceed) && !in_array(false, $proceed) ? true : false;
+                                                    }
+
+                                                    if (validate()) {
                                                         $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
                                                         $workflow_stage += 1;
                                                         $approve_details =
@@ -330,11 +389,13 @@ try {
                                                                 workflow_stage:$workflow_stage,
                                                                 project_name:'$projname',
                                                                 sub_stage:'0',
+                                                                stage_id:2,
                                                             }";
                                                         if ($assigned_responsible) {
                                                     ?>
                                                             <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Proceed</button>
                                                     <?php
+
                                                         }
                                                     }
                                                     ?>
@@ -361,7 +422,11 @@ try {
                                     <li class="list-group-item list-group-item list-group-item-action active">
                                         SubTask: <span id="subtask_name"></span>
                                     </li>
-                                    <li class="list-group-item">Start Date: <span id="subtask_start_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;End Date: <span id="subtask_end_date"></span> &nbsp;&nbsp;&nbsp;&nbsp; Duration: <span id="subtask_duration"></span></li>
+                                    <li class="list-group-item">Start Date:
+                                        <span id="subtask_start_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                                        End Date: <span id="subtask_end_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+                                        Duration: <span id="subtask_duration"></span>
+                                    </li>
                                     <li class="list-group-item">
                                         SubTask target: <span id="subtask_target"></span>
                                     </li>

@@ -151,7 +151,6 @@ try {
 		$body = '';
 		if ($_POST["evalform"] == "impact") {
 			$impactid = $_POST["edititemId"];
-
 			$query_impact = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE id = :impactid");
 			$query_impact->execute(array(":impactid" => $impactid));
 			$row_impact = $query_impact->fetch();
@@ -220,7 +219,7 @@ try {
 					<div class="form-input">
 						<select name="impactIndicator" id="impactIndicator" onchange="get_impact_details()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
 							<option value="">.... Select from list ....</option>';
-				$query_impactIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Impact' AND indicator_type=2 AND active = '1' AND indicator_dept = '$projdept' ORDER BY indid");
+				$query_impactIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Impact' AND indicator_type=2 AND active = '1' ORDER BY indid");
 				$query_impactIndicators->execute();
 				$row_impactIndicators = $query_impactIndicators->fetch();
 				$totalRows_impactIndicators = $query_impactIndicators->rowCount();
@@ -378,7 +377,7 @@ try {
 					<div class="form-input">
 						<select name="outcomeIndicator" id="outcomeIndicator" onchange="get_outcome_details()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
 							<option value="">.... Select from list ....</option>';
-				$query_outcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1' AND indicator_dept = '$projdept' ORDER BY indid");
+				$query_outcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1'  ORDER BY indid");
 				$query_outcomeIndicators->execute();
 				$totalRows_outcomeIndicators = $query_outcomeIndicators->rowCount();
 

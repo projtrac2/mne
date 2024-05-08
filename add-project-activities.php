@@ -99,7 +99,7 @@ try {
                                                         <tr>
                                                             <td align="center"><?= $counter ?></td>
                                                             <td><?= $projcode ?></td>
-                                                            <td><?= $projname . " " . $projid ?></td>
+                                                            <td><?= $projname ?></td>
                                                             <td><?= date('Y M d', strtotime($due_date)) ?></td>
                                                             <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                             <td>

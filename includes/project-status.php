@@ -155,9 +155,11 @@ function get_implementation_status($projid)
 function update_project_status()
 {
     global $db, $today;
+
     $query_workflow = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE parent=0 ORDER BY `priority` ASC");
     $query_workflow->execute();
     $rows_count = $query_workflow->rowCount();
+
     if ($rows_count > 0) {
         while ($row = $query_workflow->fetch()) {
             $stage_id = $row['priority'];
@@ -172,13 +174,13 @@ function update_project_status()
                     $implimentation_type =  $row_rsProjects['projcategory'];
                     $status_id =  $row_rsProjects['projstatus'];
 
-                    if ($stage_id == 2) {
+                    if ($stage_id == 1) {
                         $due_date = get_due_date($projid, $child_stage_id);
                         $status_id = $today < $due_date ? 3 : 11;
-                    } else if ($stage_id == 3) {
+                    } else if ($stage_id == 2) {
                         $project_schedule = get_schedule_dates($projid);
                         if ($child_stage_id == 1) {
-                            $change_substage = change_substage($projid);
+                            $change_substage = get_implementation_status($projid);
                             if ($change_substage) {
                                 $grand_stage_id = $change_substage ? 2 : 1;
                             } else {
@@ -251,17 +253,12 @@ function get_status($status_id)
 function get_project_stage($stage_id)
 {
     global $db;
-    $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :status_id");
-    $query_Projstatus->execute(array(":status_id" => $stage_id));
-    $row_Projstatus = $query_Projstatus->fetch();
-    $total_Projstatus = $query_Projstatus->rowCount();
-    $status = "";
-    if ($total_Projstatus > 0) {
-        $status_name = $row_Projstatus['statusname'];
-        $status_class = $row_Projstatus['class_name'];
-        $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-    }
-    return $status;
+    $query_Workflow_Stage =  $db->prepare("SELECT * FROM tbl_project_workflow_stage WHERE priority = :stage_id");
+    $query_Workflow_Stage->execute(array(":stage_id" => $stage_id));
+    $row_Workflow_Stage = $query_Workflow_Stage->fetch();
+    $total_Workflow_Stage = $query_Workflow_Stage->rowCount();
+    return ($total_Workflow_Stage > 0) ? $row_Workflow_Stage['stage']  : '';
 }
+
 
 update_project_status();

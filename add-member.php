@@ -70,10 +70,6 @@ try {
         }
 
         try {
-            $editFormAction = $_SERVER['PHP_SELF'];
-            if (isset($_SERVER['QUERY_STRING'])) {
-                $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-            }
             // email conif-settings
             $currentPage = $_SERVER["PHP_SELF"];
             if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {

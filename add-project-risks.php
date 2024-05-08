@@ -6,8 +6,8 @@ try {
 		$projid_array = explode("projid54321", $decode_projid);
 		$projid = $projid_array[1];
 
-		$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:projstage");
-		$query_rsProjects->execute(array(":projid" => $projid, ":projstage" => $workflow_stage));
+		$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_strategic_plan_programs s ON s.id=p.strategic_plan_program_id WHERE deleted='0' and projid=:projid AND projstage=:workflow_stage");
+		$query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
 		$row_rsProjects = $query_rsProjects->fetch();
 		$totalRows_rsProjects = $query_rsProjects->rowCount();
 
@@ -16,9 +16,12 @@ try {
 			$projcode = $row_rsProjects['projcode'];
 			$projname = $row_rsProjects['projname'];
 			$projstage = $row_rsProjects['projstage'];
-			$progid = $project = $sectorid = "";
-			$project_sub_stage = ($totalRows_rsProjects > 0) ? $row_rsProjects['proj_substage'] : "";
+			$strategic_plan_id = $row_rsProjects['strategic_plan_id'];
+			$project_sub_stage =  $row_rsProjects['proj_substage'];
 			$project_directorate = $row_rsProjects['directorate'];
+			$strategic_plan_id = $row_rsProjects['strategic_plan_id'];
+
+			$redirect_url = "strategic-plan-projects?plan=" . base64_encode("strplan1{$strategic_plan_id}");
 
 			$query_proj_risks = $db->prepare("SELECT *, r.id AS riskid FROM tbl_project_risks r left join tbl_risk_register g on g.id=r.risk_id left join tbl_projrisk_categories c on c.catid=g.risk_category WHERE projid=:projid GROUP BY r.id");
 			$query_proj_risks->execute(array(":projid" => $projid));
@@ -51,7 +54,7 @@ try {
 								if ($totalRows_proj_risks > 0) {
 								?>
 									<a type="button" data-toggle="modal" data-target="#riskResponsibleModal" id="riskResponsibleModalBtnrow" class="btn btn-success" style="margin-right: 10px;">
-										Add Other Risk Details to Proceed
+										Add Other Risk Details
 									</a>
 								<?php
 								}
@@ -175,54 +178,42 @@ try {
 														</table>
 													</div>
 
-												</div><?php
-														function check_risk_details()
-														{
-															global $db, $projid;
-															$query_project_risk_details =  $db->prepare("SELECT * from tbl_project_risk_details WHERE projid =:projid");
-															$query_project_risk_details->execute(array(":projid" => $projid));
-															$row_project_risk_details = $query_project_risk_details->fetch();
+												</div>
+												<?php
+												function check_risk_details()
+												{
+													global $db, $projid;
+													$query_project_risk_details =  $db->prepare("SELECT * from tbl_project_risk_details WHERE projid =:projid");
+													$query_project_risk_details->execute(array(":projid" => $projid));
+													$row_project_risk_details = $query_project_risk_details->fetch();
 
-															$query_project_risks =  $db->prepare("SELECT * FROM tbl_project_risks WHERE projid =:projid");
-															$query_project_risks->execute(array(":projid" => $projid));
-															$row_project_risks = $query_project_risks->fetch();
+													$query_project_risks =  $db->prepare("SELECT * FROM tbl_project_risks WHERE projid =:projid");
+													$query_project_risks->execute(array(":projid" => $projid));
+													$row_project_risks = $query_project_risks->fetch();
 
-															$query_project_risk_strategic_measures =  $db->prepare("SELECT * FROM tbl_project_risk_strategic_measures WHERE projid =:projid");
-															$query_project_risk_strategic_measures->execute(array(":projid" => $projid));
-															$row_project_risk_strategic_measures = $query_project_risk_strategic_measures->fetch();
+													$query_project_risk_strategic_measures =  $db->prepare("SELECT * FROM tbl_project_risk_strategic_measures WHERE projid =:projid");
+													$query_project_risk_strategic_measures->execute(array(":projid" => $projid));
+													$row_project_risk_strategic_measures = $query_project_risk_strategic_measures->fetch();
 
-															$result = $row_project_risk_details && $row_project_risks && $row_project_risk_strategic_measures ? true : false;
-															return $result;
-														}
+													$result = $row_project_risk_details && $row_project_risks && $row_project_risk_strategic_measures ? true : false;
+													return $result;
+												}
 
-														$proceed = check_risk_details() ? true : false;
-														if ($proceed) {
-
-															$query_check_next_stage =  $db->prepare("SELECT * FROM tbl_project_details d left join tbl_indicator i on i.indid=d.indicator WHERE projid =:projid AND (indicator_mapping_type =1 OR indicator_mapping_type=2 OR indicator_mapping_type=3)");
-															$query_check_next_stage->execute(array(":projid" => $projid));
-															$row_check_next_stage = $query_check_next_stage->fetch();
-
-															$assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
-															$stage =  $row_check_next_stage ? $workflow_stage + 1 : $workflow_stage;
-															$approve_details =
-																"{
-														get_edit_details: 'details',
+												$proceed = check_risk_details() ? true : false;
+												if ($proceed) {
+													$stage = $project_type == 1 ?  $workflow_stage : 7;
+													$approve_details = "{
 														projid:$projid,
 														workflow_stage:$stage,
-														project_directorate:$project_directorate,
 														project_name:'$projname',
-														sub_stage:'$project_sub_stage',
+														sub_stage:'$child_stage_id',
 													}";
-															if ($assigned_responsible) {
-																if ($approve) {
-														?>
-															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">
-																<button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
-															</div>
+												?>
+													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">
+														<button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Proceed</button>
+													</div>
 												<?php
-																}
-															}
-														}
+												}
 												?>
 											</fieldset>
 										</div>
@@ -515,7 +506,7 @@ try {
 
 <script>
 	const ajax_url = "ajax/risk/index";
-	const redirect_url = "add-project-risk-plan";
+	const redirect_url = '<?= $redirect_url ?>';
 </script>
 
 <script src="assets/js/risk/index.js"></script>

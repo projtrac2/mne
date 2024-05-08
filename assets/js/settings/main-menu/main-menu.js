@@ -1,5 +1,4 @@
 const ajax_url = "ajax/settings/main-menu/main-menu.php";
-
 $(document).ready(function () {
     $("#submitItemForm").submit(function (e) {
         e.preventDefault();

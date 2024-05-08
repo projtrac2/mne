@@ -17,8 +17,7 @@ try {
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                     <h4 class="contentheader">
-                        <?= $icon ?>
-                        <?= $pageTitle ?>
+                        <?= $icon   . " " . $pageTitle  ?>
                         <div class="btn-group" style="float:right">
                             <div class="btn-group" style="float:right">
                                 <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
@@ -89,17 +88,7 @@ try {
                                                             $query_rsBudget =  $db->prepare("SELECT SUM(budget) as budget FROM tbl_progdetails WHERE progid=:progid AND strategic_plan_id=:strategic_plan_id");
                                                             $query_rsBudget->execute(array(":progid" => $progid, ":strategic_plan_id" => $stplan));
                                                             $row_rsBudget = $query_rsBudget->fetch();
-                                                            $progbudget = !is_null($$row_rsBudget['budget']) ? number_format($row_rsBudget['budget'], 2) : number_format(0, 2);
-
-                                                            //get total projects
-                                                            $query_projsbudget = $db->prepare("SELECT COUNT(*) as projectscount, SUM(projcost) as budget FROM tbl_projects WHERE progid = :progid AND strategic_plan_program_id=:strategic_plan_program_id");
-                                                            $query_projsbudget->execute(array(":progid" => $progid, ":strategic_plan_program_id" => $strategic_plan_program_id));
-                                                            $row_projsbudget = $query_projsbudget->fetch();
-                                                            $count_projsbudget = $query_projsbudget->rowCount();
-
-                                                            $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
-                                                            $projectscount = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : number_format(0, 2);
-                                                            $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
+                                                            $progbudget = !is_null($row_rsBudget['budget']) ? number_format($row_rsBudget['budget'], 2) : number_format(0, 2);
 
                                                             $query_rsStrategicPlanProgram =  $db->prepare("SELECT * FROM tbl_strategic_plan_programs WHERE progid =:progid AND strategic_plan_id=:strategic_plan_id");
                                                             $query_rsStrategicPlanProgram->execute(array(":progid" => $progid, ":strategic_plan_id" => $stplan));
@@ -109,16 +98,23 @@ try {
                                                             $projectscount = '<a href="#"><span class="badge bg-purple">0.00</span></a>';
                                                             if ($totalRows_rsStrategicPlanProgram > 0) {
                                                                 $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
-                                                                $query_projs =  $db->prepare("SELECT projid FROM tbl_projects  WHERE  progid=:progid AND strategic_plan_program_id=:strategic_plan_program_id");
-                                                                $query_projs->execute(array(":progid" => $progid, ":strategic_plan_program_id" => $strategic_plan_program_id));
-                                                                $totalRows_projs = $query_projs->rowCount();
+                                                                //get total projects
+                                                                $query_projsbudget = $db->prepare("SELECT COUNT(*) as projectscount, SUM(projcost) as budget FROM tbl_projects WHERE progid = :progid AND strategic_plan_program_id=:strategic_plan_program_id");
+                                                                $query_projsbudget->execute(array(":progid" => $progid, ":strategic_plan_program_id" => $strategic_plan_program_id));
+                                                                $row_projsbudget = $query_projsbudget->fetch();
+                                                                $count_projsbudget = $query_projsbudget->rowCount();
 
-                                                                if ($totalRows_projs > 0) {
+                                                                $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
+                                                                $count_projects = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : number_format(0, 2);
+                                                                $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
+
+                                                                if ($count_projects > 0) {
                                                                     $progid_hashed = base64_encode("progid54321{$strategic_plan_program_id}");
-                                                                    $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $totalRows_projs . '</span></a>';
+                                                                    $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $count_projects . '</span></a>';
                                                                 }
                                                             }
 
+                                                            $program_hashed = base64_encode("progid54321{$progid}");
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
                                                             if ($filter_department) {
                                                                 $sn++;
@@ -137,7 +133,7 @@ try {
                                                                             </button>
                                                                             <ul class="dropdown-menu">
                                                                                 <li>
-                                                                                    <a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreInfoModalBtn" onclick="program_info(<?= $progid ?>)">
+                                                                                    <a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreInfoModalBtn" onclick="program_info(<?= $progid ?>, <?= $stplan ?>)">
                                                                                         <i class="glyphicon glyphicon-file"></i> More Info</a>
                                                                                 </li>
 
@@ -148,7 +144,7 @@ try {
                                                                                     if ($totalRows_projs == 0) {
                                                                                 ?>
                                                                                         <li>
-                                                                                            <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $progid_hashed ?>&plan=<?= $stplane ?>">
+                                                                                            <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $program_hashed ?>&plan=<?= $stplane ?>">
                                                                                                 <i class="glyphicon glyphicon-edit"></i> Edit Output Targets
                                                                                             </a>
                                                                                         </li>
@@ -164,12 +160,12 @@ try {
                                                                                 } else {
                                                                                 ?>
                                                                                     <li>
-                                                                                        <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $progid_hashed ?>&plan=<?= $stplane ?>">
+                                                                                        <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $program_hashed ?>&plan=<?= $stplane ?>">
                                                                                             <i class="glyphicon glyphicon-edit"></i>Add Output Targets
                                                                                         </a>
                                                                                     </li>
                                                                                     <li>
-                                                                                        <a type="button" data-toggle="modal" id="editprogram" href="edit-program?progid=<?= $progid_hashed ?>&plan=<?= $stplane ?>">
+                                                                                        <a type="button" data-toggle="modal" id="editprogram" href="edit-program?progid=<?= $program_hashed ?>&plan=<?= $stplane ?>">
                                                                                             <i class="glyphicon glyphicon-edit"></i> Edit
                                                                                         </a>
                                                                                     </li>

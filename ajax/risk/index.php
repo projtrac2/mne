@@ -181,7 +181,6 @@ try {
 				$total_measures = count($measures);
 				for ($i = 0; $i < $total_measures; $i++) {
 					$strategic_measure = $measures[$i];
-
 					$insert_strategic_measures = $db->prepare("INSERT INTO tbl_project_risk_strategic_measures (projid, riskid, strategic_measure) VALUES (:projid,:riskid,:strategic_measure)");
 					$insert_strategic_measures->execute(array(':projid' => $projid, ":riskid" => $riskid, ':strategic_measure' => $strategic_measure));
 				}
@@ -206,9 +205,6 @@ try {
 		$message = "Failed to update the Risk Responsible's details!!";
 
 		if ($risk_results) {
-			$update_project_status = $db->prepare("UPDATE tbl_projects SET proj_substage=2 WHERE projid=:projid");
-			$update_project_status->execute(array(':projid' => $projid));
-
 			$success_status = true;
 			$message = "Risk Responsible details successfully updated";
 		}

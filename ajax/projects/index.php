@@ -176,6 +176,17 @@ try {
         echo json_encode(array("success" => true, "output_id" => $last_id));
     }
 
+    if (isset($_POST['store_monitoring_frequency'])) { 
+        $results = false;
+        if (validate_csrf_token($_POST['csrf_token'])) {
+            $projid = $_POST['projid'];
+            $monitoring_frequency = $_POST['monitoring_frequency'];
+            $sql = $db->prepare("UPDATE tbl_projects SET monitoring_frequency=:monitoring_frequency WHERE  projid=:projid");
+            $result  = $sql->execute(array(":monitoring_frequency" => $monitoring_frequency, ":projid" => $projid));
+        }
+        echo json_encode(array("success" => $result));
+    }
+
     if (isset($_GET['projcode'])) {
         $data = $_GET['projcode'];
         $query_rsProject = $db->prepare("SELECT projcode FROM tbl_projects WHERE projcode=:data");
@@ -480,5 +491,6 @@ try {
         ));
     }
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

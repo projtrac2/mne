@@ -536,7 +536,10 @@ try {
         $contract_guarantees_expired = $contract_guarantees['expired'];
         $contract_guarantees_expiring = $contract_guarantees['expiring'];
         $contract_guarantees_healthy = $contract_guarantees['healthy'];
-
+        $preinvestment_id = 0;
+        $planned_id = 1;
+        $ongoing_id = 2;
+        $complete_id = 3;
 ?>
         <style>
             .highcharts-figure,
@@ -631,53 +634,53 @@ try {
                                                 </div>
                                             </form>
                                             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                                <a href='view-dashboard-projects.php?stage=1&<?php echo $allprojectsurl; ?>' id="stage_one">
+                                                <a href='view-dashboard-projects.php?stage=<?= base64_encode("projid54321{$preinvestment_id}") ?>' id="stage_one">
                                                     <div class="info-box bg-grey hover-expand-effect">
                                                         <div class="icon">
                                                             <i class="material-icons">hourglass_empty</i>
                                                         </div>
                                                         <div class="content">
                                                             <div class="text" style="font-size:13px;">Pre-Investment</div>
-                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(1); ?>" data-speed="1000" data-fresh-interval="20" id="pre_investment"><?php echo widgets(1); ?></div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(0); ?>" data-speed="1000" data-fresh-interval="20" id="pre_investment"><?php echo widgets(0); ?></div>
                                                         </div>
                                                     </div>
                                                 </a>
                                             </div>
                                             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                                <a href="view-dashboard-projects.php?stage=2&<?php echo $allprojectsurl; ?>" id="stage_two">
+                                                <a href="view-dashboard-projects.php?stage=<?= base64_encode("projid54321{$planned_id}") ?>" id="stage_two">
                                                     <div class="info-box bg-brown hover-expand-effect">
                                                         <div class="icon">
                                                             <i class="material-icons">report_problem</i>
                                                         </div>
                                                         <div class="content">
                                                             <div class="text" style="font-size:16px;">Planned</div>
-                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(2); ?>" data-speed="1000" data-fresh-interval="20" id="planned"><?php echo widgets(2); ?></div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(1); ?>" data-speed="1000" data-fresh-interval="20" id="planned"><?php echo widgets(1); ?></div>
                                                         </div>
                                                     </div>
                                                 </a>
                                             </div>
                                             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                                <a href='view-dashboard-projects.php?stage=3&<?php echo $allprojectsurl; ?>' id="stage_three">
+                                                <a href='view-dashboard-projects.php?stage=<?= base64_encode("projid54321{$ongoing_id}") ?>' id="stage_three">
                                                     <div class="info-box bg-blue hover-expand-effect">
                                                         <div class="icon">
                                                             <i class="material-icons">timeline</i>
                                                         </div>
                                                         <div class="content">
                                                             <div class="text" style="font-size:16px;">On-Going</div>
-                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(3); ?>" data-speed="1000" data-fresh-interval="20" id="ongoing"><?php echo widgets(3); ?></div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(2); ?>" data-speed="1000" data-fresh-interval="20" id="ongoing"><?php echo widgets(2); ?></div>
                                                         </div>
                                                     </div>
                                                 </a>
                                             </div>
                                             <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" style="margin-bottom:-10px">
-                                                <a href='view-dashboard-projects.php?stage=4&<?php echo $allprojectsurl; ?>' id="stage_four">
+                                                <a href='view-dashboard-projects.php?stage=<?= base64_encode("projid54321{$complete_id}") ?>' id="stage_four">
                                                     <div class="info-box bg-light-green hover-expand-effect">
                                                         <div class="icon">
                                                             <i class="material-icons">verified_user</i>
                                                         </div>
                                                         <div class="content">
                                                             <div class="text" style="font-size:16px;">Completed</div>
-                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(4); ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo widgets(4); ?></div>
+                                                            <div class="number count-to" data-from="0" data-to="<?php echo widgets(3); ?>" data-speed="1000" data-fresh-interval="20" id="complete"><?php echo widgets(3); ?></div>
                                                         </div>
                                                     </div>
                                                 </a>

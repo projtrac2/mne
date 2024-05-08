@@ -1,12 +1,7 @@
 <?php
 require('includes/head.php');
 if ($permission) {
-	try {
-
-		$editFormAction = $_SERVER['PHP_SELF'];
-		if (isset($_SERVER['QUERY_STRING'])) {
-			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
-		}
+	try { 
 
 		if (isset($_GET["ind"]) && !empty($_GET["ind"])) {
 			$encoded_indid = $_GET["ind"];
@@ -228,7 +223,7 @@ if ($permission) {
 								}
 							}
 							?>
-							<form method="POST" name="submitsvyfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
+							<form method="POST" name="submitsvyfrm" action="" enctype="multipart/form-data" autocomplete="off">
 								<?= csrf_token_html(); ?>
 								<?php
 

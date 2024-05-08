@@ -125,7 +125,6 @@ try {
 		$rows_rsLvDetails = $query_rsLvDetails->rowCount();
 
 ?>
-
 		<!-- start body  -->
 		<section class="content">
 			<div class="container-fluid">
@@ -371,8 +370,6 @@ try {
 			</div>
 		</section>
 		<!-- end body  -->
-
-
 <?php
 	} else {
 		$results =  restriction();

@@ -2,7 +2,7 @@
 try {
    include '../controller.php';
    if (isset($_POST['store'])) {
-      $success = true;
+      $success = false;
       if (validate_csrf_token($_POST['csrf_token'])) {
          $projid = $_POST['projid'];
          $outputid = $_POST['output_id'];
@@ -36,6 +36,7 @@ try {
                $result[]  = $sql->execute(array(":projid" => $projid, ":outputid" => $outputid, ":site_id" => $site_id, ":plan_id" => $plan_id, ":tasks" => $tasks, ":subtask_id" => $subtask_id, ":other_plan_id" => $other_plan_id, ":description" => $description, ":unit" => $unit, ":unit_cost" => $unit_cost, ":units_no" => $units_no, ":cost_type" => $cost_type, ":task_type" => $task_type, ":item_order" => $order, ":created_by" => $created_by, ":date_created" => $date_created));
             }
          }
+         $success = true;
       }
 
       echo json_encode(array("success" => $success));
@@ -322,5 +323,6 @@ try {
       echo json_encode(array("measurements" => $unit_options, "success" => true));
    }
 } catch (PDOException $ex) {
+   var_dump($ex);
    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

@@ -6,6 +6,7 @@ try {
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
+
         $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid AND p.projstage=:workflow_stage AND proj_substage < 4");
         $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
@@ -16,8 +17,8 @@ try {
             $projname = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
             $progid = $row_rsProjects['progid'];
-            $start_date = $row_rsProjects['projstartdate'];
-            $end_date = $row_rsProjects['projenddate'];
+            $start_date = $end_date = '';
+            $projcategory = $row_rsProjects['projcategory'];
             $project_sub_stage = $row_rsProjects['proj_substage'];
             $workflow_stage = $row_rsProjects['projstage'];
 
@@ -30,6 +31,25 @@ try {
                 $end_date = $row_rsTender['enddate'];
             }
             $approval_stage = $project_sub_stage > 1  ? true : false;
+
+            if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "approve")) {
+                if (validate_csrf_token($_POST['csrf_token'])) {
+                    $current_date = date("Y-m-d");
+                    $projid = $_POST['projid'];
+                    $comments = $_POST['comments'];
+
+                    $sub_stage =  ($_POST['submit'] == "Amend") ?   0 : 4;
+                    $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
+                    $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+
+                    $stmt = $db->prepare("INSERT INTO tbl_program_of_work_comments (projid, comments, created_by, created_at) VALUES (:projid, :comments, :createdby, :datecreated)");
+                    $stmt->execute(array(':projid' => $projid, ':comments' => $comments, ':createdby' => $user_name, ':datecreated' => $current_date));
+
+                    $results = success_message('Successfully created.', 2, 'add-program-of-works.php');
+                } else {
+                    $results = error_message("Error occured please try again later", 2, "add-program-of-works.php");
+                }
+            }
 ?>
             <!-- start body  -->
             <section class="content">
@@ -58,9 +78,16 @@ try {
                                             <ul class="list-group">
                                                 <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
                                                 <li class="list-group-item"> </li>
-                                                <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Contract Start Date: </strong> <?= date('d M Y', strtotime($start_date)); ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>Contract End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?></li>
-                                                <input type="hidden" name="project_start_date" id="project_start_date" value="<?= $start_date ?>">
-                                                <input type="hidden" name="project_end_date" id="project_end_date" value="<?= $end_date ?>">
+                                                <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <?php
+                                                    if ($projcategory == 2) {
+                                                    ?>
+                                                        <strong>Contract Start Date: </strong> <?= date('d M Y', strtotime($start_date)); ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <strong>Contract End Date: </strong> <?= date('d M Y', strtotime($end_date)); ?>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>
@@ -123,16 +150,23 @@ try {
                                                                                 <div class="card-header">
                                                                                     <div class="row clearfix">
                                                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                                                            <h5><u>
+                                                                                            <h5>
+                                                                                                <ul>
                                                                                                     TASK <?= $task_counter ?>: <?= $milestone ?>
-                                                                                                    <div class="btn-group" style="float:right">
+                                                                                                    <?php
+                                                                                                    if ($projcategory == 1) {
+                                                                                                    ?>
                                                                                                         <div class="btn-group" style="float:right">
-                                                                                                            <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                                <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                                                            </button>
+                                                                                                            <div class="btn-group" style="float:right">
+                                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                                                                    <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                                                                </button>
+                                                                                                            </div>
                                                                                                         </div>
-                                                                                                    </div>
-                                                                                                </u>
+                                                                                                    <?php
+                                                                                                    }
+                                                                                                    ?>
+                                                                                                </ul>
                                                                                             </h5>
                                                                                         </div>
                                                                                     </div>
@@ -216,7 +250,6 @@ try {
                                     $total_Output = $query_Output->rowCount();
                                     if ($total_Output > 0) {
                                         $counter = 0;
-
                                         while ($row_rsOutput = $query_Output->fetch()) {
                                             $output_id = $row_rsOutput['id'];
                                             $output = $row_rsOutput['indicator_name'];
@@ -244,27 +277,32 @@ try {
                                                         $task_counter++;
                                                 ?>
                                                         <div class="row clearfix">
-                                                            <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
                                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                 <div class="card-header">
                                                                     <div class="row clearfix">
                                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                             <h5>
-                                                                                <u>
+                                                                                <ul>
                                                                                     TASK <?= $task_counter ?>: <?= $milestone ?>
-                                                                                    <div class="btn-group" style="float:right">
+                                                                                    <?php
+                                                                                    if ($projcategory == 1) {
+                                                                                    ?>
                                                                                         <div class="btn-group" style="float:right">
-                                                                                            <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
-                                                                                            </button>
+                                                                                            <div class="btn-group" style="float:right">
+                                                                                                <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
+                                                                                                    <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                                                </button>
+                                                                                            </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                </u>
+                                                                                    <?php
+                                                                                    }
+                                                                                    ?>
+                                                                                </ul>
                                                                             </h5>
                                                                         </div>
                                                                     </div>
                                                                     <div class="table-responsive">
-                                                                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+                                                                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table">
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th style="width:5%">#</th>
@@ -313,69 +351,162 @@ try {
                                                                                             <td style="width:15%"><?= $start_date ?> </td>
                                                                                             <td style="width:15%"><?= $end_date ?></td>
                                                                                         </tr>
-                                                                            <?php
+                                                                                <?php
                                                                                     }
                                                                                 }
-                                                                            }
-                                                                            ?>
+
+                                                                                ?>
                                                                             </tbody>
                                                                         </table>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                    <?php
+                                                        </div>
+                                            <?php
+                                                    }
                                                 }
                                             }
-                                                    ?>
+                                            ?>
                                             </fieldset>
                                         <?php
                                     }
+
+                                    if ($projcategory == 1) {
                                         ?>
+                                            <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                <?= csrf_token_html(); ?>
+                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                    <div class="col-md-12 text-center">
 
-                                        <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                            <?= csrf_token_html(); ?>
-                                            <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                <div class="col-md-12 text-center">
-                                                    <?php
-                                                    $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
-                                                    $query_Output->execute(array(":projid" => $projid));
-                                                    $total_Output = $query_Output->rowCount();
+                                                        <?php
+                                                        function validate()
+                                                        {
+                                                            global $db, $projid;
+                                                            $proceed = [];
+                                                            $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
+                                                            $query_Sites->execute(array(":projid" => $projid));
+                                                            $rows_sites = $query_Sites->rowCount();
+                                                            if ($rows_sites > 0) {
+                                                                while ($row_Sites = $query_Sites->fetch()) {
+                                                                    $site_id = $row_Sites['site_id'];
+                                                                    $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
+                                                                    $query_Site_Output->execute(array(":site_id" => $site_id));
+                                                                    $rows_Site_Output = $query_Site_Output->rowCount();
+                                                                    if ($rows_Site_Output > 0) {
+                                                                        while ($row_Site_Output = $query_Site_Output->fetch()) {
+                                                                            $output_id = $row_Site_Output['outputid'];
+                                                                            $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                                            $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                            $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                            if ($totalRows_rsTasks > 0) {
+                                                                                while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                                    $task_id = $row_rsTasks['tkid'];
+                                                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");
+                                                                                    $query_rsTask_Start_Dates->execute(array(':site_id' => $site_id, ":subtask_id" => $task_id));
+                                                                                    $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                                                    $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
 
-                                                    $proceed = true;
-                                                    if ($proceed) {
-                                                        $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
-                                                        $approve_details =
-                                                            "{
-                                                                get_edit_details: 'details',
-                                                                projid:$projid,
-                                                                workflow_stage:$workflow_stage,
-                                                                project_name:'$projname',
-                                                                sub_stage:'4',
-                                                            }";
-                                                        if ($assigned_responsible) {
-                                                            if ($approval_stage) {
-                                                    ?>
-                                                                <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
-                                                            <?php
-                                                            } else {
-                                                                $data_entry_details =
-                                                                    "{
+                                                            $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
+                                                            $query_Output->execute(array(":projid" => $projid));
+                                                            $total_Output = $query_Output->rowCount();
+                                                            if ($total_Output > 0) {
+                                                                while ($row_rsOutput = $query_Output->fetch()) {
+                                                                    $output_id = $row_rsOutput['id'];
+                                                                    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                                    $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                    $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                    if ($totalRows_rsTasks > 0) {
+                                                                        while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                            $task_id = $row_rsTasks['tkid'];
+                                                                            $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id ");
+                                                                            $query_rsTask_Start_Dates->execute(array(':site_id' => 0, ":subtask_id" => $task_id));
+                                                                            $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                                            $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            return !empty($proceed) && !in_array(false, $proceed) ? true : false;
+                                                        }
+
+                                                        if (validate()) {
+                                                            $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
+                                                            $approve_details =
+                                                                "{
+                                                                    get_edit_details: 'details',
+                                                                    projid:$projid,
+                                                                    workflow_stage:$workflow_stage,
+                                                                    project_name:'$projname',
+                                                                    sub_stage:'4',
+                                                                    stage_id:1,
+                                                                }";
+                                                            if ($assigned_responsible) {
+                                                                if ($approval_stage) {
+                                                        ?>
+                                                                    <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
+                                                                <?php
+                                                                } else {
+                                                                    $data_entry_details =
+                                                                        "{
                                                                         get_edit_details: 'details',
                                                                         projid:$projid,
                                                                         workflow_stage:$workflow_stage,
                                                                         project_name:'$projname',
                                                                         sub_stage:'2',
                                                                     }";
-                                                            ?>
-                                                                <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
-                                                    <?php
+                                                                ?>
+                                                                    <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
+                                                        <?php
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                    ?>
+                                                        ?>
+
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </form>
+                                            </form>
+                                        <?php
+                                    } else {
+                                        ?>
+                                            <form role="form" id="form_contractor" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                <?= csrf_token_html(); ?>
+                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                                        <fieldset class="scheduler-border" id="project_approve_div">
+                                                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
+                                                                <i class="fa fa-comment" aria-hidden="true"></i> Remarks
+                                                            </legend>
+                                                            <div id="comment_section">
+                                                                <div class="col-md-12">
+                                                                    <label class="control-label">Remarks *:</label>
+                                                                    <br />
+                                                                    <div class="form-line">
+                                                                        <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif"></textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                    <div class="col-md-12 text-center">
+                                                        <input type="hidden" name="MM_insert" value="approve">
+                                                        <input type="hidden" name="projid" value="<?= $projid ?>">
+                                                        <input name="submit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit1" value="Approve" />
+                                                        <input name="submit" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit2" value="Amend" />
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        <?php
+                                    }
+                                        ?>
                                 </div>
                             </div>
                         </div>

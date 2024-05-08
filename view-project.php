@@ -19,8 +19,7 @@ try {
 				<div class="container-fluid">
 					<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
 						<h4 class="contentheader">
-							<?= $icon ?>
-							<?= $pageTitle ?>
+							<?= $icon . " " . $pageTitle ?>
 							<div class="btn-group" style="float:right">
 								<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
 									Go Back
@@ -49,9 +48,8 @@ try {
 											<thead>
 												<tr>
 													<th width="5%">#</th>
-													<th width="28%">Project Name</th>
+													<th width="38%">Project Name</th>
 													<th width="10%">Budget</th>
-													<th width="10%">Financial Year</th>
 													<th width="8%">Status</th>
 													<th width="8%">Action</th>
 												</tr>
@@ -126,8 +124,7 @@ try {
 															<tr>
 																<td><?= $sn ?> </td>
 																<td><?= $projname ?> </td>
-																<td><?= number_format($budget, 2) ?> </td>
-																<td><?= $projYear ?> </td>
+																<td><?= number_format($budget, 2) ?> </td> 
 																<td><?= $active ?> </td>
 																<td>
 																	<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(<?= $projid ?>)" class="btn btn-info btn-xm"> <i class="fa fa-info fa-lg" aria-hidden="true"></i> More Info</a>

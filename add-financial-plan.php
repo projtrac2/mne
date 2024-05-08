@@ -764,6 +764,7 @@ try {
             <div class="modal-dialog modal-lg">
                <div class="modal-content">
                   <form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
+                     <?= csrf_token_html(); ?>
                      <div class="modal-header" style="background-color:#03A9F4">
                         <h4 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-plus"></i> <span id="modal_info">Add Other Details</span></h4>
                      </div>

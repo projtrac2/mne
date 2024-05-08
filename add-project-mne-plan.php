@@ -2,12 +2,11 @@
 try {
     require('includes/head.php');
     if ($permission && (isset($_GET['projid']) && !empty($_GET["projid"]))) {
-
         $decode_projid =  base64_decode($_GET['projid']);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
 
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid AND projstage=:workflow_stage");
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_strategic_plan_programs s ON s.id=p.strategic_plan_program_id WHERE deleted='0' and projid=:projid AND projstage=:workflow_stage");
         $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -23,18 +22,12 @@ try {
             $projstartdate = $row_rsProjects['projstartdate'];
             $projenddate = $row_rsProjects['projenddate'];
             $project_stage_id = $row_rsProjects['stage_id'];
+            $child_stage_id = $row_rsProjects['projstage'];
+            $strategic_plan_id = $row_rsProjects['strategic_plan_id'];
+            $monitoring_frequency = $row_rsProjects['monitoring_frequency'];
 
-            $end_year_moth = date("m", strtotime($projenddate));
-            $end_year = date("Y", strtotime($projenddate));
-            $query_rsFscYear =  $db->prepare("SELECT id, yr, year FROM tbl_fiscal_year WHERE id >=:id AND yr <=:yr ORDER BY id");
-            $query_rsFscYear->execute(array(":id" => $projfscyear, ":yr" => $end_year));
-            $total_rsFscYear = $query_rsFscYear->rowCount();
-            $output_options = '';
-            if ($total_rsFscYear > 0) {
-                while ($row_rsFscYear = $query_rsFscYear->fetch()) {
-                    $output_options .= '<option value="' . $row_rsFscYear['id'] . '">' . $row_rsFscYear['year'] . '</option>';
-                }
-            }
+
+            $redirect_url = "strategic-plan-projects?plan=" . base64_encode("strplan1{$strategic_plan_id}");
 
 
             //=============================================== IMPACT SECTION ==============================================================================
@@ -52,14 +45,14 @@ try {
 
             function mne_plan()
             {
-                global $db, $projid, $projevaluation, $projimpact;
+                global $db, $projid, $projevaluation, $projimpact, $monitoring_frequency;
                 $query_rsOutput =  $db->prepare("SELECT * FROM  tbl_project_details WHERE  projid=:projid ");
                 $query_rsOutput->execute(array(":projid" => $projid));
                 $totalRows_rsOutput = $query_rsOutput->rowCount();
                 $output = $totalRows_rsOutput > 0 ? true : false;
                 $outcome = true;
                 if ($projevaluation == 1) {
-                    $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
+                    $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
                     $sql->execute(array(":projid" => $projid));
                     $rows_count = $sql->rowCount();
                     $outcome = $rows_count > 0 ? true : false;
@@ -67,21 +60,20 @@ try {
 
                 $impact = true;
                 if ($projimpact == 1) {
-                    $sql = $db->prepare("SELECT * FROM `tbl_project_expected_outcome_details` WHERE projid = :projid ORDER BY `id` ASC");
+                    $sql = $db->prepare("SELECT * FROM `tbl_project_expected_impact_details` WHERE projid = :projid ORDER BY `id` ASC");
                     $sql->execute(array(":projid" => $projid));
                     $row_count = $sql->rowCount();
                     $impact = $row_count > 0 ? true : false;
                 }
-                return $output && $outcome && $impact ? true : false;
+                return $output && $outcome && $impact && $monitoring_frequency != '' ? true : false;
             }
-
 ?>
             <!-- start body  -->
             <section class="content">
                 <div class="container-fluid">
                     <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                         <h4 class="contentheader">
-                            <?= $icon  . ' ' . $pageTitle ?>
+                            <?= $icon  . ' ' . $pageTitle  ?>
                             <div class="btn-group" style="float:right">
                                 <div class="btn-group" style="float:right">
                                     <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
@@ -104,7 +96,6 @@ try {
                                                 <li class="list-group-item list-group-item list-group-item-action active"> Name: <?= $project ?> </li>
                                                 <li class="list-group-item"><strong> Code: </strong> <?= $projcode ?> </li>
                                                 <input type="hidden" name="myprojid" id="myprojid" value="<?= $projid ?>">
-                                                <input type="hidden" name="key_unique" id="key_unique" value="<?= $projid ?>">
                                             </ul>
                                         </div>
                                     </div>
@@ -239,7 +230,39 @@ try {
                                                         <input type="hidden" name="progid" id="progid" value="<?= $progid ?>">
                                                     </div>
                                                 </div>
+                                                <form role="form" id="add_monitoring_frequency" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                                    <?= csrf_token_html(); ?>
+                                                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                                                        <label class="control-label">Monitoring Frequency*:</label>
+                                                        <div class="form-line">
+                                                            <select name="monitoring_frequency" id="monitoring_frequency" data-actions-box="true" class="form-control show-tick selectpicker" title="Choose Frequency" style="border:#CCC thin solid; border-radius:5px; width:98%; padding-left:50px" required>
+                                                                <?php
+                                                                $query_rsFrequency = $db->prepare("SELECT * FROM tbl_datacollectionfreq");
+                                                                $query_rsFrequency->execute();
+                                                                $totalRows_rsFrequency = $query_rsFrequency->rowCount();
+                                                                $input = '<option value="">Select Frequency</option>';
+                                                                if ($totalRows_rsFrequency > 0) {
+                                                                    while ($row_rsFrequency = $query_rsFrequency->fetch()) {
+                                                                        $selected = $row_rsFrequency['fqid'] == $monitoring_frequency ? ' selected="selected"' : '';
+                                                                ?>
+                                                                        <option value="<?= $row_rsFrequency['fqid'] ?>" <?= $selected ?>><?= $row_rsFrequency['frequency'] ?></option>
+                                                                <?php
+                                                                    }
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                                        <div class="col-md-12 text-center">
+                                                            <input type="hidden" name="store_monitoring_frequency" id="store_monitoring_frequency" value="store_monitoring_frequency">
+                                                            <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
+                                                            <button type="submit" class="btn btn-success">Save Frequency</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
                                             </div>
+
                                         </div>
                                         <?php
                                         if ($projevaluation == 1) {
@@ -324,9 +347,9 @@ try {
                                             if (mne_plan()) {
                                                 $approve_details = "{
                                                     projid:$projid,
-                                                    workflow_stage:$project_stage_id,
+                                                    workflow_stage:$workflow_stage,
                                                     project_name:'$project',
-                                                    sub_stage:'$workflow_stage',
+                                                    sub_stage:'$child_stage_id',
                                                 }";
                                             ?>
                                                 <button type="submit" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Proceed</button>
@@ -390,7 +413,6 @@ try {
                                                     </div>
                                                     <div class="modal-footer">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-                                                            <input type="hidden" name="key_unique" id="key_unique" value="<?= $key_unique ?>">
                                                             <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                             <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                                             <input type="hidden" name="progid" id="program_id" value="<?= $progid ?>">
@@ -665,6 +687,10 @@ try {
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
+<script>
+    const redirect_url = '<?= $redirect_url ?>'
+</script>
+
 <script src="assets/js/mneplan/add-project-mne-plan.js"></script>
 <script src="assets/js/mneplan/index.js"></script>
 <script src="assets/js/projects/output.js"></script>

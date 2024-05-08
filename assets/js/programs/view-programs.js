@@ -6,7 +6,7 @@ $(document).ready(function () {
   get_total_programs();// submit program quarterly targets
   $("#quarterlyTargetsForm").submit(function (e) {
     e.preventDefault();
-    var form_data = $(this).serialize(); 
+    var form_data = $(this).serialize();
     $.ajax({
       type: "post",
       url: program_targets_url,
@@ -19,23 +19,24 @@ $(document).ready(function () {
             $(this).modal("hide");
           });
         }
-        
+
         setTimeout(() => {
           window.location.reload();
           // manageItemTable.ajax.reload(null, true);
         }, 3000);
       }
     });
-  }); 
+  });
 });
 
-function program_info(progid = null) {
-  if (progid) {
+function program_info(progid, strategic_plan_id) {
+  if (progid != '' && strategic_plan_id != '') {
     $.ajax({
       type: "get",
       url: program_info_url,
       data: {
         progid: progid,
+        strategic_plan_id: strategic_plan_id,
         program_info: "program_info"
       },
       dataType: "html",
@@ -108,7 +109,7 @@ function destroy_program(progid) {
     });
 }
 
-// get the program budget/target div from db 
+// get the program budget/target div from db
 function add_independent_quarterly_targets(details) {
   if (details.progid) {
     $.ajax({
@@ -116,8 +117,8 @@ function add_independent_quarterly_targets(details) {
       url: program_targets_url,
       data: {
         create_independent_qtargets_div: "create_independent_qtargets_div",
-        progid: details.progid, 
-        edit:details.edit,
+        progid: details.progid,
+        edit: details.edit,
       },
       dataType: "html",
       success: function (response) {
@@ -127,7 +128,7 @@ function add_independent_quarterly_targets(details) {
   }
 }
 
-// view the program budget/target 
+// view the program budget/target
 function viewPBB(progid = null, adpyr = null) {
   if (progid) {
     $.ajax({

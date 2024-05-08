@@ -232,6 +232,8 @@ class Email
 
     function send_master_data_email($projid, $notification_type_id, $user_id)
     {
+
+        return true;
         $notification_group_id = 2;
         $responsible_id = '';
         $projid_hashed = base64_encode("projid54321{$projid}");
@@ -592,8 +594,6 @@ class Email
         } catch (Exception $e) {
             $results = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         }
-
-
         return $results;
     }
 

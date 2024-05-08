@@ -12,25 +12,10 @@ try {
          $progid = $row_rsProjects['progid'];
          $projname = $row_rsProjects['projname'];
          $projdurationInDays = $row_rsProjects['projduration'];
-         $projfscyear = $row_rsProjects['projfscyear'];
          $projcode = $row_rsProjects['projcode'];
-         $projbudget = $row_rsProjects['projbudget'];
-         $projenddate = $row_rsProjects['projenddate'];
-         $projstartdate = $row_rsProjects['projstartdate'];
          $projduration = $row_rsProjects['projduration'];
          $project_cost = $row_rsProjects['projcost'];
-
-         $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
-         $query_rsYear->execute();
-         $row_rsYear = $query_rsYear->fetch();
-         $projstartyear =  $row_rsYear['yr'];
-         $projstart = $projstartyear  . '-07-01';
-
-         //fetch program details
-         $query_item = $db->prepare("SELECT * FROM tbl_programs WHERE tbl_programs.progid = '$progid'");
-         $query_item->execute();
-         $row_item = $query_item->fetch();
-         $program_type = $row_item['program_type'];
+         $project_type = $row_rsProjects['project_type'];
 
          $progstartDate = $row_item['syear'] . '-07-01'; //program start date
          $progduration = $row_item['years']; //program duration in years
@@ -106,176 +91,141 @@ try {
          $budget_name = $program_type == 1 ? $budget_name : "";
 
          $project_budget = '
-      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-         <label for="projduration">Project Cost *:</label>
-         <div class="form-line">
-            <input type="text"  name="project_cost1" id="project_cost1" placeholder="" class="form-control" value="' . number_format($project_cost, 2) . '" class="form-control"  disabled/>
-            <input type="hidden"  name="project_cost" id="project_cost" placeholder="" class="form-control" value="' . $project_cost . '" class="form-control" />
+         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+            <label for="projduration">Project Cost *:</label>
+            <div class="form-line">
+               <input type="text"  name="project_cost1" id="project_cost1" placeholder="" class="form-control" value="' . number_format($project_cost, 2) . '" class="form-control"  disabled/>
+               <input type="hidden"  name="project_cost" id="project_cost" placeholder="" class="form-control" value="' . $project_cost . '" class="form-control" />
+            </div>
          </div>
-      </div>
-      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-         <label for="projduration">Direct Cost Budget *:</label>
-         <div class="form-line">
-            <input type="number"  name="direct_budget" id="direct_budget" onchange="distribute_project_cost(1)" onkeyup="distribute_project_cost(1)" min="1" max="' . $project_cost . '" placeholder="Enter Direct Cost budget" class="form-control" value="" class="form-control" required/>
+         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+            <label for="projduration">Direct Cost Budget *:</label>
+            <div class="form-line">
+               <input type="number"  name="direct_budget" id="direct_budget" onchange="distribute_project_cost(1)" onkeyup="distribute_project_cost(1)" min="1" max="' . $project_cost . '" placeholder="Enter Direct Cost budget" class="form-control" value="" class="form-control" required/>
+            </div>
          </div>
-      </div>
-      <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-         <label for="projduration">Administrative Budget *:</label>
-         <div class="form-line">
-            <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
-         </div>
-      </div>';
+         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+            <label for="projduration">Administrative Budget *:</label>
+            <div class="form-line">
+               <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
+            </div>
+         </div>';
 
          $approve = '
-      <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-      <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Project Details</legend>
-         <div class="row clearfix">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="card">
-                  <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
-                  <div class="header" >
-                     <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
-                     <h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
-                     </div>
-                  </div>
-                  <div class="body">
-                  <div class="row clearfix">
-                     <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
-                     <label for="syear">Program Start Date *:</label>
-                     <div class="form-line">
-                        <input type="hidden"  name="progid" id="progid" class="form-control" value="' . $progid . '" required>
-                        <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
-                        <input type="hidden" name="projfscyear[]" id="projfscyear" value="' . $projfscyear . '" />
-                        <input type="text" name="progstartyear" id="progstartyear" value="' . date('d M Y', strtotime($progstartDate)) . '" class="form-control" disabled>
-                     </div>
-                     </div>
-                     <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
-                     <label for="syear">Program End Date *:</label>
-                     <div class="form-line">
-                        <input type="text" name="programendyear" id="programendyear" value="' . date('d M Y', strtotime($progendDate)) . '"  class="form-control" disabled>
-                     </div>
-                     </div>
-                     <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
-                     <label for="syear">Program Duration (Years)*:</label>
-                     <div class="form-line">
-                        <input type="text" name="programduration" id="programduration" value="' . $progduration . '"  class="form-control" disabled>
-                     </div>
-                     </div>
-                  </div>
-                  <div class="row clearfix">
-                     <div class="col-md-4">
-                        <label for="projstartYear">Project Tentative Start Date *:</label>
-                        <div class="form-line">
-                        <input type="text" name="projstartYears" id="startYear1" class="form-control"  value="' . date('d M Y', strtotime($projstart)) . '" onchange="project_start_date_change(' . $projid . ')" >
+         <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Project Details</legend>
+            <div class="row clearfix">
+               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                  <div class="card">
+                     <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
+                     <div class="header" >
+                        <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
+                        <h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
                         </div>
                      </div>
-                     <div class="col-md-4">
-                        <label for="projendYear">Project Tentative End Date *:</label>
-                        <div class="form-line">
-                        <input type="text" name="projendYears" id="projendyearDate" class="form-control"  value="' . date('d M Y', strtotime($projectendDate)) . '"  readonly>
-                        <input type="hidden" name="updateprojendYears" id="updateprojendyearDate" class="form-control" >
+                     <div class="body">
+                     <div class="row clearfix">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                           <label for="projduration">Project Duration (Days)*:</label>
+                           <div class="form-line">
+                              <input type="text"  name="projduration" id="projduration1" class="form-control" value="' . $projduration . '" required disabled>
+                              <input type="hidden"  name="progid" id="progid" class="form-control" value="' . $progid . '" required>
+                              <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
+                           </div>
                         </div>
-                     </div>
-                     <div class="col-md-4">
-                     <label for="projduration">Project Duration (Days)*:</label>
-                     <div class="form-line">
-                        <input type="text"  name="projduration" id="projduration1" class="form-control" value="' . $projduration . '" required disabled>
+                        ' . $project_budget . $budget_name . '
                      </div>
                      </div>
-                     ' . $project_budget . $budget_name . '
-                  </div>
                   </div>
                </div>
             </div>
-         </div>
-      </fieldset>
-
-      <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Financial Partners</legend>
-         <div class="row clearfix" id="">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="table-responsive">
-						<table class="table table-bordered table-striped table-hover" id="approve_financier_table" style="width:100%">
-							<thead>
-								<tr>
-									<th width="5%">#</th>
-									<th width="25%">Source Category</th>
-									<th width="25%">Financier</th>
-									<th width="15%">Amount (Ksh)</th>
-									<th width="5%">
-									  <button type="button" name="addplus" id="addplus" onclick="add_row_financier();" class="btn btn-success btn-sm">
-										  <span class="glyphicon glyphicon-plus"></span>
-									  </button>
-									</th>
-								</tr>
-							</thead>
-							<tbody id="financier_table_body">
-							  <tr></tr>
-							  <tr id="removeTr"><td colspan="6">Add Financier </td></tr>
-							</tbody>
-						</table>
-					</div>
-            </div>
-         </div>
-      </fieldset>
-      <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Other Partners</legend>
-         <div class="row clearfix" id="">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="table-responsive">
-                  <table class="table table-bordered table-striped table-hover" id="approve_partners_table" style="width:100%">
-                     <thead>
-                        <tr>
-                           <th width="5%">#</th>
-                           <th width="20%">Partner</th>
-                           <th width="20%">Role of Partner</th>
-                           <th width="50%">Description</th>
-                           <th width="5%">
-                              <button type="button" name="addplus" id="addplus" onclick="add_row_partners();" class="btn btn-success btn-sm">
+         </fieldset>
+         <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Financial Partners</legend>
+            <div class="row clearfix" id="">
+               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                  <div class="table-responsive">
+                     <table class="table table-bordered table-striped table-hover" id="approve_financier_table" style="width:100%">
+                        <thead>
+                           <tr>
+                              <th width="5%">#</th>
+                              <th width="25%">Source Category</th>
+                              <th width="25%">Financier</th>
+                              <th width="15%">Amount (Ksh)</th>
+                              <th width="5%">
+                              <button type="button" name="addplus" id="addplus" onclick="add_row_financier();" class="btn btn-success btn-sm">
                                  <span class="glyphicon glyphicon-plus"></span>
                               </button>
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody id="partners_table">
-                     <tr></tr>
-                     <tr id="add_new_partner"><td colspan="7">Add partners </td></tr>
-                     </tbody>
-                  </table>
-               </div>
-            </div>
-         </div>
-      </fieldset>
-      <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
-         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Approval Documents</legend>
-         <div class="row clearfix " id="">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-               <div class="body table-responsive">
-                  <table class="table table-bordered" style="width:100%">
-                     <thead>
-                        <tr>
-                           <th style="width:2%">#</th>
-                           <th style="width:30%">Attachment</th>
-                           <th style="width:66%">Purpose</th>
-                           <th style="width:2%">
-                           <button type="button" name="addplus1" onclick="add_row_files();" title="Add another document" class="btn btn-success btn-sm">
-                              <span class="glyphicon glyphicon-plus">
-                              </span>
-                           </button>
-                           </th>
-                        </tr>
-                     </thead>
-                     <tbody id="documents_table">
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody id="financier_table_body">
                         <tr></tr>
-                        <tr id="add_new_file">
-                           <td colspan="4"> Add file </td>
-                        </tr>
-                     </tbody>
-                  </table>
+                        <tr id="removeTr"><td colspan="6">Add Financier </td></tr>
+                        </tbody>
+                     </table>
+                  </div>
                </div>
             </div>
-         </div>
-      </fieldset>';
+         </fieldset>
+         <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Other Partners</legend>
+            <div class="row clearfix" id="">
+               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                  <div class="table-responsive">
+                     <table class="table table-bordered table-striped table-hover" id="approve_partners_table" style="width:100%">
+                        <thead>
+                           <tr>
+                              <th width="5%">#</th>
+                              <th width="20%">Partner</th>
+                              <th width="20%">Role of Partner</th>
+                              <th width="50%">Description</th>
+                              <th width="5%">
+                                 <button type="button" name="addplus" id="addplus" onclick="add_row_partners();" class="btn btn-success btn-sm">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                 </button>
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody id="partners_table">
+                        <tr></tr>
+                        <tr id="add_new_partner"><td colspan="7">Add partners </td></tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </fieldset>
+         <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
+            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Attachments</legend>
+            <div class="row clearfix " id="">
+               <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                  <div class="body table-responsive">
+                     <table class="table table-bordered" style="width:100%">
+                        <thead>
+                           <tr>
+                              <th style="width:2%">#</th>
+                              <th style="width:30%">Attachment</th>
+                              <th style="width:66%">Purpose</th>
+                              <th style="width:2%">
+                              <button type="button" name="addplus1" onclick="add_row_files();" title="Add another document" class="btn btn-success btn-sm">
+                                 <span class="glyphicon glyphicon-plus">
+                                 </span>
+                              </button>
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody id="documents_table">
+                           <tr></tr>
+                           <tr id="add_new_file">
+                              <td colspan="4"> Add file </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </fieldset>';
          echo $approve;
       }
    }
@@ -288,110 +238,105 @@ try {
       $user_name = $_POST['user_name'];
       $year = $_POST['budgetyear'];
       $date = date("Y-m-d");
-
-      $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid='$projid'");
-      $query_rsProjects->execute();
+      $valid = [];
+      $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
+      $query_rsProjects->execute(array(":projid" => $projid));
       $row_rsProjects = $query_rsProjects->fetch();
       $totalRows_rsProjects = $query_rsProjects->rowCount();
-      $project = $row_rsProjects['projname'];
-      $projplanstatus = $row_rsProjects['projplanstatus'];
-      $projcategory = $row_rsProjects['projcategory'];
-      $projcost = $row_rsProjects['projcost'];
-      $progid = $row_rsProjects['progid'];
-      $project_status = $projcategory == 1 ? 3 : 1;
 
+      if ($totalRows_rsProjects > 0) {
+         $project = $row_rsProjects['projname'];
+         $projplanstatus = $row_rsProjects['projplanstatus'];
+         $projcategory = $row_rsProjects['projcategory'];
+         $projcost = $row_rsProjects['projcost'];
+         $project_type = $row_rsProjects['project_type'];
+         $stage_id = $row_rsProjects['stage_id'];
+         $progid = $row_rsProjects['progid'];
 
-      //fetch program details
-      $query_item = $db->prepare("SELECT * FROM tbl_programs WHERE tbl_programs.progid = '$progid'");
-      $query_item->execute();
-      $row_item = $query_item->fetch();
-      $program_type = $row_item['program_type'];
-
-      if ($projplanstatus > 0) {
-         $valid['success'] = true;
-         $valid['messages'] = "Successfully Approved Project";
-      } else {
-         // financial partners
-         if (isset($_POST['amountfunding'])) {
-            for ($i = 0; $i < count($_POST['amountfunding']); $i++) {
-               $sourcecategory = $_POST['source_category'][$i];
-               $source = $_POST['financier'][$i];
-               $amountfunding = $_POST['amountfunding'][$i];
-               $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojfunding`(progid, projid, sourcecategory, financier,  amountfunding, created_by, date_created) VALUES(:progid, :projid, :sourcecategory,:financier, :amountfunding, :created_by, :date_created)");
-               $result1  = $insertSQL1->execute(array(":progid" => $progid, ":projid" => $projid, ":sourcecategory" => $sourcecategory, ":financier" => $source, ":amountfunding" => $amountfunding, ":created_by" => $user_name, ":date_created" => $date));
+         if ($stage_id > 0) {
+            $valid['success'] = true;
+            $valid['messages'] = "Successfully Approved Project";
+         } else {
+            // financial partners
+            if (isset($_POST['amountfunding'])) {
+               for ($i = 0; $i < count($_POST['amountfunding']); $i++) {
+                  $sourcecategory = $_POST['source_category'][$i];
+                  $source = $_POST['financier'][$i];
+                  $amountfunding = $_POST['amountfunding'][$i];
+                  $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojfunding`(progid, projid, sourcecategory, financier,  amountfunding, created_by, date_created) VALUES(:progid, :projid, :sourcecategory,:financier, :amountfunding, :created_by, :date_created)");
+                  $result1  = $insertSQL1->execute(array(":progid" => $progid, ":projid" => $projid, ":sourcecategory" => $sourcecategory, ":financier" => $source, ":amountfunding" => $amountfunding, ":created_by" => $user_name, ":date_created" => $date));
+               }
             }
-         }
 
-         // other partners
-         if (isset($_POST['partner_id'])) {
-            for ($i = 0; $i < count($_POST['partner_id']); $i++) {
-               $partner_role = $_POST['partner_role'][$i];
-               $partner_id = $_POST['partner_id'][$i];
-               $description = $_POST['description'][$i];
-               $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojpartner`(projid,partner_id,role,description,created_by,created_at) VALUES(:projid, :partner_id,:partner_role,:description,:created_by,:created_at)");
-               $result1  = $insertSQL1->execute(array(":projid" => $projid, ":partner_id" => $partner_id, ":partner_role" => $partner_role, ":description" => $description, ":created_by" => $user_name, ":created_at" => $date));
+            // other partners
+            if (isset($_POST['partner_id'])) {
+               for ($i = 0; $i < count($_POST['partner_id']); $i++) {
+                  $partner_role = $_POST['partner_role'][$i];
+                  $partner_id = $_POST['partner_id'][$i];
+                  $description = $_POST['description'][$i];
+                  $insertSQL1 = $db->prepare("INSERT INTO `tbl_myprojpartner`(projid,partner_id,role,description,created_by,created_at) VALUES(:projid, :partner_id,:partner_role,:description,:created_by,:created_at)");
+                  $result1  = $insertSQL1->execute(array(":projid" => $projid, ":partner_id" => $partner_id, ":partner_role" => $partner_role, ":description" => $description, ":created_by" => $user_name, ":created_at" => $date));
+               }
             }
-         }
 
-         if (isset($_POST['attachmentpurpose'])) {
-            $countP = count($_POST["attachmentpurpose"]);
-            $stage = 1;
-            // insert new data
-            for ($cnt = 0; $cnt < $countP; $cnt++) {
-               $purpose = $_POST["attachmentpurpose"][$cnt];
-               if (!empty($_FILES['pfiles']['name'][$cnt])) {
-                  $filename = basename($_FILES['pfiles']['name'][$cnt]);
-                  $ext = substr($filename, strrpos($filename, '.') + 1);
-                  if (($ext != "exe") && ($_FILES["pfiles"]["type"][$cnt] != "application/x-msdownload")) {
-                     $newname = $projid . "_" . $stage . "_" . $filename;
-                     $filepath = "../../uploads/project-approval/" . $newname;
-                     if (!file_exists($filepath)) {
-                        if (move_uploaded_file($_FILES['pfiles']['tmp_name'][$cnt], $filepath)) {
-                           $fname = $newname;
-                           $mt = "uploads/project-approval/" . $newname;
-                           $filecategory = "Project Approval";
-                           $qry1 = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, date_uploaded) VALUES (:projid, :stage, :fname, :ext, :mt, :filecat, :reason, :user, :date)");
-                           $qry1->execute(array(':projid' => $projid, ":stage" => $stage, ':fname' => $fname, ':ext' => $ext, ':mt' => $mt, ':filecat' => $filecategory, ':reason' => $purpose, ':user' => $user_name, ':date' => $date));
+            if (isset($_POST['attachmentpurpose'])) {
+               $countP = count($_POST["attachmentpurpose"]);
+               $stage = 1;
+               // insert new data
+               for ($cnt = 0; $cnt < $countP; $cnt++) {
+                  $purpose = $_POST["attachmentpurpose"][$cnt];
+                  if (!empty($_FILES['pfiles']['name'][$cnt])) {
+                     $filename = basename($_FILES['pfiles']['name'][$cnt]);
+                     $ext = substr($filename, strrpos($filename, '.') + 1);
+                     if (($ext != "exe") && ($_FILES["pfiles"]["type"][$cnt] != "application/x-msdownload")) {
+                        $newname = $projid . "_" . $stage . "_" . $filename;
+                        $filepath = "../../uploads/project-approval/" . $newname;
+                        if (!file_exists($filepath)) {
+                           if (move_uploaded_file($_FILES['pfiles']['tmp_name'][$cnt], $filepath)) {
+                              $fname = $newname;
+                              $mt = "uploads/project-approval/" . $newname;
+                              $filecategory = "Project Approval";
+                              $qry1 = $db->prepare("INSERT INTO tbl_files (`projid`, `projstage`, `filename`, `ftype`, `floc`, `fcategory`, `reason`, `uploaded_by`, date_uploaded) VALUES (:projid, :stage, :fname, :ext, :mt, :filecat, :reason, :user, :date)");
+                              $qry1->execute(array(':projid' => $projid, ":stage" => $stage, ':fname' => $fname, ':ext' => $ext, ':mt' => $mt, ':filecat' => $filecategory, ':reason' => $purpose, ':user' => $user_name, ':date' => $date));
+                           }
+                        } else {
+                           $type = 'error';
+                           $msg = 'File you are uploading already exists, try another file!!';
                         }
                      } else {
                         $type = 'error';
-                        $msg = 'File you are uploading already exists, try another file!!';
+                        $msg = 'This file type is not allowed, try another file!!';
                      }
-                  } else {
-                     $type = 'error';
-                     $msg = 'This file type is not allowed, try another file!!';
                   }
                }
             }
-         }
 
-         $projbudget = isset($_POST['projapprovedbudget']) ? $_POST['projapprovedbudget'] : $projcost;
-         $stage = 1;
-         $status = 1;
-         $direct_cost = $_POST['direct_budget'];
-         $administrative_cost = $_POST['administrative_budget'];
+            $projbudget = isset($_POST['projapprovedbudget']) ? $_POST['projapprovedbudget'] : $projcost;
+            $direct_cost = $_POST['direct_budget'];
+            $administrative_cost = $_POST['administrative_budget'];
 
-         $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created) VALUES(:projid, :year,:amount, :created_by, :date_created)");
-         $result1  = $insertSQL1->execute(array(":projid" => $projid, ":year" => $year, ":amount" => $projbudget, ":created_by" => $user_name, ":date_created" => $date));
+            $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created) VALUES(:projid, :year,:amount, :created_by, :date_created)");
+            $result1  = $insertSQL1->execute(array(":projid" => $projid, ":year" => $year, ":amount" => $projbudget, ":created_by" => $user_name, ":date_created" => $date));
 
-         $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-         $approveItemQuery->execute(array(":project_status" => $project_status, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage" => $stage, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
+            $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, stage_id=:stage_id,projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+            $approveItemQuery->execute(array(":project_status" => 3, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage_id" => 1, ":stage" => 9, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
 
-         if ($program_type == 1) {
-            $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:approved_date WHERE projid=:projid");
-            $approved = $approveQuery->execute(array(':status' => $status, ":approved_by" => $user_name, ":approved_date" => $date, ':projid' => $projid));
-         }
+            if ($program_type == 1) {
+               $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:approved_date WHERE projid=:projid");
+               $approved = $approveQuery->execute(array(':status' => 1, ":approved_by" => $user_name, ":approved_date" => $date, ':projid' => $projid));
+            }
 
-         if ($approved) {
-            $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
-            $result = $sql->execute(array(":projid" => $projid, ':stage' => 1, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
-            $mail = new Email();
-            $response =  $mail->send_master_data_email($projid, 6, '');
-            $valid['success'] = $response;
-            $valid['messages'] = "Successfully Approved Project";
-         } else {
-            $valid['success'] = false;
-            $valid['messages'] = "Error while approving!!";
+            if ($approved) {
+               $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+               $result = $sql->execute(array(":projid" => $projid, ':stage' => 9, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
+               $mail = new Email();
+               $response =  $mail->send_master_data_email($projid, 6, '');
+               $valid['success'] = $response;
+               $valid['messages'] = "Successfully Approved Project";
+            } else {
+               $valid['success'] = false;
+               $valid['messages'] = "Error while approving!!";
+            }
          }
       }
       echo json_encode($valid);
@@ -433,7 +378,7 @@ try {
 
    if (isset($_GET['get_finacier'])) {
       $source_category = $_GET['source_category'];
-      $query_rsFunder = $db->prepare("SELECT f.id, f.financier FROM tbl_financiers f INNER JOIN tbl_funding_type t ON t.id = f.type WHERE active=1 AND  t.id=:source_category ");
+      $query_rsFunder = $db->prepare("SELECT f.id, f.financier FROM tbl_financiers f INNER JOIN tbl_financier_type t ON t.id = f.type WHERE active=1 AND  t.id=:source_category ");
       $query_rsFunder->execute(array(":source_category" => $source_category));
       $totalRows_rsFunder = $query_rsFunder->rowCount();
 
@@ -506,53 +451,53 @@ try {
 
 
       $TargetB = '
-	<div class="row clearfix">
-		<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-			<div class="card">
-				<div class="header" >
-					<div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
-						<h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
-					</div>
-				</div>
-				<div class="body">
-					<input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
-					<input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
-					<div class="row clearfix">
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<label for="projduration">Project Start Date *:</label>
-							<div class="form-line">
-								<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projstartdate . '</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<label for="projduration">Project End Date *:</label>
-							<div class="form-line">
-								<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projenddate . '</div>
-							</div>
-						</div>
-						<div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-							<label for="projduration">Project Duration *:</label>
-							<div class="form-line">
-								<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $project_duration . '</div>
-							</div>
-						</div>
-						<div class="col-lg-6 col-md-4 col-sm-12 col-xs-12">
-							<label for="projduration">Project Budget *:</label>
-							<div class="form-line">
-								<div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projbudget . '</div>
-							</div>
-						</div>
-						<div class="col-lg-6 col-md-4 col-sm-12 col-xs-12">
-							<label for="projduration">Requesting Budget *:</label>
-							<div class="form-line">
-								<input type="number"  name="projadpbudget" value="" id="projadpbudget" placeholder="Enter project ADP budget for the financial year ' . $finyear . '" class="form-control" class="form-control" required />
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>';
+      <div class="row clearfix">
+         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+               <div class="header" >
+                  <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
+                     <h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
+                  </div>
+               </div>
+               <div class="body">
+                  <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
+                  <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
+                  <div class="row clearfix">
+                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <label for="projduration">Project Start Date *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projstartdate . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <label for="projduration">Project End Date *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projenddate . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                        <label for="projduration">Project Duration *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $project_duration . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-6 col-md-4 col-sm-12 col-xs-12">
+                        <label for="projduration">Project Budget *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projbudget . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-6 col-md-4 col-sm-12 col-xs-12">
+                        <label for="projduration">Requesting Budget *:</label>
+                        <div class="form-line">
+                           <input type="number"  name="projadpbudget" value="" id="projadpbudget" placeholder="Enter project ADP budget for the financial year ' . $finyear . '" class="form-control" class="form-control" required />
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>';
       echo $TargetB;
    }
 
@@ -583,5 +528,6 @@ try {
       echo json_encode($valid);
    }
 } catch (PDOException $ex) {
+   var_dump($ex);
    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

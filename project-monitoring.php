@@ -6,7 +6,9 @@ try {
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
-        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' and p.projid=:projid AND projstage=:workflow_stage");
+
+
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid AND projstage=:workflow_stage");
         $query_rsProjects->execute(array(":projid" => $projid, ":workflow_stage" => $workflow_stage));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -15,7 +17,6 @@ try {
             $implimentation_type = $row_rsProjects['projcategory'];
             $project_name = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
-            $workflow_stage = $row_rsProjects['projstage'];
             $team_type = 4;
             function validate_tasks($milestone_id)
             {
@@ -62,8 +63,7 @@ try {
                 <div class="container-fluid">
                     <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                         <h4 class="contentheader">
-                            <?= $icon ?>
-                            <?php echo $pageTitle ?>
+                            <?= $icon . " " . $pageTitle  ?>
                             <div class="btn-group" style="float:right">
                                 <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right" style="margin-right:10px; margin-top:-5px">
                                     Go Back

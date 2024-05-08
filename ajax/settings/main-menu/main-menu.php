@@ -1,5 +1,5 @@
 <?php
-include '../../controller.php';
+include '../controller.php';
 
 function get_page_sectors($page_id)
 {

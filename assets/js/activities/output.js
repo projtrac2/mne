@@ -36,7 +36,6 @@ $(document).ready(function () {
             data: form_data,
             dataType: "json",
             success: function (response) {
-                console.log(response);
                 $(".modal").each(function () {
                     $(this).modal("hide");
                 });
@@ -112,11 +111,9 @@ function add_details(options, id) {
         $("#milestone_type").val(options.milestone_type);
 
         if (options.milestone_type == 1) {
-            console.log(options.milestone_type);
             $("#milestone_data_task_based").show();
             $("#milestone_data_output_based").hide();
         } else if (options.milestone_type == 2) {
-            console.log(options.milestone_type);
             $("#milestone_data_task_based").hide();
             $("#milestone_data_output_based").show();
         }
@@ -141,7 +138,7 @@ function add_output(options, id) {
             get_outputs('row9999', options);
             $("#design").show();
             $("#milestone_data_task_based_1").hide();
-            $("#milestone_task_table_body_1 tr:last").after('<tr id="hideinfo4"><td colspan="5" align="center"> Add Output</td></tr>');
+            $("#milestone_task_table_body_1 tr:last").after('<tr></tr><tr id="hideinfo4"><td colspan="5" align="center"> Add Output</td></tr>');
             $("#outputrow9999").attr("required", "required");
             $("#targetrow9999").attr("required", "required");
         } else {
@@ -189,7 +186,7 @@ function delete_row_output(rowno) {
     $number = $("#milestone_table_body tr").length;
     if ($number == 1) {
         $("#milestone_table_body tr:last").after(
-            '<tr id="hideinfo1"><td colspan="5" align="center"> Add Output</td></tr>'
+            '<tr></tr><tr id="hideinfo1"><td colspan="5" align="center"> Add Output</td></tr>'
         );
     }
 }
@@ -237,7 +234,7 @@ function calculate_maximum(rowno) {
             }
         }
     } else {
-        console.error("sorry you cannot enter 0 or empty file");
+        error_alert("sorry you cannot enter 0 or empty file");
     }
 }
 
@@ -245,6 +242,7 @@ function calculate_maximum(rowno) {
 function add_task_output() {
     $("#hideinfo2").remove();
     var rowno = $("#milestone_task_table_body tr").length + 1;
+
     $("#milestone_task_table_body tr:last").after(`
         <tr id="rowrs${rowno}">
             <td></td>
@@ -316,7 +314,7 @@ function delete_task_output_1(rowno) {
     $number = $("#milestone_task_table_body_1 tr").length;
     if ($number == 1) {
         $("#milestone_task_table_body_1 tr:last").after(
-            '<tr id="hideinfo4"><td colspan="5" align="center"> Add Output</td></tr>'
+            '<tr></tr><tr id="hideinfo4"><td colspan="5" align="center"> Add Output</td></tr>'
         );
     }
 }
@@ -405,6 +403,7 @@ function delete_milestone(details) {
                 data: {
                     delete_milestone: "delete_milestone",
                     milestone_id: details.milestone_id,
+                    csrf_token: $("#csrf_token").val(),
                 },
                 dataType: "json",
                 success: function (response) {
@@ -449,6 +448,7 @@ function delete_output(details) {
                     delete_milestone_output: "delete_milestone_output",
                     milestone_id: details.milestone_id,
                     output_id: details.output_id,
+                    csrf_token: $("#csrf_token").val(),
                 },
                 dataType: "json",
                 success: function (response) {
@@ -536,6 +536,7 @@ function edit_milestone(milestone_id) {
                                 </tr>`;
                             }
                         });
+
                         if (milestone_type == 1) {
                             $("#milestone_task_table_body").html(html_body);
                         } else {
@@ -549,13 +550,13 @@ function edit_milestone(milestone_id) {
                             numbering_task_output();
                         } else {
                             $("#milestone_table_body").html(
-                                '<tr id="hideinfo1"><td colspan="5" align="center"> Add Output</td></tr>'
+                                '<tr></tr><tr id="hideinfo1"><td colspan="5" align="center"> Add Output</td></tr>'
                             );
                             numbering_output();
                         }
                     }
                 } else {
-                    console.log("Could not find edit details ");
+                    error_alert("Could not find edit details ");
                 }
             },
         });

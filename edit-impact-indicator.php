@@ -21,8 +21,6 @@ try {
 			$strategic_plan_objectives = get_strategic_objectives();
 			$years = $strategic_plan['years'];
 			$starting_year = $strategic_plan['starting_year'];
-			$editFormAction = $_SERVER['PHP_SELF'];
-			$results = "";
 			$indicator = get_indicator_by_indid($ind);
 
 			// get all the variables here

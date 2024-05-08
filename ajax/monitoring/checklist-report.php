@@ -1,8 +1,6 @@
 <?php
 try {
     include '../controller.php';
-
-
     function calculate_output_site_progress($output_id, $implimentation_type, $site_id, $start_date, $end_date)
     {
         global $db;

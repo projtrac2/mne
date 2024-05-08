@@ -56,31 +56,6 @@ try {
 		}
 
 
-		function view_project($department, $section, $directorate)
-		{
-			global $db, $user_department, $user_section, $user_directorate, $user_designation;
-			$grant_access = false;
-			if ($user_designation == 1) {
-				$grant_access = true;
-			} else {
-				if ($user_designation >= 5 && $user_designation <= 7) {
-					if ($user_department == $department) {
-						if ($section == $user_section) {
-							if ($directorate == $user_directorate) {
-								$grant_access = true;
-							} else {
-								$grant_access = ($user_designation == 6) ? true : false;
-							}
-						} else {
-							$grant_access = ($user_designation == 5) ? true : false;
-						}
-					}
-				}
-			}
-
-			return $grant_access;
-		}
-
 		$query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE active = 1");
 		$query_risk_impact->execute();
 
@@ -117,6 +92,7 @@ try {
 												<th style="width:40%">Project </th>
 												<th style="width:10%">Project Category </th>
 												<th style="width:10">Due Date</th>
+												<th style="width:10">Substage</th>
 												<th style="width:10">Status</th>
 												<th style="width:5%">Action</th>
 											</tr>
@@ -139,6 +115,11 @@ try {
 													$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid");
 													$query_rsPlan->execute(array(":projid" => $projid));
 													$totalRows_plan = $query_rsPlan->rowCount();
+													$totalRows_plan = $query_rsPlan->fetch();
+
+													$query_rsPlan_frequency = $db->prepare("SELECT * FROM tbl_program_of_works WHERE projid = :projid AND frequency_id IS NOT NULL");
+													$query_rsPlan_frequency->execute(array(":projid" => $projid));
+													$totalRows_plan_frequency = $query_rsPlan_frequency->rowCount();
 
 													$filter_department = view_record($project_department, $project_section, $project_directorate);
 
@@ -165,7 +146,8 @@ try {
 															$activity = $sub_stage == 3 ? "Approve"  : "Edit";
 														}
 
-														$activity_status = "Pending Approval";
+														$activity_status = "";
+
 														if ($today > $due_date) {
 															$activity_status = "Behind Schedule";
 														} else {
@@ -179,6 +161,8 @@ try {
 														//0 1 2 3 (Data entry)
 														// 4 5 6 7 (Frequency)
 														// 8 (Target Breakdown)
+
+
 
 														$responsible = daily_team($projid, 9, 2, $sub_stage);
 														$project_category = $implementation == 1 ? "In-House" : "Contractor";
@@ -198,6 +182,7 @@ try {
 															<td><?= $row_rsProjects['projname'] ?></td>
 															<td><?= $project_category ?></td>
 															<td><?= date('Y M d', strtotime($due_date)) ?></td>
+															<td><label class='label label-success'><?= $substage; ?></label></td>
 															<td><label class='label label-success'><?= $activity_status; ?></label></td>
 															<td>
 																<div class="btn-group">
@@ -211,16 +196,33 @@ try {
 																			</a>
 																		</li>
 																		<?php
-
 																		if ($responsible) {
-																			if ($program_of_works) {
 																		?>
-																				<li>
-																					<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
-																						<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
-																					</a>
-																				</li>
+																			<li>
+																				<a type="button" data-toggle="modal" data-target="#assign_modal" id="assignModalBtn" onclick="get_responsible_options(<?= $details ?>)">
+																					<i class="fa fa-users"></i> <?= !$assigned ? "Assign" : "Reassign" ?>
+																				</a>
+																			</li>
+																			<?php
+																			if ($implementation == 2) {
+																				if ($sub_stage > 1 && $sub_stage < 4) {
+																			?>
+																					<li>
+																						<a type="button" href="add-work-program.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																							<i class="fa fa-plus-square-o"></i> Approve Program of Works
+																						</a>
+																					</li>
 																				<?php
+																				} else if ($sub_stage > 3 && $sub_stage  < 8) {
+																				?>
+																					<li>
+																						<a type="button" href="add-activity-frequency.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
+																							<i class="fa fa-plus-square-o"></i> <?= $totalRows_plan_frequency > 0 ? "Edit" : "Add" ?> Frequency
+																						</a>
+																					</li>
+																				<?php
+																				}
+																			} else {
 																				if ($sub_stage <= 3) {
 																				?>
 																					<li>
@@ -233,7 +235,7 @@ try {
 																				?>
 																					<li>
 																						<a type="button" href="add-activity-frequency.php?projid=<?= $projid_hashed ?>" id="addFormModalBtn">
-																							<i class="fa fa-plus-square-o"></i> <?= $activity ?> Frequency
+																							<i class="fa fa-plus-square-o"></i> <?= $totalRows_plan_frequency > 0 ? "Edit" : "Add" ?> Frequency
 																						</a>
 																					</li>
 																				<?php
@@ -244,10 +246,8 @@ try {
 																							<i class="fa fa-plus-square-o"></i> <?= $activity ?> Target Breakdown
 																						</a>
 																					</li>
-																				<?php
-																				}
-																				?>
 																		<?php
+																				}
 																			}
 																		}
 																		?>

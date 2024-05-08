@@ -95,10 +95,10 @@ $(document).ready(function () {
     $("#add_project_frequency").submit(function (e) {
         e.preventDefault();
         var form_data = $(this).serialize();
-        // $("#tag-form-submit-frequency").prop("disabled", true);
+        $("#tag-form-submit-frequency").prop("disabled", true);
         $.ajax({
             type: "post",
-            url: "ajax/programsOfWorks/wbs",
+            url: ajax_url1,
             data: form_data,
             dataType: "json",
             success: function (response) {
@@ -264,72 +264,49 @@ function get_subtasks_wbs(output_id, site_id, task_id, subtask_id) {
 }
 
 function validate_dates(task_id) {
-    var project_start_date = $("#project_start_date").val();
-    var project_end_date = $("#project_end_date").val();
     var today = $("#today").val();
+    var start_date = $(`#start_date${task_id}`).val();
+    if (start_date != "") {
+        var d1 = new Date(start_date);
+        var d2 = new Date(today);
 
-    if (project_start_date != '' && project_end_date != '') {
-        var start_date = $(`#start_date${task_id}`).val();
-        if (start_date != "") {
-            var d1 = new Date(start_date);
-            var d2 = new Date(today);
-            var d3 = new Date(project_start_date);
-            var d4 = new Date(project_end_date);
-
-            if (d3 <= d1 && d1 <= d4) {
-                if (d2 > d1) {
-                    $(`#start_date${task_id}`).val("");
-                    error_alert("Please ensure task start date is greater today")
-                }
-                calculate_end_date(task_id)
-            } else {
-                $(`#start_date${task_id}`).val("");
-                error_alert("Please ensure that start date is between contract dates");
-            }
-        } else {
+        if (d2 > d1) {
             $(`#start_date${task_id}`).val("");
+            error_alert("Please ensure task start date is greater today")
         }
+        calculate_end_date(task_id)
     } else {
         $(`#start_date${task_id}`).val("");
     }
 }
 
 function calculate_end_date(task_id) {
-    var project_end_date = $(`#project_end_date`).val();
     var start_date = $(`#start_date${task_id}`).val();
     var duration = $(`#duration${task_id}`).val();
-    if (project_end_date != '') {
-        if (start_date != "" && duration != "") {
-            $.ajax({
-                type: "get",
-                url: ajax_url1,
-                data: {
-                    compare_dates: "compare_dates",
-                    project_end_date: project_end_date,
-                    start_date: start_date,
-                    duration: duration
-                },
-                dataType: "json",
-                success: function (response) {
-                    if (response.success) {
-                        $(`#end_date${task_id}`).val(response.subtask_end_date);
-                    } else {
-                        $(`#duration${task_id}`).val("");
-                        $(`#end_date${task_id}`).val("");
-                        error_alert("Please ensure that end date is between contract dates");
-                    }
+    if (start_date != "" && duration != "") {
+        $.ajax({
+            type: "get",
+            url: ajax_url1,
+            data: {
+                compare_dates: "compare_dates",
+                start_date: start_date,
+                duration: duration
+            },
+            dataType: "json",
+            success: function (response) {
+                if (response.success) {
+                    $(`#end_date${task_id}`).val(response.subtask_end_date);
+                } else {
+                    $(`#duration${task_id}`).val("");
+                    $(`#end_date${task_id}`).val("");
+                    error_alert("Error occured");
                 }
-            });
-        } else {
-            $(`#duration${task_id}`).val("");
-            $(`#end_date${task_id}`).val("");
-        }
+            }
+        });
     } else {
         $(`#duration${task_id}`).val("");
         $(`#end_date${task_id}`).val("");
-        error_alert('Project start date please check');
     }
-
 }
 
 function save_data_entry_project(details) {
@@ -388,6 +365,7 @@ function approve_project(details) {
                         projid: details.projid,
                         workflow_stage: details.workflow_stage,
                         sub_stage: details.sub_stage,
+                        stage_id: details.stage_id,
                         csrf_token: $("#csrf_token").val(),
                     },
                     dataType: "json",

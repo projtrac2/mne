@@ -1,7 +1,15 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission) {
+    if ($permission && (isset($_GET['stage']) && !empty($_GET["stage"]))) {
+        $decode_stage =   base64_decode($_GET['stage']);
+        $stage_array = explode("projid54321", $decode_stage);
+        $stage = $stage_array[1];
+
+        $decode_projid =  base64_decode($_GET['stage']);
+        $projid_array = explode("projid54321", $decode_projid);
+        $projid_stage = $projid_array[1];
+
         $access_level = "";
         if (($user_designation < 5)) {
             $access_level = "";
@@ -45,21 +53,40 @@ try {
             return $projids_array;
         }
 
+        function get_wards($location)
+        {
+            global $db;
+            $locations = [];
+            foreach ($location as $mystate) {
+                $query_rsLoc = $db->prepare("SELECT parent, state FROM tbl_state WHERE id=:mystate");
+                $query_rsLoc->execute(array(":mystate" => $mystate));
+                $row_rsLoc = $query_rsLoc->fetch();
+                $totalRows_rsLoc = $query_rsLoc->rowCount();
+                $locations[] = $totalRows_rsLoc > 0 ? $row_rsLoc['state'] : '';
+            }
+            return implode(",", $locations);
+        }
+
+        function get_sector($progid)
+        {
+            global $db;
+            $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
+            $query_rsSect->execute(array(":progid" => $progid));
+            $row_rsSector = $query_rsSect->fetch();
+            $totalRows_rsSect = $query_rsSect->rowCount();
+            return $totalRows_rsSect > 0 ? $row_rsSector['sector'] : "";
+        }
 
         $projects = $ind_projects = [];
-
+        $projects =  widgets($stage, '', '', 1);
+        $ind_projects =  widgets($stage, '', '', 0);
         if (isset($_GET['btn_search']) and $_GET['btn_search'] == "FILTER") {
             $level_one_id = isset($_GET['projscounty']) && !empty($_GET['projscounty']) ? $_GET['projscounty'] : '';
             $level_two_id = isset($_GET['projward']) && !empty($_GET['projward']) ? $_GET['projward'] : '';
             $stage = (isset($_GET['stage']))  ? $_GET['stage'] : '';
             $projects =  widgets($stage, $level_one_id, $level_two_id, 1);
             $ind_projects =  widgets($stage, $level_one_id, $level_two_id, 0);
-        } else {
-            $stage = (isset($_GET['stage']))  ? $_GET['stage'] : '';
-            $projects =  widgets($stage, '', '', 1);
-            $ind_projects =  widgets($stage, '', '', 0);
         }
-
         $_SESSION['back_url'] = 'http://' . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"];
 ?>
         <!-- start body  -->
@@ -67,8 +94,7 @@ try {
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                     <h4 class="contentheader">
-                        <?= $icon ?>
-                        <?= $pageTitle ?>
+                        <?= $icon  . ' ' . get_project_stage($stage) . " Projects"  ?>
                         <div class="btn-group" style="float:right">
                             <div class="btn-group" style="float:right">
                                 <button onclick="location.href='dashboard.php'" type="button" class="btn bg-orange waves-effect" style="float:right; margin-top:-5px">
@@ -108,9 +134,27 @@ try {
                                                             <th width="25%"><strong>Project &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong></th>
                                                             <th width="12%"><strong><?= $departmentlabel ?></strong></th>
                                                             <th width="8%"><strong>Budget (Ksh)</strong></th>
-                                                            <th width="8%"><strong>Start Date</strong></th>
-                                                            <th width="8%"><strong>End Date</strong></th>
-                                                            <th width="10%"><strong>Stage,Status, Progress(%)</strong></th>
+                                                            <?php
+                                                            if ($stage > 2) {
+                                                            ?>
+                                                                <th width="8%"><strong>Start Date</strong></th>
+                                                                <th width="8%"><strong>End Date</strong></th>
+                                                            <?php
+                                                            } else {
+                                                            ?>
+                                                                <th width="16%"><strong>Duration (Days)</strong></th>
+                                                            <?php
+                                                            }
+                                                            if ($stage == 2) {
+                                                            ?>
+                                                                <th width="10%"><strong>Substage,Status,Progress(%)</strong></th>
+                                                            <?php
+                                                            } else {
+                                                            ?>
+                                                                <th width="10%"><strong>Substage,Status</strong></th>
+                                                            <?php
+                                                            }
+                                                            ?>
                                                             <th width="9%"><strong> <?= $level2label ?></strong></th>
                                                             <th width="7%"><strong>Issues</strong></th>
                                                             <th width="9%"><strong>Implementer</strong></th>
@@ -134,25 +178,17 @@ try {
                                                                 $projstage =  $detail['projstage'];
                                                                 $substage_id =  $detail['proj_substage'];
                                                                 $projstatus =  $detail['projstatus'];
+                                                                $duration =  $detail['projduration'];
                                                                 $location = explode(",", $detail['projlga']);
                                                                 $fscyear = $detail['projfscyear'];
                                                                 $row_progid = $detail['progid'];
                                                                 $projcategory =  $detail['projcategory'];
-                                                                $percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
+                                                                $progress = number_format(calculate_project_progress($projid, $projcategory), 2);
                                                                 $projectid = base64_encode("projid54321{$projid}");
-                                                                $project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
-                                                                $project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
 
-                                                                if ($projcategory == 2 && $projstage > 4) {
-                                                                    $query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
-                                                                    $query_tender_details->execute(array(":projid" => $projid));
-                                                                    $rows_tender_details = $query_tender_details->fetch();
-                                                                    $total_tender_details = $query_tender_details->rowCount();
-                                                                    if ($total_tender_details > 0) {
-                                                                        $project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
-                                                                        $project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
-                                                                    }
-                                                                } elseif ($projcategory == 1 && $projstage > 8) {
+                                                                $project_start_date = '';
+                                                                $project_end_date = '';
+                                                                if ($stage > 2) {
                                                                     $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
                                                                     $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
                                                                     $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
@@ -162,6 +198,7 @@ try {
                                                                         $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
                                                                     }
                                                                 }
+
 
                                                                 $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
                                                                 $query_rsSect->execute(array(":progid" => $progid));
@@ -182,6 +219,7 @@ try {
 
                                                                 $projcontractor = "In House";
                                                                 if ($projcategory == 2) {
+                                                                    $projcontractor = "Contractor";
                                                                     $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
                                                                     $query_contractor->execute(array(":projid" => $projid));
                                                                     $row_contractor = $query_contractor->fetch();
@@ -195,26 +233,10 @@ try {
                                                                     }
                                                                 }
 
-
-                                                                $progress = get_project_progress($projstatus);
-                                                                $status = get_status($status_id);
-
-                                                                $locations = [];
-                                                                foreach ($location as $mystate) {
-                                                                    $query_rsLoc = $db->prepare("SELECT parent, state FROM tbl_state WHERE id=:mystate");
-                                                                    $query_rsLoc->execute(array(":mystate" => $mystate));
-                                                                    $row_rsLoc = $query_rsLoc->fetch();
-                                                                    $totalRows_rsLoc = $query_rsLoc->rowCount();
-                                                                    $locations[] = $row_rsLoc['state'];
-                                                                }
-
-                                                                $query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE projid=:projid  ORDER BY id DESC LIMIT 1");
-                                                                $query_rsMonitoring_Achieved->execute(array(":projid" => $projid));
-                                                                $Rows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->fetch();
-                                                                $totalRows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->rowCount();
-
-                                                                $projlastmn = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : '';
-
+                                                                $project_progress = get_project_progress($progress);
+                                                                $status = get_project_status($projstatus);
+                                                                $locations = get_wards($location);
+                                                                $project_stage =  get_project_stage($projstage);
                                                         ?>
                                                                 <tr id="rows">
                                                                     <td width="4%"><?php echo $sn; ?></td>
@@ -226,21 +248,36 @@ try {
                                                                     </td>
                                                                     <td width="12%"><?= $sector ?></td>
                                                                     <td width="8%"><?= number_format($projcost, 2) ?></td>
-                                                                    <td width="8%"><?= $project_start_date; ?></td>
-                                                                    <td width="8%"><?= $project_end_date; ?></td>
+                                                                    <?php
+                                                                    if ($stage > 2) {
+                                                                    ?>
+                                                                        <td width="8%"><?= $project_start_date; ?></td>
+                                                                        <td width="8%"><?= $project_end_date; ?></td>
+                                                                    <?php
+                                                                    } else {
+                                                                    ?>
+                                                                        <td width="8%"><?= $duration; ?></td>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
                                                                     <td width="10%" style="padding-right:0px; padding-left:0px">
-                                                                        <strong> <?= "Activities"  ?></strong>
                                                                         <br />
                                                                         <br />
-                                                                        <?= $status  ?>
+                                                                        <?= "Sub-Stage: " . $project_stage . " <br/>" . $status  ?>
                                                                         <br />
-                                                                        <strong>
-                                                                            <?= $progress ?>
-                                                                        </strong>
-                                                                        <br />
+                                                                        <?php
+                                                                        if ($stage == 2) {
+                                                                        ?>
+                                                                            <strong>
+                                                                                <?= $project_progress ?>
+                                                                            </strong>
+                                                                            <br />
+                                                                        <?php
+                                                                        }
+                                                                        ?>
                                                                     </td>
                                                                     <td width="9%">
-                                                                        <?= implode(", ", $locations); ?>
+                                                                        <?= $locations; ?>
                                                                     </td>
                                                                     <td width="7%" align="center">
                                                                         <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
@@ -269,9 +306,27 @@ try {
                                                             <th width="25%"><strong>Project</strong></th>
                                                             <th width="12%"><strong><?= $departmentlabel ?></strong></th>
                                                             <th width="8%"><strong>Budget (Ksh)</strong></th>
-                                                            <th width="8%"><strong>Start Date</strong></th>
-                                                            <th width="8%"><strong>End Date</strong></th>
-                                                            <th width="10%"><strong>Status & Progress(%)</strong></th>
+                                                            <?php
+                                                            if ($stage > 2) {
+                                                            ?>
+                                                                <th width="8%"><strong>Start Date</strong></th>
+                                                                <th width="8%"><strong>End Date</strong></th>
+                                                            <?php
+                                                            } else {
+                                                            ?>
+                                                                <th width="16%"><strong>Duration (Days)</strong></th>
+                                                            <?php
+                                                            }
+                                                            if ($stage == 2) {
+                                                            ?>
+                                                                <th width="10%"><strong>Substage,Status,Progress(%)</strong></th>
+                                                            <?php
+                                                            } else {
+                                                            ?>
+                                                                <th width="10%"><strong>Substage,Status</strong></th>
+                                                            <?php
+                                                            }
+                                                            ?>
                                                             <th width="9%"><strong> <?= $level2label ?></strong></th>
                                                             <th width="7%"><strong>Issues</strong></th>
                                                             <th width="9%"><strong>Implementer</strong></th>
@@ -299,22 +354,15 @@ try {
                                                                 $location = explode(",", $detail['projlga']);
                                                                 $fscyear = $detail['projfscyear'];
                                                                 $row_progid = $detail['progid'];
+                                                                $duration = $detail['projduration'];
                                                                 $projcategory =  $detail['projcategory'];
-                                                                $percent2 = number_format(calculate_project_progress($projid, $projcategory), 2);
-                                                                $projectid = base64_encode("projid54321{$projid}");
-                                                                $project_start_date = date_format(date_create($detail['projstartdate']), "d M Y");
-                                                                $project_end_date = date_format(date_create($detail['projenddate']), "d M Y");
 
-                                                                if ($projcategory == 2 && $projstage > 4) {
-                                                                    $query_tender_details = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid=:projid LIMIT 1");
-                                                                    $query_tender_details->execute(array(":projid" => $projid));
-                                                                    $rows_tender_details = $query_tender_details->fetch();
-                                                                    $total_tender_details = $query_tender_details->rowCount();
-                                                                    if ($total_tender_details > 0) {
-                                                                        $project_start_date =  date_format(date_create($rows_tender_details['startdate']), "d M Y");
-                                                                        $project_end_date =  date_format(date_create($rows_tender_details['enddate']), "d M Y");
-                                                                    }
-                                                                } elseif ($projcategory == 1 && $projstage > 8) {
+                                                                $progress = number_format(calculate_project_progress($projid, $projcategory), 2);
+                                                                $projectid = base64_encode("projid54321{$projid}");
+
+                                                                $project_start_date = '';
+                                                                $project_end_date = '';
+                                                                if ($stage > 2) {
                                                                     $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
                                                                     $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
                                                                     $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
@@ -325,26 +373,13 @@ try {
                                                                     }
                                                                 }
 
-                                                                $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
-                                                                $query_rsSect->execute(array(":progid" => $progid));
-                                                                $row_rsSector = $query_rsSect->fetch();
-                                                                $totalRows_rsSect = $query_rsSect->rowCount();
-
-                                                                $sector = $totalRows_rsSect > 0 ? $row_rsSector['sector'] : "";
-
-                                                                $query_FY = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id=:fscyear");
-                                                                $query_FY->execute(array(":fscyear" => $fscyear));
-                                                                $row_FY = $query_FY->fetch();
-                                                                $totalRows_rsFY = $query_FY->rowCount();
-                                                                $financial_year = $totalRows_rsFY > 0 ? $row_FY['year'] : "";
-
                                                                 $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
                                                                 $query_rsProjissues->execute(array(":projid" => $projid));
                                                                 $totalRows_rsProjissues = $query_rsProjissues->rowCount();
 
                                                                 $projcontractor = "In House";
-
                                                                 if ($projcategory == 2) {
+                                                                    $projcontractor = "Contractor";
                                                                     $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
                                                                     $query_contractor->execute(array(":projid" => $projid));
                                                                     $row_contractor = $query_contractor->fetch();
@@ -358,50 +393,12 @@ try {
                                                                     }
                                                                 }
 
-                                                                $projstatus = ($projstage == 9 && $substage_id == 6) ? 14 : $projstatus;
-                                                                $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-                                                                $query_Projstatus->execute(array(":projstatus" => $projstatus));
-                                                                $row_Projstatus = $query_Projstatus->fetch();
-                                                                $total_Projstatus = $query_Projstatus->rowCount();
-                                                                $status = "";
-                                                                if ($total_Projstatus > 0) {
-                                                                    $status_name = $row_Projstatus['statusname'];
-                                                                    $status_class = $row_Projstatus['class_name'];
-                                                                    $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-                                                                }
+                                                                $project_progress = get_project_progress($progress);
+                                                                $status = get_project_status($projstatus);
+                                                                $locations = get_wards($location);
+                                                                $sector = get_sector($progid);
 
-
-                                                                $project_progress = '
-                                                            <div class="progress" style="height:20px; font-size:10px; color:black">
-                                                                <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $percent2 . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percent2 . '%; height:20px; font-size:10px; color:black">
-                                                                    ' . number_format($percent2, 2) . '%
-                                                                </div>
-                                                            </div>';
-                                                                if ($percent2 == 100) {
-                                                                    $project_progress = '
-                                                                <div class="progress" style="height:20px; font-size:10px; color:black">
-                                                                    <div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $percent2 . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $percent2 . '%; height:20px; font-size:10px; color:black">
-                                                                    ' . number_format($percent2, 2) . '%
-                                                                    </div>
-                                                                </div>';
-                                                                }
-
-
-                                                                $locations = [];
-                                                                foreach ($location as $mystate) {
-                                                                    $query_rsLoc = $db->prepare("SELECT parent, state FROM tbl_state WHERE id=:mystate");
-                                                                    $query_rsLoc->execute(array(":mystate" => $mystate));
-                                                                    $row_rsLoc = $query_rsLoc->fetch();
-                                                                    $totalRows_rsLoc = $query_rsLoc->rowCount();
-                                                                    $locations[] = $row_rsLoc['state'];
-                                                                }
-
-                                                                $query_rsMonitoring_Achieved = $db->prepare("SELECT * FROM tbl_project_monitoring_checklist_score WHERE projid=:projid  ORDER BY id DESC LIMIT 1");
-                                                                $query_rsMonitoring_Achieved->execute(array(":projid" => $projid));
-                                                                $Rows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->fetch();
-                                                                $totalRows_rsMonitoring_Achieved = $query_rsMonitoring_Achieved->rowCount();
-
-                                                                $projlastmn = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : '';
+                                                                $project_stage =  get_project_stage($projstage);
                                                         ?>
                                                                 <tr id="rows">
                                                                     <td width="4%"><?php echo $sn; ?></td>
@@ -413,18 +410,35 @@ try {
                                                                     </td>
                                                                     <td width="12%"><?= $sector ?></td>
                                                                     <td width="8%"><?= number_format($projcost, 2) ?></td>
-                                                                    <td width="8%"><?= $project_start_date; ?></td>
-                                                                    <td width="8%"><?= $project_end_date; ?></td>
+                                                                    <?php
+                                                                    if ($stage > 2) {
+                                                                    ?>
+                                                                        <td width="8%"><?= $project_start_date; ?></td>
+                                                                        <td width="8%"><?= $project_end_date; ?></td>
+                                                                    <?php
+                                                                    } else {
+                                                                    ?>
+                                                                        <td width="8%"><?= $duration; ?></td>
+                                                                    <?php
+                                                                    }
+                                                                    ?>
                                                                     <td width="10%" style="padding-right:0px; padding-left:0px">
-                                                                        <?= $status  ?>
                                                                         <br />
-                                                                        <strong>
-                                                                            <?= $project_progress ?>
-                                                                        </strong>
+                                                                        <?= "Sub-Stage: " . $project_stage . " <br/>" . $status  ?>
                                                                         <br />
+                                                                        <?php
+                                                                        if ($stage == 2) {
+                                                                        ?>
+                                                                            <strong>
+                                                                                <?= $project_progress ?>
+                                                                            </strong>
+                                                                            <br />
+                                                                        <?php
+                                                                        }
+                                                                        ?>
                                                                     </td>
                                                                     <td width="9%">
-                                                                        <?= implode(", ", $locations); ?>
+                                                                        <?= $locations; ?>
                                                                     </td>
                                                                     <td width="7%" align="center">
                                                                         <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">

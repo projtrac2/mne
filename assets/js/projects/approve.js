@@ -5,7 +5,7 @@ $(document).ready(function () {
         e.preventDefault();
         var formData = new FormData(this);
         var validate = validate_approval();
-        $("#tag-form-submit").prop("disabled", true);
+        // $("#tag-form-submit").prop("disabled", true);
         if (validate) {
             $.ajax({
                 url: "ajax/projects/approve",
@@ -303,7 +303,7 @@ function unapprove_project(projid) {
 
 function distribute_project_cost(id) {
     var project_cost = $("#project_cost").val();
-    var direct_budget = $("#direct_budget").val(); 
+    var direct_budget = $("#direct_budget").val();
     var administrative_budget = $("#administrative_budget").val();
     var msg = false;
     project_cost = project_cost != "" ? parseFloat(project_cost) : 0;
