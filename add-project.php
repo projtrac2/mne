@@ -162,7 +162,7 @@ try {
             return $data;
         }
 
-        $stage = 0;
+        $stage = 4;
         $query_rsFile = $db->prepare("SELECT * FROM tbl_files WHERE projstage=:stage and projid=:projid");
         $query_rsFile->execute(array(":stage" => $stage, ":projid" => $projid));
         $row_rsFile = $query_rsFile->fetch();
@@ -236,7 +236,7 @@ try {
                                             </div>
                                         </div>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="project_budget">Project Budget *:<span class="text-danger">(Ksh. <?= number_format($program_budget) ?>)</span></label>
+                                            <label for="project_budget">Project Budget <span class="text-danger">(Ksh)</span>*:</label>
                                             <input type="number" name="project_budget" min="1" id="project_budget" value="<?= $project_budget ?>" onchange="calculate_project_budget()" onkeyup="calculate_project_budget()" class="form-control" required>
                                             <input type="hidden" name="program_budget_ceiling" id="program_budget_hidden" value="<?= $program_budget ?>">
                                             <span id="" style="color:red"></span>
@@ -252,7 +252,7 @@ try {
                                             </div>
                                         </div>
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="" class="control-label">SP linked ? *:</label>
+                                            <label for="" class="control-label">CIDP linked? *:</label>
                                             <div class="form-line">
                                                 <input name="project_type" type="radio" value="1" <?= $project_type == 1 && $projid != "" ? "checked" : "" ?> id="project_type1" class="with-gap radio-col-green project_type" required="required" />
                                                 <label for="project_type1">YES</label>

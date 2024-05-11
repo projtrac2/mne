@@ -231,8 +231,7 @@ try {
                                                         $counter++;
                                                         $objective = $strategic_plan_objective['objective'];
                                                         $kra = $strategic_plan_objective['kra'];
-                                                        $objid = $strategic_plan_objective['id'];
-                                                        $kpi = $strategic_plan_objective['kpi'];
+                                                        $objid = $strategic_plan_objective['id']; 
 
                                                         $objective_strategy = get_strategic_objectives_strategy($objid);
                                                         $objective_programs = strategic_objective_programs($objid);
@@ -451,7 +450,7 @@ try {
                                                     <div class="form-inline">
                                                         <label for="">Link Outcome Indicator *:</label>
                                                         <select name="indicator" id="indicator" class="form-control require" onchange="get_measurement_unit()" style="width:100%;" required>
-                                                            <option value="">.... Select Impact ....</option>
+                                                            <option value="">.... Select Indicator ....</option>
                                                             <?php
                                                             while ($row_outcome_indicator = $query_outcome_indicator->fetch()) {
                                                             ?>

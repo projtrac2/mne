@@ -1,21 +1,13 @@
 <?php
-
-include_once '../../controller.php';
-
 try {
-    //code...
-    $content = $_POST['content'];
-    $updateQuery = $db->prepare("UPDATE `tbl_email_templates` SET content=:content WHERE id=:itemid");
-    $results = $updateQuery->execute([':itemid' => 6, ':content' => $content]);
+    include_once '../controller.php';
 
-    if ($results === TRUE) {
-        $valid = true;
-    } else {
-        $valid = false;
+    if (isset($_POST['store'])) {
+        $content = $_POST['content'];
+        $updateQuery = $db->prepare("UPDATE `tbl_email_templates` SET content=:content WHERE id=:itemid");
+        $results = $updateQuery->execute([':itemid' => 6, ':content' => $content]);
+        echo json_encode(array("success" => $results));
     }
-
-    echo json_encode($valid);
-   
-} catch (\Throwable $th) {
-    echo json_encode($th->getMessage());
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

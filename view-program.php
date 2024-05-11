@@ -95,7 +95,7 @@ try {
                                                             $row_rsStrategicPlanProgram = $query_rsStrategicPlanProgram->fetch();
                                                             $totalRows_rsStrategicPlanProgram = $query_rsStrategicPlanProgram->rowCount();
 
-                                                            $projectscount = '<a href="#"><span class="badge bg-purple">0.00</span></a>';
+                                                            $projectscount = '<a href="#"><span class="badge bg-purple">0</span></a>';
                                                             if ($totalRows_rsStrategicPlanProgram > 0) {
                                                                 $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
                                                                 //get total projects
@@ -105,7 +105,7 @@ try {
                                                                 $count_projsbudget = $query_projsbudget->rowCount();
 
                                                                 $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
-                                                                $count_projects = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : number_format(0, 2);
+                                                                $count_projects = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : 0;
                                                                 $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
 
                                                                 if ($count_projects > 0) {
@@ -141,7 +141,7 @@ try {
                                                                                 if ($totalRows_rsStrategicPlanProgram > 0) {
                                                                                     $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
                                                                                     $strategic_plan_program_hashed = base64_encode("progid54321{$strategic_plan_program_id}");
-                                                                                    if ($totalRows_projs == 0) {
+                                                                                    if ($count_projects == 0) {
                                                                                 ?>
                                                                                         <li>
                                                                                             <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $program_hashed ?>&plan=<?= $stplane ?>">

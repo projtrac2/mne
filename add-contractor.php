@@ -732,6 +732,7 @@ try {
 
 	require('includes/footer.php');
 } catch (PDOException $ex) {
+	var_dump($ex);
 	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

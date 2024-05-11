@@ -54,15 +54,12 @@ try {
                 }
             }
             $msg = true;
-
-
-
             $sql = $db->prepare("DELETE FROM `tbl_files` WHERE projid=:projid");
             $results = $sql->execute(array(':projid' => $projid));
 
             if (isset($_POST['attachmentpurpose'])) {
                 $countP = count($_POST["attachmentpurpose"]);
-                $stage = 1;
+                $stage = 4;
                 for ($cnt = 0; $cnt < $countP; $cnt++) {
                     if (!empty($_FILES['pfiles']['name'][$cnt])) {
                         $purpose = $_POST["attachmentpurpose"][$cnt];
@@ -176,7 +173,7 @@ try {
         echo json_encode(array("success" => true, "output_id" => $last_id));
     }
 
-    if (isset($_POST['store_monitoring_frequency'])) { 
+    if (isset($_POST['store_monitoring_frequency'])) {
         $results = false;
         if (validate_csrf_token($_POST['csrf_token'])) {
             $projid = $_POST['projid'];

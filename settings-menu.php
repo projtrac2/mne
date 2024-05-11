@@ -1,5 +1,13 @@
 <?php
-$uri = isset($_GET['menuItem']) ? $_GET['menuItem'] : 1;
+$uri = 1;
+if (isset($_GET['menuItem'])) {
+	$_GET['menuItem'];
+	$decode_menuItem =  base64_decode($_GET['menuItem']);
+	$menuItem_array = explode("projid54321", $decode_menuItem);
+	$uri = $menuItem_array[1];
+}
+
+
 $color = 'bg-light-blue';
 $default_color = 'bg-light-blue';
 switch ($uri) {
@@ -25,6 +33,17 @@ switch ($uri) {
 		$color = 'bg-light-blue';
 		break;
 }
+
+$item_id1 = 1;
+$hash_one = base64_encode("projid54321{$item_id1}");
+$item_id1 = 3;
+$hash_three = base64_encode("projid54321{$item_id1}");
+$item_id1 = 4;
+$hash_four = base64_encode("projid54321{$item_id1}");
+$item_id1 = 5;
+$hash_five = base64_encode("projid54321{$item_id1}");
+$item_id1 = 6;
+$hash_six = base64_encode("projid54321{$item_id1}");
 ?>
 <div class="button-demo" style="margin-top:-15px">
 	<div class="btn-group" style="margin-top:10px; margin-left:5px; background-color: transparent; border-color: transparent; box-shadow: none;">
@@ -33,23 +52,22 @@ switch ($uri) {
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="organization-details.php?menuItem=1">Organization Details</a></li>
-			<li style="width:100%"><a href="system-terminologies.php?menuItem=1&menuItem=1">Global Terminologies</a></li>
-			<li style="width:100%"><a href="global-configuration.php?workflow=1&menuItem=1">System Workflow Stages</a></li>
-			<li style="width:100%"><a href="email_configuration.php?menuItem=1">Email Configuration</a></li>
-			<li style="width:100%"><a href="email_templates.php?menuItem=1">Email Templates</a></li>
-			<li style="width:100%"><a href="global-configuration.php?titles=1&menuItem=1">Titles</a></li>
+			<li style="width:100%"><a href="organization-details.php?menuItem=<?= $hash_one ?>">Organization Details</a></li>
+			<li style="width:100%"><a href="system-terminologies.php?menuItem=<?= $hash_one ?>&menuItem=<?= $hash_one ?>">Global Terminologies</a></li>
+			<li style="width:100%"><a href="global-configuration.php?workflow=<?= $hash_one ?>&menuItem=<?= $hash_one ?>">System Workflow Stages</a></li>
+			<li style="width:100%"><a href="email_configuration.php?menuItem=<?= $hash_one ?>">Email Configuration</a></li>
+			<li style="width:100%"><a href="email_templates.php?menuItem=<?= $hash_one ?>">Email Templates</a></li>
+			<li style="width:100%"><a href="global-configuration.php?titles=<?= $hash_one ?>&menuItem=<?= $hash_one ?>">Titles</a></li>
 		</ul>
 	</div>
-	<a href="global-configuration.php?timelines=1&menuItem=2" class="btn <?php if ($uri == 2) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect" style="margin-top:10px; margin-left:-9px">Timelines</a>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
 		<a type="button" class="btn <?php if ($uri == 3) { ?> <?= $color ?> <?php } else { ?> <?= $default_color ?> <?php } ?> waves-effect dropdown-toggle" data-toggle="dropdown">
 			<span class="sr-only">Status</span>
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="global-configuration.php?paymentstatus=1&menuItem=3">Payment Status</a></li>
-			<li style="width:100%"><a href="global-configuration.php?projectstatus=1&menuItem=3">Project Status</a></li>
+			<li style="width:100%"><a href="global-configuration.php?paymentstatus=<?= $hash_one ?>&menuItem=<?= $hash_three ?>">Payment Status</a></li>
+			<li style="width:100%"><a href="global-configuration.php?projectstatus=<?= $hash_one ?>&menuItem=<?= $hash_three ?>">Project Status</a></li>
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
@@ -58,14 +76,12 @@ switch ($uri) {
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="global-configuration.php?indcat=1&menuItem=4">Indicator Categories</a></li>
-			<li style="width:100%"><a href="global-configuration.php?priorities=1&menuItem=4">Priorities</a></li>
-			<li style="width:100%"><a href="global-configuration.php?maptype=1&menuItem=4">Map Types</a></li>
-			<li style="width:100%"><a href="global-configuration.php?implmethod=1&menuItem=4">Implementation Method</a></li>
-			<li style="width:100%"><a href="global-configuration.php?fiscalyear=1&menuItem=4">Financial Years</a></li>
-			<li style="width:100%"><a href="global-configuration.php?dtfreq=1&menuItem=4">Data Collection Frequencies</a></li>
-			<li style="width:100%"><a href="global-configuration.php?roles=1&menuItem=4">Project Roles</a></li>
-			<li style="width:100%"><a href="global-configuration.php?partnerRoles=1&menuItem=4">Partner Roles</a></li>
+			<li style="width:100%"><a href="global-configuration.php?priorities=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Priorities</a></li>
+			<li style="width:100%"><a href="global-configuration.php?implmethod=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Implementation Method</a></li>
+			<li style="width:100%"><a href="global-configuration.php?fiscalyear=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Financial Years</a></li>
+			<li style="width:100%"><a href="global-configuration.php?dtfreq=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Data Collection Frequencies</a></li>
+			<li style="width:100%"><a href="global-configuration.php?roles=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Project Roles</a></li>
+			<li style="width:100%"><a href="global-configuration.php?partnerRoles=<?= $hash_one ?>&menuItem=<?= $hash_four ?>">Partner Roles</a></li>
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
@@ -74,9 +90,9 @@ switch ($uri) {
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="global-configuration.php?designations=1&menuItem=5">Designations</a></li>
-			<li style="width:100%"><a href="global-configuration.php?permission=1&menuItem=5">Permissions</a></li>
-			<li style="width:100%"><a href="global-configuration.php?mainmenu=1&menuItem=5">Main Menu</a></li>
+			<li style="width:100%"><a href="global-configuration.php?designations=<?= $hash_one ?>&menuItem=<?= $hash_five ?>">Designations</a></li>
+			<li style="width:100%"><a href="global-configuration.php?permission=<?= $hash_one ?>&menuItem=<?= $hash_five ?>">Permissions</a></li>
+			<li style="width:100%"><a href="global-configuration.php?mainmenu=<?= $hash_one ?>&menuItem=<?= $hash_five ?>">Main Menu</a></li>
 		</ul>
 	</div>
 	<div class="btn-group" style="margin-top:10px; margin-left:-9px; background-color: light-blue; border-color: transparent; box-shadow: none;">
@@ -85,14 +101,13 @@ switch ($uri) {
 			<span class="caret"></span>
 		</a>
 		<ul class="dropdown-menu" style="position:absolute; padding-left:1px; margin-left:-10px; margin-bottom:1px; padding-top:12px; background-color:#ebf3f5">
-			<li style="width:100%"><a href="global-configuration.php?financialplan=1&menuItem=6">Financial Plan</a></li>
-			<li style="width:100%"><a href="global-configuration.php?fundingtype=1&menuItem=6">Funding Type</a></li>
-			<li style="width:100%"><a href="global-configuration.php?procurementmethod=1&menuItem=6">Procurement Methods</a></li>
-			<li style="width:100%"><a href="global-configuration.php?tendercat=1&menuItem=6">Tender Categories</a></li>
-			<li style="width:100%"><a href="global-configuration.php?tendertype=1&menuItem=6">Tender Types</a></li>
-			<li style="width:100%"><a href="global-configuration.php?biztype=1&menuItem=6">Contractor Business Types</a></li>
-			<li style="width:100%"><a href="global-configuration.php?contractornationality=1&menuItem=6">Contractor Nationalities</a></li>
-			<li style="width:100%"><a href="global-configuration.php?cooptype=1&menuItem=6">Coorporate Types</a></li>
+			<li style="width:100%"><a href="global-configuration.php?fundingtype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Funding Type</a></li>
+			<li style="width:100%"><a href="global-configuration.php?procurementmethod=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Procurement Methods</a></li>
+			<li style="width:100%"><a href="global-configuration.php?tendercat=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Tender Categories</a></li>
+			<li style="width:100%"><a href="global-configuration.php?tendertype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Tender Types</a></li>
+			<li style="width:100%"><a href="global-configuration.php?biztype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Contractor Business Types</a></li>
+			<li style="width:100%"><a href="global-configuration.php?contractornationality=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Contractor Nationalities</a></li>
+			<li style="width:100%"><a href="global-configuration.php?cooptype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Coorporate Types</a></li>
 		</ul>
 	</div>
 </div>

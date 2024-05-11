@@ -33,7 +33,6 @@ function validate_csrf_token($token)
     return isset($_SESSION['csrf_token']) && $token === $_SESSION['csrf_token'];
 }
 
-session_start();
 
 // Set the inactivity time of 60 minutes (3600 seconds)
 $inactivity_time = 15 * 60;
@@ -66,9 +65,9 @@ if (isset($_SESSION['MM_Username'])) { // projects / dashboard
     $user_directorate = $directorate_id;
     $user_designation = $designation_id;
 } else if (isset($_SESSION['MM_Username_First_Login'])) {  // set new password
-    if ($current_page_url != 'otp') {
-        header("location: set-new-password.php");
-    }
+    // if ($current_page_url != 'set-new-password.php') {
+    //     header("location: set-new-password.php");
+    // }
     $user_name = $_SESSION['MM_Username_First_Login'];
 } else if (isset($_SESSION['MM_Username_Email'])) {
     if ($current_page_url != 'otp') {

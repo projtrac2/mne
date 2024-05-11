@@ -1,7 +1,6 @@
 <?php
 
 include_once "controller.php";
-
 try {
     if (isset($_POST['newItem'])) {
         $name = $_POST['name'];

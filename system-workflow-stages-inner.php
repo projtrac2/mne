@@ -30,6 +30,7 @@
                             <th>Stage</th>
                             <th>Parent</th>
                             <th>Priority</th>
+                            <th>Timeline (Days)</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -51,6 +52,9 @@
                                 $parentid = $row["parent"];
                                 $priority = $row["priority"];
                                 $status = $row["active"];
+                                $timeline = $row["timeline"];
+                                $timeline = $timeline > 0 ? $timeline : "N/A";
+
                                 // status
                                 $active = ($row['active'] == 1) ? "<label class='label label-success'>Enabled</label>" : "<label class='label label-danger'>Disabled</label>";
                                 if ($parentid > 0) {
@@ -58,8 +62,6 @@
                                     $sqlparent->execute();
                                     $rowparent = $sqlparent->fetch();
                                     $parent = $rowparent['stage'];
-                                } else {
-                                    $parent = "N/A";
                                 }
 
 
@@ -76,6 +78,7 @@
                                     <td><?= $stage ?></td>
                                     <td><?= $parent ?></td>
                                     <td><?= $priority ?></td>
+                                    <td><?= $timeline ?></td>
                                     <td><?= $active ?></td>
                                     <td>
                                         <!-- Single button -->
@@ -106,10 +109,6 @@
     </div>
 </div>
 </div>
-
-
-
-
 <script src="assets/js/settings/permission.js"></script>
 
 <script>

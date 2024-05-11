@@ -1,42 +1,30 @@
-$('#save-btn').on('click', save_content);
-	let edits = '';
+$(document).ready(function () {
+	$("#email_template").submit(function (e) {
+		e.preventDefault();
+		$("#save-btn").prop("disabled", true);
+		var data = $(this)[0];
+		var form = new FormData(data);
 
-	function getContent(el) {
-		console.log($(el));
-	}
-
-	function save_content() {
-        
-		let vals = $('.editable').val();
-		const data = new FormData();
-		data.append('content', vals);
 		$.ajax({
-			url: '/ajax/settings/email/email-templates-actions.php',
-			type: 'post',
-			contentType: false,
-			data: data,
-			cache: false,
+			type: "post",
+			url: "ajax/settings/email/email-templates-actions",
+			data: form,
 			processData: false,
-			error: (error) => {
-				console.log(error);
-			},
-			success: (response) => {
-				if (response) {
-					swal({
-						title: "Changes saved successfully",
-						text: `Successfully saved`,
-						icon: "success",
-					});
+			contentType: false,
+			cache: false,
+			timeout: 600000,
+			dataType: "json",
+			success: function (response) {
+				if (response.success) {
+					success_alert("Success!");
 				} else {
-					swal({
-						title: "System error! Refresh and try again",
-						text: `Error occurred`,
-						icon: "error",
-					});
+					sweet_alert("Error!");
 				}
+				$("#tag-form-submit").prop("disabled", false);
 				setTimeout(() => {
-					window.location.reload();
-				}, 2000);
+					window.location.reload(true);
+				}, 3000);
 			}
-		})
-	}
+		});
+	});
+});

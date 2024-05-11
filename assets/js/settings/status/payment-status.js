@@ -1,11 +1,9 @@
 var manageItemTable;
 
 $(document).ready(function () {
-
-
     $("#navtitle").addClass("active");
     manageItemTable = $("#manageItemTable").DataTable({
-        ajax: "/general-settings/selected-items/fetch-selected-payment-status-items.php",
+        ajax: "general-settings/selected-items/fetch-selected-payment-status-items",
         order: [],
         'columnDefs': [{
             'targets': [3],
@@ -47,14 +45,14 @@ $(document).ready(function () {
 
 
             $.ajax({
-                url: "ajax/settings/status/payment-status.php",
+                url: "ajax/settings/status/payment-status",
                 type: form.attr("method"),
                 data: form_data,
                 dataType: "json",
                 success: function (response) {
                     if (response) {
                         $("#submitItemForm")[0].reset();
-                        // reload the projstatuss table 
+                        // reload the projstatuss table
                         manageItemTable.ajax.reload(null, true);
                         alert("Record Successfully Saved");
                         $(".modal").each(function () {
@@ -102,7 +100,7 @@ function editItem(itemId = null) {
         $(".div-result").addClass("div-hide");
 
         $.ajax({
-            url: "ajax/settings/status/payment-status.php",
+            url: "ajax/settings/status/payment-status",
             type: "post",
             data: { itemId: itemId },
             dataType: "json",
@@ -149,7 +147,7 @@ function editItem(itemId = null) {
                             var form = $(this);
                             var formData = new FormData(this);
                             $.ajax({
-                                url: "ajax/settings/status/payment-status.php",
+                                url: "ajax/settings/status/payment-status",
                                 type: "post",
                                 data: {
                                     edititem: 'edititem',
@@ -190,7 +188,7 @@ function removeItem(itemId = null) {
             .bind("click", function () {
                 var deleteItem = 1;
                 $.ajax({
-                    url: "ajax/settings/status/payment-status.php",
+                    url: "ajax/settings/status/payment-status",
                     type: "post",
                     data: { itemId: itemId, deleteItem: deleteItem },
                     dataType: "json",
@@ -255,7 +253,7 @@ function disable(id, name, action) {
         if (willUpdate) {
             $.ajax({
                 type: "post",
-                url: 'ajax/settings/status/payment-status.php',
+                url: 'ajax/settings/status/payment-status',
                 data: {
                     deleteItem: "deleteItem",
                     itemId: id,

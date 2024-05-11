@@ -27,6 +27,7 @@ try {
         $query_rsCompleted->execute(array(":output_id" => $output_id));
         $totalRows_rsCompleted = $query_rsCompleted->rowCount();
         $completed = $totalRows_rsCompleted > 0 ? 1 : 2;
+
         return array("output_target" => $target, "output_cummulative_record" => $cummulative_record, "output_previous_record" => $previous_record, "output_completed" => $completed);
     }
 

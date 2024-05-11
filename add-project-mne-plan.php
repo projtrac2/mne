@@ -65,7 +65,21 @@ try {
                     $row_count = $sql->rowCount();
                     $impact = $row_count > 0 ? true : false;
                 }
-                return $output && $outcome && $impact && $monitoring_frequency != '' ? true : false;
+
+                $query_rsSites =  $db->prepare("SELECT site_id FROM tbl_project_sites WHERE projid =:projid GROUP BY state_id");
+                $query_rsSites->execute(array(":projid" => $projid));
+                $totalRows_rsSites = $query_rsSites->rowCount();
+                $proceed = [];
+                if ($totalRows_rsSites > 0) {
+                    while ($Rows_rsSites = $query_rsSites->fetch()) {
+                        $site_id = $Rows_rsSites['site_id'];
+                        $query_Output_dissaggregation = $db->prepare("SELECT * FROM tbl_output_disaggregation WHERE output_site = :site_id ");
+                        $query_Output_dissaggregation->execute(array(":site_id" => $site_id));
+                        $row_rsOutput_dissaggregation = $query_Output_dissaggregation->rowCount();
+                        $proceed[] = $row_rsOutput_dissaggregation > 0 ? true : false;
+                    }
+                }
+                return $output && $outcome && $impact && $monitoring_frequency != '' && !in_array(false, $proceed) ? true : false;
             }
 ?>
             <!-- start body  -->

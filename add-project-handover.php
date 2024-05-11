@@ -65,11 +65,7 @@ if ($permission) {
                                                         $counter++;
                                                         $today = date('Y-m-d');
                                                         $due_date = get_due_date($projid, $workflow_stage);
-                                                        $activity_status = "Pending";
-                                                        if ($today > $due_date) {
-                                                            $activity_status = "Behind Schedule";
-                                                        }
-
+                                                        $activity_status = get_stage_status($projid, $workflow_stage, $sub_stage);
                                                         $details = "{
                                                                 projid:$projid,
                                                                 workflow_stage:$workflow_stage,

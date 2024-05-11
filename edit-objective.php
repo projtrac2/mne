@@ -24,11 +24,10 @@ try {
                 $objid = $_POST['objid'];
                 $objective = $_POST['objective'];
                 $desc = $_POST['objdesc'];
-                $kpi = 1;
                 $kraid = $_POST['kraid'];
 
-                $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, description=:desc, kpi=:kpi, created_by=:user, date_created=:dates WHERE id=:objid");
-                $resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":desc" => $desc, ":kpi" => $kpi, ":user" => $user, ":dates" => $current_date, ":objid" => $objid));
+                $ObjectivesInsert = $db->prepare("UPDATE tbl_strategic_plan_objectives SET kraid=:kraid, objective=:objective, description=:desc, created_by=:user, date_created=:dates WHERE id=:objid");
+                $resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":desc" => $desc, ":user" => $user, ":dates" => $current_date, ":objid" => $objid));
 
                 if ($resultObjectives) {
                     $stcount = count($_POST["strategic"]);

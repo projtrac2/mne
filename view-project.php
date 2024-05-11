@@ -71,6 +71,9 @@ try {
 														$projname = $row["projname"];
 														$progid = $row["progid"];
 														$srcfyear = $row["projfscyear"];
+														$stage_id = $row['stage_id'];
+														$child_stage_id = $row['projstage'];
+														$status_id = $row['projstatus'];
 
 														//get program and department
 														$prog = $db->prepare("SELECT * FROM `tbl_programs` WHERE progid=:progid LIMIT 1");
@@ -100,23 +103,12 @@ try {
 
 														$progname = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="' . $department . '" style="color:#2196F3">' . $rowprog["progname"] . '</span>';
 
-														if ($totalRows_adp == 1) {
-															$status = $row_adp["year"] . " ADP";
-															if ($adpstatus == 1) {
-																$active = '<label class="label label-success" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Approved" >' . $status . '</label>';
-															} else {
-																$active = '<label class="label label-primary" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending Approval" >' . $status . '</label>';
-															}
-														} else {
-															$status = !$mneplan ? "Pending M&E Plan" : "Pending ADP";
-															$labelclass = !$mneplan ? "label-danger" : "label-warning";
-
-															$active = '<label class="label ' . $labelclass . '" data-container="body" data-toggle="tooltip" data-html="true" data-placement="right" title="Pending ADP">' . $status . '</label>';
-														}
-
 														$month =  date('m');
 														$currentYear = ($month  < 7) ? date("Y") - 1 : date("Y");
 														$filter_department = view_record($project_department, $project_section, $project_directorate);
+														$stage =  get_project_stage($stage_id);
+														$substage =  get_project_stage($child_stage_id);
+														$project_status = get_all_projects_status($status_id);
 
 														if ($filter_department) {
 															$sn++;
@@ -124,8 +116,11 @@ try {
 															<tr>
 																<td><?= $sn ?> </td>
 																<td><?= $projname ?> </td>
-																<td><?= number_format($budget, 2) ?> </td> 
-																<td><?= $active ?> </td>
+																<td><?= number_format($budget, 2) ?> </td>
+																<td>
+																	<strong>
+																		<?= "Stage:&nbsp;</strong>" . $stage . " <br/> <strong>Substage:&nbsp;</strong>" . $substage . " <br/><strong>Status: </strong>" . $project_status  ?>
+																</td>
 																<td>
 																	<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(<?= $projid ?>)" class="btn btn-info btn-xm"> <i class="fa fa-info fa-lg" aria-hidden="true"></i> More Info</a>
 																</td>

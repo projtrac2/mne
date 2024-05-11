@@ -121,7 +121,7 @@ try {
                                                                     while ($row_rsMilestone = $query_rsMilestone->fetch()) {
                                                                         $milestone = $row_rsMilestone['milestone'];
                                                                         $msid = $row_rsMilestone['msid'];
-                                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id ");
+                                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND frequency_id IS NOT NULL");
                                                                         $query_rsTask_Start_Dates->execute(array(':task_id' => $msid, ':site_id' => $site_id));
                                                                         $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                                         $edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
@@ -133,7 +133,8 @@ try {
                                                                                 <div class="card-header">
                                                                                     <div class="row clearfix">
                                                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                                                            <h5><u>
+                                                                                            <h5>
+                                                                                                <ul>
                                                                                                     TASK <?= $task_counter ?>: <?= $milestone ?>
                                                                                                     <div class="btn-group" style="float:right">
                                                                                                         <div class="btn-group" style="float:right">
@@ -142,7 +143,7 @@ try {
                                                                                                             </button>
                                                                                                         </div>
                                                                                                     </div>
-                                                                                                </u>
+                                                                                                </ul>
                                                                                             </h5>
                                                                                         </div>
                                                                                     </div>
@@ -237,7 +238,7 @@ try {
                                                     while ($row_rsMilestone = $query_rsMilestone->fetch()) {
                                                         $milestone = $row_rsMilestone['milestone'];
                                                         $msid = $row_rsMilestone['msid'];
-                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id ");
+                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE task_id=:task_id AND site_id=:site_id AND frequency_id IS NOT NULL");
                                                         $query_rsTask_Start_Dates->execute(array(':task_id' => $msid, ':site_id' => 0));
                                                         $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
                                                         $edit = $totalRows_rsTask_Start_Dates > 1 ? 1 : 0;
@@ -245,7 +246,6 @@ try {
                                                         $task_counter++;
                                                 ?>
                                                         <div class="row clearfix">
-                                                            <input type="hidden" name="task_amount[]" id="task_amount<?= $msid ?>" class="task_costs" value="<?= $sum_cost ?>">
                                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                 <div class="card-header">
                                                                     <div class="row clearfix">
@@ -256,7 +256,7 @@ try {
                                                                                     <div class="btn-group" style="float:right">
                                                                                         <div class="btn-group" style="float:right">
                                                                                             <button type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="get_frequency_tasks(<?= htmlspecialchars(json_encode($details)) ?>)" class="btn btn-success btn-sm" style="float:right; margin-top:-5px">
-                                                                                                <?php echo $edit == 1 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
+                                                                                                <?php echo $totalRows_rsTask_Start_Dates > 0 ? '<span class="glyphicon glyphicon-pencil"></span>' : '<span class="glyphicon glyphicon-plus"></span>' ?>
                                                                                             </button>
                                                                                         </div>
                                                                                     </div>
@@ -265,7 +265,7 @@ try {
                                                                         </div>
                                                                     </div>
                                                                     <div class="table-responsive">
-                                                                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
+                                                                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table">
                                                                             <thead>
                                                                                 <tr>
                                                                                     <th style="width:5%">#</th>
@@ -315,82 +315,84 @@ try {
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
                                                 <?php
                                                     }
                                                 }
-                                            }
+
                                                 ?>
                                             </fieldset>
-                                        <?php
+                                    <?php
+                                        }
                                     }
-                                        ?>
+                                    ?>
 
-                                        <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
-                                            <?= csrf_token_html(); ?>
-                                            <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
-                                                <div class="col-md-12 text-center">
-                                                    <?php
-                                                    function validate()
-                                                    {
-                                                        global $db, $projid;
-                                                        $proceed = [];
-                                                        $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
-                                                        $query_Sites->execute(array(":projid" => $projid));
-                                                        $rows_sites = $query_Sites->rowCount();
-                                                        if ($rows_sites > 0) {
-                                                            while ($row_Sites = $query_Sites->fetch()) {
-                                                                $site_id = $row_Sites['site_id'];
-                                                                $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
-                                                                $query_Site_Output->execute(array(":site_id" => $site_id));
-                                                                $rows_Site_Output = $query_Site_Output->rowCount();
-                                                                if ($rows_Site_Output > 0) {
-                                                                    while ($row_Site_Output = $query_Site_Output->fetch()) {
-                                                                        $output_id = $row_Site_Output['outputid'];
-                                                                        $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
-                                                                        $query_rsTasks->execute(array(":output_id" => $output_id));
-                                                                        $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                                        if ($totalRows_rsTasks > 0) {
-                                                                            while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                                $task_id = $row_rsTasks['tkid'];
-                                                                                $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id AND frequency_id IS NOT NULL");
-                                                                                $query_rsTask_Start_Dates->execute(array(':site_id' => $site_id, ":subtask_id" => $task_id));
-                                                                                $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                                                $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
-                                                                            }
+                                    <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
+                                        <?= csrf_token_html(); ?>
+                                        <div class="row clearfix" style="margin-top:5px; margin-bottom:5px">
+                                            <div class="col-md-12 text-center">
+                                                <?php
+                                                function validate()
+                                                {
+                                                    global $db, $projid;
+                                                    $proceed = [];
+                                                    $query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
+                                                    $query_Sites->execute(array(":projid" => $projid));
+                                                    $rows_sites = $query_Sites->rowCount();
+                                                    if ($rows_sites > 0) {
+                                                        while ($row_Sites = $query_Sites->fetch()) {
+                                                            $site_id = $row_Sites['site_id'];
+                                                            $query_Site_Output = $db->prepare("SELECT * FROM tbl_output_disaggregation  WHERE output_site=:site_id");
+                                                            $query_Site_Output->execute(array(":site_id" => $site_id));
+                                                            $rows_Site_Output = $query_Site_Output->rowCount();
+                                                            if ($rows_Site_Output > 0) {
+                                                                while ($row_Site_Output = $query_Site_Output->fetch()) {
+                                                                    $output_id = $row_Site_Output['outputid'];
+                                                                    $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                                    $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                                    $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                                    if ($totalRows_rsTasks > 0) {
+                                                                        while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                            $task_id = $row_rsTasks['tkid'];
+                                                                            $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id AND frequency_id IS NOT NULL");
+                                                                            $query_rsTask_Start_Dates->execute(array(':site_id' => $site_id, ":subtask_id" => $task_id));
+                                                                            $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                                            $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
                                                                         }
                                                                     }
                                                                 }
                                                             }
                                                         }
+                                                    }
 
-                                                        $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
-                                                        $query_Output->execute(array(":projid" => $projid));
-                                                        $total_Output = $query_Output->rowCount();
-                                                        if ($total_Output > 0) {
-                                                            while ($row_rsOutput = $query_Output->fetch()) {
-                                                                $output_id = $row_rsOutput['id'];
-                                                                $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
-                                                                $query_rsTasks->execute(array(":output_id" => $output_id));
-                                                                $totalRows_rsTasks = $query_rsTasks->rowCount();
-                                                                if ($totalRows_rsTasks > 0) {
-                                                                    while ($row_rsTasks = $query_rsTasks->fetch()) {
-                                                                        $task_id = $row_rsTasks['tkid'];
-                                                                        $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id AND frequency_id IS NOT NULL");
-                                                                        $query_rsTask_Start_Dates->execute(array(':site_id' => 0, ":subtask_id" => $task_id));
-                                                                        $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                                        $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
-                                                                    }
+                                                    $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type<>1 AND projid = :projid");
+                                                    $query_Output->execute(array(":projid" => $projid));
+                                                    $total_Output = $query_Output->rowCount();
+                                                    if ($total_Output > 0) {
+                                                        while ($row_rsOutput = $query_Output->fetch()) {
+                                                            $output_id = $row_rsOutput['id'];
+                                                            $query_rsTasks = $db->prepare("SELECT * FROM tbl_task WHERE outputid=:output_id");
+                                                            $query_rsTasks->execute(array(":output_id" => $output_id));
+                                                            $totalRows_rsTasks = $query_rsTasks->rowCount();
+                                                            if ($totalRows_rsTasks > 0) {
+                                                                while ($row_rsTasks = $query_rsTasks->fetch()) {
+                                                                    $task_id = $row_rsTasks['tkid'];
+                                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT * FROM tbl_program_of_works WHERE site_id=:site_id AND subtask_id=:subtask_id AND frequency_id IS NOT NULL");
+                                                                    $query_rsTask_Start_Dates->execute(array(':site_id' => 0, ":subtask_id" => $task_id));
+                                                                    $totalRows_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                                    $proceed[] = $totalRows_rsTask_Start_Dates > 0 ? true : false;
                                                                 }
                                                             }
                                                         }
-
-                                                        return !empty($proceed) && !in_array(false, $proceed) ? true : false;
                                                     }
 
-                                                    if (validate()) {
-                                                        $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
-                                                        $approve_details =
-                                                            "{
+                                                    return !empty($proceed) && !in_array(false, $proceed) ? true : false;
+                                                }
+
+                                                if (validate()) {
+                                                    $assigned_responsible = check_if_assigned($projid, $workflow_stage, $project_sub_stage, 1);
+                                                    $approve_details =
+                                                        "{
                                                                 get_edit_details: 'details',
                                                                 projid:$projid,
                                                                 workflow_stage:$workflow_stage,
@@ -398,30 +400,30 @@ try {
                                                                 sub_stage:'8',
                                                                 stage_id:1,
                                                             }";
-                                                        if ($assigned_responsible) {
-                                                            if ($approval_stage) {
-                                                    ?>
-                                                                <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
-                                                            <?php
-                                                            } else {
-                                                                $data_entry_details =
-                                                                    "{
+                                                    if ($assigned_responsible) {
+                                                        if ($approval_stage) {
+                                                ?>
+                                                            <button type="button" onclick="approve_project(<?= $approve_details ?>)" class="btn btn-success">Approve</button>
+                                                        <?php
+                                                        } else {
+                                                            $data_entry_details =
+                                                                "{
                                                                         get_edit_details: 'details',
                                                                         projid:$projid,
                                                                         workflow_stage:$workflow_stage,
                                                                         project_name:'$projname',
                                                                         sub_stage:'6',
                                                                     }";
-                                                            ?>
-                                                                <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
-                                                    <?php
-                                                            }
+                                                        ?>
+                                                            <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
+                                                <?php
                                                         }
                                                     }
-                                                    ?>
-                                                </div>
+                                                }
+                                                ?>
                                             </div>
-                                        </form>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>

@@ -16,7 +16,7 @@
                              <button type="button" id="modal_button" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal"> <i class="fa fa-plus-square"></i> Add Menu </button>
                          </td>
                      </tr>
-                 </table>
+                 </table> 
              </div>
          </div>
          <div class="body">
@@ -88,10 +88,10 @@
                                                          </a>
                                                      </li>
                                                      <li>
-                                                        <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?=$id?>, '<?= $name ?>', '<?=$wordings?>')">
-                                                            <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
-                                                        </a>
-                                                    </li>
+                                                         <a type="button" id="disableBtn" class="disableBtn" onclick="disable(<?= $id ?>, '<?= $name ?>', '<?= $wordings ?>')">
+                                                             <i class="glyphicon glyphicon-trash"></i><?= $wordingsCapital ?>
+                                                         </a>
+                                                     </li>
                                                  </ul>
                                              </div>
                                          </td>

@@ -145,4 +145,4 @@
     </div><!-- /.modal -->
     <!-- End Item Delete -->
 
-    <script src="/assets/js/settings/status/payment-status.js"></script>
+    <script src="assets/js/settings/status/payment-status.js"></script>

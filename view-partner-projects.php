@@ -1,15 +1,12 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission) {
-        if (isset($_GET['fndid'])) {
-            $finid = base64_decode($_GET['fndid']);
-            if (!empty($finid)) {
-                $query_dnrprojs = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojpartner m on p.projid=m.projid WHERE p.deleted='0' and m.partner_id = :fnid ORDER BY m.id ASC");
-                $query_dnrprojs->execute(array(":fnid" => $finid));
-                $count_projects = $query_dnrprojs->rowCount();
-            }
-        }
+    if ($permission && isset($_GET['fndid']) && !empty($_GET['fndid'])) {
+        $finid = base64_decode($_GET['fndid']);
+        $query_dnrprojs = $db->prepare("SELECT p.*, m.role FROM tbl_projects p inner join tbl_myprojpartner m on p.projid=m.projid WHERE p.deleted='0' and m.partner_id = :fnid ORDER BY m.id ASC");
+        $query_dnrprojs->execute(array(":fnid" => $finid));
+        $count_projects = $query_dnrprojs->rowCount();
+
 ?>
 
         <!-- start body  -->
@@ -52,7 +49,7 @@ try {
                                                 while ($detail = $query_dnrprojs->fetch()) {
                                                     $sn++;
                                                     $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-                                                    $query_Projstatus->execute(array(":projstatus" => $projstatus));
+                                                    $query_Projstatus->execute(array(":projstatus" => $detail['projstatus']));
                                                     $row_Projstatus = $query_Projstatus->fetch();
                                                     $total_Projstatus = $query_Projstatus->rowCount();
                                                     $status = "";
@@ -63,7 +60,7 @@ try {
                                                     }
 
                                                     $role_id = $detail['role'];
-                                                    $query_rsParners =  $db->prepare("SELECT * FROM tbl_partner_roles AND id=:role_id");
+                                                    $query_rsParners =  $db->prepare("SELECT * FROM tbl_partner_roles WHERE id=:role_id");
                                                     $query_rsParners->execute(array(":role_id" => $role_id));
                                                     $row_rsParners = $query_rsParners->fetch();
                                                     $totalRows_rsParners = $query_rsParners->rowCount();
@@ -100,6 +97,7 @@ try {
 
     require('includes/footer.php');
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

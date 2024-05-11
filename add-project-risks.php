@@ -201,12 +201,11 @@ try {
 
 												$proceed = check_risk_details() ? true : false;
 												if ($proceed) {
-													$stage = $project_type == 1 ?  $workflow_stage : 7;
 													$approve_details = "{
 														projid:$projid,
-														workflow_stage:$stage,
+														workflow_stage:$workflow_stage,
 														project_name:'$projname',
-														sub_stage:'$child_stage_id',
+														sub_stage:'0',
 													}";
 												?>
 													<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" align="center">

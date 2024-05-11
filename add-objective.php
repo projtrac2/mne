@@ -17,12 +17,11 @@ try {
 				if (validate_csrf_token($_POST['csrf_token'])) {
 					$objective = $_POST['objective'];
 					$desc = $_POST['objdesc'];
-					$kpi = 1;
 					$kraid = $_POST['kraid'];
 					$current_date = date("Y-m-d");
 
-					$ObjectivesInsert = $db->prepare("INSERT INTO tbl_strategic_plan_objectives (kraid, objective, description, kpi, created_by, date_created) VALUES (:kraid, :objective, :desc, :kpi, :user, :dates)");
-					$resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":desc" => $desc, ":kpi" => $kpi, ":user" => $user_name, ":dates" => $current_date));
+					$ObjectivesInsert = $db->prepare("INSERT INTO tbl_strategic_plan_objectives (kraid, objective, description, created_by, date_created) VALUES (:kraid, :objective, :desc, :user, :dates)");
+					$resultObjectives = $ObjectivesInsert->execute(array(":kraid" => $kraid, ":objective" => $objective, ":desc" => $desc, ":user" => $user_name, ":dates" => $current_date));
 
 					if ($resultObjectives) {
 						$objectiveid = $db->lastInsertId();

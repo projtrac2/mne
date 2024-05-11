@@ -94,7 +94,7 @@ $hash = 1;
 <div class="modal fade" id="addItemModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form class="form-horizontal" id="submitItemForm" action="general-settings/action/project-priorities-action.php" method="POST" enctype="multipart/form-data">
+            <form class="form-horizontal" id="submitItemForm" action="general-settings/action/project-priorities-action" method="POST" enctype="multipart/form-data">
                 <div class="modal-header" style="background-color:#03A9F4">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" style="color:#fff" align="center"><i class="fa fa-plus"></i> Add Partner Role</h4>
@@ -193,7 +193,7 @@ foreach ($roles as $key => $role) {
         data.append('newItem', 'newItem');
 
         $.ajax({
-            url: 'general-settings/action/partner-team-roles-action.php',
+            url: 'general-settings/action/partner-team-roles-action',
             type: 'post',
             data: data,
             processData: false,
@@ -240,7 +240,7 @@ foreach ($roles as $key => $role) {
             data.append('editItem', 'editItem');
 
             $.ajax({
-                url: 'general-settings/action/partner-team-roles-action.php',
+                url: 'general-settings/action/partner-team-roles-action',
                 type: 'post',
                 data: data,
                 processData: false,
@@ -273,7 +273,7 @@ foreach ($roles as $key => $role) {
         });
     });
 
-        // change status
+    // change status
     function disable(id, name, action) {
         swal({
             title: "Are you sure?",
@@ -285,7 +285,7 @@ foreach ($roles as $key => $role) {
             if (willUpdate) {
                 $.ajax({
                     type: "post",
-                    url: 'general-settings/action/partner-team-roles-action.php',
+                    url: 'general-settings/action/partner-team-roles-action',
                     data: {
                         deleteItem: "deleteItem",
                         itemId: id,

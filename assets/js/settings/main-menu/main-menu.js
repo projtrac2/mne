@@ -1,4 +1,4 @@
-const ajax_url = "ajax/settings/main-menu/main-menu.php";
+const ajax_url = "ajax/settings/main-menu/main-menu";
 $(document).ready(function () {
     $("#submitItemForm").submit(function (e) {
         e.preventDefault();
@@ -183,4 +183,48 @@ function allow_read(department_id) {
     if (department_id != "") {
         $("#read_access").show();
     }
+}
+
+const change_status = (page_id, status_id, status, area) => {
+    swal({
+        title: "Are you sure?",
+        text: `You want to ${status} ${area}!`,
+        icon: "warning",
+        buttons: true,
+        dangerMode: true,
+    })
+        .then((willDelete) => {
+            if (willDelete) {
+                $.ajax({
+                    type: "post",
+                    url: ajax_url,
+                    data: {
+                        update_notification_group_status: "update_notification_group_status",
+                        notification_group_id: notification_group_id,
+                        status: status_id,
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success == true) {
+                            swal({
+                                title: "Notification Group !",
+                                text: `Successfully ${status}`,
+                                icon: "success",
+                            });
+                        } else {
+                            swal({
+                                title: "Notification Group !",
+                                text: `Error approving ${status}`,
+                                icon: "error",
+                            });
+                        }
+                        setTimeout(function () {
+                            window.location.reload(true);
+                        }, 3000);
+                    },
+                });
+            } else {
+                swal("You cancelled the action!");
+            }
+        });
 }

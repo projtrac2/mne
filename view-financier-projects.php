@@ -1,33 +1,11 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission) {
-        if (isset($_GET['fndid'])) {
-            $finid = base64_decode($_GET['fndid']);
-            if (!empty($finid)) {
-                $query_dnrprojs = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
-                $query_dnrprojs->execute(array(":fnid" => $finid));
-                $count_projects = $query_dnrprojs->rowCount();
-            }
-        }
-
-        function get_project_status($status)
-        {
-            global $db;
-            $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-            $query_Projstatus->execute(array(":projstatus" => $status));
-            $row_Projstatus = $query_Projstatus->fetch();
-            $total_Projstatus = $query_Projstatus->rowCount();
-            $status = "";
-            if ($total_Projstatus > 0) {
-                $status_name = $row_Projstatus['statusname'];
-                $status_class = $row_Projstatus['class_name'];
-                $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-            }
-
-            return $status;
-        }
-
+    if ($permission && isset($_GET['fndid']) && !empty($_GET['fndid'])) {
+        $finid = base64_decode($_GET['fndid']);
+        $query_dnrprojs = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
+        $query_dnrprojs->execute(array(":fnid" => $finid));
+        $count_projects = $query_dnrprojs->rowCount();
 ?>
 
         <!-- start body  -->
@@ -35,8 +13,7 @@ try {
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                     <h4 class="contentheader">
-                        <?= $icon ?>
-                        <?= $pageTitle ?>
+                        <?= $icon  . " " . $pageTitle  . " " . $finid ?>
                         <div class="btn-group" style="float:right">
                             <div class="btn-group" style="float:right">
                                 <button type="button" onclick="history.back()" class="btn btn-warning" name="button">Go Back</button>
@@ -72,7 +49,7 @@ try {
                                                 while ($detail = $query_dnrprojs->fetch()) {
                                                     $sn++;
                                                     $status = $detail['projstatus'];
-                                                    $project_status = get_project_status($status);
+                                                    $project_status = get_status($status);
                                                     $projid = $detail['projid'];
                                                     $query_dnrprojsFunds = $db->prepare("SELECT sum(amountfunding) AS amnt FROM tbl_myprojfunding  WHERE projid='$projid' and financier = '$finid'");
                                                     $query_dnrprojsFunds->execute();
@@ -112,6 +89,7 @@ try {
 
     require('includes/footer.php');
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

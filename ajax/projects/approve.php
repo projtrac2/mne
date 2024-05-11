@@ -17,107 +17,12 @@ try {
          $project_cost = $row_rsProjects['projcost'];
          $project_type = $row_rsProjects['project_type'];
 
-         $progstartDate = $row_item['syear'] . '-07-01'; //program start date
-         $progduration = $row_item['years']; //program duration in years
-         $sdate = $row_item['syear'] . '-06-30'; //for calculating program end year
-         $progendDate = date('Y-m-d', strtotime($sdate . " + {$progduration} years"));  //program end date
-         $projectendDate = date('Y-m-d', strtotime($projstart . " + {$projdurationInDays} days"));
-         $yr = date("Y");
-         $mnth = date("m");
-
-
-         if ($mnth >= 7 && $mnth <= 12) {
-            $year = $yr;
-         } elseif ($mnth >= 1 && $mnth <= 6) {
-            $year = $yr - 1;
-         }
-
-         $yearnxt = $year + 1;
-         $finyear = $year . "/" . $yearnxt;
-
-         //fetch financial year
-         $query_year = $db->prepare("SELECT id FROM tbl_fiscal_year WHERE yr ='$year'");
-         $query_year->execute();
-         $row_year = $query_year->fetch();
-         $yearid = $row_year['id'];
-
-         //fetch program details
-         $query_projects = $db->prepare("SELECT sum(b.amount) as amount FROM tbl_project_approved_yearly_budget b INNER JOIN tbl_projects p ON p.projid = b.projid WHERE progid = '$progid' AND year='$year'");
-         $query_projects->execute();
-         $row_projects = $query_projects->fetch();
-         $project_budget = $row_projects['amount'];
-
-         //fetch program details
-         $query_project_initial_budget = $db->prepare("SELECT sum(budget) as budget FROM tbl_project_output_details WHERE projid = '$projid' and year='$year'");
-         $query_project_initial_budget->execute();
-         $row_project_initial_budget = $query_project_initial_budget->fetch();
-         $project_initial_budget = number_format($row_project_initial_budget['budget'], 2);
-
-         //fetch requested project budget
-         $query_project_requested_budget = $db->prepare("SELECT sum(amount) as budget FROM tbl_adp_projects_budget WHERE projid = '$projid' and year='$yearid'");
-         $query_project_requested_budget->execute();
-         $row_project_requested_budget = $query_project_requested_budget->fetch();
-         $project_requested_budget = number_format($row_project_requested_budget['budget'], 2);
-
-         //fetch program details
-         $query_programs = $db->prepare("SELECT  sum(budget) as budget FROM tbl_programs_based_budget WHERE progid = '$progid' and finyear='$year'");
-         $query_programs->execute();
-         $row_programs = $query_programs->fetch();
-         $program_budget = $row_programs['budget'];
-         $project_budget_ceiling = ($program_budget > $project_budget) ? $program_budget - $project_budget : 0;
-         $project_budget_ceiling = number_format($project_budget_ceiling, 2);
-         $program_approved_budget = ($program_budget > $project_budget) ? $project_budget_ceiling : "The approved program budget has been depleted!";
-         $program_approved_budget_style = ($program_budget > $project_budget) ? "color:blue" : "color:red";
-         $project_budget_deplecated = ($project_budget >= $program_budget) ? "disabled" : "";
-
-         //$budget_name = "";
-         //if ($projduration > 365) {
-         $budget_name = '
-         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-            <label for="projduration"> Approved Program Budget Ceiling:</label>
-            <div class="form-line">
-               <input type="text"  name="projapprovedbudget2" id="projapprovedbudget2" placeholder="" class="form-control" style="' . $program_approved_budget_style . '" value="' . $program_approved_budget . '" disabled/>
-            </div>
-         </div>
-         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-            <label for="projduration">Project Approved Budget for the Financial Year ' . $finyear . '*:</label>
-            <div class="form-line">
-               <input type="text"  name="projapprovedbudget" onchange="approved_budget()" onkeyup="approved_budget()" value="" id="projapprovedbudget" placeholder="' . $project_requested_budget . '" class="form-control" class="form-control" ' . $project_budget_deplecated . ' required/>
-               <input type="hidden"  name="projapprovedbudget1" id="projapprovedbudget1" value="' . $project_budget_ceiling . '">
-            </div>
-         </div>';
-         //}
-
-         $budget_name = $program_type == 1 ? $budget_name : "";
-
-         $project_budget = '
-         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-            <label for="projduration">Project Cost *:</label>
-            <div class="form-line">
-               <input type="text"  name="project_cost1" id="project_cost1" placeholder="" class="form-control" value="' . number_format($project_cost, 2) . '" class="form-control"  disabled/>
-               <input type="hidden"  name="project_cost" id="project_cost" placeholder="" class="form-control" value="' . $project_cost . '" class="form-control" />
-            </div>
-         </div>
-         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-            <label for="projduration">Direct Cost Budget *:</label>
-            <div class="form-line">
-               <input type="number"  name="direct_budget" id="direct_budget" onchange="distribute_project_cost(1)" onkeyup="distribute_project_cost(1)" min="1" max="' . $project_cost . '" placeholder="Enter Direct Cost budget" class="form-control" value="" class="form-control" required/>
-            </div>
-         </div>
-         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-            <label for="projduration">Administrative Budget *:</label>
-            <div class="form-line">
-               <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
-            </div>
-         </div>';
-
          $approve = '
          <fieldset class="scheduler-border row setup-content" id="step-1" style="padding:10px">
             <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Project Details</legend>
             <div class="row clearfix">
                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                   <div class="card">
-                     <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
                      <div class="header" >
                         <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
                         <h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
@@ -133,7 +38,25 @@ try {
                               <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
                            </div>
                         </div>
-                        ' . $project_budget . $budget_name . '
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                           <label for="projduration">Project Cost *:</label>
+                           <div class="form-line">
+                              <input type="text"  name="project_cost1" id="project_cost1" placeholder="" class="form-control" value="' . number_format($project_cost, 2) . '" class="form-control"  disabled/>
+                              <input type="hidden"  name="project_cost" id="project_cost" placeholder="" class="form-control" value="' . $project_cost . '" class="form-control" />
+                           </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                           <label for="projduration">Direct Cost Budget *:</label>
+                           <div class="form-line">
+                              <input type="number"  name="direct_budget" id="direct_budget" onchange="distribute_project_cost(1)" onkeyup="distribute_project_cost(1)" min="1" max="' . $project_cost . '" placeholder="Enter Direct Cost budget" class="form-control" value="" class="form-control" required/>
+                           </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                           <label for="projduration">Administrative Budget *:</label>
+                           <div class="form-line">
+                              <input type="number"  name="administrative_budget" id="administrative_budget" min="0" onchange="distribute_project_cost(3)" onkeyup="distribute_project_cost(3)" max="' . $project_cost . '" placeholder="Enter Administrative budget" class="form-control" value="" class="form-control" required/>
+                           </div>
+                        </div>
                      </div>
                      </div>
                   </div>
@@ -236,7 +159,6 @@ try {
       $progid = $_POST['progid'];
       $approved = $_POST['approveitem'];
       $user_name = $_POST['user_name'];
-      $year = $_POST['budgetyear'];
       $date = date("Y-m-d");
       $valid = [];
       $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
@@ -311,24 +233,21 @@ try {
                }
             }
 
-            $projbudget = isset($_POST['projapprovedbudget']) ? $_POST['projapprovedbudget'] : $projcost;
-            $direct_cost = $_POST['direct_budget'];
-            $administrative_cost = $_POST['administrative_budget'];
-
-            $insertSQL1 = $db->prepare("INSERT INTO `tbl_project_approved_yearly_budget`(projid, year, amount, created_by, date_created) VALUES(:projid, :year,:amount, :created_by, :date_created)");
-            $result1  = $insertSQL1->execute(array(":projid" => $projid, ":year" => $year, ":amount" => $projbudget, ":created_by" => $user_name, ":date_created" => $date));
-
-            $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, stage_id=:stage_id,projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-            $approveItemQuery->execute(array(":project_status" => 3, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage_id" => 1, ":stage" => 9, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
-
-            if ($program_type == 1) {
-               $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:approved_date WHERE projid=:projid");
-               $approved = $approveQuery->execute(array(':status' => 1, ":approved_by" => $user_name, ":approved_date" => $date, ':projid' => $projid));
+            $stage_id = 0;
+            $substage_id = 7;
+            if ($project_type == 0) {
+               $stage_id = 1;
+               $substage_id = 9;
+               $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+               $result = $sql->execute(array(":projid" => $projid, ':stage' => $substage_id, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
             }
 
+            $direct_cost = $_POST['direct_budget'];
+            $administrative_cost = $_POST['administrative_budget'];
+            $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET projstatus=:project_status, direct_cost=:direct_cost,administrative_cost=:administrative_cost, projplanstatus=:approved, stage_id=:stage_id,projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
+            $approveItemQuery->execute(array(":project_status" => 3, ":direct_cost" => $direct_cost, ":administrative_cost" => $administrative_cost, ":approved" => $approved, ":stage_id" => $stage_id, ":stage" => $substage_id, ":approved_date" => $date, ":approved_by" => $user_name, ':projid' => $projid));
+
             if ($approved) {
-               $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
-               $result = $sql->execute(array(":projid" => $projid, ':stage' => 9, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
                $mail = new Email();
                $response =  $mail->send_master_data_email($projid, 6, '');
                $valid['success'] = $response;
@@ -344,25 +263,16 @@ try {
 
    if (isset($_POST['unapproveitem'])) {
       $projid = $_POST['projid'];
+      $year = $_POST['year'];
 
-      // delete tbl_project_output_details table
-      $deleteQuery = $db->prepare("DELETE FROM `tbl_myprojfunding` WHERE projid=:projid");
-      $results = $deleteQuery->execute(array(':projid' => $projid));
+      $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=0 WHERE projid=:projid and financial_year=:year");
+      $approved = $approveQuery->execute(array(':projid' => $projid, ':year' => $year));
 
-
-      // delete tbl_project_output_details table
-      $deleteQuery = $db->prepare("DELETE FROM `tbl_files` WHERE projid=:projid AND projstage=1");
-      $results = $deleteQuery->execute(array(':projid' => $projid));
-
-      // delete tbl_project_output_details table
-      $deleteQuery = $db->prepare("DELETE FROM `tbl_project_approved_yearly_budget` WHERE projid=:projid ");
-      $results = $deleteQuery->execute(array(':projid' => $projid));
-
-      $approveQuery = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=0 WHERE projid=:projid");
-      $approved = $approveQuery->execute(array(':projid' => $projid));
+      $approved_adp_budget = $db->prepare("UPDATE `tbl_adp_projects_budget` SET  adjusted_amount=:adjusted_amount WHERE projid=:projid AND year=:year");
+      $approved_adp_budget->execute(array(":adjusted_amount" => null, ':projid' => $projid, ':year' => $year));
 
       $approveItemQuery = $db->prepare("UPDATE `tbl_projects` SET  projplanstatus=:approved, projstage=:stage, approved_date=:approved_date, approved_by=:approved_by WHERE projid=:projid");
-      $approved = $approveItemQuery->execute(array(":approved" => 0, ":stage" => 0, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
+      $approved = $approveItemQuery->execute(array(":approved" => 0, ":stage" => 8, ":approved_date" => null, ":approved_by" => 0, ':projid' => $projid));
 
       if ($approved) {
 
@@ -463,24 +373,6 @@ try {
                   <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
                   <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
                   <div class="row clearfix">
-                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                        <label for="projduration">Project Start Date *:</label>
-                        <div class="form-line">
-                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projstartdate . '</div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                        <label for="projduration">Project End Date *:</label>
-                        <div class="form-line">
-                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projenddate . '</div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                        <label for="projduration">Project Duration *:</label>
-                        <div class="form-line">
-                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $project_duration . '</div>
-                        </div>
-                     </div>
                      <div class="col-lg-6 col-md-4 col-sm-12 col-xs-12">
                         <label for="projduration">Project Budget *:</label>
                         <div class="form-line">
@@ -518,12 +410,133 @@ try {
 
 
       if ($results === TRUE) {
+         $projstage = 8;
+         $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
+         $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid));
 
          $valid['success'] = true;
          $valid['messages'] = "Budget successfully requested";
       } else {
          $valid['success'] = false;
          $valid['messages'] = "Error while requesting the budget!!";
+      }
+      echo json_encode($valid);
+   }
+
+
+   if (isset($_POST["addApprovedADPBudget"]) && $_POST["addApprovedADPBudget"] == 1) {
+      $projid = $_POST['projid'];
+      $year = $_POST['year'];
+
+      $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE deleted='0' and projid=:projid");
+      $query_rsProjects->execute(array(":projid" => $projid));
+      $row_rsProjects = $query_rsProjects->fetch();
+      $totalRows_rsProjects = $query_rsProjects->rowCount();
+
+      $projname = $row_rsProjects['projname'];
+      $projstartdate = $row_rsProjects['projstartdate'];
+      $projenddate = $row_rsProjects['projenddate'];
+      $projdurationInDays = $row_rsProjects['projduration'];
+      $projfscyear = $row_rsProjects['projfscyear'];
+      $projcode = $row_rsProjects['projcode'];
+      $projbudget = number_format($row_rsProjects['projcost'], 2);
+
+      $query_requested_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid=:projid AND year=:year");
+      $query_requested_budget->execute(array(":projid" => $projid, ":year" => $year));
+      $row_requested_budget = $query_requested_budget->fetch();
+      $requested_budget = number_format($row_requested_budget['amount'], 2);
+
+      //convert project duration to years, months, and days
+      $date1 = new DateTime($projstartdate);
+      $date2 = new DateTime($projenddate);
+
+      $interval = $date2->diff($date1);
+      $project_duration = $interval->format('%Y Years, %m Months, %d Days');
+
+      $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
+      $query_rsYear->execute();
+      $row_rsYear = $query_rsYear->fetch();
+      $projstartyear =  $row_rsYear['yr'];
+      $projstart = $projstartyear  . '-07-01';
+
+      $yr = date("Y");
+      $mnth = date("m");
+
+      if ($mnth >= 7 && $mnth <= 12) {
+         $yr = $yr;
+      } elseif ($mnth >= 1 && $mnth <= 6) {
+         $yr = $yr - 1;
+      }
+
+      $yearnxt = $yr + 1;
+      $finyear = $yr . "/" . $yearnxt;
+
+
+      $TargetB = '
+      <div class="row clearfix">
+         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+               <div class="header" >
+                  <div class=" clearfix" style="margin-top:5px; margin-bottom:5px">
+                     <h5 class="list-group-item list-group-item list-group-item-action active"><strong>Project Name:</strong> ' . $projname . ' </h5>
+                  </div>
+               </div>
+               <div class="body">
+                  <input type="hidden"  name="projid" id="projid" class="form-control" value="' . $projid . '" required>
+                  <input type="hidden"  name="budgetyear" id="budgetyear" value="' . $year . '">
+                  <div class="row clearfix">
+                     <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+                        <label for="projduration">Project Budget *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $projbudget . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+                        <label for="projduration">Requested Budget *:</label>
+                        <div class="form-line">
+                           <div class="form-control"  style="border:1px solid #f0f0f0; border-radius:3px;">' . $requested_budget . '</div>
+                        </div>
+                     </div>
+                     <div class="col-lg-4 col-md-6 col-sm-12 col-xs-12">
+                        <label for="projduration">Approved Budget *:</label>
+                        <div class="form-line">
+                           <input type="number"  name="projapprovedbudget" value="" id="projapprovedbudget" placeholder="Enter appoved budget for the year ' . $finyear . '" class="form-control" class="form-control" required />
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>';
+      echo $TargetB;
+   }
+
+   if (isset($_POST["approvedbudget"])) {
+      $projid = $_POST['projid'];
+      $adjusted_amount = $_POST['projapprovedbudget'];
+      $budgetyear = $_POST['budgetyear'];
+      $userid = $_POST['user_name'];
+      $date = date("Y-m-d");
+
+      $update_approved_budget = $db->prepare("UPDATE `tbl_adp_projects_budget` SET adjusted_amount=:adjusted_amount, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid AND year=:year");
+      $results = $update_approved_budget->execute(array(":adjusted_amount" => $adjusted_amount, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid, ":year" => $budgetyear));
+
+
+      if ($results === TRUE) {
+         $projstage = 9;
+         $adp_status = 1;
+
+         $update_adp_status = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:date_approved WHERE projid=:projid AND financial_year=:year");
+         $update_adp_status->execute(array(":status" => $adp_status, ":approved_by" => $userid, ":date_approved" => $date, ":projid" => $projid, ":year" => $budgetyear));
+
+         $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
+         $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid));
+
+         $valid['success'] = true;
+         $valid['messages'] = "Budget successfully approved";
+      } else {
+         $valid['success'] = false;
+         $valid['messages'] = "Error while approving the budget!!";
       }
       echo json_encode($valid);
    }

@@ -40,7 +40,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
         $financier = $row_financier ?  $row_financier['financier'] : '';
 
 
-        function get_amount_funding($projid, $fyear)
+        function get_amount_funding($projid)
         {
             global $db, $financier_id;
             $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE financier=:fid AND projid=:projid");
@@ -49,7 +49,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
             return  !is_null($row_plannedfunds["planned"]) ? $row_plannedfunds["planned"] : 0;
         }
 
-        function get_utilized_amount($projid, $fyear)
+        function get_utilized_amount($projid)
         {
             global $db, $financier_id;
             $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE financier_id=:fid AND projid=:projid");
@@ -77,7 +77,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
 
         function get_financier_planned_amount()
         {
-            global $db, $fyear, $financier_id;
+            global $db, $financier_id;
             $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE financier=:fid ");
             $query_plannedfunds->execute(array(":fid" => $financier_id));
             $row_plannedfunds = $query_plannedfunds->fetch();
@@ -86,7 +86,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
 
         function get_financier_utilized_funds()
         {
-            global $db, $financier_id, $fyear;
+            global $db, $financier_id;
             $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE financier_id=:fid");
             $query_utilizedfunds->execute(array(":fid" => $financier_id));
             $row_utilizedfunds = $query_utilizedfunds->fetch();
@@ -97,13 +97,6 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
         $query_company =  $db->prepare("SELECT * FROM tbl_company_settings");
         $query_company->execute();
         $row_company = $query_company->fetch();
-
-
-        $query_years = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE yr=:year");
-        $query_years->execute(array(":year" => $fyear));
-        $totalRows_years = $query_years->rowCount();
-        $Rows_years = $query_years->fetch();
-        $financial_year = ($totalRows_years > 0) ? $Rows_years['year'] : "";
 
         $query_logged_in_user =  $db->prepare("SELECT title, fullname FROM users u inner join tbl_projteam2 t on t.ptid=u.pt_id where userid=:user_name");
         $query_logged_in_user->execute(array(":user_name" => $user_name));
@@ -175,7 +168,7 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
                     </thead>
                     <tbody>';
 
-        $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE g.program_type=0 AND p.deleted='0' ORDER BY `projfscyear` DESC");
+        $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE  p.deleted='0' ORDER BY `projfscyear` DESC");
         $sql->execute();
         $rows_count = $sql->rowCount();
         if ($rows_count > 0) {
@@ -194,8 +187,8 @@ if (isset($_GET["fn"]) && !empty($_GET["fn"])) {
 
                 if ($row_plannedfunds > 0) {
                     $counter++;
-                    $planned_funds = get_amount_funding($projid, $fyear);
-                    $utilized_funds = get_utilized_amount($projid, $fyear);
+                    $planned_funds = get_amount_funding($projid);
+                    $utilized_funds = get_utilized_amount($projid);
                     $rate = $utilized_funds > 0 && $planned_funds > 0 ? ($utilized_funds / $planned_funds) * 100 : 0;
                     $table .=
                         '<tr>

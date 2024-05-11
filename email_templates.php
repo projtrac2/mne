@@ -43,13 +43,14 @@ try {
 								<div class="wrapper">
 									<div class="m-flex">
 										<h5>Email Template (HTML)</h5>
-
 									</div>
-									<textarea name="" class="editable" id="" cols="30" rows="10" style="width:100%; height: 100vh"><?= htmlentities($result->content) ?></textarea>
-									<div style="text-align: center; margin-top: 10px;">
-										<button class="btn btn-success" id="save-btn">Save changes</button>
-									</div>
-
+									<form action="" method="post" id="email_template" enctype="multipart/form-data">
+										<textarea name="content" class="editable" id="" cols="30" rows="10" style="width:100%; height: 100vh"><?= htmlentities($result->content) ?></textarea>
+										<div style="text-align: center; margin-top: 10px;">
+											<input type="hidden" name="store" value="store">
+											<button type="submit" class="btn btn-success" id="save-btn">Save changes</button>
+										</div>
+									</form>
 								</div>
 
 							</div>
@@ -68,52 +69,4 @@ try {
 	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
-
-<script>
-	$('#save-btn').on('click', save_content);
-	let edits = '';
-	// $('.editable').on('change', (e) => {
-	// 	edits = e.target.textContent;
-	// });
-
-	function getContent(el) {
-		console.log($(el));
-	}
-
-
-
-	function save_content() {
-		let vals = $('.editable').val();
-		const data = new FormData();
-		data.append('content', vals);
-		$.ajax({
-			url: 'general-settings/action/email-template-actions.php',
-			type: 'post',
-			contentType: false,
-			data: data,
-			cache: false,
-			processData: false,
-			error: (error) => {
-				console.log(error);
-			},
-			success: (response) => {
-				if (response) {
-					swal({
-						title: "Changes saved successfully",
-						text: `Successfully saved`,
-						icon: "success",
-					});
-				} else {
-					swal({
-						title: "System error! Refresh and try again",
-						text: `Error occurred`,
-						icon: "error",
-					});
-				}
-				setTimeout(() => {
-					window.location.reload();
-				}, 2000);
-			}
-		})
-	}
-</script>
+<script src="assets/js/settings/email/email_templates.js"></script>

@@ -32,23 +32,6 @@ try {
             return  !is_null($row_utilizedfunds["utilized"]) ? $row_utilizedfunds["utilized"] : 0;
         }
 
-        function get_status($status_id)
-        {
-            global $db;
-            $query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :projstatus");
-            $query_Projstatus->execute(array(":projstatus" => $status_id));
-            $row_Projstatus = $query_Projstatus->fetch();
-            $total_Projstatus = $query_Projstatus->rowCount();
-            $status = "";
-            if ($total_Projstatus > 0) {
-                $status_name = $row_Projstatus['statusname'];
-                $status_class = $row_Projstatus['class_name'];
-                $status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-            }
-
-            return $status;
-        }
-
         function get_financier_planned_amount()
         {
             global $db, $fyear, $financier_id;
@@ -128,7 +111,7 @@ try {
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE g.program_type=0 AND p.deleted='0' ORDER BY `projfscyear` DESC");
+                                            $sql = $db->prepare("SELECT * FROM `tbl_programs` g left join `tbl_projects` p on p.progid=g.progid left join tbl_fiscal_year y on y.id=p.projfscyear left join tbl_status s on s.statusid=p.projstatus WHERE  p.deleted='0' ORDER BY `projfscyear` DESC");
                                             $sql->execute();
                                             $rows_count = $sql->rowCount();
                                             if ($rows_count > 0) {
@@ -185,6 +168,7 @@ try {
 
     require('includes/footer.php');
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

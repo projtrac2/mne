@@ -3,6 +3,9 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
+include_once '../projtrac-dashboard/resource/Database.php';
+include_once '../projtrac-dashboard/resource/utilities.php';
+require_once __DIR__ . '../../vendor/autoload.php';
 
 session_start();
 $user_name = $_SESSION['MM_Username'];
@@ -22,10 +25,6 @@ function restriction()
 		}, 3000);
 	</script>";
 }
-
-include_once '../projtrac-dashboard/resource/Database.php';
-include_once '../projtrac-dashboard/resource/utilities.php';
-require_once __DIR__ . '../../vendor/autoload.php';
 
 if (isset($_GET["fnid"]) && !empty($_GET["fnid"])) {
     try {
@@ -81,39 +80,29 @@ if (isset($_GET["fnid"]) && !empty($_GET["fnid"])) {
 
             function get_amount_funding($projid)
             {
-                global $db, $fyear, $financier_id;
+                global $db, $financier_id;
                 $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE financier=:fid AND projid=:projid");
                 $query_plannedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
-                if ($fyear != '') {
-                    $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE p.status=1 AND p.financial_year=:fyear AND f.financier=:financier_id AND projid=:projid");
-                    $query_plannedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id, ":projid" => $projid));
-                }
+
                 $row_plannedfunds = $query_plannedfunds->fetch();
                 return  !is_null($row_plannedfunds["planned"]) ? $row_plannedfunds["planned"] : 0;
             }
 
             function get_received_amount($projid)
             {
-                global $db, $fyear, $financier_id;
+                global $db, $financier_id;
                 $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE financier=:fid AND projid=:projid");
                 $query_plannedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
-                if ($fyear != '') {
-                    $query_plannedfunds = $db->prepare("SELECT SUM(amountfunding) as planned FROM tbl_myprojfunding WHERE p.status=1 AND p.financial_year=:fyear AND f.financier=:financier_id AND projid=:projid");
-                    $query_plannedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id, ":projid" => $projid));
-                }
                 $row_plannedfunds = $query_plannedfunds->fetch();
                 return  !is_null($row_plannedfunds["planned"]) ? $row_plannedfunds["planned"] : 0;
             }
 
             function get_utilized_amount($projid)
             {
-                global $db, $fyear, $financier_id;
+                global $db, $financier_id;
                 $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE financier_id=:fid AND projid=:projid");
                 $query_utilizedfunds->execute(array(":fid" => $financier_id, ":projid" => $projid));
-                if ($fyear != '') {
-                    $query_utilizedfunds = $db->prepare("SELECT SUM(amount) as utilized FROM tbl_payment_request_financiers WHERE  financial_year=:fyear AND financier_id=:financier_id AND projid=:projid");
-                    $query_utilizedfunds->execute(array(":fyear" => $fyear, ":financier_id" => $financier_id, ":projid" => $projid));
-                }
+
                 $row_utilizedfunds = $query_utilizedfunds->fetch();
                 return  !is_null($row_utilizedfunds["utilized"]) ? $row_utilizedfunds["utilized"] : 0;
             }
@@ -291,6 +280,7 @@ if (isset($_GET["fnid"]) && !empty($_GET["fnid"])) {
             echo $results;
         }
     } catch (PDOException $ex) {
+        var_dump($ex);
     }
 } else {
     var_dump("Error could notn not be");

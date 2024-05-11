@@ -37,11 +37,9 @@ try {
 						$total_rsOutput = $query_rsOutput->rowCount();
 						$standin_responsible = $total_rsOutput > 0 ? true : false;
 					}
-
 					$responsible = $standin_responsible || $output_responsible ? true : false;
 				}
 			}
-
 			return $responsible;
 		}
 
@@ -92,7 +90,6 @@ try {
 												<th style="width:40%">Project </th>
 												<th style="width:10%">Project Category </th>
 												<th style="width:10">Due Date</th>
-												<th style="width:10">Substage</th>
 												<th style="width:10">Status</th>
 												<th style="width:5%">Action</th>
 											</tr>
@@ -146,17 +143,7 @@ try {
 															$activity = $sub_stage == 3 ? "Approve"  : "Edit";
 														}
 
-														$activity_status = "";
-
-														if ($today > $due_date) {
-															$activity_status = "Behind Schedule";
-														} else {
-															if ($sub_stage == 1) {
-																$activity_status = "Pending ";
-															} else if ($sub_stage == 2) {
-																$activity_status = "Assigned";
-															}
-														}
+														$activity_status =	get_program_of_works_status($projid, $workflow_stage, $sub_stage);
 
 														//0 1 2 3 (Data entry)
 														// 4 5 6 7 (Frequency)
@@ -182,8 +169,7 @@ try {
 															<td><?= $row_rsProjects['projname'] ?></td>
 															<td><?= $project_category ?></td>
 															<td><?= date('Y M d', strtotime($due_date)) ?></td>
-															<td><label class='label label-success'><?= $substage; ?></label></td>
-															<td><label class='label label-success'><?= $activity_status; ?></label></td>
+															<td><?= $activity_status; ?></td>
 															<td>
 																<div class="btn-group">
 																	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

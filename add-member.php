@@ -2,7 +2,6 @@
 try {
     require('includes/head.php');
     include_once("Models/Email.php");
-
     if ($permission) {
         if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
             $encoded_userid = $_GET["ptid"];
@@ -69,312 +68,307 @@ try {
                 </script>";
         }
 
-        try {
-            // email conif-settings
-            $currentPage = $_SERVER["PHP_SELF"];
-            if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
-                $ptid = $_GET["ptid"];
-                if (isset($_GET["action"]) && $_GET["action"] == '2') {
-                    $query_rsAdmin = $db->prepare("SELECT * FROM tbl_projcountyadmin WHERE ptid='$ptid'");
-                    $query_rsAdmin->execute();
-                    $row_rsAdmin = $query_rsAdmin->fetch();
-                } elseif (isset($_GET["action"]) && $_GET["action"] == '3') {
-                    $delete_rsAdmin = $db->prepare("DELETE FROM tbl_projcountyadmin WHERE ptid='$ptid'");
-                    $delete_rsAdmin->execute();
-                }
+        // email conif-settings
+        $currentPage = $_SERVER["PHP_SELF"];
+        if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
+            $ptid = $_GET["ptid"];
+            if (isset($_GET["action"]) && $_GET["action"] == '2') {
+                $query_rsAdmin = $db->prepare("SELECT * FROM tbl_projcountyadmin WHERE ptid='$ptid'");
+                $query_rsAdmin->execute();
+                $row_rsAdmin = $query_rsAdmin->fetch();
+            } elseif (isset($_GET["action"]) && $_GET["action"] == '3') {
+                $delete_rsAdmin = $db->prepare("DELETE FROM tbl_projcountyadmin WHERE ptid='$ptid'");
+                $delete_rsAdmin->execute();
             }
+        }
 
-            if (isset($_GET['ptid'])) {
-                $mbraction = "Edit";
-                $formname = "MM_update";
-                $formvalue = "editmemberfrm";
-            } else {
-                $mbraction = "Add New";
-                $formname = "MM_insert";
-                $formvalue = "addmemberfrm";
-            }
-
-
-            if (isset($_POST["submit"]) && $_POST["MM_insert"] == "addmemberfrm") {
-
-                if (!empty($_POST['title']) && !empty($_POST['firstname']) && !empty($_POST['lastname']) && !empty($_POST['email']) && !empty($_POST['phone'])) {
-
-                    $existemail = $_POST['email'];
-
-                    $query_rsExistMember = $db->prepare("SELECT * FROM tbl_projteam2 WHERE email = '$existemail'");
-                    $query_rsExistMember->execute();
-                    $totalRows_rsExistMember = $query_rsExistMember->rowCount();
-
-                    if ($totalRows_rsExistMember > 0) {
-                        $msg = 'Sorry, this member already exists. Please use unique email address';
-                        $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                    } else {
-                        if ($_FILES['photofile']['size'] >= 1048576 * 500) {
-                            $msg = 'The file selected exceeds 500MB size limit';
-                            $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                        } else {
-                            //upload random name/number
-                            $rd2 = mt_rand(1000, 9999) . "_File";
-
-                            //Check that we have a file
-                            if (!empty($_FILES["photofile"])) {
-                                //Check if the file is JPEG image and it's size is less than 350Kb
-                                $filename = basename($_FILES['photofile']['name']);
-
-                                $ftype = substr($filename, strrpos($filename, '.') + 1);
-
-                                if (($ftype != "exe") && ($_FILES["photofile"]["type"] != "application/x-msdownload")) {
-                                    //Determine the path to which we want to save this file
-                                    $newname = $rd2 . "_" . $filename;
-                                    $floc = "uploads/staff/" . $newname;
-                                    //Check if the file with the same name already exists in the server
-                                    if (!file_exists($floc)) {
-                                        //Attempt to move the uploaded file to it's new place
-                                        move_uploaded_file($_FILES['photofile']['tmp_name'], $floc);
-                                    } else {
-                                        $msg = 'Selected file exists';
-                                        $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                                    }
-                                } else {
-                                    $msg = 'Selected file type not allowed';
-                                    $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                                }
-                            }
-                        }
+        if (isset($_GET['ptid'])) {
+            $mbraction = "Edit";
+            $formname = "MM_update";
+            $formvalue = "editmemberfrm";
+        } else {
+            $mbraction = "Add New";
+            $formname = "MM_insert";
+            $formvalue = "addmemberfrm";
+        }
 
 
-                        $fullname = $_POST['firstname'] . " " . $_POST['lastname'];
+        if (isset($_POST["submit"]) && $_POST["MM_insert"] == "addmemberfrm") {
 
+            if (!empty($_POST['title']) && !empty($_POST['firstname']) && !empty($_POST['lastname']) && !empty($_POST['email']) && !empty($_POST['phone'])) {
 
-                        if (empty($_POST['conservancy']) || $_POST['conservancy'] == '') {
-                            $level1 = 0;
-                        } else {
-                            $level1 = $_POST['conservancy'];
-                        }
+                $existemail = $_POST['email'];
 
-                        if (empty($_POST['ecosystem']) || $_POST['ecosystem'] == '') {
-                            $level2 = 0;
-                        } else {
-                            $level2 = $_POST['ecosystem'];
-                        }
+                $query_rsExistMember = $db->prepare("SELECT * FROM tbl_projteam2 WHERE email = '$existemail'");
+                $query_rsExistMember->execute();
+                $totalRows_rsExistMember = $query_rsExistMember->rowCount();
 
-                        if (empty($_POST['station']) || $_POST['station'] == '') {
-                            $level3 = 0;
-                        } else {
-                            $level3 = $_POST['station'];
-                        }
-
-                        $department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
-                        $ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
-                        $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
-                        // $createdby = $_POST['user_id'];
-
-                        $designation = $_POST['designation'];
-                        $role_group = 3;
-
-                        if ($designation > 4) {
-                            $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
-                            $query_role_group->execute();
-                            $row_role_group = $query_role_group->fetch();
-                            $role_group = $row_role_group["role_id"];
-                        }
-
-                        $insertSQL = $db->prepare("INSERT INTO tbl_projteam2 (fullname, firstname, middlename, lastname, title, designation,ministry, department, directorate,role_group, levelA, levelB, levelC, floc, filename, ftype, email, phone, createdby, datecreated)  VALUES( :fullname, :firstname, :middlename, :lastname, :title, :designation,:ministry,:department,:directorate, :role_group, :level1, :level2, :level3,:floc, :filename, :ftype, :email, :phone, :createdby, :datecreated)");
-                        $Rest = $insertSQL->execute(array(":fullname" => $fullname, ":firstname" => $_POST['firstname'], ":middlename" => $_POST['middlename'], ":lastname" => $_POST['lastname'], ":title" => $_POST['title'], ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":role_group" => $role_group,  ":level1" => $level1, ":level2" => $level2, ":level3" => $level3, ":floc" => $floc, ":filename" => $newname, ":ftype" => $ftype, ":email" => $_POST['email'], ":phone" => $_POST['phone'], ":createdby" => $user_name, ":datecreated" => date('Y-m-d')));
-
-                        if ($Rest) {
-                            $last_id = $db->lastInsertId();
-                            $type = 1;
-                            $password = create_password(8);
-                            $hash_pass = password_hash($password, PASSWORD_DEFAULT);
-                            $email = $_POST['email'];
-
-                            $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type, last_update_password_date) VALUES( :ptid,:email, :password, :type, :today)");
-                            $insertSQL->execute(array(":ptid" => $last_id,  ":email" => $email, ":password" => $hash_pass, ":type" => $type, ":today" => date('Y-m-d')));
-                            $user_id = $db->lastInsertId();
-                            sendMail($user_id, get_title($_POST['title']) . ' ' . $fullname, $email, $password);
-
-                            $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
-                            $query_designate->execute();
-                            $row_designate = $query_designate->fetch();
-                            $designate = $row_designate["designation"];
-
-                            $msg = 'You have successfully added ' . $fullname . ' as ' . $designate . '.';
-                            $results = alert_message('Success', $msg, 'Success', 'success');
-                        } else {
-                            $msg = 'Can not add administrator, please review your info and try again.';
-                            $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                        }
-                    }
-                } else {
-                    $msg = 'Some fields have not been filled.';
+                if ($totalRows_rsExistMember > 0) {
+                    $msg = 'Sorry, this member already exists. Please use unique email address';
                     $results = alert_message('Warning', $msg, 'Warning', 'warning');
-                }
-            } elseif (isset($_POST["submit"]) && $_POST["MM_update"] == "editmemberfrm") {
-                //Check that we have a file
-                $myphoto = $ftype = $filename = $level = '';
-                $query_rsPhoto = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid='$userid'");
-                $query_rsPhoto->execute();
-                $row_rsPhoto = $query_rsPhoto->fetch();
-                $totalRows_rsPhoto = $query_rsPhoto->rowCount();
-                $ptid = $row_rsPhoto['ptid'];
-
-                if ($_FILES['photofile']['size'] != 0) {
+                } else {
                     if ($_FILES['photofile']['size'] >= 1048576 * 500) {
-                        $msg = 'File selected exceeds 500MB size limit';
+                        $msg = 'The file selected exceeds 500MB size limit';
                         $results = alert_message('Warning', $msg, 'Warning', 'warning');
                     } else {
                         //upload random name/number
                         $rd2 = mt_rand(1000, 9999) . "_File";
 
-                        //Check if the file is JPEG image and it's size is less than 350Kb
-                        $filename = basename($_FILES['photofile']['name']);
+                        //Check that we have a file
+                        if (!empty($_FILES["photofile"])) {
+                            //Check if the file is JPEG image and it's size is less than 350Kb
+                            $filename = basename($_FILES['photofile']['name']);
 
-                        $ftype = substr($filename, strrpos($filename, '.') + 1);
+                            $ftype = substr($filename, strrpos($filename, '.') + 1);
 
-                        if (($ftype != "exe") && ($_FILES["photofile"]["type"] != "application/x-msdownload")) {
-                            //Determine the path to which we want to save this file
-                            $newname = $rd2 . "_" . $filename;
-                            $floc = "uploads/staff/" . $newname;
-                            //Check if the file with the same name already exists in the server
-                            if (!file_exists($floc)) {
-                                //Attempt to move the uploaded file to it's new place
-                                if (move_uploaded_file($_FILES['photofile']['tmp_name'], $floc)) {
-                                    $myphoto = $floc;
+                            if (($ftype != "exe") && ($_FILES["photofile"]["type"] != "application/x-msdownload")) {
+                                //Determine the path to which we want to save this file
+                                $newname = $rd2 . "_" . $filename;
+                                $floc = "uploads/staff/" . $newname;
+                                //Check if the file with the same name already exists in the server
+                                if (!file_exists($floc)) {
+                                    //Attempt to move the uploaded file to it's new place
+                                    move_uploaded_file($_FILES['photofile']['tmp_name'], $floc);
+                                } else {
+                                    $msg = 'Selected file exists';
+                                    $results = alert_message('Warning', $msg, 'Warning', 'warning');
                                 }
                             } else {
-                                $msg = 'The selected file already exists';
+                                $msg = 'Selected file type not allowed';
                                 $results = alert_message('Warning', $msg, 'Warning', 'warning');
                             }
-                        } else {
-                            $msg = 'Selected file type not allowed';
-                            $results = alert_message('Warning', $msg, 'Warning', 'warning');
                         }
                     }
-                } else {
-                    $myphoto = $row_rsPhoto['floc'];
-                    $ftype = $row_rsPhoto['ftype'];
-                    $filename = $row_rsPhoto['filename'];
-                }
 
-                $title = $_POST['title'];
-                $firstname = $_POST['firstname'];
-                $middlename = $_POST['middlename'];
-                $lastname = $_POST['lastname'];
-                $fullname = $firstname . " " . $lastname;
-                $designation = $_POST['designation'];
-                $floc = $myphoto;
-                $email = $_POST['email'];
-                $phone = $_POST['phone'];
 
-                $department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
-                $ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
-                $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
+                    $fullname = $_POST['firstname'] . " " . $_POST['lastname'];
 
-                $role_group = 3;
 
-                if ($designation > 4) {
-                    $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
-                    $query_role_group->execute();
-                    $row_role_group = $query_role_group->fetch();
-
-                    $role_group = $row_role_group["role_id"];
-                } elseif ($designation == 1) {
-                    $role_group = 4;
-                }
-
-                $queryupdate = $db->prepare("UPDATE tbl_projteam2 SET fullname=:fullname, firstname=:firstname, middlename=:middlename, lastname=:lastname, title=:title, designation=:designation,ministry=:ministry, department=:department, directorate=:directorate, role_group=:rolegroup, floc=:floc, filename=:filename, ftype=:ftype, email=:email, phone=:phone WHERE ptid=:ptid");
-                $retval = $queryupdate->execute(array(":fullname" => $fullname, ":firstname" => $firstname, ":middlename" => $middlename, ":lastname" => $lastname, ":title" => $title, ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":rolegroup" => $role_group, ":floc" => $floc, ":filename" => $filename, ":ftype" => $ftype, ":email" => $email, ":phone" => $phone, ":ptid" => $ptid));
-
-                if ($retval) {
-                    $query_rsExistMember = $db->prepare("SELECT * FROM users WHERE userid = '$userid'");
-                    $query_rsExistMember->execute();
-                    $totalRows_rsExistMember = $query_rsExistMember->rowCount();
-
-                    if ($totalRows_rsExistMember > 0) {
-                        $queryupdate = $db->prepare("UPDATE users SET email=:email WHERE userid=:userid");
-                        $queryupdate->execute(array(":email" => $email, ":userid" => $userid));
+                    if (empty($_POST['conservancy']) || $_POST['conservancy'] == '') {
+                        $level1 = 0;
                     } else {
-                        $type = 1;
-                        $last_id = $db->lastInsertId();
-                        $password = create_password(8);
-                        $hash_pass = password_hash($password, PASSWORD_DEFAULT);
-
-                        $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type) VALUES( :ptid,:email, :password, :type)");
-                        $insertSQL->execute(array(":ptid" => $ptid,  ":email" => $email, ":password" => $hash_pass, ":type" => $type));
-                        $user_id = $db->lastInsertId();
-
-                        sendMail($user_id, get_title($title_id) . ' ' . $fullname, $email, $password);
+                        $level1 = $_POST['conservancy'];
                     }
 
-                    $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
-                    $query_designate->execute();
-                    $row_designate = $query_designate->fetch();
-                    $designate = $row_designate["designation"];
+                    if (empty($_POST['ecosystem']) || $_POST['ecosystem'] == '') {
+                        $level2 = 0;
+                    } else {
+                        $level2 = $_POST['ecosystem'];
+                    }
 
-                    $msg = 'You have successfully updated ' . $designate . ' ' . $fullname . ' details!';
-                    $results = alert_message("Success", $msg, "Success", "success");
-                } else {
-                    $msg = 'User details was not updated. Please confirm the information provided';
-                    $results = alert_message('Error', $msg, 'Error', 'error');
+                    if (empty($_POST['station']) || $_POST['station'] == '') {
+                        $level3 = 0;
+                    } else {
+                        $level3 = $_POST['station'];
+                    }
+
+                    $department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
+                    $ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
+                    $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
+                    // $createdby = $_POST['user_id'];
+
+                    $designation = $_POST['designation'];
+                    $role_group = 3;
+
+                    if ($designation > 4) {
+                        $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
+                        $query_role_group->execute();
+                        $row_role_group = $query_role_group->fetch();
+                        $role_group = $row_role_group["role_id"];
+                    }
+
+                    $insertSQL = $db->prepare("INSERT INTO tbl_projteam2 (fullname, firstname, middlename, lastname, title, designation,ministry, department, directorate,role_group, levelA, levelB, levelC, floc, filename, ftype, email, phone, createdby, datecreated)  VALUES( :fullname, :firstname, :middlename, :lastname, :title, :designation,:ministry,:department,:directorate, :role_group, :level1, :level2, :level3,:floc, :filename, :ftype, :email, :phone, :createdby, :datecreated)");
+                    $Rest = $insertSQL->execute(array(":fullname" => $fullname, ":firstname" => $_POST['firstname'], ":middlename" => $_POST['middlename'], ":lastname" => $_POST['lastname'], ":title" => $_POST['title'], ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":role_group" => $role_group,  ":level1" => $level1, ":level2" => $level2, ":level3" => $level3, ":floc" => $floc, ":filename" => $newname, ":ftype" => $ftype, ":email" => $_POST['email'], ":phone" => $_POST['phone'], ":createdby" => $user_name, ":datecreated" => date('Y-m-d')));
+
+                    if ($Rest) {
+                        $last_id = $db->lastInsertId();
+                        $type = 1;
+                        $password = create_password(8);
+                        $hash_pass = password_hash($password, PASSWORD_DEFAULT);
+                        $email = $_POST['email'];
+
+                        $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type, last_update_password_date) VALUES( :ptid,:email, :password, :type, :today)");
+                        $insertSQL->execute(array(":ptid" => $last_id,  ":email" => $email, ":password" => $hash_pass, ":type" => $type, ":today" => date('Y-m-d')));
+                        $user_id = $db->lastInsertId();
+                        sendMail($user_id, get_title($_POST['title']) . ' ' . $fullname, $email, $password);
+
+                        $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
+                        $query_designate->execute();
+                        $row_designate = $query_designate->fetch();
+                        $designate = $row_designate["designation"];
+                        $msg = 'You have successfully added ' . $fullname . ' as ' . $designate . '.';
+                        $results = alert_message('Success', $msg, 'Success', 'success');
+                    } else {
+                        $msg = 'Can not add administrator, please review your info and try again.';
+                        $results = alert_message('Warning', $msg, 'Warning', 'warning');
+                    }
                 }
+            } else {
+                $msg = 'Some fields have not been filled.';
+                $results = alert_message('Warning', $msg, 'Warning', 'warning');
             }
-            $where = '';
+        } elseif (isset($_POST["submit"]) && $_POST["MM_update"] == "editmemberfrm") {
+            //Check that we have a file
+            $myphoto = $ftype = $filename = $level = '';
+            $query_rsPhoto = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid='$userid'");
+            $query_rsPhoto->execute();
+            $row_rsPhoto = $query_rsPhoto->fetch();
+            $totalRows_rsPhoto = $query_rsPhoto->rowCount();
+            $ptid = $row_rsPhoto['ptid'];
 
-            if ($designation == 6) {
-                $where = " WHERE position > 6";
+            if ($_FILES['photofile']['size'] != 0) {
+                if ($_FILES['photofile']['size'] >= 1048576 * 500) {
+                    $msg = 'File selected exceeds 500MB size limit';
+                    $results = alert_message('Warning', $msg, 'Warning', 'warning');
+                } else {
+                    //upload random name/number
+                    $rd2 = mt_rand(1000, 9999) . "_File";
+
+                    //Check if the file is JPEG image and it's size is less than 350Kb
+                    $filename = basename($_FILES['photofile']['name']);
+
+                    $ftype = substr($filename, strrpos($filename, '.') + 1);
+
+                    if (($ftype != "exe") && ($_FILES["photofile"]["type"] != "application/x-msdownload")) {
+                        //Determine the path to which we want to save this file
+                        $newname = $rd2 . "_" . $filename;
+                        $floc = "uploads/staff/" . $newname;
+                        //Check if the file with the same name already exists in the server
+                        if (!file_exists($floc)) {
+                            //Attempt to move the uploaded file to it's new place
+                            if (move_uploaded_file($_FILES['photofile']['tmp_name'], $floc)) {
+                                $myphoto = $floc;
+                            }
+                        } else {
+                            $msg = 'The selected file already exists';
+                            $results = alert_message('Warning', $msg, 'Warning', 'warning');
+                        }
+                    } else {
+                        $msg = 'Selected file type not allowed';
+                        $results = alert_message('Warning', $msg, 'Warning', 'warning');
+                    }
+                }
+            } else {
+                $myphoto = $row_rsPhoto['floc'];
+                $ftype = $row_rsPhoto['ftype'];
+                $filename = $row_rsPhoto['filename'];
+            }
+
+            $title = $_POST['title'];
+            $firstname = $_POST['firstname'];
+            $middlename = $_POST['middlename'];
+            $lastname = $_POST['lastname'];
+            $fullname = $firstname . " " . $lastname;
+            $designation = $_POST['designation'];
+            $floc = $myphoto;
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+
+            $department = isset($_POST['department']) && !empty($_POST['department']) ? $_POST['department'] : 0;
+            $ministry = isset($_POST['ministry']) && !empty($_POST['ministry']) ? $_POST['ministry'] : 0;
+            $directorate = isset($_POST['directorate']) && !empty($_POST['directorate']) ? $_POST['directorate'] : 0;
+
+            $role_group = 3;
+
+            if ($designation > 4) {
+                $query_role_group = $db->prepare("SELECT role_id FROM tbl_sectors WHERE stid = '$ministry'");
+                $query_role_group->execute();
+                $row_role_group = $query_role_group->fetch();
+
+                $role_group = $row_role_group["role_id"];
             } elseif ($designation == 1) {
-                $where = " WHERE position > 1";
+                $role_group = 4;
             }
 
-            $query_rsPMDesignation =  $db->prepare("SELECT * FROM tbl_pmdesignation $where ORDER BY moid ASC");
-            $query_rsPMDesignation->execute();
-            $row_rsPMDesignation = $query_rsPMDesignation->fetch();
+            $queryupdate = $db->prepare("UPDATE tbl_projteam2 SET fullname=:fullname, firstname=:firstname, middlename=:middlename, lastname=:lastname, title=:title, designation=:designation,ministry=:ministry, department=:department, directorate=:directorate, role_group=:rolegroup, floc=:floc, filename=:filename, ftype=:ftype, email=:email, phone=:phone WHERE ptid=:ptid");
+            $retval = $queryupdate->execute(array(":fullname" => $fullname, ":firstname" => $firstname, ":middlename" => $middlename, ":lastname" => $lastname, ":title" => $title, ":designation" => $designation, ":ministry" => $ministry, ":department" => $department, ":directorate" => $directorate, ":rolegroup" => $role_group, ":floc" => $floc, ":filename" => $filename, ":ftype" => $ftype, ":email" => $email, ":phone" => $phone, ":ptid" => $ptid));
 
-            $query_rsSector =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=0 and deleted='0'");
-            $query_rsSector->execute();
-            $row_rsSector = $query_rsSector->fetch();
+            if ($retval) {
+                $query_rsExistMember = $db->prepare("SELECT * FROM users WHERE userid = '$userid'");
+                $query_rsExistMember->execute();
+                $totalRows_rsExistMember = $query_rsExistMember->rowCount();
 
-            $query_country =  $db->prepare("SELECT id,country FROM countries");
-            $query_country->execute();
+                if ($totalRows_rsExistMember > 0) {
+                    $queryupdate = $db->prepare("UPDATE users SET email=:email WHERE userid=:userid");
+                    $queryupdate->execute(array(":email" => $email, ":userid" => $userid));
+                } else {
+                    $type = 1;
+                    $last_id = $db->lastInsertId();
+                    $password = create_password(8);
+                    $hash_pass = password_hash($password, PASSWORD_DEFAULT);
 
-            if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
-                $query_rsPTeam = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid = '$userid'");
-                $query_rsPTeam->execute();
-                $row_rsPTeam = $query_rsPTeam->fetch();
-                $totalRows_rsPTeam = $query_rsPTeam->rowCount();
+                    $insertSQL = $db->prepare("INSERT INTO `users` (pt_id,email, password, type) VALUES( :ptid,:email, :password, :type)");
+                    $insertSQL->execute(array(":ptid" => $ptid,  ":email" => $email, ":password" => $hash_pass, ":type" => $type));
+                    $user_id = $db->lastInsertId();
 
+                    sendMail($user_id, get_title($title_id) . ' ' . $fullname, $email, $password);
+                }
 
-                $query_rsUser = $db->prepare("SELECT * FROM tbl_users WHERE userid = '$userid'");
-                $query_rsUser->execute();
-                $row_rsUser = $query_rsUser->fetch();
-                $totalRows_rsUser = $query_rsUser->rowCount();
+                $query_designate = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid = '$designation'");
+                $query_designate->execute();
+                $row_designate = $query_designate->fetch();
+                $designate = $row_designate["designation"];
+
+                $msg = 'You have successfully updated ' . $designate . ' ' . $fullname . ' details!';
+                $results = alert_message("Success", $msg, "Success", "success");
+            } else {
+                $msg = 'User details was not updated. Please confirm the information provided';
+                $results = alert_message('Error', $msg, 'Error', 'error');
             }
-
-            $query_rsPMLevel = $db->prepare("SELECT * FROM tbl_level ORDER BY level_id ASC");
-            $query_rsPMLevel->execute();
-            $row_rsPMLevel = $query_rsPMLevel->fetch();
-            $totalRows_rsPMLevel = $query_rsPMLevel->rowCount();
-
-            $query_rsTitle = $db->prepare("SELECT * FROM tbl_titles ORDER BY id ASC");
-            $query_rsTitle->execute();
-            $row_rsTitle = $query_rsTitle->fetch();
-            $totalRows_rsTitle = $query_rsTitle->rowCount();
-
-            $query_rsLocation = $db->prepare("SELECT id,state FROM tbl_state WHERE  parent IS NULL");
-            $query_rsLocation->execute();
-            $row_rsLocation = $query_rsLocation->fetch();
-            $totalRows_rsLocation = $query_rsLocation->rowCount();
-
-            $query_rsDesignation = $db->prepare("SELECT moid, designation FROM tbl_pmdesignation");
-            $query_rsDesignation->execute();
-            $row_rsDesignation = $query_rsDesignation->fetch();
-            $totalRows_rsDesignation = $query_rsDesignation->rowCount();
-            $profid = 1;
-        } catch (PDOException $ex) {
-            $result = flashMessage("An error occurred: " . $ex->getMessage());
-            echo $result;
         }
+        $where = '';
+
+        if ($designation == 6) {
+            $where = " WHERE position > 6";
+        } elseif ($designation == 1) {
+            $where = " WHERE position > 1";
+        }
+
+        $query_rsPMDesignation =  $db->prepare("SELECT * FROM tbl_pmdesignation $where ORDER BY moid ASC");
+        $query_rsPMDesignation->execute();
+        $row_rsPMDesignation = $query_rsPMDesignation->fetch();
+
+        $query_rsSector =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=0 and deleted='0'");
+        $query_rsSector->execute();
+        $row_rsSector = $query_rsSector->fetch();
+
+        $query_country =  $db->prepare("SELECT id,country FROM countries");
+        $query_country->execute();
+
+        if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
+            $query_rsPTeam = $db->prepare("SELECT * FROM tbl_projteam2 t inner join users u on u.pt_id=t.ptid WHERE userid = '$userid'");
+            $query_rsPTeam->execute();
+            $row_rsPTeam = $query_rsPTeam->fetch();
+            $totalRows_rsPTeam = $query_rsPTeam->rowCount();
+
+
+            $query_rsUser = $db->prepare("SELECT * FROM tbl_users WHERE userid = '$userid'");
+            $query_rsUser->execute();
+            $row_rsUser = $query_rsUser->fetch();
+            $totalRows_rsUser = $query_rsUser->rowCount();
+        }
+
+        $query_rsPMLevel = $db->prepare("SELECT * FROM tbl_level ORDER BY level_id ASC");
+        $query_rsPMLevel->execute();
+        $row_rsPMLevel = $query_rsPMLevel->fetch();
+        $totalRows_rsPMLevel = $query_rsPMLevel->rowCount();
+
+        $query_rsTitle = $db->prepare("SELECT * FROM tbl_titles ORDER BY id ASC");
+        $query_rsTitle->execute();
+        $row_rsTitle = $query_rsTitle->fetch();
+        $totalRows_rsTitle = $query_rsTitle->rowCount();
+
+        $query_rsLocation = $db->prepare("SELECT id,state FROM tbl_state WHERE  parent IS NULL");
+        $query_rsLocation->execute();
+        $row_rsLocation = $query_rsLocation->fetch();
+        $totalRows_rsLocation = $query_rsLocation->rowCount();
+
+        $query_rsDesignation = $db->prepare("SELECT moid, designation FROM tbl_pmdesignation");
+        $query_rsDesignation->execute();
+        $row_rsDesignation = $query_rsDesignation->fetch();
+        $totalRows_rsDesignation = $query_rsDesignation->rowCount();
+        $profid = 1;
+
 ?>
         <!-- start body  -->
         <section class="content">
@@ -513,17 +507,17 @@ try {
 
                                             <?php
                                             } elseif ($designation == 6) {
-                                                $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
+                                                $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry AND deleted=1");
                                                 $query_ministry->execute();
                                                 $row_ministry = $query_ministry->fetch();
                                                 $mnstry = $row_ministry["sector"];
 
-                                                $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
+                                                $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector AND deleted=1");
                                                 $query_section->execute();
                                                 $row_section = $query_section->fetch();
                                                 $section = $row_section["sector"];
 
-                                                $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                                $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='1'");
                                                 $query_directorates->execute();
 
                                             ?>
@@ -730,7 +724,7 @@ try {
                                                                         <?php
                                                                         $stid = $row_rsPTeam['department'];
                                                                         if (!empty($stid)) {
-                                                                            $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='0'");
+                                                                            $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$stid and deleted='1'");
                                                                             $query_rsDepartment->execute();
                                                                             $row_rsDepartment = $query_rsDepartment->fetch();
                                                                         ?>
@@ -758,17 +752,17 @@ try {
 
                                             <?php
                                             } elseif ($designation == 6) {
-                                                $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry");
+                                                $query_ministry =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$ministry and deleted='1'");
                                                 $query_ministry->execute();
                                                 $row_ministry = $query_ministry->fetch();
                                                 $mnstry = $row_ministry["sector"];
 
-                                                $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector");
+                                                $query_section =  $db->prepare("SELECT * FROM tbl_sectors WHERE stid=$sector and deleted='1'");
                                                 $query_section->execute();
                                                 $row_section = $query_section->fetch();
                                                 $section = $row_section["sector"];
 
-                                                $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                                $query_directorates =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='1'");
                                                 $query_directorates->execute();
 
                                             ?>
@@ -797,7 +791,7 @@ try {
                                                                     <select name="directorate" id="directorate" class="form-control" style="border:#CCC thin solid; border-radius:5px" data-live-search="true">
                                                                         <?php
                                                                         $stid = $row_rsPTeam['directorate'];
-                                                                        $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='0'");
+                                                                        $query_rsDepartment =  $db->prepare("SELECT * FROM tbl_sectors WHERE parent=$sector and deleted='1'");
                                                                         $query_rsDepartment->execute();
                                                                         ?>
                                                                         <option value="">....Select..<?php echo "Directorate"; ?></option>

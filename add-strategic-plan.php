@@ -38,12 +38,12 @@ try {
                         $kraInsert = $db->prepare("INSERT INTO tbl_key_results_area (spid,kra,created_by,date_created) VALUES (:spid, :kra, :user, :dates)");
                         $result = $kraInsert->execute(array(":spid" => $stratplanid, ":kra" => $kra, ":user" => $user_name, ":dates" => $current_date));
                     }
-                    success_message('The ' . $planlabel . ' was successfully created.', 1, 'view-strategic-plans.php');
+                    $results =  success_message('The ' . $planlabel . ' was successfully created.', 2, 'view-strategic-plans.php');
                 } else {
-                    error_message("Error occured please try again later", 1, "add-strategic-plan.php");
+                    $results =   error_message("Error occured please try again later", 2, "add-strategic-plan.php");
                 }
             } else {
-                error_message("Error occured please try again later", 1, "add-strategic-plan.php");
+                $results = error_message("Error occured please try again later", 2, "add-strategic-plan.php");
             }
         }
 ?>

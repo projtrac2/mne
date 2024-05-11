@@ -19,6 +19,8 @@ try {
         $row_item = $query_item->fetch();
         $rows_count = $query_item->rowCount();
         $input = '';
+        $output_table_header = $output_table_header_rowspan = $output_table_body = '';
+        $strategic_plan = $objective = $strategy = 'N/A';
 
         if ($rows_count > 0) {
             $program_name = $row_item['progname'];
@@ -40,12 +42,11 @@ try {
             if ($totalRows_rsStrategicPlanProgram > 0) {
                 $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
                 $strategic_plan_id = $row_rsStrategicPlanProgram['strategic_plan_id'];
-                $strategic_object_id = $row_rsStrategicPlanProgram['strategic_object_id'];
+                $strategic_objective_id = $row_rsStrategicPlanProgram['strategic_objective_id'];
                 $strategy_id = $row_rsStrategicPlanProgram['strategy_id'];
 
-
-                $query_rsEndYear =  $db->prepare("SELECT * FROM tbl_strategicplan ORDER BY id DESC LIMIT 1 ");
-                $query_rsEndYear->execute();
+                $query_rsEndYear =  $db->prepare("SELECT * FROM tbl_strategicplan WHERE id=:strategic_plan_id ");
+                $query_rsEndYear->execute(array(":strategic_plan_id" => $strategic_plan_id));
                 $row_rsEndYear = $query_rsEndYear->fetch();
                 $totalRows_rsEndYear = $query_rsEndYear->rowCount();
 
@@ -53,10 +54,10 @@ try {
                     $strategic_plan_start_year = $row_rsEndYear['starting_year'];
                     $strategic_plan = $row_rsEndYear['plan'];
                     $duration = $row_rsEndYear['years'];
-                    $output_table_header = $output_table_header_rowspan = '';
+
                     for ($j = 0; $j < $duration; $j++) {
                         $dispyear =  $strategic_plan_start_year + 1;
-                        $output_table_header .= ' <th colspan="2"> ' . $program_start_year . '/' . $dispyear . '</th>';
+                        $output_table_header .= ' <th colspan="2"> ' . $strategic_plan_start_year . '/' . $dispyear . '</th>';
                         $output_table_header_rowspan .= '<th>Target</th><th>Budget</th>';
                         $strategic_plan_start_year++;
                     }
@@ -67,7 +68,8 @@ try {
                     $output_table_body = '';
                     if ($total_outputIndicator > 0) {
                         while ($row_outputIndicator = $query_outputIndicator->fetch()) {
-                            $progsyear = $row_item['syear'];
+                            $strategic_start_year = $row_rsEndYear['starting_year'];
+
                             $indicator = $row_outputIndicator['indicator'];
                             $output = $row_outputIndicator['indicator_name'];
                             $indicator_name = $row_outputIndicator['unit'] . " of " . $row_outputIndicator['indicator_name'];
@@ -75,32 +77,32 @@ try {
 
                             for ($i = 0; $i < $duration; $i++) {
                                 $query_progdetails = $db->prepare("SELECT * FROM tbl_progdetails WHERE progid = :progid and year = :progsyear and indicator =:indicator ");
-                                $query_progdetails->execute(array(':progid' => $progid, ':progsyear' => $progsyear, ':indicator' => $indicator));
+                                $query_progdetails->execute(array(':progid' => $progid, ':progsyear' => $strategic_start_year, ':indicator' => $indicator));
                                 $row_progdeatils = $query_progdetails->fetch();
                                 $total_progdetails = $query_progdetails->rowCount();
                                 $budget = $total_progdetails > 0 ? $row_progdeatils['budget'] : 0;
                                 $target = $total_progdetails > 0 ? $row_progdeatils['target'] : 0;
                                 $output_table_body .= '<td>' . number_format($target, 2) . '</td><td>' . number_format($budget, 2) . '</td>';
-                                $progsyear++;
+                                $strategic_start_year++;
                             }
 
                             $output_table_body .= '</tr>';
                         }
                     }
                 }
+
+
+                $query_years = $db->prepare("SELECT * FROM `tbl_strategic_plan_objectives`  WHERE id=:strategic_objective_id");
+                $query_years->execute(array(":strategic_objective_id" => $strategic_objective_id));
+                $row_years = $query_years->fetch();
+                $objective = ($row_years) ?  $row_years['objective'] : '';
+
+                $query_strategy =  $db->prepare("SELECT * FROM tbl_objective_strategy where id=:strategy_id");
+                $query_strategy->execute(array(":strategy_id" => $strategy_id));
+                $row_strategy = $query_strategy->fetch();
+                $totalRows_strategy = $query_strategy->rowCount();
+                $strategy = ($totalRows_strategy > 0) ? $row_strategy['strategy']  :   '';
             }
-
-            $query_years = $db->prepare("SELECT * FROM `tbl_strategic_plan_objectives`  WHERE id=:strategic_objective_id");
-            $query_years->execute(array(":strategic_objective_id" => $strategic_objective_id));
-            $row_years = $query_years->fetch();
-            $objective = ($row_years) ?  $row_years['objective'] : '';
-
-            $query_strategy =  $db->prepare("SELECT * FROM tbl_objective_strategy where id=:strategy_id");
-            $query_strategy->execute(array(":strategy_id" => $strategy_id));
-            $row_strategy = $query_strategy->fetch();
-            $totalRows_strategy = $query_strategy->rowCount();
-            $strategy = ($totalRows_strategy > 0) ? $row_strategy['strategy']  :   '';
-
 
             $input =  '
             <div class="card">

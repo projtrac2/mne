@@ -48,6 +48,9 @@ try {
         $result  = $sql->execute(array(":projstage" => $workflow_stage, ":proj_substage" => $sub_stage, ":projid" => $projid));
         $results =  $mail->send_master_data_email($projid, 6, '');
 
+        $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+        $result = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':created_by' => $user_name, ':created_at' => $today));
+
         echo json_encode(array('success' => $result));
     }
 } catch (PDOException $ex) {

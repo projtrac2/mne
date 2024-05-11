@@ -3,7 +3,7 @@ var manageItemTable;
 $(document).ready(function () {
   $("#navtitle").addClass("active");
   manageItemTable = $("#manageItemTable").DataTable({
-    ajax: "general-settings/selected-items/fetch-selected-project-status-items.php",
+    ajax: "general-settings/selected-items/fetch-selected-project-status-items",
     order: [],
     'columnDefs': [{
       'targets': [4],
@@ -44,14 +44,14 @@ $(document).ready(function () {
       var formData = new FormData(this);
 
       $.ajax({
-        url: "ajax/settings/status/project-status.php",
+        url: "ajax/settings/status/project-status",
         type: form.attr("method"),
         data: form_data,
         dataType: "json",
         success: function (response) {
           if (response) {
             $("#submitItemForm")[0].reset();
-            // reload the projstatuss table 
+            // reload the projstatuss table
             manageItemTable.ajax.reload(null, true);
             alert("Record Successfully Saved");
             $(".modal").each(function () {
@@ -97,7 +97,7 @@ function editItem(itemId = null) {
     $(".div-result").addClass("div-hide");
 
     $.ajax({
-      url: "general-settings/selected-items/fetch-selected-project-status-item.php",
+      url: "general-settings/selected-items/fetch-selected-project-status-item",
       type: "post",
       data: { itemId: itemId },
       dataType: "json",
@@ -165,7 +165,7 @@ function editItem(itemId = null) {
 
             if (projstatus && statuslevel) {
               $.ajax({
-                url: "ajax/settings/status/project-status.php",
+                url: "ajax/settings/status/project-status",
                 type: "post",
                 data: {
                   edititem: 'edititem',
@@ -208,7 +208,7 @@ function removeItem(itemId = null) {
       .bind("click", function () {
         var deleteItem = 1;
         $.ajax({
-          url: "ajax/settings/status/project-status.php",
+          url: "ajax/settings/status/project-status",
           type: "post",
           data: { itemId: itemId, deleteItem: deleteItem },
           dataType: "json",
@@ -273,7 +273,7 @@ function disable(id, name, action) {
     if (willUpdate) {
       $.ajax({
         type: "post",
-        url: 'ajax/settings/status/project-status.php',
+        url: 'ajax/settings/status/project-status',
         data: {
           deleteItem: "deleteItem",
           itemId: id,

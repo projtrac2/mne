@@ -122,7 +122,7 @@ function editItem(itemId = null) {
     $(".form-input").removeClass("has-error").removeClass("has-success");
     // modal div
     $(".div-result").addClass("div-hide");
-    $("#tag-form-submit1").prop("disabled", true);
+    // $("#tag-form-submit1").prop("disabled", true);
 
     $.ajax({
       url: url,

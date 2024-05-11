@@ -1,8 +1,8 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission && (isset($_GET['risk']))) {
-        $riskid =   base64_decode($_GET['risk']);
+    if ($permission) {
+        $riskid =    (isset($_GET['risk'])) ? base64_decode($_GET['risk']) : '';
         $action = "Add";
         $button = "Add";
         $actionName = "MM_insert";

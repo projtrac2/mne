@@ -2,8 +2,6 @@
 try {
     require('includes/head.php');
     if ($permission) {
-
-
         $mbrid = "";
         if (isset($_GET["mbrid"]) && !empty($_GET["mbrid"])) {
             $encoded_mbrid = $_GET["mbrid"];
@@ -31,7 +29,7 @@ try {
         function get_department_list($project_type)
         {
             global $db, $department_id, $workflow_stage_id;
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projsector=:department_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projsector=:department_id AND p.project_type=:project_type ORDER BY p.projid DESC");
             $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":department_id" => $department_id, ":project_type" => $project_type));
             $department_projects = $query_rsProjects->rowCount();
             return $department_projects;
@@ -40,7 +38,7 @@ try {
         function get_section_list($project_type)
         {
             global $db, $section_id, $workflow_stage_id;
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projdept=:section_id AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.projdept=:section_id AND p.project_type=:project_type ORDER BY p.projid DESC");
             $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":section_id" => $section_id, ":project_type" => $project_type));
             $section_projects = $query_rsProjects->rowCount();
             return  $section_projects;
@@ -49,7 +47,7 @@ try {
         function get_directorate_list($project_type)
         {
             global $db, $directorate_id, $workflow_stage_id;
-            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.directorate=:directorate_id  AND g.program_type=:project_type ORDER BY p.projid DESC");
+            $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage_id AND g.directorate=:directorate_id  AND p.project_type=:project_type ORDER BY p.projid DESC");
             $query_rsProjects->execute(array(":workflow_stage_id" => $workflow_stage_id, ":directorate_id" => $directorate_id, ":project_type" => $project_type));
             $directorate_projects = $query_rsProjects->rowCount();
             return $directorate_projects;
@@ -58,16 +56,16 @@ try {
         function get_project_list($project_type)
         {
             global $db, $mbrid, $designation_id, $department_id, $section_id, $directorate_id, $workflow_stage_id;
-            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND p.projstage=:workflow_stage_id");
+            $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND p.project_type=:project_type AND p.projstage=:workflow_stage_id");
             $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":workflow_stage_id" => $workflow_stage_id));
             if ($designation_id == 7) {
-                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.projsector<>:department AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND p.project_type=:project_type AND g.projsector<>:department AND p.projstage=:workflow_stage_id");
                 $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":department" => $department_id, ":workflow_stage_id" => $workflow_stage_id));
             } else if ($designation_id == 6) {
-                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.projdept<>:section AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND p.project_type=:project_type AND g.projdept<>:section AND p.projstage=:workflow_stage_id");
                 $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":section" => $section_id, ":workflow_stage_id" => $workflow_stage_id));
             } else if ($designation_id == 5) {
-                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.program_type=:project_type AND g.directorate<>:directorate AND p.projstage=:workflow_stage_id");
+                $query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND p.project_type=:project_type AND g.directorate<>:directorate AND p.projstage=:workflow_stage_id");
                 $query_rsNoPrj->execute(array(":responsible" => $mbrid, ":project_type" => $project_type, ":directorate" => $directorate_id, ":workflow_stage_id" => $workflow_stage_id));
             }
             $technical_projects = $query_rsNoPrj->rowCount();
@@ -126,11 +124,11 @@ try {
             return $response;
         }
 
-        $query_rs_sp_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0'  AND g.program_type=1 AND p.projstage =10");
+        $query_rs_sp_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0'  AND p.project_type=1 AND p.projstage =10");
         $query_rs_sp_projects->execute();
         $total_sp_projects = $query_rs_sp_projects->rowCount();
 
-        $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0' AND g.program_type=0 AND p.projstage =10");
+        $query_rs_ind_projects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted = '0' AND p.project_type=0 AND p.projstage =10");
         $query_rs_ind_projects->execute();
         $total_ind_projects = $query_rs_ind_projects->rowCount();
 
@@ -646,90 +644,7 @@ try {
     }
     require('includes/footer.php');
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
-
-<script type="text/javascript">
-    $(document).ready(function() {
-        $(".account").click(function() {
-            var X = $(this).attr('id');
-
-            if (X == 1) {
-                $(".submenus").hide();
-                $(this).attr('id', '0');
-            } else {
-
-                $(".submenus").show();
-                $(this).attr('id', '1');
-            }
-
-        });
-
-        //Mouseup textarea false
-        $(".submenus").mouseup(function() {
-            return false
-        });
-        $(".account").mouseup(function() {
-            return false
-        });
-
-
-        //Textarea without editing.
-        $(document).mouseup(function() {
-            $(".submenus").hide();
-            $(".account").attr('id', '');
-        });
-
-    });
-
-    function GetScorecard(projid) {
-        var prog = $("#scardprog").val();
-        $.ajax({
-            type: 'post',
-            url: 'getscorecard',
-            data: {
-                prjid: projid,
-                scprog: prog
-            },
-            success: function(data) {
-                $('#formcontent').html(data);
-                $("#myModal").modal({
-                    backdrop: "static"
-                });
-            }
-        });
-    }
-
-    function GetProjDetails(projid) {
-        $.ajax({
-            type: 'post',
-            url: 'general-settings/selected-items/fetch-selected-project-details',
-            data: {
-                itemId: projid
-            },
-            success: function(data) {
-                $('#detailscontent').html(data);
-                $("#projDetails").modal({
-                    backdrop: "static"
-                });
-            }
-        });
-    }
-
-    function GetProjIssues(projid) {
-        $.ajax({
-            type: 'post',
-            url: 'getprojissues',
-            data: {
-                prjid: projid
-            },
-            success: function(data) {
-                $('#issuescontent').html(data);
-                $("#projIssues").modal({
-                    backdrop: "static"
-                });
-            }
-        });
-    }
-</script>

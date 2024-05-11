@@ -80,15 +80,7 @@ try {
 
 
                                                         $due_date = get_due_date($projid, $workflow_stage);
-                                                        $activity_status = "Pending";
-                                                        if ($sub_stage > 1) {
-                                                            $activity_status = "Pending Approval";
-                                                        } else if ($sub_stage < 2) {
-                                                            $activity_status = $sub_stage == 1 ?  "Assigned" : "Pending";
-                                                            if ($today > $due_date) {
-                                                                $activity_status = "Behind Schedule";
-                                                            }
-                                                        }
+                                                        $activity_status = get_stage_status($projid, $workflow_stage, $sub_stage);
 
                                                         $edit =  $assigned ? "edit" : "new";
                                                         $details = "{
@@ -106,7 +98,7 @@ try {
                                                             <td><?= $projcode ?></td>
                                                             <td><?= $projname ?></td>
                                                             <td><?= date('Y M d', strtotime($due_date))  ?></td>
-                                                            <td><label class='label label-success'><?= $activity_status; ?></label></td>
+                                                            <td><?= $activity_status; ?></td>
                                                             <td>
                                                                 <div class="btn-group">
                                                                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

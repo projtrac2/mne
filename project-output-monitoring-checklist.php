@@ -2,7 +2,7 @@
 try {
     require('includes/head.php');
     if ($permission) {
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) ORDER BY p.projid DESC");
+        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11) AND proj_substage = 0 ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
         $team_type = 4;
@@ -259,6 +259,7 @@ try {
                         <div class="tab-content">
                             <div id="home" class="tab-pane fade in active">
                                 <form class="form-horizontal" id="add_items" action="" method="POST">
+                                    <?= csrf_token_html(); ?>
                                     <fieldset class="scheduler-border" id="specification_issues">
                                         <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                             <i class="fa fa-exclamation-circle" aria-hidden="true"></i> New Issue

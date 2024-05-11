@@ -92,7 +92,6 @@ function get_project_outputs(projid, milestone_type) {
         error_alert("Please select a milestone");
     }
 }
-
 function get_sites() {
     var output_id = $("#output").val();
     $("#subtask_table_body").html("");
@@ -114,10 +113,10 @@ function get_sites() {
                     $("#site").html(response.sites);
                     var output_details = response.output_details;
                     $("#target").val(output_details.output_target);
+                    $("#output_target").val(output_details.output_target);
                     $("#cummulative").val(output_details.output_cummulative_record);
                     $("#previous").val(output_details.previous);
                     $("#completed").val(output_details.output_completed);
-                    console.log(output_details)
 
                     if (output_details.output_completed == 2) {
                         $("#tag-form-submit1").show();
@@ -185,7 +184,6 @@ function get_milestones() {
         $("#milestone").html('<option value="">.... Select Milestone ....</option>');
     }
 }
-
 function get_output_details() {
     $("#current_measure").val("");
     var output_id = $("#output").val();
@@ -296,6 +294,8 @@ const validateCeiling = () => {
     var site_achieved = $("#site_achieved").val();
     var site = $("#site").val();
     var milestone = $("#milestone").val();
+    var output_target = parseFloat($("#output_target").val());
+
     site_achieved = site_achieved != "" ? parseFloat(site_achieved) : 0;
     measure = measure != "" ? parseFloat(measure) : 0;
     cummulative = cummulative != "" ? parseFloat(cummulative) : 0;
@@ -324,10 +324,18 @@ const validateCeiling = () => {
                 error_alert(`The cummulative units should not exceed ${target} ward/site target`);
                 return;
             } else {
-                if (completed == '1' && (total_milestone == target)) {
-                    $("#current_measure").val("");
-                    error_alert("Please select ensure you have completed activity monitoring");
-                    return;
+                if (completed == '1') {
+                    if (output_project_type == "2" && output_target == total_milestone) {
+                        $("#current_measure").val("");
+                        error_alert("Please select ensure you have completed activity monitoring");
+                        return;
+                    } else {
+                        if (total_milestone == target) {
+                            $("#current_measure").val("");
+                            error_alert("Please select ensure you have completed activity monitoring");
+                            return;
+                        }
+                    }
                 }
             }
         }

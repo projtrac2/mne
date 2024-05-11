@@ -2,8 +2,7 @@
 try {
 	require('includes/head.php');
 	if ($permission) {
-		$workflow_stage = 9;
-		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, g.program_type, g.progid, p.projstartdate, p.projenddate FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' AND p.projstage = :workflow_stage ORDER BY p.projstartdate ASC");
+		$query_all_projects = $db->prepare("SELECT p.projid, p.projname, p.projcategory, p.project_type, g.progid, p.projstartdate, p.projenddate FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid=p.progid WHERE p.deleted = '0' ORDER BY p.projstartdate ASC");
 		$query_all_projects->execute(array(":workflow_stage" => $workflow_stage));
 		$total_all_projects_count = $query_all_projects->rowCount();
 ?>
@@ -50,19 +49,9 @@ try {
 													$projid = $row_all_projects['projid'];
 													$progid = $row_all_projects['progid'];
 													$project = $row_all_projects['projname'];
-													$programtype = $row_all_projects['program_type'];
+													$project_type = $row_all_projects['project_type'];
 													$projcategory = $row_all_projects['projcategory'];
-													$projenddate = date("d M Y", strtotime($row_all_projects['projenddate']));
-													$projstartdate = date("d M Y", strtotime($row_all_projects['projstartdate']));
-
-
-													$query_task_dates = $db->prepare("SELECT MIN(start_date) AS projstartdate, MAX(end_date) AS projenddate FROM tbl_task t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid = :projid");
-													$query_task_dates->execute(array(":projid" => $projid));
-													$row_task_dates = $query_task_dates->fetch();
-													if (!is_null($row_task_dates['projstartdate'])) {
-														$projenddate = date("d M Y", strtotime($row_task_dates['projenddate']));
-														$projstartdate = date("d M Y", strtotime($row_task_dates['projstartdate']));
-													}
+													$projstartdate = $projenddate = '';
 
 													if ($projcategory == 2) {
 														$query_rsContractDates =  $db->prepare("SELECT startdate, enddate, tenderamount FROM tbl_tenderdetails WHERE projid = :projid");
@@ -71,13 +60,19 @@ try {
 														$totalRows_rsContractDates = $query_rsContractDates->rowCount();
 
 														if ($totalRows_rsContractDates > 0) {
-															$date1 = date("d M Y", strtotime($row_rsContractDates["startdate"]));
-															$date2 = date("d M Y", strtotime($row_rsContractDates["enddate"]));
+															$projstartdate = date("d M Y", strtotime($row_rsContractDates["startdate"]));
+															$projenddate = date("d M Y", strtotime($row_rsContractDates["enddate"]));
 														}
 													}
 
-
-													$projecttype = $programtype == 1 ? "Strategic Plan" : "Independent";
+													$query_task_dates = $db->prepare("SELECT MIN(start_date) AS projstartdate, MAX(end_date) AS projenddate FROM tbl_task t left join tbl_program_of_works w on w.task_id=t.tkid WHERE t.projid = :projid");
+													$query_task_dates->execute(array(":projid" => $projid));
+													$row_task_dates = $query_task_dates->fetch();
+													if (!is_null($row_task_dates['projstartdate'])) {
+														$projenddate = date("d M Y", strtotime($row_task_dates['projenddate']));
+														$projstartdate = date("d M Y", strtotime($row_task_dates['projstartdate']));
+													} 
+													$projecttype = $project_type == 1 ? "Strategic Plan" : "Independent";
 
 													$query_rsPrograms = $db->prepare("SELECT * FROM tbl_programs WHERE progid = :progid");
 													$query_rsPrograms->execute(array(":progid" => $progid));
@@ -128,6 +123,7 @@ try {
 	}
 	require('includes/footer.php');
 } catch (PDOException $ex) {
+	var_dump($ex);
 	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

@@ -10,48 +10,24 @@ try {
 
         if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addprogramfrm")) {
             $currentdate = date("Y-m-d");
-            $progname = $_POST['progname'];
-            $url = "all-programs.php";
-            $projsector = $_POST['department_id'];
-            $projdept = $_POST['sector_id'];
-            $directorate = $_POST['directorate_id'];
-            $progdescription = $_POST['progdesc'];
-            $program_statement = $_POST['progstatement'];
+            if (validate_csrf_token($_POST['csrf_token'])) {
+                $progname = $_POST['progname'];
+                $url = "all-programs.php";
+                $projsector = $_POST['department_id'];
+                $projdept = $_POST['sector_id'];
+                $directorate = $_POST['directorate_id'];
+                $progdescription = $_POST['progdesc'];
+                $program_statement = $_POST['progstatement'];
 
-            $insertSQL = $db->prepare("INSERT INTO tbl_programs (progname, description, problem_statement, projsector, projdept, directorate,createdby, datecreated) VALUES (:progname, :progdescription, :program_statement,:projsector, :projdept,:directorate,:proguser, :progdate)");
-            $result  = $insertSQL->execute(array(':progname' => $progname, ':progdescription' => $progdescription, ':program_statement' => $program_statement, ':projsector' => $projsector, ':projdept' => $projdept, ":directorate" => $directorate, ':proguser' => $user_name, ':progdate' => $currentdate));
-
-            if ($result) {
-                $msg = 'The Program was successfully created.';
-                $results =
-                    "<script type=\"text/javascript\">
-                        swal({
-                            title: \"Success!\",
-                            text: \" $msg\",
-                            type: 'Success',
-                            timer: 2000,
-                            icon:'success',
-                            showConfirmButton: false
-                        });
-                        setTimeout(function(){
-                                window.location.href = 'view-program.php?plan=$stplane';
-                            }, 2000);
-                    </script>";
+                $insertSQL = $db->prepare("INSERT INTO tbl_programs (progname, description, problem_statement, projsector, projdept, directorate,createdby, datecreated) VALUES (:progname, :progdescription, :program_statement,:projsector, :projdept,:directorate,:proguser, :progdate)");
+                $result  = $insertSQL->execute(array(':progname' => $progname, ':progdescription' => $progdescription, ':program_statement' => $program_statement, ':projsector' => $projsector, ':projdept' => $projdept, ":directorate" => $directorate, ':proguser' => $user_name, ':progdate' => $currentdate));
+                if ($result) {
+                    $results =  success_message('The Program was successfully created.', 2, "view-program.php?plan=$stplane");
+                } else {
+                    $results =   error_message("Error occured please try again later!", 2, "view-program.php?plan=$stplane");
+                }
             } else {
-                $msg = 'Error Adding Program of works.';
-                $results =
-                    "<script type=\"text/javascript\">
-                        swal({
-                        title: \"Error!\",
-                        text: \" $msg\",
-                        type: 'Error',
-                        timer: 2000,
-                        icon:'error',
-                        showConfirmButton: false });
-                        setTimeout(function(){
-                                window.location.reload(true);
-                            }, 2000);
-                    </script>";
+                $results =   error_message("Error occured please try again later!", 2, "view-program.php?plan=$stplane");
             }
         }
 ?>

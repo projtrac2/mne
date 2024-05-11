@@ -296,24 +296,24 @@ try {
 																				} else if ($child_stage_id == 6) {
 																				?>
 																					<li>
-																						<a type="button" onclick="add_to_adp(<?= $details ?>)">
-																							<i class="glyphicon glyphicon-plus"></i> Add to ADP
+																						<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(<?= $projid ?>)">
+																							<i class="fa fa-check-square-o"></i> Add Partners
 																						</a>
 																					</li>
 																				<?php
 																				} else if ($child_stage_id == 7) {
 																				?>
 																					<li>
-																						<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
-																							<i class="glyphicon glyphicon-edit"></i> Remove from ADP
+																						<a type="button" onclick="add_to_adp(<?= $details ?>)">
+																							<i class="glyphicon glyphicon-plus"></i> Add to ADP
 																						</a>
 																					</li>
 																				<?php
 																				} else if ($child_stage_id == 8 && $project_type == 0) {
 																				?>
 																					<li>
-																						<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(<?= $projid ?>)">
-																							<i class="fa fa-check-square-o"></i> Add Partners
+																						<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
+																							<i class="glyphicon glyphicon-edit"></i> Remove from ADP
 																						</a>
 																					</li>
 																			<?php

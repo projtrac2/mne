@@ -56,4 +56,29 @@ Planning
     - Planned
     - On-Going
     - Issues and Risks
-    - Evaluation 
+    - Evaluation
+
+
+ongoing
+    1) Activity Monitoring
+       1) Subtask
+Start date 17/05/2024
+
+    $today = 10/05/2024
+
+    if(subtask has not started){
+        if(subtask has started){
+            ontrack
+        }else{
+            Pending
+        }
+    }
+
+    if(today  is equal or between  subtask start date and end date){
+        target breakdown
+
+        $achieved
+        $target 
+    }
+    1) Output Monitoring
+    2) Issues

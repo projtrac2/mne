@@ -223,8 +223,8 @@ try {
 																	$update_status = 0;
 																}
 
-																$query_financierprojs = $db->prepare("SELECT p.projid FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.sourcecategory=:sourcecat and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
-																$query_financierprojs->execute(array(":sourcecat" => $sourcecat, ":fnid" => $fnid));
+																$query_financierprojs = $db->prepare("SELECT p.* FROM tbl_projects p inner join tbl_myprojfunding m on p.projid=m.projid WHERE p.deleted='0' and m.financier = :fnid GROUP BY p.projid ORDER BY m.id ASC");
+																$query_financierprojs->execute(array(":fnid" => $fnid));
 																$row_financierprojs = $query_financierprojs->rowCount();
 
 																$query_totalfunds = $db->prepare("SELECT * FROM tbl_funds WHERE funder = :fnid");
