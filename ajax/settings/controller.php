@@ -7,8 +7,7 @@ error_reporting(E_ALL);
 
 include_once '../../../projtrac-dashboard/resource/Database.php';
 include_once '../../../projtrac-dashboard/resource/utilities.php';
-include_once("../../../includes/system-labels.php");
-include_once("../../../includes/app-security.php");
+include_once("../../../includes/system-labels.php"); 
 
 require '../../../vendor/autoload.php';
 require '../../../Models/Connection.php';
@@ -111,3 +110,16 @@ function validate_csrf_token($token)
 {
     return isset($_SESSION['csrf_token']) && $token === $_SESSION['csrf_token'];
 }
+
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+function customErrorHandler($errno, $errstr, $errfile, $errline)
+{
+    $message = "Error: [$errno] $errstr - $errfile:$errline";
+    var_dump($message);
+    error_log($message . PHP_EOL, 3, "../../../logs/error_log.log");
+}
+
+set_error_handler("customErrorHandler");

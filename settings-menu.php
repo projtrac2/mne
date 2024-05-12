@@ -107,7 +107,7 @@ $hash_six = base64_encode("projid54321{$item_id1}");
 			<li style="width:100%"><a href="global-configuration.php?tendertype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Tender Types</a></li>
 			<li style="width:100%"><a href="global-configuration.php?biztype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Contractor Business Types</a></li>
 			<li style="width:100%"><a href="global-configuration.php?contractornationality=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Contractor Nationalities</a></li>
-			<li style="width:100%"><a href="global-configuration.php?cooptype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Coorporate Types</a></li>
+			<!-- <li style="width:100%"><a href="global-configuration.php?cooptype=<?= $hash_one ?>&menuItem=<?= $hash_six ?>">Coorporate Types</a></li> -->
 		</ul>
 	</div>
 </div>
