@@ -1,8 +1,6 @@
 <?php
-
-include_once "../../controller.php";
-
 try {
+    include_once "../controller.php";
     if (isset($_POST['newItem'])) {
         $name = $_POST['name'];
         $active = 1;
@@ -62,6 +60,6 @@ try {
 
         echo json_encode($valid);
     }
-} catch (\Throwable $th) {
-    echo $th->getMessage();
+} catch (PDOException $ex) {
+    customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

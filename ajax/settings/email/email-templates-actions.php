@@ -1,7 +1,6 @@
 <?php
 try {
     include_once '../controller.php';
-
     if (isset($_POST['store'])) {
         $content = $_POST['content'];
         $updateQuery = $db->prepare("UPDATE `tbl_email_templates` SET content=:content WHERE id=:itemid");

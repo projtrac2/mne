@@ -40,8 +40,7 @@ if (isset($_SESSION['MM_Username'])) { // projects / dashboard
     if (isset($_SESSION['last_timestamp']) && (time() - $_SESSION['last_timestamp']) > $inactivity_time) {
         session_unset();
         session_destroy();
-        // header("Location: index.php?action=$current_page_url");
-        header("Location: index.php");
+        header("Location: index.php?action=$current_page_url");
         exit();
     } else {
         session_regenerate_id(true);

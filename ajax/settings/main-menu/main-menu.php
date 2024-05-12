@@ -214,7 +214,6 @@ try {
         }
         echo json_encode($valid);
     }
-} catch (PDOException $ex) {
-    var_dump($ex);
+} catch (PDOException $ex) { 
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

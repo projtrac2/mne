@@ -1,29 +1,29 @@
 <?php
+try {
+	include_once "../controller.php";
 
-include_once "../../controller.php";
-
-$sql = $db->prepare("SELECT * FROM `tbl_tender_type` ORDER BY `id` ASC");
-$sql->execute();
-$rows_count = $sql->rowCount();
-$output = array('data' => array());
-if ($rows_count > 0) {
-	$active = "";
-	$sn = 0;
-	while ($row = $sql->fetch()) {
-		$sn++;
-		$itemId = $row['id'];
-		$category = $row["type"];
-		// status 
-		if ($row['status'] == 1) {
-			$active = "<label class='label label-success'>Enabled</label>";
-			$wordings = 'disable';
-			$wordingsCapital = 'Disable';
-		} else {
-			$active = "<label class='label label-danger'>Disabled</label>";
-			$wordings = 'enable';
-			$wordingsCapital = 'Enable';
-		}
-		$button = '<!-- Single button -->
+	$sql = $db->prepare("SELECT * FROM `tbl_tender_type` ORDER BY `id` ASC");
+	$sql->execute();
+	$rows_count = $sql->rowCount();
+	$output = array('data' => array());
+	if ($rows_count > 0) {
+		$active = "";
+		$sn = 0;
+		while ($row = $sql->fetch()) {
+			$sn++;
+			$itemId = $row['id'];
+			$category = $row["type"];
+			// status
+			if ($row['status'] == 1) {
+				$active = "<label class='label label-success'>Enabled</label>";
+				$wordings = 'disable';
+				$wordingsCapital = 'Disable';
+			} else {
+				$active = "<label class='label label-danger'>Disabled</label>";
+				$wordings = 'enable';
+				$wordingsCapital = 'Enable';
+			}
+			$button = '<!-- Single button -->
 		<div class="btn-group">
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				Options <span class="caret"></span>
@@ -38,16 +38,19 @@ if ($rows_count > 0) {
 			</ul>
 		</div>';
 
-		$description = $row["description"];
-		$output['data'][] = array(
-			$sn,
-			$category,
-			$description,
-			$active,
-			$button
-		);
-	} // /while 
+			$description = $row["description"];
+			$output['data'][] = array(
+				$sn,
+				$category,
+				$description,
+				$active,
+				$button
+			);
+		} // /while
 
-} // if num_rows
+	} // if num_rows
 
-echo json_encode($output);
+	echo json_encode($output);
+} catch (PDOException $ex) {
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+}

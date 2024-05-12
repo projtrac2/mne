@@ -68,7 +68,7 @@ try {
                                                 <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
                                                 <li class="list-group-item"> </li>
                                                 <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                    <strong>Start Date: </strong> <?= $$start_date; ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                    <strong>Start Date: </strong> <?= $start_date; ?> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                                     <strong>End Date: </strong> <?= $end_date; ?>
                                                 </li>
                                             </ul>

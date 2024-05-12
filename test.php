@@ -186,11 +186,6 @@ function update_project_status()
     if ($rows_count > 0) {
         while ($row = $query_workflow->fetch()) {
             $stage_id = $row['priority'];
-            $stage = $row['stage'];
-
-            echo "<pre/>";
-            echo $stage . "<br/>";
-
             $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE stage_id =:stage_id");
             $query_rsProjects->execute(array(":stage_id" => $stage_id));
             $total_rsProjects = $query_rsProjects->rowCount();
@@ -217,8 +212,7 @@ function update_project_status()
                             } else {
                                 if ($project_schedule) {
                                     $end_date = $project_schedule['end_date'];
-                                    echo " ****&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => End date" . $end_date . " (" . $status_id . ") <br/>";
-
+                                    // echo " ****&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => End date" . $end_date . " (" . $status_id . ") <br/>";
                                     if ($implimentation_type == 2) {
                                         $contract_details = get_contract_dates($projid);
                                         $contract_end_date = ($contract_details) ? date('Y-m-d', strtotime($contract_details["enddate"])) : "";
@@ -230,8 +224,10 @@ function update_project_status()
                                             $status_id = get_subtask_status($projid, $monitoring_frequency);
                                         }
 
-                                        echo " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => Contract Start date" . $contract_end_date . " (" . $status_id . ") <br/>";
+                                        // echo " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => Contract Start date" . $contract_end_date . " (" . $status_id . ") <br/>";
                                     } else {
+                                    echo " ****&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => End date" . $end_date . " (" . $status_id . ") <br/>";
+
                                         if ($today > $end_date) {
                                             $status_id = 11;
                                         } else {

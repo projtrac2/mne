@@ -1,7 +1,6 @@
 <?php
-
-include_once "controller.php";
 try {
+	include_once "../controller.php";
 	$valid['success'] = array('success' => false, 'messages' => array());
 	//This code for Create new Records // inserts data to table
 	if (isset($_POST["newitem"])) {
@@ -52,6 +51,5 @@ try {
 		echo json_encode($valid);
 	}
 } catch (PDOException $ex) {
-	// $result = flashMessage("An error occurred: " .$ex->getMessage());
-	echo $ex->getMessage();
+	customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }

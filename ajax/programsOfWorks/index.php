@@ -262,8 +262,7 @@ try {
             $output_id = $_POST['output_id'];
             $site_id = $_POST['site_id'];
             $task_id = $_POST['task_id'];
-            $tasks = $_POST['tasks'];
-            $edit = $_POST['store_tasks'];
+            $tasks = $_POST['tasks']; 
             $frequencies = $_POST['frequency_id'];
             $current_date = date('Y-m-d');
 
