@@ -226,68 +226,6 @@ try {
 										<tbody>
 											<?php
 											try {
-												function get_status($status_id)
-												{
-													global $db;
-													$query_Projstatus =  $db->prepare("SELECT * FROM tbl_status WHERE statusid = :status_id");
-													$query_Projstatus->execute(array(":status_id" => $status_id));
-													$row_Projstatus = $query_Projstatus->fetch();
-													$total_Projstatus = $query_Projstatus->rowCount();
-													$status = "";
-													if ($total_Projstatus > 0) {
-														$status_name = $row_Projstatus['statusname'];
-														$status_class = $row_Projstatus['class_name'];
-														$status = '<button type="button" class="' . $status_class . '" style="width:100%">' . $status_name . '</button>';
-													}
-													return $status;
-												}
-
-
-
-												function get_subtask_status($progress, $start_date, $end_date, $status, $project_status)
-												{
-													$today = date('Y-m-d');
-													if ($project_status == 6) {
-														$status_id = 6;
-													} else {
-														$status_id = $progress > 0 ? 4 : 3;
-														if ($today > $start_date) {
-															if ($today < $end_date) {
-																$status_id = 4;
-																if ($progress == 0) {
-																	$status_id = 11;
-																}
-															} else if ($today > $end_date) {
-																$status_id = 11;
-															}
-														}
-													}
-
-													$status_id = $status == 5 ? 5 : $status_id;
-													return	get_status($status_id);
-												}
-
-
-
-												function get_progress($progress)
-												{
-													$project_progress = '
-                                                    <div class="progress" style="height:20px; font-size:10px; color:black">
-                                                        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
-                                                            ' . $progress . '%
-                                                        </div>
-                                                    </div>';
-
-													if ($progress == 100) {
-														$project_progress = '
-													<div class="progress" style="height:20px; font-size:10px; color:black">
-														<div class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%; height:20px; font-size:10px; color:black">
-														' . $progress . '%
-														</div>
-													</div>';
-													}
-													return $project_progress;
-												}
 
 												if ($rows_count > 0) {
 													$active = "";
@@ -307,8 +245,7 @@ try {
 														$projstate = explode(",", $row['projlga']);
 														$status = get_status($projstatus);
 														$progress = number_format(calculate_project_progress($itemId, $implementation), 2);
-														$percent2 = get_progress($progress);
-
+														$percent2 = get_project_progress($progress);
 														$queryobj = $db->prepare("SELECT objective FROM `tbl_programs` g inner join tbl_strategic_plan_objectives o on o.id=g.strategic_obj WHERE progid=:progid");
 														$queryobj->execute(array(":progid" => $progid));
 														$rowobj = $queryobj->fetch();
@@ -383,7 +320,7 @@ try {
 															$query_rsOther_cost_plan_budget->execute(array(":subtask_id" => $subtask_id));
 															$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
 															$target_units = !is_null($row_rsOther_cost_plan_budget['units_no']) ? $row_rsOther_cost_plan_budget['units_no'] : 0;
-															$progress = number_format(($units_no / $target_units) * 100);
+															$progress = $units_no > 0 && $target_units > 0  ? number_format(($units_no / $target_units) * 100) : number_format(0, 2);
 
 															$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE  subtask_id=:subtask_id AND complete=0 ");
 															$query_rsPlan->execute(array(':subtask_id' => $subtask_id));
@@ -394,7 +331,7 @@ try {
 																<td class="bg-grey text-center"><?= $sn . '.' . $nm ?></td>
 																<td colspan="2"><?= $activity ?></td>
 																<td colspan="3"><?= $startdate . ' AND ' . $enddate ?></td>
-																<td><?= get_subtask_status($progress, $startdate, $enddate, $status, $projstatus) . '<br>' . get_progress($progress) ?></td>
+																<td><?= get_subtask_status($progress, $startdate, $enddate, $status, $projstatus) . '<br>' . get_project_progress($progress) ?></td>
 															</tr>
 													<?php
 														}

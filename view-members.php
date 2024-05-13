@@ -1,6 +1,7 @@
 <?php
 try {
 	require('includes/head.php');
+
 	if ($permission) {
 		if (isset($_GET["ptid"]) && !empty($_GET["ptid"])) {
 			$encoded_userid = $_GET["ptid"];
@@ -99,59 +100,6 @@ try {
 		$query_rsPTeam->execute();
 		$totalRows_rsPTeam = $query_rsPTeam->rowCount();
 
-
-		function get_department_list($user_id, $department_id)
-		{
-			global $db;
-			$workflow_stage = 10;
-			$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND (team_type=2 OR team_type=3 OR team_type=4 OR team_type=5) AND g.projsector<>:department_id GROUP BY m.projid");
-			$query_rsNoPrj->execute(array(":responsible" => $user_id, ":department_id" => $department_id));
-			$technical_projects = $query_rsNoPrj->rowCount();
-
-			$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id ORDER BY p.projid DESC");
-			$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id));
-			$department_projects = $query_rsProjects->rowCount();
-
-			return $technical_projects + $department_projects;
-		}
-
-		function get_section_list($user_id, $section_id)
-		{
-			global $db;
-			$workflow_stage = 10;
-			$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND (team_type=2 OR team_type=3 OR team_type=4 OR team_type=5) AND g.projdept<>:section_id GROUP BY m.projid");
-			$query_rsNoPrj->execute(array(":responsible" => $user_id, ":section_id" => $section_id));
-			$technical_projects = $query_rsNoPrj->rowCount();
-
-			$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id ORDER BY p.projid DESC");
-			$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id));
-			$section_projects = $query_rsProjects->rowCount();
-			return $technical_projects + $section_projects;
-		}
-
-		function get_directorate_list($user_id, $directorate_id)
-		{
-			global $db;
-			$workflow_stage = 10;
-			$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND (team_type=2 OR team_type=3 OR team_type=4 OR team_type=5) AND g.directorate<>:directorate_id GROUP BY m.projid");
-			$query_rsNoPrj->execute(array(":responsible" => $user_id, ":directorate_id" => $directorate_id));
-			$technical_projects = $query_rsNoPrj->rowCount();
-
-			$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id ORDER BY p.projid DESC");
-			$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id));
-			$directorate_projects = $query_rsProjects->rowCount();
-			return $technical_projects + $directorate_projects;
-		}
-
-		function get_sectors($sector_id)
-		{
-			global $db;
-			$query_rsDept = $db->prepare("SELECT * FROM tbl_sectors WHERE stid=:sector_id");
-			$query_rsDept->execute(array(":sector_id" => $sector_id));
-			$row_rsDept = $query_rsDept->fetch();
-			$totalRows_rsDept = $query_rsDept->rowCount();
-			return $totalRows_rsDept > 0 ? $row_rsDept["sector"] : "";
-		}
 ?>
 
 		<!-- start body  -->
@@ -193,6 +141,51 @@ try {
 										<tbody>
 											<!-- =========================================== -->
 											<?php
+											function get_department_list($user_id, $department_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projsector<>:department_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":department_id" => $department_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
+
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projsector=:department_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":department_id" => $department_id));
+												$department_projects = $query_rsProjects->rowCount();
+
+												return $technical_projects + $department_projects;
+											}
+
+											function get_section_list($user_id, $section_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.projdept<>:section_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":section_id" => $section_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
+
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.projdept=:section_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":section_id" => $section_id));
+												$section_projects = $query_rsProjects->rowCount();
+												return $technical_projects + $section_projects;
+											}
+
+											function get_directorate_list($user_id, $directorate_id)
+											{
+												global $db;
+												$workflow_stage = 10;
+												$query_rsNoPrj = $db->prepare("SELECT m.projid FROM tbl_projmembers m INNER JOIN tbl_projects p ON p.projid=m.projid INNER JOIN tbl_programs g ON g.progid=p.progid  WHERE responsible=:responsible AND team_type=4 AND g.directorate<>:directorate_id GROUP BY m.projid");
+												$query_rsNoPrj->execute(array(":responsible" => $user_id, ":directorate_id" => $directorate_id));
+												$technical_projects = $query_rsNoPrj->rowCount();
+
+												$query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND g.directorate=:directorate_id ORDER BY p.projid DESC");
+												$query_rsProjects->execute(array(":workflow_stage" => $workflow_stage, ":directorate_id" => $directorate_id));
+												$directorate_projects = $query_rsProjects->rowCount();
+												return $technical_projects + $directorate_projects;
+											}
+
+
+
 											while ($row_rsPTeam = $query_rsPTeam->fetch()) {
 												$mbrid = $row_rsPTeam['userid'];
 												$titleid = $row_rsPTeam['title'];
@@ -202,35 +195,65 @@ try {
 												$directorateid = $row_rsPTeam["directorate"];
 												$avail = $row_rsPTeam["availability"];
 												$disabled = $row_rsPTeam["disabled"];
-												$projtmid = base64_encode("projmbr{$mbrid}");
-												$row_rsPTeam['floc'];
 
-												$query_title = $db->prepare("SELECT title FROM tbl_titles WHERE id=:titleid");
-												$query_title->execute(array(":titleid" => $titleid));
+
+												$query_rsNoPrj = $db->prepare("SELECT projid FROM tbl_projmembers WHERE responsible=:responsible AND team_type=4 GROUP BY projid");
+												$query_rsNoPrj->execute(array(":responsible" => $mbrid));
+												$row_num = $query_rsNoPrj->fetch();
+												$totalRows_rsNoPrj = $query_rsNoPrj->rowCount();
+
+												if ($desig == 7) {
+													$totalRows_rsNoPrj =  get_directorate_list($mbrid, $directorateid);
+												} else if ($desig == 6) {
+													$totalRows_rsNoPrj = get_section_list($mbrid, $dept);
+												} else if ($desig == 5) {
+													$totalRows_rsNoPrj = get_department_list($mbrid, $mnst);
+												}
+
+												$query_title = $db->prepare("SELECT title FROM tbl_titles WHERE id='$titleid'");
+												$query_title->execute();
 												$row_title = $query_title->fetch();
-												$full_name = $row_title['title'] . '.' . $row_rsPTeam['fullname'];
 
-												$query_rsPMDesignation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE moid=:desig");
-												$query_rsPMDesignation->execute(array(":desig" => $desig));
+												$query_rsPMDesignation = $db->prepare("SELECT * FROM tbl_pmdesignation WHERE moid='$desig'");
+												$query_rsPMDesignation->execute();
 												$row_rsPMDesignation = $query_rsPMDesignation->fetch();
 												$totalRows_rsPMDesignation = $query_rsPMDesignation->rowCount();
-												$designation_name = ($totalRows_rsPMDesignation > 0) ? $row_rsPMDesignation['designation'] : "";
+												$projtmid = base64_encode("projmbr{$mbrid}");
 
-												$ministry = "All " . $ministrylabelplural;
-												$department = "All " . $departmentlabelplural;
-												$directorate = "All " . $directoratelabelplural;
-												if ($mnst != 0) {
-													$ministry = get_sector($mnst);
-													$total_projects = get_department_list($mbrid, $mnst);
-													if ($dept != 0) {
-														$department = get_sector($dept);
-														$total_projects = get_section_list($mbrid, $dept);
-														if ($directorateid != 0) {
-															$directorate = get_sector($directorateid);
-															$total_projects =  get_directorate_list($mbrid, $directorateid);
-														}
-													}
+
+												$numberofprojects = '<a href="view-member-projects.php?mbrid=' . $projtmid . '" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">' . $totalRows_rsNoPrj . '</a>';
+
+												if ($mnst == 0) {
+													$ministry = "All " . $ministrylabelplural;
+													$numberofprojects = "N/A";
+												} else {
+													$query_rsSC = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$mnst'");
+													$query_rsSC->execute();
+													$row_rsSC = $query_rsSC->fetch();
+													$totalRows_rsSC = $query_rsSC->rowCount();
+													$ministry = $row_rsSC["sector"];
 												}
+
+												if ($dept == 0) {
+													$department = "All " . $departmentlabelplural;
+												} else {
+													$query_rsDept = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$dept'");
+													$query_rsDept->execute();
+													$row_rsDept = $query_rsDept->fetch();
+													$totalRows_rsDept = $query_rsDept->rowCount();
+													$department = $totalRows_rsDept > 0 ? $row_rsDept["sector"] : "";
+												}
+
+												if ($directorateid == 0) {
+													$directorate = "All " . $directoratelabelplural;
+												} else {
+													$query_rsDirectorate = $db->prepare("SELECT * FROM tbl_sectors WHERE stid='$directorateid'");
+													$query_rsDirectorate->execute();
+													$row_rsDirectorate = $query_rsDirectorate->fetch();
+													$totalRows_rsDirectorate = $query_rsDirectorate->rowCount();
+													$directorate = $totalRows_rsDirectorate > 0 ? $row_rsDirectorate["sector"] : "";
+												}
+
 
 												if ($disabled == 1) {
 													$disabledstyle = ';background-color:orange; color:white';
@@ -246,20 +269,14 @@ try {
 
 											?>
 												<tr style="border-bottom:thin solid #EEE <?= $disabledstyle ?>">
-													<td align="center"><img src="<?= $avatar; ?>" alt="" style="width:30px; height:30px; margin-bottom:0px" /></td>
-													<td><?= $full_name ?></td>
-													<td><?= $designation_name ?></td>
-													<td><?= $availability; ?></td>
-													<td><?= $ministry . $mnst; ?></td>
-													<td><?= $department; ?></td>
-													<td><?= $directorate; ?></td>
-													<td align="center">
-														<span class="badge bg-purple">
-															<a href="view-member-projects.php?mbrid=<?= $projtmid ?>" style="font-family:Verdana, Geneva, sans-serif; color:white; font-size:12px; padding-top:0px">
-																<?= $total_projects ?>
-															</a>
-														</span>
-													</td>
+													<td align="center"><img src="<?php echo $row_rsPTeam['floc']; ?>" alt="" style="width:30px; height:30px; margin-bottom:0px" /></td>
+													<td><?php echo $row_title['title'] . '.' . $row_rsPTeam['fullname'] ?></td>
+													<td><?php echo ($totalRows_rsPMDesignation > 0) ? $row_rsPMDesignation['designation'] : ""; ?></td>
+													<td><?php echo $availability; ?></td>
+													<td><?php echo $ministry . $mnst; ?></td>
+													<td><?php echo $department; ?></td>
+													<td><?php echo $directorate; ?></td>
+													<td align="center"><span class="badge bg-purple"><?= $numberofprojects ?></span></td>
 													<td align="center">
 														<div class="btn-group">
 															<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" onchange="checkBoxes()" aria-haspopup="true" aria-expanded="false">

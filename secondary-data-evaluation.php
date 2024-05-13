@@ -26,6 +26,7 @@ try {
 		$query_proj->execute(array(":projid" => $projid));
 		$row_proj = $query_proj->fetch();
 		$project = $row_proj["projname"];
+		$projcategory = $row_proj["projcategory"];
 		$projstage = $row_proj["projstage"];
 		$proj_locations = $row_proj["projlga"];
 		$projlocations = explode(",", $proj_locations);
@@ -58,10 +59,11 @@ try {
 		}
 
 		$evaluationtype = "Baseline";
-		if ($projstage == 11) {
+		if ($projstage == 21) {
 			$evaluationtype = "Endline";
 		}
 		$pageTitle = "Project " . $resultstype . " " . $evaluationtype . " Evaluation";
+		$next_projstage = $projcategory == 2 ? $projstage + 1 : $projstage + 2;
 
 
 		if ((isset($_POST["submit"]))) {
@@ -320,7 +322,7 @@ try {
 														<input name="user_name" type="hidden" id="user_name" value="<?php echo $user_name; ?>" />
 														<input name="surveytype" type="hidden" value="<?php echo $evaluationtype; ?>" />
 														<input name="disaggregation" type="hidden" value="<?php echo $disaggregated; ?>" />
-														<input name="projstage" type="hidden" value="<?php echo $projstage + 1; ?>" />
+														<input name="projstage" type="hidden" value="<?php echo $next_projstage; ?>" />
 													</div>
 												</div>
 											</form>

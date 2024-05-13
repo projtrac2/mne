@@ -87,8 +87,7 @@ try {
                                                     $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
                                                     if ($total_rsPayement_reuests > 0) {
                                                         $counter = 0;
-                                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
-                                                            $request_id = $rows_rsPayement_reuests['request_id'];
+                                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) { 
                                                             $costline_id = $rows_rsPayement_reuests['id'];
                                                             $projid = $rows_rsPayement_reuests['projid'];
                                                             $project_plan = $rows_rsPayement_reuests['project_plan'];

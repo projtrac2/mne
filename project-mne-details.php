@@ -25,13 +25,13 @@ try {
 		$projdesc = $row_proj["projdesc"];
 		$projcommunity = explode(",", $row_proj['projcommunity']);
 
-		$tab1 = $projstage > 9 && $projstatus != 3 ? "home" : "";
-		$class1 = $projstage > 9 && $projstatus != 3 ? "active" : "";
-		$inactive1 = $projstage > 9 && $projstatus != 3 ? "in active" : "";
+		$tab1 = $projstage > 15 && $projstatus != 3 ? "home" : "";
+		$class1 = $projstage > 15 && $projstatus != 3 ? "active" : "";
+		$inactive1 = $projstage > 15 && $projstatus != 3 ? "in active" : "";
 
-		$tab2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "home" : "menu2";
-		$class2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "active" : "";
-		$inactive2 = $projstage == 9 || ($projstage > 9 && $projstatus == 3) ? "in active" : "";
+		$tab2 = $projstage == 15 || ($projstage > 15 && $projstatus == 3) ? "home" : "menu2";
+		$class2 = $projstage == 15 || ($projstage > 15 && $projstatus == 3) ? "active" : "";
+		$inactive2 = $projstage == 15 || ($projstage > 15 && $projstatus == 3) ? "in active" : "";
 
 		function get_checklist_score($mapping_type, $task_id, $site_id)
 		{
@@ -119,7 +119,7 @@ try {
 									<div class="header">
 										<ul class="nav nav-tabs" style="font-size:14px">
 											<?php
-											if ($projstage > 9) {
+											if ($projstage > 15) {
 											?>
 												<li class="<?= $class1 ?>">
 													<a data-toggle="tab" href="#<?= $tab1 ?>"><i class="fa fa-file-text-o bg-orange" aria-hidden="true"></i> Activities Monitoring &nbsp;<span class="badge bg-orange"></span></a>
@@ -147,7 +147,7 @@ try {
 									<div class="row clearfix">
 										<div class="table-responsive">
 											<div class="tab-content">
-												<?php if ($projstage > 9) { ?>
+												<?php if ($projstage > 15) { ?>
 													<div id="<?= $tab1 ?>" class="tab-pane fade <?= $inactive1 ?>">
 														<div class="body">
 															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -168,7 +168,7 @@ try {
 																				$indicator_name = $row_rsOutput['indicator_name'];
 																				$target = $row_rsOutput['total_target'];
 																				$indicator_mapping_type = $row_rsOutput['indicator_mapping_type'];
-																		?>
+																			?>
 																				<fieldset class="scheduler-border">
 																					<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 																						<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $counter ?> : <?= $indicator_name ?>
@@ -184,7 +184,7 @@ try {
 																								$scounter++;
 																								$site_name = $row_rsOutputSites['site'];
 																								$site_id = $row_rsOutputSites['site_id'];
-																					?>
+																								?>
 																								<fieldset class="scheduler-border">
 																									<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 																										<i class="fa fa-list-ol" aria-hidden="true"></i> Site <?= $scounter ?> : <?= $site_name ?>
@@ -198,7 +198,7 @@ try {
 																										while ($row_rsMilestone = $query_rsMilestone->fetch()) {
 																											$milestone = $row_rsMilestone['milestone'];
 																											$msid = $row_rsMilestone['msid'];
-																									?>
+																											?>
 																											<div class="row clearfix">
 																												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 																													<div class="card-header">
@@ -364,7 +364,7 @@ try {
 																															$achieved = $totalRows_rsMonitoring_Achieved > 0 ? $Rows_rsMonitoring_Achieved['achieved'] : 0;
 																															$record_date = $totalRows_rsMonitoring_Achieved > 0 ? date("d M Y", strtotime($Rows_rsMonitoring_Achieved['created_at'])) : "";
 																															$rate = $units_no > 0 && $achieved > 0 ? $achieved / $units_no * 100 : 0;
-																													?>
+																															?>
 																															<tr id="row<?= $tcounter ?>">
 																																<td style="width:5%"><?= $tcounter ?></td>
 																																<td style="width:40%"><?= $task_name ?></td>
@@ -462,7 +462,7 @@ try {
 																										$rows_rsSite_cummulative = $query_rsSite_cummulative->fetch();
 																										$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;
 																										$rate = $target > 0 && $cummulative > 0 ? ($cummulative / $target) * 100 : 0;
-																					?>
+																										?>
 																										<tr>
 																											<td><?= $counter ?></td>
 																											<td><a href="project-indicators.php?proj=<?php echo $original_projid; ?>&ind=<?php echo $indid; ?>" style="color: blue;text-decoration: none;"><?= $indicator_name ?></a></td>
@@ -493,7 +493,7 @@ try {
 																										$cummulative = $rows_rsSite_cummulative['cummulative'] != "" ? $rows_rsSite_cummulative['cummulative'] : 0;
 																										$rate = $target > 0 && $cummulative > 0 ? ($cummulative / $target) * 100 : 0;
 																										$counter++;
-																									?>
+																										?>
 																										<tr>
 																											<td><?= $counter ?></td>
 																											<td><a href="project-indicators.php?proj=<?php echo $original_projid; ?>&ind=<?php echo $indid; ?>" style="color: blue; text-decoration: none;"><?= $indicator_name ?></a></td>
@@ -503,7 +503,7 @@ try {
 																											<td><?php echo number_format($cummulative, 2) . ' ' . $indicatorunit ?></td>
 																											<td><?= number_format($rate, 2) ?></td>
 																										</tr>
-																					<?php
+																										<?php
 																									}
 																								}
 																							}
@@ -651,7 +651,7 @@ try {
 																							$query_report_remarks = $db->prepare("SELECT comments FROM tbl_survey_conclusion WHERE projid=:projid and resultstype=2 and resultstypeid=:resultstypeid and level3=:location");
 																							$query_report_remarks->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid, ":location" => $locations));
 																							$unit = $calculation_method == 2 ? "%" : $unit;
-																						?>
+																							?>
 																							<tr class="bg-lime">
 																								<td><?php echo $location; ?></td>
 																								<td><?php echo $baseline . " " . $unit; ?></td>
@@ -671,7 +671,7 @@ try {
 																									?>
 																								</td>
 																							</tr>
-																					<?php
+																							<?php
 																						}
 																					}
 																					?>

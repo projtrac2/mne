@@ -3,7 +3,7 @@ $today = date('Y-m-d');
 function get_due_date($projid, $stage_id)
 {
     global $db;
-    $stmt = $db->prepare("SELECT * FROM tbl_project_stage_actions WHERE projid=:projid AND stage=:stage_id AND sub_stage=0");
+    $stmt = $db->prepare("SELECT * FROM tbl_project_stage_actions WHERE projid=:projid AND stage=:stage_id AND sub_stage=0 ORDER BY id DESC LIMIT 1");
     $stmt->execute(array(":projid" => $projid, ":stage_id" => $stage_id));
     $rows_stmt = $stmt->fetch();
     $total_stmt = $stmt->rowCount();
@@ -109,7 +109,7 @@ function get_subtask_status($projid, $monitoring_frequency)
             $complete = $row_rsWorkBreakdown['complete'];
             $subtask_end_date = $row_rsWorkBreakdown['end_date'];
             $subtask_start_date = $row_rsWorkBreakdown['start_date'];
-
+            // echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => Contract Start date" . $subtask_start_date . "  Subtask End Date=>" . $subtask_end_date . ")<br/>";
             if ($complete == 0) {
                 if ($today < $subtask_start_date) {
                     $sql = $db->prepare('SELECT * FROM tbl_project_monitoring_checklist_score WHERE site_id=:site_id AND subtask_id=:subtask_id');
@@ -125,7 +125,6 @@ function get_subtask_status($projid, $monitoring_frequency)
                     if ($stmt_result > 0) {
                         $breakdown_start_date = $result['start_date'];
                         $target_end_date = date('Y-m-d', strtotime($breakdown_start_date . ' - 1 days'));
-
                         $target = get_cummulative_target($site_id, $subtask_id, $target_end_date);
                         $subtask_status_id = get_subtask_achieved($site_id, $subtask_id, $target_end_date, $target, $subtask_status_id, $monitoring_frequency);
                     }
@@ -179,7 +178,7 @@ function get_implementation_status($projid)
 function update_project_status()
 {
     global $db, $today;
-    $query_workflow = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE parent=0 ORDER BY `priority` ASC");
+    $query_workflow = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE parent=0 AND  priority=2 ORDER BY `priority` ASC");
     $query_workflow->execute();
     $rows_count = $query_workflow->rowCount();
     if ($rows_count > 0) {
@@ -191,6 +190,7 @@ function update_project_status()
             if ($total_rsProjects > 0) {
                 while ($row_rsProjects = $query_rsProjects->fetch()) {
                     $projid = $row_rsProjects['projid'];
+                    $projname = $row_rsProjects['projname'];
                     $child_stage_id = $row_rsProjects['projstage'];
                     $grand_stage_id = $row_rsProjects['proj_substage'];
                     $implimentation_type =  $row_rsProjects['projcategory'];
@@ -201,18 +201,24 @@ function update_project_status()
                         $due_date = get_due_date($projid, $child_stage_id);
                         $status_id = $today < $due_date ? 3 : 11;
                     } else if ($stage_id == 2) {
+
                         $project_schedule = get_schedule_dates($projid);
-                        if ($child_stage_id == 1) {
+                        if ($child_stage_id == 18) {
                             $change_substage = get_implementation_status($projid);
                             if ($change_substage) {
-                                $grand_stage_id = $change_substage ? 2 : 1;
+                                $grand_stage_id = 2;
+                                if ($implimentation_type == 1) {
+                                    $grand_stage_id = 1;
+                                    $child_stage_id = 20;
+                                    $status_id = 5;
+                                    $stage_id = 3;
+                                }
                             } else {
                                 if ($project_schedule) {
                                     $end_date = $project_schedule['end_date'];
                                     if ($implimentation_type == 2) {
                                         $contract_details = get_contract_dates($projid);
                                         $contract_end_date = ($contract_details) ? date('Y-m-d', strtotime($contract_details["enddate"])) : "";
-
                                         if ($today > $contract_end_date) {
                                             $status_id = 11;
                                             get_subtask_status($projid, $monitoring_frequency);
@@ -238,8 +244,10 @@ function update_project_status()
                             }
                         }
                     }
-                    $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus, proj_substage=:substage_id WHERE  projid=:projid");
-                    $sql->execute(array(":projstatus" => $status_id, ":substage_id" => $grand_stage_id, ":projid" => $projid));
+
+
+                    $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus,stage_id=:stage_id, projstage=:projstage, proj_substage=:substage_id WHERE  projid=:projid");
+                    $sql->execute(array(":projstatus" => $status_id, ":stage_id" => $stage_id, ":projstage" => $child_stage_id, ":substage_id" => $grand_stage_id, ":projid" => $projid));
                 }
             }
         }

@@ -113,10 +113,10 @@ try {
                 $counter++;
                 $milestone_name = $row_rsMilestone['milestone'];
                 $task_id = $row_rsMilestone['msid'];
-                $task_div .= '<tr><td>Task :' . $counter . '</td><td>' . $milestone_name . '</td></tr>';
                 $query_rsTasks = $db->prepare("SELECT * FROM tbl_task t INNER JOIN tbl_project_direct_cost_plan c ON t.tkid = c.subtask_id WHERE t.outputid=:output_id AND c.site_id=:site_id AND tasks=:task_id");
                 $query_rsTasks->execute(array(":output_id" => $output_id, ":site_id" => $site_id, ":task_id" => $task_id));
                 $totalRows_rsTasks = $query_rsTasks->rowCount();
+                $subtask_div = '';
                 if ($totalRows_rsTasks > 0) {
                     $t_counter = 0;
                     while ($row_rsTasks = $query_rsTasks->fetch()) {
@@ -132,7 +132,7 @@ try {
                             $totalRows_rsUser = $query_rsUser->rowCount();
                             $checked = $totalRows_rsUser > 0 ? 1 : 0;
                             $check =  $checked == 1 ? "checked" : "";
-                            $task_div  .=
+                            $subtask_div  .=
                                 '<tr>
                                     <td>' . $t_counter . '</td>
                                     <td>
@@ -144,6 +144,10 @@ try {
                                 </tr>';
                         }
                     }
+                }
+
+                if ($subtask_div != '') {
+                    $task_div .= '<tr><td>Task :' . $counter . '</td><td>' . $milestone_name . '</td></tr>' . $subtask_div;
                 }
             }
         }
@@ -170,10 +174,8 @@ try {
                 $rows_Site_Output = $query_Site_Output->rowCount();
                 if ($rows_Site_Output > 0) {
                     $output_counter = 0;
-                    $task_div .= '
-                            <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Site ' . $counter . ': ' . strtoupper($site) . '</legend>
-                                <input type="hidden" name="site_id[]" value="' . $site_id . '"/>';
+
+                    $output_body = '';
                     while ($row_Site_Output = $query_Site_Output->fetch()) {
                         $output_counter++;
                         $output_id = $row_Site_Output['outputid'];
@@ -190,36 +192,46 @@ try {
                             $checked = $totalRows_rsUser > 0 ? 1 : 0;
                             $output_checked =  $checked == 1 ? "checked" : "";
                             $check =  $checked ? "Uncheck" : "Check";
-
-                            $task_div .= '
-                            <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                                <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($output) . '</legend>
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="form-line">
-                                        <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
-                                        <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
-                                        <input type="hidden" name="output_id' . $site_id . '[]" value="' . $output_id . '">
+                            $table_body = get_body($user_id, $site_id, $output_id);
+                            if ($table_body != '') {
+                                $output_body .= '
+                                <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $output_counter . ': ' . strtoupper($output) . '</legend>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <div class="form-line">
+                                            <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                                            <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
+                                            <input type="hidden" name="output_id' . $site_id . '[]" value="' . $output_id . '">
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped table-hover js-basic-example ">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width:10%;">#</th>
-                                                    <th style="width:90%;">Subtask</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="">
-                                                ' . get_body($user_id, $site_id, $output_id) .  '
-                                            </tbody>
-                                        </table>
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped table-hover js-basic-example ">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width:10%;">#</th>
+                                                        <th style="width:90%;">Subtask</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="">
+                                                    ' . $table_body .  '
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
-                                </div>
-                            </fieldset>';
+                                </fieldset>';
+                            }
                         }
                     }
-                    $task_div .=  '</fieldset>';
+
+                    if ($output_body != '') {
+                        $task_div .= '
+                        <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                            <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Site ' . $counter . ': ' . strtoupper($site) . '</legend>
+                            <input type="hidden" name="site_id[]" value="' . $site_id . '"/>
+                            ' . $output_body . '
+                        </fieldset>';
+                    }
                 }
             }
         }
@@ -230,7 +242,7 @@ try {
         if ($total_Output > 0) {
             $counter = 0;
             $site_id = 0;
-            $task_div .= '<input type="hidden" name="site_id[]" value="' . $site_id . '"/>';
+            $output_body = '';
             while ($row_rsOutput = $query_Output->fetch()) {
                 $output_id = $row_rsOutput['id'];
                 $output = $row_rsOutput['indicator_name'];
@@ -241,37 +253,45 @@ try {
                 $checked = $totalRows_rsUser > 0 ? 1 : 0;
                 $output_checked =  $checked == 1 ? "checked" : "";
                 $check =  $checked ? "Uncheck" : "Check";
-                $task_div .= '
-                <fieldset class="scheduler-border row setup-content" style="padding:10px">
-                    <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($output) . '</legend>
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                        <div class="form-line">
-                            <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
-                            <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
-                            <input type="hidden" name="output_id' . $site_id . '[]" value="'  . $output_id . '">
+                $table_body = get_body($user_id, $site_id, $output_id);
+
+                if ($table_body != '') {
+                    $output_body .= '
+                    <fieldset class="scheduler-border row setup-content" style="padding:10px">
+                        <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">Output ' . $counter . ': ' . strtoupper($output) . '</legend>
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="form-line">
+                                <input name="projevaluation" onchange="output_check_box(\'' . $site_id . $output_id . '\', 0, 0)" type="checkbox" ' . $output_checked . ' id="outputs' . $site_id . $output_id . '" class="with-gap radio-col-green sub_task" />
+                                <label for="outputs' . $site_id . $output_id . '"><span id="output_checked' . $site_id . $output_id . '"> ' . $check . ' All</span></label>
+                                <input type="hidden" name="output_id' . $site_id . '[]" value="'  . $output_id . '">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped table-hover js-basic-example ">
-                                <thead>
-                                    <tr>
-                                        <th style="width:10%;"> #</th>
-                                        <th style="width:90%;"> Subtask</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ' . get_body($user_id, $site_id, $output_id) .  '
-                                </tbody>
-                            </table>
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover js-basic-example ">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:10%;"> #</th>
+                                            <th style="width:90%;"> Subtask</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ' . $table_body .  '
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                </fieldset>';
+                    </fieldset>';
+                }
+            }
+
+            if ($output_body != '') {
+                $task_div .= '<input type="hidden" name="site_id[]" value="' . $site_id . '"/>' . $output_body;
             }
         }
 
         $task_div .= '</div>
-                                </div>';
+                </div>';
         return $task_div;
     }
 

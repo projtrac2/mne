@@ -33,20 +33,14 @@ try {
             $row_rs_projects = $query_rs_projects->fetch();
 
             $projname = $row_rs_projects['projname'];
-            $projstage = $row_rs_projects['projstage'];
 
-            if ($projstage == 9) {
-                $surveytype = "Baseline";
-            } else {
-                $surveytype = "Endline";
-            }
+            $surveytype = $row_rs_projects['projstage'] == 15 ? "Baseline":"Endline";
 
-            if ($data_source  == 1) {
-                $datasource  = "Primary";
-            } else {
-                $datasource  = "Secondary";
-            }
-
+			if ($resultstype == 2) {
+				$outcome_type  = $row_results['outcome_type'];
+				$outcometype = $outcome_type == 1 ? "Primary Outcome":"Secondary Outcome";
+			}
+            $datasource  = $data_source  == 1 ? "Survey":"Records";
             $formname = "Project " . $formtype . $surveytype . " Survey";
 
 
@@ -113,18 +107,17 @@ try {
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="card">
-                            <div class="card-header">
-                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                    <ul class="list-group">
-                                        <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
-                                        <li class="list-group-item"><strong>Project <?= $formtype ?> : </strong> <?= $resultstobemeasured ?> </li>
-                                        <li class="list-group-item"><strong>Indicator: </strong> <?= $indname ?> </li>
-                                        <li class="list-group-item"><strong>Unit of Measure: </strong> <?= $unit ?> </li>
-                                        <li class="list-group-item"><strong>Source of Data: </strong> <?= $datasource ?> </li>
-                                        <li class="list-group-item"><strong>Calculation Method: </strong> <?= $calculation_method ?> </li>
-                                    </ul>
-                                </div>
-                            </div>
+							<div class="card-header">
+								<ul class="list-group">
+									<li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
+									<li class="list-group-item"><strong>Project <?= $formtype ?> : </strong> <?= $resultstobemeasured ?> </li>
+									<?php if($resultstype == 2){ ?>
+										<li class="list-group-item"><strong>Type : </strong> <?= $outcometype ?> </li>
+									<?php } ?>
+									<li class="list-group-item"><strong>Indicator: </strong> <?= $indname ?> </li>
+									<li class="list-group-item"><strong>Unit of Measure: </strong> <?= $unit ?> </li>
+								</ul>
+							</div>
                             <div class="body">
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -137,183 +130,167 @@ try {
                                         <?php
                                         if ($data_source  == 1) {
                                         ?>
-                                            <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12" id="">
+                                            <div class="col-lg-3 col-md-6 col-sm-12 col-xs-12" id="">
                                                 <label for="" id="" class="control-label">Sample Size Per Location:</label>
                                                 <div class="form-input">
                                                     <div class="form-control"><?php echo $sample; ?></div>
                                                 </div>
                                             </div>
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <label class="control-label"><strong>Main Question: </strong></label>
-                                                <?php
-                                                if ($resultstype == 2) {
-                                                    $query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=1 ORDER BY id ASC");
-                                                } else {
-                                                    $query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=1 ORDER BY id ASC");
-                                                }
-                                                $query_questions->execute(array(":projid" => $projid));
-                                                $row = $query_questions->fetch();
-                                                $answertype = $row["answertype"];
+											<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+												<label>Enumerator Type *:</label>
+												<div class="form-line">
+													<div class="form-control"><?php echo $enumeratortype; ?></div>
+												</div>
+											</div>
 
-                                                if ($answertype == 1) {
-                                                    $answername = "Number";
-                                                } elseif ($answertype == 2) {
-                                                    $answername = "Multiple Choice";
-                                                } elseif ($answertype == 3) {
-                                                    $answername = "Checkboxes";
-                                                } elseif ($answertype == 4) {
-                                                    $answername = "Dropdown";
-                                                } elseif ($answertype == 5) {
-                                                    $answername = "Text";
-                                                } elseif ($answertype == 6) {
-                                                    $answername = "File Upload";
-                                                }
+											<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+												<label for="" id="" class="control-label">Survey Start Date *:</label>
+												<div class="form-input">
+													<div class="form-control"><?php echo $startdate; ?></div>
+												</div>
+											</div>
+											<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12">
+												<label for="" id="" class="control-label">Survey End Date *:</label>
+												<div class="form-input">
+													<div class="form-control"><?php echo $enddate; ?></div>
+												</div>
+											</div>
+											<fieldset class="scheduler-border">
+												<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Survey Form Questions</legend>
+												<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+													<table class="table table-bordered table-striped table-hover dataTable">
+														<thead>
+															<tr>
+																<th style="width:5%">#</th>
+																<th width="55%">Question</th>
+																<th width="15%">Answer Type</th>
+																<th width="15%">Answer Labels</th>
+																<th width="10%">Method</th>
+															</tr>
+														</thead>
+														<tbody>
+															<?php
+															if ($resultstype == 2) {
+																$query_main_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=1 ORDER BY id ASC");
+															} else {
+																$query_main_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=1 ORDER BY id ASC");
+															}
+															$query_main_questions->execute(array(":projid" => $projid));
+															$totalrows_questions = $query_main_questions->rowCount();
+															$main_count=0;
+															while($rows_main_questions = $query_main_questions->fetch()){
+																$main_count++;
+																$answertype = $rows_main_questions["answertype"];
+																$parentid = $rows_main_questions["id"];
+																$calculation_method_id = $rows_main_questions["question_calculation_method"];
 
-                                                ?>
-                                                <div>
-                                                    <table class="table table-bordered table-striped table-hover dataTable">
-                                                        <thead>
-                                                            <tr>
+																if ($answertype == 1) {
+																	$answername = "Number";
+																	$query_calculation_method = $db->prepare("SELECT * FROM tbl_numbers_aggregation_method WHERE id=:id");
+																	$query_calculation_method->execute(array(":id" => $calculation_method_id));
+																	$rows_calculation_method = $query_calculation_method->fetch();
+																	$method=$rows_calculation_method["method"];
+																} elseif ($answertype == 2) {
+																	$answername = "Multiple Choice";
+																	$method="N/A";
+																} elseif ($answertype == 3) {
+																	$answername = "Checkboxes";
+																	$method="N/A";
+																} elseif ($answertype == 4) {
+																	$answername = "Dropdown";
+																	$method="N/A";
+																} elseif ($answertype == 5) {
+																	$answername = "Text";
+																	$method="N/A";
+																} elseif ($answertype == 6) {
+																	$answername = "File Upload";
+																	$method="N/A";
+																}
 
-                                                                <th width="60%">Question</th>
-                                                                <th width="15%">Answer Type</th>
-                                                                <th width="25%">Answer Labels</th>
+																$question = '<td><strong>' . $main_count . '</strong></td><td>' . $rows_main_questions['question'] . '</td>';
+																$answerdatatype = '<td>' . $answername . '</td>';
+																$answerlabel = '<td>N/A</td>';
+																$data_calc_method = '<td>'.$method.'</td>';
+																if ($answertype == 2 || $answertype == 3 || $answertype == 4) {
+																	$answerlabel = '<td>' . $rows_main_questions['answerlabels'] . '</td>';
+																}
+																$data = $question . $answerdatatype . $answerlabel.$data_calc_method;
 
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <?php
-                                                            $question = '<td>' . $row['question'] . '</td>';
-                                                            $answerdatatype = '<td>' . $answername . '</td>';
-                                                            $answerlabel = "";
-
-                                                            if ($answertype == 1) {
-                                                                $answername = "Number";
-                                                            } elseif ($answertype == 2) {
-                                                                $answername = "Multiple Choice";
-                                                            } elseif ($answertype == 3) {
-                                                                $answername = "Checkboxes";
-                                                            } elseif ($answertype == 4) {
-                                                                $answername = "Dropdown";
-                                                            } elseif ($answertype == 5) {
-                                                                $answername = "Text";
-                                                            } elseif ($answertype == 6) {
-                                                                $answername = "File Upload";
-                                                            }
-
-                                                            $question = '<td>' . $row['question'] . '</td>';
-                                                            $answerdatatype = '<td>' . $answername . '</td>';
-                                                            $answerlabel = '<td>N/A</td>';
-                                                            if ($answertype == 2 || $answertype == 3 || $answertype == 4) {
-                                                                $answerlabel = '<td>' . $row['answerlabels'] . '</td>';
-                                                            }
-                                                            $data = $question . $answerdatatype . $answerlabel;
-
-                                                            echo '
-														<tr>
-															' . $data . '
-														</tr>';
-                                                            ?>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                            <?php
-                                            if ($resultstype == 2) {
-                                                $query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=2 AND questiontype=2 ORDER BY id ASC");
-                                            } else {
-                                                $query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND resultstype=1 AND questiontype=2 ORDER BY id ASC");
-                                            }
-                                            $query_questions->execute(array(":projid" => $projid));
-                                            $totalrows_questions = $query_questions->rowCount();
-
-                                            if ($totalrows_questions  > 0) {
-                                            ?>
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                    <label class="control-label"><strong>Other Question/s: </strong></label>
-                                                    <div>
-                                                        <table class="table table-bordered table-striped table-hover dataTable">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th style="width:5%">#</th>
-                                                                    <th width="55%">Question</th>
-                                                                    <th width="15%">Answer Type</th>
-                                                                    <th width="25%">Answer Labels</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <?php
-                                                                $counter = 0;
-                                                                while ($row = $query_questions->fetch()) {
-                                                                    $counter++;
-                                                                    $count = '<td>' . $counter . '</td>';
-                                                                    $answertype = $row["answertype"];
-
-                                                                    if ($answertype == 1) {
-                                                                        $answername = "Number";
-                                                                    } elseif ($answertype == 2) {
-                                                                        $answername = "Multiple Choice";
-                                                                    } elseif ($answertype == 3) {
-                                                                        $answername = "Checkboxes";
-                                                                    } elseif ($answertype == 4) {
-                                                                        $answername = "Dropdown";
-                                                                    } elseif ($answertype == 5) {
-                                                                        $answername = "Text";
-                                                                    } elseif ($answertype == 6) {
-                                                                        $answername = "File Upload";
-                                                                    }
-
-                                                                    $question = '<td>' . $row['question'] . '</td>';
-                                                                    $answerdatatype = '<td>' . $answername . '</td>';
-                                                                    $answerlabel = '<td>N/A</td>';
-                                                                    if ($answertype == 2 || $answertype == 3 || $answertype == 4) {
-                                                                        $answerlabel = '<td>' . $row['answerlabels'] . '</td>';
-                                                                    }
-                                                                    $data = $count . $question . $answerdatatype . $answerlabel;
-
-                                                                    echo '
+																echo '
 																<tr>
 																	' . $data . '
 																</tr>';
-                                                                }
-                                                                ?>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            <?php
-                                            }
-                                        } else {
-                                            ?>
-                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                                <label for="" id="" class="control-label">Key Question:</label>
-                                                <div class="form-input">
-                                                    <div class="form-control"><?php echo $unit . " of " . $indname; ?></div>
-                                                </div>
-                                            </div>
-                                        <?php
-                                        }
-                                        ?>
+															
+																$query_questions = $db->prepare("SELECT * FROM tbl_project_evaluation_questions WHERE projid=:projid AND parent_question=:parentid ORDER BY id ASC");
+																$query_questions->execute(array(":projid" => $projid, ":parentid" => $parentid));
+																$totalrows_questions = $query_questions->rowCount();
 
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label>Enumerator Type *:</label>
-                                            <div class="form-line">
-                                                <div class="form-control"><?php echo $enumeratortype; ?></div>
-                                            </div>
-                                        </div>
+																if ($totalrows_questions  > 0) {
+																
+																	$counter = 0;
+																	while ($row = $query_questions->fetch()) {
+																		$counter++;
+																		$count = '<td>' . $main_count.'.'.$counter . '</td>';
+																		$answertype = $row["answertype"];
+																		$calc_method_id = $row["question_calculation_method"];
+																		
+																		if ($answertype == 1) {
+																			$answername = "Number";
+																			$query_calc_method = $db->prepare("SELECT * FROM tbl_numbers_aggregation_method WHERE id=:id");
+																			$query_calc_method->execute(array(":id" => $calc_method_id));
+																			$rows_calc_method = $query_calc_method->fetch();
+																			$calc_method=$rows_calc_method["method"];
+																		} elseif ($answertype == 2) {
+																			$answername = "Multiple Choice";
+																			$calc_method="N/A";
+																		} elseif ($answertype == 3) {
+																			$answername = "Checkboxes";
+																			$calc_method="N/A";
+																		} elseif ($answertype == 4) {
+																			$answername = "Dropdown";
+																			$calc_method="N/A";
+																		} elseif ($answertype == 5) {
+																			$answername = "Text";
+																			$calc_method="N/A";
+																		} elseif ($answertype == 6) {
+																			$answername = "File Upload";
+																			$calc_method="N/A";
+																		}
 
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="" id="" class="control-label">Survey Start Date *:</label>
-                                            <div class="form-input">
-                                                <div class="form-control"><?php echo $startdate; ?></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-                                            <label for="" id="" class="control-label">Survey End Date *:</label>
-                                            <div class="form-input">
-                                                <div class="form-control"><?php echo $enddate; ?></div>
-                                            </div>
-                                        </div>
+																		$question = '<td>' . $row['question'] . '</td>';
+																		$answerdatatype = '<td>' . $answername . '</td>';
+																		$answerlabel = '<td>N/A</td>';
+																		$data_calc_method = '<td>'.$calc_method.'</td>';
+																		if ($answertype == 2 || $answertype == 3 || $answertype == 4) {
+																			$answerlabel = '<td>' . $row['answerlabels'] . '</td>';
+																		}
+																		$data = $count . $question . $answerdatatype . $answerlabel . $data_calc_method;
+
+																		echo '
+																		<tr>
+																			' . $data . '
+																		</tr>';
+																	}
+																}
+															}
+															?>	
+														</tbody>
+													</table>
+												</div>
+											</fieldset>	
+											
+										<?php
+										} else {
+											?>
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<label for="" id="" class="control-label">Key Question:</label>
+												<div class="form-input">
+													<div class="form-control"><?php echo $unit . " of " . $indname; ?></div>
+												</div>
+											</div>
+										<?php
+										}
+										?>
                                     </div>
                                 </div>
 

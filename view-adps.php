@@ -10,7 +10,6 @@ try {
 		if (isset($_GET["prg"]) && !empty($_GET["prg"])) {
 			$progid = $_GET["prg"];
 		}
-
 		// get adps
 		$query_adps =  $db->prepare("SELECT * FROM tbl_annual_dev_plan d left join tbl_fiscal_year y on y.id=d.financial_year GROUP BY financial_year ORDER BY d.id ASC");
 		$query_adps->execute();
@@ -183,17 +182,17 @@ try {
 											$query_activeadp->execute();
 											$totalRows_activeadp = $query_activeadp->rowCount();
 											if ($totalRows_activeadp > 0) {
-									?>
+												?>
 												<li class="active">
 													<a data-toggle="tab" href="#home"><i class="fa fa-caret-square-o-up bg-green" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-green"><?php echo $totalcount; ?></span></a>
 												</li>
-											<?php
+												<?php
 											} else {
-											?>
+												?>
 												<li>
 													<a data-toggle="tab" href="#menu<?= $adpfyid ?>"><i class="fa fa-caret-square-o-down bg-deep-orange" aria-hidden="true"></i> <?= $adp ?> &nbsp;<span class="badge bg-deep-orange"><?php echo $totalcount; ?></span></a>
 												</li>
-									<?php
+												<?php
 											}
 										}
 									}
@@ -262,7 +261,7 @@ try {
 											$totalRows_activeadpbody = $query_activeadpbody->rowCount();
 
 											if ($totalRows_activeadpbody > 0) {
-									?>
+												?>
 												<div id="home" class="tab-pane fade in active">
 													<div style="color:#fff; background-color:green; width:100%; height:30px">
 														<h4 style="width:100%"><i class="fa fa-list" style="font-size:25px"></i> <?= $adp ?> Projects</h4>
@@ -373,7 +372,12 @@ try {
 																			//check if project has adp budget tbl_adp_projects_budget
 																			$query_adp_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid = :projid AND year = :adpfyid");
 																			$query_adp_budget->execute(array(":projid" => $projid, ":adpfyid" => $adpfyid));
-																			$row_adp_budget = $query_adp_budget->rowCount();
+																			$rows_adp_budget = $query_adp_budget->rowCount();
+																			$row_adp_budget = $query_adp_budget->fetch();
+																			$adjusted_amount = '';
+																			if($row_adp_budget){
+																				$adjusted_amount = $row_adp_budget['adjusted_amount'];
+																			}
 
 																			$querybudgetstatus = $db->prepare("SELECT * FROM tbl_project_approved_yearly_budget WHERE projid = :projid AND year = :year");
 																			$querybudgetstatus->execute(array(":projid" => $projid, ":year" => $yr));
@@ -381,17 +385,32 @@ try {
 
 																			// status
 																			$button = '';
-																			$active = "<label class='label label-success'>Approved</label>";
-																			if ($row_adp_budget == 0) {
+																			$active = "<label class='label label-success'>Requested</label>";
+																			if ($rows_adp_budget == 0) {
 																				$active = "<label class='label label-danger'>Pending</label>";
 																				$button .= '
-																			<li><a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')"> <i class="glyphicon glyphicon-plus"></i> Add ADP Budget</a></li>
-																			';
+																				<li>
+																					<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')"> <i class="fa fa-money"></i> Request Budget</a>
+																				</li>
+																				';
+																				/* $button .= '<li>
+																					<a type="button" onclick="remove_from_adp(' . $itemId . ')">
+																						<i class="fa fa-minus-square"></i> Remove from ADP
+																					</a>
+																				</li>
+																				'; */
 																			} else {
 																				if ($norows_pbb > 0 && $norows_prog_targets > 0 && $count_budgetstatus == 0) {
 																					$active = "<label class='label label-danger'>Pending</label>";
-																					if ($approve) {
-																						$button .= '<li><a type="button" data-toggle="modal" data-target="#approvedBudgetItemModal" id="approvedBudgetItemModalBtn" onclick="approvedBudget(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> Approve Budget</a></li>';
+																					if (($adjusted_amount = '' || is_null($adjusted_amount))  && in_array("approve_project", $page_actions)) {
+																						//if ($approve) {
+																								$buttonunapprov .= '
+																							<li>
+																								<a type="button" data-toggle="modal" data-target="#approvedBudgetItemModal" id="approvedBudgetItemModalBtn" onclick="approvedBudget (' . $itemId . ',' . $adpfyid . ')"> <i class="fa fa-check-square-o"></i> Add Approved Budget</a>
+																							</li>';
+																						//}
+																					}else{
+																						$active = "<label class='label label-success'>Approved</label>";
 																					}
 																				}
 																			}
@@ -432,11 +451,10 @@ try {
 															<table class="table table-bordered table-striped table-hover js-basic-example dataTable" style="width:100%">
 																<thead>
 																	<tr style="color:#333; background-color:#EEE; ">
-																		<th width="5%">#</th>
-																		<th width="30%">Project Name</th>
-																		<th width="29%">Program Name</th>
+																		<th width="4%">#</th>
+																		<th width="35%">Project Name</th>
+																		<th width="35%">Program Name</th>
 																		<th width="10%">Budget (KSH)</th>
-																		<th width="10%">Financial Year</th>
 																		<th width="8%">Status</th>
 																		<th width="8%">Action</th>
 																	</tr>
@@ -499,10 +517,10 @@ try {
 																			$query_rsMilestone->execute(array(":projid" => $project_id));
 																			$row_rsMilestone = $query_rsMilestone->rowCount();
 
-																			if ($projstage == 1 && $row_rsMilestone == 0) {
+																			if ($projstage == 9 && $row_rsMilestone == 0) {
 																				$buttonunapprov .= '
 																			<li>
-																				<a type="button" onclick="unapprove_project(' . $project_id . ')">
+																				<a type="button" onclick="unapprove_project(' . $project_id . ',' . $adpfyid . ')">
 																					<i class="glyphicon glyphicon-edit"></i> Unapprove
 																				</a>
 																			</li>';
@@ -511,9 +529,9 @@ try {
 																			// && $adpstatus == 0 && in_array("un_approve", $page_actions)
 
 																			// status
-																			if ($projstage > 0 && $adpstatus == 1) {
+																			if ($adpstatus == 1) {
 																				$active = "<label class='label label-success'>Approved</label>";
-																			} elseif ($projstage == 0 && $adpstatus == 0) {
+																			} elseif ($adpstatus == 0) {
 																				//get program targets
 																				$query_prog_targets = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE progid = :progid and year = :adpyr");
 																				$query_prog_targets->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
@@ -529,17 +547,23 @@ try {
 																						$buttonunapprov .= '
 																							<li>
 																								<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $project_id . ',' . $adpfyid . ')">
-																									<i class="glyphicon glyphicon-plus"></i> Add ADP Budget
+																									<i class="fa fa-money"></i> Request Budget
+																								</a>
+																							</li>
+																							<li>
+																								<a type="button" onclick="remove_from_adp(' . $project_id . ')">
+																									<i class="fa fa-minus-square"></i> Remove from ADP
 																								</a>
 																							</li>';
 																					} else {
-																						if ($norows_pbb > 0 && $norows_prog_targets > 0 && in_array("approve_project", $page_actions)) {
-																							$buttonunapprov .= '
-																						<li>
-																							<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approve_project(' . $project_id . ')">
-																								<i class="fa fa-check-square-o"></i> Approve Project
-																							</a>
-																						</li>';
+																						/* if ($norows_pbb > 0 && $norows_prog_targets > 0 && in_array("approve_project", $page_actions)) { */
+																						if (in_array("approve_project", $page_actions)) {
+																							//if ($approve) {
+																									$buttonunapprov .= '
+																								<li>
+																									<a type="button" data-toggle="modal" data-target="#approvedBudgetItemModal" id="approvedBudgetItemModalBtn" onclick="approvedBudget (' . $project_id . ',' . $adpfyid . ')"> <i class="fa fa-check-square-o"></i> Add Approved Budget</a>
+																								</li>';
+																							//}
 																						}
 																					}
 																				}
@@ -554,7 +578,7 @@ try {
 																					' . $buttonunapprov . '
 																					<li>
 																						<a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $project_id . ')">
-																							<i class="glyphicon glyphicon-file"></i> More Info
+																							<i class="fa fa-info-circle"></i> More Info
 																						</a>
 																					</li>
 																				</ul>
@@ -564,11 +588,10 @@ try {
 																				$sn++;
 																	?>
 																				<tr>
-																					<td align="center" width="5%"><?php echo $sn; ?></td>
-																					<td width="30%"><?php echo $projname ?></td>
-																					<td width="29%"><?php echo $progname; ?></td>
+																					<td align="center" width="4%"><?php echo $sn; ?></td>
+																					<td width="35%"><?php echo $projname ?></td>
+																					<td width="35%"><?php echo $progname; ?></td>
 																					<td width="10%"><?php echo $budget; ?></td>
-																					<td width="10%"><?php echo $projYear; ?></td>
 																					<td width="8%"><?php echo $active; ?></td>
 																					<td width="8%"><?php echo $button; ?></td>
 																				</tr>
@@ -599,11 +622,10 @@ try {
 														<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="" style="width:100%">
 															<thead>
 																<tr style="color:#333; background-color:#EEE; ">
-																	<th width="5%">#</th>
-																	<th width="30%">Project Name</th>
-																	<th width="29%">Program Name</th>
+																	<th width="4%">#</th>
+																	<th width="35%">Project Name</th>
+																	<th width="35%">Program Name</th>
 																	<th width="10%">Budget (KSH)</th>
-																	<th width="10%">Financial Year</th>
 																	<th width="8%">Status</th>
 																	<th width="8%">Action</th>
 																</tr>
@@ -647,12 +669,12 @@ try {
 																		$project_section = $rowprog['projdept'];
 																		$project_directorate = $rowprog['directorate'];
 
-																		//get financial year
+																		/* //get financial year
 																		$query_projYear = $db->prepare("SELECT * FROM `tbl_fiscal_year` WHERE id=:srcfyear LIMIT 1");
 																		$query_projYear->execute(array(":srcfyear" => $srcfyear));
 																		$rowprojYear = $query_projYear->fetch();
 																		$projYear = $rowprojYear['year'];
-																		$yr = $rowprojYear['yr'];
+																		$yr = $rowprojYear['yr']; */
 
 																		// get department
 																		$query_rsDept = $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE parent IS NOT NULL  and stid =:sector LIMIT 1");
@@ -663,42 +685,63 @@ try {
 																		//check if project has adp budget tbl_adp_projects_budget
 																		$query_adp_budget = $db->prepare("SELECT * FROM tbl_adp_projects_budget WHERE projid = :projid AND year = :adpfyid");
 																		$query_adp_budget->execute(array(":projid" => $itemId, ":adpfyid" => $adpfyid));
-																		$row_adp_budget = $query_adp_budget->rowCount();
+																		$rows_adp_budget = $query_adp_budget->rowCount();
+																		$row_adp_budget = $query_adp_budget->fetch();
+																		$adjusted_amount = '';
+																		if($row_adp_budget){
+																			$adjusted_amount = $row_adp_budget['adjusted_amount'];
+																		}
 
-																		if ($row_adp_budget == 0) {
+																		$active = "<label class='label label-success'>Requested</label>";
+																		$buttonunapprov = "";
+
+																		if ($rows_adp_budget == 0) {
 																			$buttonunapprov = '
-																		<li>
-																			<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')">
-																				<i class="glyphicon glyphicon-plus"></i> Add ADP Budget
-																			</a>
-																		</li>';
+																			<li>
+																				<a type="button" data-toggle="modal" data-target="#addADPBudgetModal" id="addADPBudgetModalBtn" onclick="addADPBudget(' . $itemId . ',' . $adpfyid . ')">
+																					<i class="fa fa-money"></i> Request Budget
+																				</a>
+																			</li>
+																			<li>
+																				<a type="button" onclick="remove_from_adp(' . $itemId . ')">
+																					<i class="fa fa-minus-square"></i> Remove from ADP
+																				</a>
+																			</li>';
+																			$active = "<label class='label label-danger'>Pending</label>";
+																		} else {
+																			if (($adjusted_amount == '' || is_null($adjusted_amount) || $adjusted_amount == 0)  && in_array("approve_project", $page_actions)) {
+																				//if ($approve) {
+																						$buttonunapprov .= '
+																					<li>
+																						<a type="button" data-toggle="modal" data-target="#approvedBudgetItemModal" id="approvedBudgetItemModalBtn" onclick="approvedBudget (' . $itemId . ',' . $adpfyid . ')"> <i class="fa fa-check-square-o"></i> Add Approved Budget</a>
+																					</li>';
+																				//}
+																			}else{
+																				$active = "<label class='label label-success'>Approved</label>";
+																			}
 																		}
 
 																		$progname = '<span data-container="body" data-toggle="tooltip" data-html="true" data-placement="bottom" title="' . $department . '" style="color:#2196F3">' . $rowprog["progname"] . '</span>';
-
-																		//$active = "<label class='label label-success'>Approved</label>";
-																		$active = "<label class='label label-danger'>Pending</label>";
 																		$button = '<!-- Single button -->
-																	<div class="btn-group">
-																		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																			Options <span class="caret"></span>
-																		</button>
-																		<ul class="dropdown-menu">
-																			' . $buttonunapprov . '
-																			<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="glyphicon glyphicon-file"></i> More Info</a></li>
-																		</ul>
-																	</div>';
+																		<div class="btn-group">
+																			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																				Options <span class="caret"></span>
+																			</button>
+																			<ul class="dropdown-menu">
+																				' . $buttonunapprov . '
+																				<li><a type="button" data-toggle="modal" data-target="#moreItemModal" id="moreItemModalBtn" onclick="project_info(' . $itemId . ')"> <i class="fa fa-info-circle"></i> More Info</a></li>
+																			</ul>
+																		</div>';
 
 
 																		$filter_department = view_record($project_department, $project_section, $project_directorate);
 																		if ($filter_department) {
-																?>
+																			?>
 																			<tr>
-																				<td align="center" width="5%"><?php echo $sn; ?></td>
-																				<td width="30%"><?php echo $projname; ?></td>
-																				<td width="29%"><?php echo $progname; ?></td>
+																				<td align="center" width="4%"><?php echo $sn; ?></td>
+																				<td width="35%"><?php echo $projname; ?></td>
+																				<td width="35%"><?php echo $progname; ?></td>
 																				<td width="10%"><?php echo $budget; ?></td>
-																				<td width="10%"><?php echo $projYear; ?></td>
 																				<td width="8%"><?php echo $active; ?></td>
 																				<td width="8%"><?php echo $button; ?></td>
 																			</tr>

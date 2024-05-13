@@ -55,13 +55,14 @@
                                 $timeline = $row["timeline"];
                                 $timeline = $timeline > 0 ? $timeline : "N/A";
 
+                                $parent = '';
                                 // status
                                 $active = ($row['active'] == 1) ? "<label class='label label-success'>Enabled</label>" : "<label class='label label-danger'>Disabled</label>";
                                 if ($parentid > 0) {
                                     $sqlparent = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE id='$parentid' ");
                                     $sqlparent->execute();
                                     $rowparent = $sqlparent->fetch();
-                                    $parent = $rowparent['stage'];
+                                    $parent = $rowparent ? $rowparent['stage'] : '';
                                 }
 
 

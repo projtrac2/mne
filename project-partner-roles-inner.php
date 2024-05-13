@@ -273,7 +273,7 @@ foreach ($roles as $key => $role) {
         });
     });
 
-    // change status
+        // change status
     function disable(id, name, action) {
         swal({
             title: "Are you sure?",

@@ -90,14 +90,11 @@ try {
                                 $budgets = "budget" . $indicator;
                                 $target = $_POST[$targets];
                                 $budget = $_POST[$budgets];
-                                if (isset($_POST[$budgets]) && isset($_POST[$targets])) {
-                                    $target = $_POST[$targets][$p];
-                                    $budget = $_POST[$budgets][$p];
-
-                                    if (!empty($budget) && !empty($target)) {
-                                        $sql = $db->prepare("INSERT INTO tbl_progdetails (strategic_plan_id,progid,year,output,indicator,target,budget) VALUES (:strategic_plan_id,:progid,:year,:outputid,:indicator,:target,:budget)");
-                                        $sql->execute(array(":strategic_plan_id" => $strategic_plan_id, ':progid' => $progid,  ':year' => $year, ':outputid' => $output, ':indicator' => $indicator, ':target' => $target, ':budget' => $budget));
-                                    }
+                                if (isset($_POST[$budgets]) && isset($_POST[$targets])) { 
+                                    $target = isset($_POST[$targets][$p]) ? $_POST[$targets][$p] : 0;
+                                    $budget = isset($_POST[$budgets][$p]) ? $_POST[$budgets][$p] : 0;
+                                    $sql = $db->prepare("INSERT INTO tbl_progdetails (strategic_plan_id,progid,year,output,indicator,target,budget) VALUES (:strategic_plan_id,:progid,:year,:outputid,:indicator,:target,:budget)");
+                                    $sql->execute(array(":strategic_plan_id" => $strategic_plan_id, ':progid' => $progid,  ':year' => $year, ':outputid' => $output, ':indicator' => $indicator, ':target' => $target, ':budget' => $budget));
                                 }
                             }
                         }

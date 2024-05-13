@@ -3,11 +3,11 @@ try {
   require('includes/head.php');
 
   if ($permission) {
-    $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) AND responsible=:user_name ORDER BY p.projid ASC");
     $query_baseline_survey->execute(array(":user_name" => $user_name));
 
     if ($designation == 1) {
-      $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
       $query_baseline_survey->execute();
     }
     //$rows = $query_baseline_survey->fetch();
@@ -20,7 +20,7 @@ try {
         $outcomeid = $row["id"];
         $outcomeprojstatus = $row["projstatus"];
         $outcomeprojstage = $row["projstage"];
-        if ($outcomeprojstage == 9) {
+        if ($outcomeprojstage == 15) {
           $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:outcomeid and resultstype = 2 and created_by=:responsible");
           $query_survey_forms->execute(array(":outcomeid" => $outcomeid, ":responsible" => $user_name));
           if ($designation == 1) {
@@ -72,9 +72,9 @@ try {
       }
     }
 
-    $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible='$user_name' ORDER BY p.projid ASC");
+    $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) AND responsible='$user_name' ORDER BY p.projid ASC");
     if ($designation == 1) {
-      $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
     }
     $query_baseline_step1->execute();
     $count_baseline_step1 = $query_baseline_step1->rowCount();
@@ -271,12 +271,13 @@ try {
                                 $indicatorunit = $rows_ind_unit['unit'];
 
 
-                                if ($projstage == 9) {
+                                if ($projstage == 15) {
                                   $stagetype = "Baseline";
                                 } else {
                                   $stagetype = "Endline";
                                 }
                                 $today = date('Y-m-d');
+								$outcome_type = $row['outcome_type'] == 1 ? "Primary Outcome":"Secondary Outcome";
 
                                 $query_due_date = $db->prepare("SELECT * FROM tbl_project_workflow_stage_timelines WHERE stage=1 and category=:baseline");
                                 $query_due_date->execute(array(":baseline" => $stagetype));
@@ -294,7 +295,7 @@ try {
                                 $date_added = $rows_outcome_date['date_added'];
                                 $endline_timing = $rows_outcome_date['evaluation_frequency'];
 
-                                if ($projstage == 9) {
+                                if ($projstage == 15) {
                                   if ($date_changed != NULL) {
                                     $survey_date = $date_changed;
                                   } else {
@@ -326,8 +327,8 @@ try {
 
 
                                 if (in_array($stagetype, $form_name)) {
-                                  $query_survey_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and form_name=:formname and status = 1");
-                                  $query_survey_form->execute(array(":projid" => $projid, ":formname" => $stagetype));
+                                  $query_survey_form = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE projid=:projid and form_name=:formname and resultstype=:resultstype and status = 1");
+                                  $query_survey_form->execute(array(":projid" => $projid, ":formname" => $stagetype, ':resultstype' => $resultstype));
                                   $rows_survey_form = $query_survey_form->fetch();
                                   $form_id = $rows_survey_form["id"];
                                   $duedate = $rows_survey_form["startdate"];
@@ -381,7 +382,7 @@ try {
                                   $survey_form[]  = trim($row_survey['form_name']);
                                 }
 
-                                if ($projstage == 9) {
+                                if ($projstage == 15) {
                                   $resultstagetype = "Baseline";
                                 } else {
                                   $resultstagetype = "Endline";
@@ -389,14 +390,14 @@ try {
 
                                 if (!in_array($stagetype, $survey_form)) {
 
-                                  if ($projstage == 9) {
+                                  if ($projstage == 15) {
                                     $sn++;
                                     echo '
 									<tr>
 									  <td style="width:3%">' . $sn . '</td>
 									  <td style="width:20%">' . $outcomeindicator . '</td>
 									  <td style="width:35%">' . $projname . '</td>
-									  <td style="width:15%">' . $resultstagetype . '</td>
+									  <td style="width:15%">' . $resultstagetype . '<br>(' . $outcome_type . ')</td>
 									  <td style="width:10%">' . $due_date . '</td>
 									  <td style="width:10%">' . $active . '</td>
 									  <td style="width:7%">
@@ -418,7 +419,7 @@ try {
 										  <td style="width:3%">' . $sn . '</td>
 										  <td style="width:20%">' . $outcomeindicator . '</td>
 										  <td style="width:35%">' . $projname . '</td>
-										  <td style="width:15%">' . $resultstagetype . '</td>
+										  <td style="width:15%">' . $resultstagetype . '<br>(' . $outcome_type . ')</td>
 										  <td style="width:10%">' . $due_date . '</td>
 										  <td style="width:10%">' . $active . '</td>
 										  <td style="width:7%">
@@ -504,6 +505,12 @@ try {
                                   $query_outcome_ind->execute(array(":indid" => $indid));
                                   $rows_outcome_ind = $query_outcome_ind->fetch();
                                   $outcomeindicator = $rows_outcome_ind['indicator_name'];
+								  								
+									$query_outcome_type = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:resultstypeid");
+									$query_outcome_type->execute(array(":resultstypeid" => $resultstypeid));
+									$rows_outcome_type = $query_outcome_type->fetch();
+									  
+									$outcome_type = $rows_outcome_type['outcome_type'] == 1 ? "Primary Outcome":"Secondary Outcome";
 
                                   $deploy_counter++;
 
@@ -512,7 +519,7 @@ try {
                                   <td style="width:3%">' . $deploy_counter . '</td>
                                   <td style="width:20%">' . $outcomeindicator . '</td>
                                   <td style="width:35%">' . $projname . '</td>
-                                  <td style="width:15%">' . $form_name . '</td>
+                                  <td style="width:15%">' . $form_name  . '<br>(' . $outcome_type . ')</td>
                                   <td style="width:10%">' . $startdate . '</td>
                                   <td style="width:10%">' . $enddate . '</td>
                                   <td style="width:7%">
@@ -599,6 +606,12 @@ try {
                                   $query_count->execute(array(":projid" => $projid, ":formid" => $form_id));
                                   $count_count = $query_count->rowCount();
                                   $rows_count = $query_count->fetch();
+								
+									$query_outcome_type = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:resultstypeid");
+									$query_outcome_type->execute(array(":resultstypeid" => $resultstypeid));
+									$rows_outcome_type = $query_outcome_type->fetch();
+									  
+									$outcome_type = $rows_outcome_type['outcome_type'] == 1 ? "Primary Outcome":"Secondary Outcome";
 
                                   $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator WHERE indid=:indid");
                                   $query_outcome_ind->execute(array(":indid" => $indid));
@@ -611,7 +624,7 @@ try {
 											<td style="width:3%">' . $deploy_counter . '</td>
 											<td style="width:20%">' . $outcomeindicator . '</td>
 											<td style="width:35%">' . $projname . '</td>
-											<td style="width:12%">' . $form_name . '</td>
+											<td style="width:12%">' . $form_name . '<br>(' . $outcome_type . ').</td>
 											<td style="width:10%">' . $startdate . '</td>
 											<td style="width:10%">' . $enddate . '</td>
 											<td style="width:10%">
@@ -694,6 +707,12 @@ try {
                                   $query_outcome_ind->execute(array(":indid" => $indid));
                                   $rows_outcome_ind = $query_outcome_ind->fetch();
                                   $outcomeindicator = $rows_outcome_ind['indicator_name'];
+								
+									$query_outcome_type = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:resultstypeid");
+									$query_outcome_type->execute(array(":resultstypeid" => $outcomeid));
+									$rows_outcome_type = $query_outcome_type->fetch();
+									  
+									$outcome_type = $rows_outcome_type['outcome_type'] == 1 ? "Primary Outcome":"Secondary Outcome";
 
                                   //$frmid = base64_encode("frm_id{$form_id}");
                                   $outcomeidencoded = base64_encode("resultssecdata{$outcomeid}");
@@ -711,7 +730,7 @@ try {
 										  <td style="width:3%">' . $deploy_counter . '</td>
 										  <td style="width:20%">' . $outcomeindicator . '</td>
 										  <td style="width:35%">' . $projname . '</td>
-										  <td style="width:12%">' . $form_name . '</td>
+										  <td style="width:12%">' . $form_name . '<br>(' . $outcome_type . ').</td>
 										  <td style="width:10%">' . $startdate . '</td>
 										  <td style="width:10%">' . $enddate . '</td>
 										  <td style="width:10%">

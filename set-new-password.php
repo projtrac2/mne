@@ -36,7 +36,6 @@ try {
           <div class="glass-morphism">
             <div class="m-bg glass-bg-resp">
               <img src="images/logo-proj.png" alt="" srcset="" width="400">
-              <img src="images/logo-proj.png" alt="" srcset="" width="400">
             </div>
             <!-- inputs -->
             <div style="margin-bottom: 4vh;" class="glass-bg-resp">
@@ -54,8 +53,7 @@ try {
                 </div>
                 <input type="hidden" name="setpass" value="setpassword">
                 <div class="btn-flex">
-                  <button id="setpass-btn" type="button" class="submit-btn">Set New Password</button>
-                  <a href="index.php"><button type="button" id="forgot-password">Forgot Password</button></a>
+                  <button id="setpass-btn" type="button" class="submit-btn">Set New Password</button> 
                 </div>
               </form>
             </div>

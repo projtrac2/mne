@@ -565,6 +565,52 @@ try {
 			</div>
 		</section>
 		<!-- end body  -->
+		<!-- Start Modal Item Edit -->
+		<div class="modal fade" id="outputItemModals" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header" style="background-color:#03A9F4">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" style="color:#fff" align="center" id="modal-title">Add Target Breakdown</h4>
+					</div>
+					<div class="modal-body">
+						<div class="card">
+							<ul class="list-group">
+								<li class="list-group-item list-group-item list-group-item-action active">
+									SubTask: <span id="subtask_name"></span>
+								</li>
+								<li class="list-group-item">Start Date:
+									<span id="subtask_start_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+									End Date: <span id="subtask_end_date"></span> &nbsp;&nbsp;&nbsp;&nbsp;
+									Duration: <span id="subtask_duration"></span>
+								</li>
+								<li class="list-group-item">
+									SubTask target: <span id="subtask_target"></span>
+								</li>
+							</ul>
+							<div class="row clearfix">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+									<div class="body">
+										<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+											<div class="table-responsive">
+												<div id="tasks_wbs_table_body"></div>
+											</div>
+										</div>
+										<div class="modal-footer">
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+												<button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div> <!-- /modal-body -->
+				</div>
+				<!-- /modal-content -->
+			</div>
+			<!-- /modal-dailog -->
+		</div>
 <?php
 	} else {
 		$results =  restriction();
@@ -791,25 +837,34 @@ try {
 		}
 	}
 
-	$(function() {
-		$('.tasks_id_header').each((index, element) => {
-			var projid = $("#projid").val();
-			$.ajax({
-				type: "get",
-				url: "ajax/programsOfWorks/get-wbs-achieved",
-				data: {
-					projid: projid,
-					site_id: $(element).next().val(),
-					output_id: $(element).next().next().val(),
-					task_id: $(element).val(),
-					get_wbs: 'get_wbs'
-				},
-				dataType: "json",
-				success: function(response) {
-					let tkid = $(element).val();
-					$(`.peter-${tkid}`).html(response.table);
+	function get_subtasks_wbs(output_id, site_id, task_id, subtask_id, frequency) {
+		$.ajax({
+			type: "get",
+			url: "ajax/programsOfWorks/get-wbs-achieved",
+			data: {
+				get_wbs: "get_wbs",
+				projid: $("#projid").val(),
+				output_id: output_id,
+				site_id: site_id,
+				task_id: task_id,
+				subtask_id: subtask_id,
+				frequency: frequency
+			},
+			dataType: "json",
+			cache: false,
+			success: function(response) {
+				if (response.success) {
+					$("#tasks_wbs_table_body").html(response.structure);
+					var subtask = response.task;
+					$("#subtask_start_date").html(response.start_date);
+					$("#subtask_duration").html(response.duration);
+					$("#subtask_end_date").html(response.end_date);
+					$("#subtask_target").html(subtask.units_no + ' ' + subtask.unit);
+					$("#subtask_name").html(subtask.task);
+				} else {
+					error_alert("Error please try again later");
 				}
-			});
+			}
 		});
-	})
+	}
 </script>

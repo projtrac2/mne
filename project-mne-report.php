@@ -20,13 +20,13 @@ try {
 		$proj_location_count = count($projlocations);
 
 
-		$tab1 = $projstage > 8 && $projstatus != 3 ? "home" : "";
-		$class1 = $projstage > 8 && $projstatus != 3 ? "active" : "";
-		$inactive1 = $projstage > 8 && $projstatus != 3 ? "in active" : "";
+		$tab1 = $projstage > 15 && $projstatus != 3 ? "home" : "";
+		$class1 = $projstage > 15 && $projstatus != 3 ? "active" : "";
+		$inactive1 = $projstage > 15 && $projstatus != 3 ? "in active" : "";
 
-		$tab2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "home" : "menu2";
-		$class2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "active" : "";
-		$inactive2 = $projstage < 9 || ($projstage > 8 && $projstatus == 3) ? "in active" : "";
+		$tab2 = $projstage < 18 || ($projstage > 15 && $projstatus == 3) ? "home" : "menu2";
+		$class2 = $projstage < 18 || ($projstage > 15 && $projstatus == 3) ? "active" : "";
+		$inactive2 = $projstage < 18 || ($projstage > 15 && $projstatus == 3) ? "in active" : "";
 
 		function get_checklist_score($mapping_type, $task_id, $site_id)
 		{
@@ -58,7 +58,7 @@ try {
 
 			return $percentage > 0 && $totalRows_rsMonitoring > 0 ? $percentage / $totalRows_rsMonitoring : 0;
 		}
-?>
+		?>
 		<section class="content">
 			<div class="container-fluid">
 				<div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
@@ -91,7 +91,7 @@ try {
 									<div class="header">
 										<ul class="nav nav-tabs" style="font-size:14px">
 											<?php
-											if ($projstage > 8) {
+											if ($projstage > 17) {
 											?>
 												<li class="<?= $class1 ?>">
 													<a data-toggle="tab" href="#<?= $tab1 ?>"><i class="fa fa-file-text-o bg-orange" aria-hidden="true"></i> Activities Monitoring &nbsp;<span class="badge bg-orange"></span></a>
@@ -119,7 +119,7 @@ try {
 									<div class="row clearfix">
 										<div class="table-responsive">
 											<div class="tab-content">
-												<?php if ($projstage > 8) { ?>
+												<?php if ($projstage > 17) { ?>
 													<div id="<?= $tab1 ?>" class="tab-pane fade <?= $inactive1 ?>">
 														<div class="body">
 															<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -541,7 +541,7 @@ try {
 																						$query_report_remarks = $db->prepare("SELECT comments FROM tbl_survey_conclusion WHERE projid=:projid and resultstype=2 and resultstypeid=:resultstypeid");
 																						$query_report_remarks->execute(array(":projid" => $projid, ":resultstypeid" => $resultstypeid));
 																						$row_report_remarks = $query_report_remarks->fetch();
-																						$remarks = $row_report_remarks["comments"];
+																						$remarks = $row_report_remarks? $row_report_remarks["comments"]:"";
 																					?>
 
 																						<tr class="bg-lime">

@@ -341,7 +341,7 @@ try {
       $interval = $date2->diff($date1);
       $project_duration = $interval->format('%Y Years, %m Months, %d Days');
 
-      $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
+      $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$year'");
       $query_rsYear->execute();
       $row_rsYear = $query_rsYear->fetch();
       $projstartyear =  $row_rsYear['yr'];
@@ -397,7 +397,6 @@ try {
       $projid = $_POST['projid'];
       $budget = $_POST['projadpbudget'];
       $budgetyear = $_POST['budgetyear'];
-      $userid = $_POST['user_name'];
       $date = date("Y-m-d");
 
       $query_progid =  $db->prepare("SELECT progid FROM tbl_projects WHERE projid = :projid");
@@ -406,13 +405,18 @@ try {
       $progid =  $row_progid['progid'];
 
       $insertbudget = $db->prepare("INSERT INTO `tbl_adp_projects_budget`(projid, progid, year, amount, created_by, date_created)  VALUES(:projid, :progid, :year, :amount, :createdby, :datecreated)");
-      $results  = $insertbudget->execute(array(":projid" => $projid, ":progid" => $progid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $userid, ":datecreated" => $date));
+      $results  = $insertbudget->execute(array(":projid" => $projid, ":progid" => $progid, ":year" => $budgetyear, ":amount" => $budget, ":createdby" => $user_name, ":datecreated" => $date));
 
 
       if ($results === TRUE) {
-         $projstage = 8;
+         $projstage = 9;
          $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
-         $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid));
+         $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $user_name, ":date_updated" => $date, ":projid" => $projid));
+
+         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+         $result = $sql->execute(array(":projid" => $projid, ':stage' => $projstage, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
+
+         return;
 
          $valid['success'] = true;
          $valid['messages'] = "Budget successfully requested";
@@ -453,7 +457,7 @@ try {
       $interval = $date2->diff($date1);
       $project_duration = $interval->format('%Y Years, %m Months, %d Days');
 
-      $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$projfscyear'");
+      $query_rsYear =  $db->prepare("SELECT id, yr FROM tbl_fiscal_year WHERE id = '$year'");
       $query_rsYear->execute();
       $row_rsYear = $query_rsYear->fetch();
       $projstartyear =  $row_rsYear['yr'];

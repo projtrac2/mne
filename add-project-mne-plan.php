@@ -24,6 +24,7 @@ try {
             $project_stage_id = $row_rsProjects['stage_id'];
             $child_stage_id = $row_rsProjects['projstage'];
             $strategic_plan_id = $row_rsProjects['strategic_plan_id'];
+            $strategic_objective_id = $row_rsProjects['strategic_objective_id'];
             $monitoring_frequency = $row_rsProjects['monitoring_frequency'];
 
 
@@ -38,9 +39,33 @@ try {
             $totalRows_impactIndicators = $query_impactIndicators->rowCount();
 
             //=============================================== OUTCOME SECTION ==============================================================================
-            $query_rsOutcomeIndicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Outcome' AND indicator_type=2 AND active = '1' ORDER BY indid");
-            $query_rsOutcomeIndicators->execute();
-            $totalRows_rsOutcomeIndicators = $query_rsOutcomeIndicators->rowCount();
+
+            $query_project_outcomes = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE projid=:projid");
+            $query_project_outcomes->execute(array(":projid" => $projid));
+            $totalRows_project_outcomes = $query_project_outcomes->rowCount();
+
+            $options = '<option value="">.... Select from list ....</option>';
+            if ($totalRows_project_outcomes > 0) {
+                $query_outcomeIndicators = $db->prepare("SELECT indid, indicator_name FROM tbl_indicator i WHERE NOT EXISTS (SELECT * FROM tbl_project_expected_outcome_details o WHERE o.projid=:projid AND i.indid = o.indid) AND indicator_category='Outcome' AND indicator_type=2 AND active = '1' ORDER BY indid");
+                $query_outcomeIndicators->execute(array(":projid" => $projid));
+
+                while ($row_outcomeIndicators = $query_outcomeIndicators->fetch()) {
+                    $indicatorId = $row_outcomeIndicators['indid'];
+                    $indicatorname = $row_outcomeIndicators['indicator_name'];
+                    $options .= '<option value="' . $indicatorId . '">' . $indicatorname . '</option>';
+                }
+                $outcometype = 2;
+            } else {
+                $query_outcomeIndicators = $db->prepare("SELECT indid, indicator_name FROM tbl_indicator i left join tbl_kpi k on k.outcome_indicator_id=i.indid WHERE strategic_objective_id=:strategic_objective_id ORDER BY indid ASC");
+                $query_outcomeIndicators->execute(array(":strategic_objective_id" => $strategic_objective_id));
+
+                while ($row_outcomeIndicators = $query_outcomeIndicators->fetch()) {
+                    $indicatorId = $row_outcomeIndicators['indid'];
+                    $indicatorname = $row_outcomeIndicators['indicator_name'];
+                    $options .= '<option value="' . $indicatorId . '">' . $indicatorname . '</option>';
+                }
+                $outcometype = 1;
+            }
 
 
             function mne_plan()
@@ -79,6 +104,7 @@ try {
                         $proceed[] = $row_rsOutput_dissaggregation > 0 ? true : false;
                     }
                 }
+
                 return $output && $outcome && $impact && $monitoring_frequency != '' && !in_array(false, $proceed) ? true : false;
             }
 ?>
@@ -299,11 +325,12 @@ try {
                                                                 <table class="table table-bordered table-striped table-hover" id="manageOutcomeTable" style="width:100%">
                                                                     <thead>
                                                                         <tr>
-                                                                            <th width="5%">#</th>
+                                                                            <th width="4%">#</th>
                                                                             <th width="40%">Outcome</th>
-                                                                            <th width="15%">Source of Data</th>
-                                                                            <th width="18%">Evaluation Frequency</th>
-                                                                            <th width="15%">Number of Endline Evaluations</th>
+                                                                            <th width="10%">Type</th>
+                                                                            <th width="12%">Data Source</th>
+                                                                            <th width="15%">Evaluation Frequency</th>
+                                                                            <th width="12%">Endline Evaluations</th>
                                                                             <th width="7%">Action</th>
                                                                         </tr>
                                                                     </thead>
@@ -485,14 +512,8 @@ try {
                                                         <label for="outcomeName" class="control-label">Indicator *:</label>
                                                         <div class="form-input">
                                                             <select name="outcomeIndicator" id="outcomeIndicator" onchange="get_outcome_details()" class="form-control show-tick" style="border:1px #CCC thin solid; border-radius:5px" data-live-search="false" required="required">
-                                                                <option value="">.... Select from list ....</option>
                                                                 <?php
-                                                                while ($row_rsOutcomeIndicators = $query_rsOutcomeIndicators->fetch()) {
-                                                                    $indicatorId = $row_rsOutcomeIndicators['indid'];
-                                                                ?>
-                                                                    <option value="<?php echo $indicatorId ?>"><?php echo $row_rsOutcomeIndicators['indicator_name'] ?></option>
-                                                                <?php
-                                                                }
+                                                                echo $options;
                                                                 ?>
                                                             </select>
                                                         </div>
@@ -526,7 +547,7 @@ try {
                                                         <div class="form-input">
                                                             <select data-id="0" name="outcome_frequency" id="outcome_frequency" class="form-control  selected_outcome_frequency" required="required">
                                                                 <?php
-                                                                $query_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where status=1 AND level >=4");
+                                                                $query_frequency =  $db->prepare("SELECT * FROM tbl_datacollectionfreq where status=1");
                                                                 $query_frequency->execute();
                                                                 $totalRows_frequency = $query_frequency->rowCount();
                                                                 $input = '<option value="">... Select from list ...</option>';
@@ -552,6 +573,7 @@ try {
                                                     <div class="modal-footer">
                                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                                             <input type="hidden" name="addoutcome" id="addoutcome" value="addoutcome">
+                                                            <input type="hidden" name="outcometype" id="outcometype" value="<?= $outcometype ?>">
                                                             <input type="hidden" name="projid" id="projid" value="<?= $projid ?>" />
                                                             <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                             <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="outcome-tag-form-submit" value="Save" />

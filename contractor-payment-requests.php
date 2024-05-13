@@ -90,8 +90,7 @@ try {
                                                         $counter = 0;
                                                         while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                                             $costline_id = $rows_rsPayement_reuests['id'];
-                                                            $projid = $rows_rsPayement_reuests['projid'];
-                                                            $request_id = $rows_rsPayement_reuests['request_id'];
+                                                            $projid = $rows_rsPayement_reuests['projid']; 
                                                             $payment_requested_date = $rows_rsPayement_reuests['created_at'];
                                                             $payment_status = $rows_rsPayement_reuests['status'];
                                                             $payment_stage = $rows_rsPayement_reuests['stage'];

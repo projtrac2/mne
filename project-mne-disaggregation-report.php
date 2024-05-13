@@ -38,13 +38,13 @@ try {
 		$projlocations = explode(",", $proj_locations);
 		$proj_location_count = count($projlocations);
 
-		if ($projstage > 8 && $projstage < 11 && $projstatus != 5) {
+		if ($projstage > 15 && $projstage < 21 && $projstatus != 5) {
 			$evaluationtype = "Baseline";
 			$query_concluded_baseline_evaluations = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=:resultstype AND resultstypeid=:resultstypeid AND survey_type=:surveytype");
 			$query_concluded_baseline_evaluations->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":surveytype" => $evaluationtype));
 			$row_concluded_baseline_evaluations = $query_concluded_baseline_evaluations->fetch();
 			$baseline_report_date = $row_concluded_baseline_evaluations["date_created"];
-		} elseif ($projstage > 10 && $projstatus == 5) {
+		} elseif ($projstage > 20 && $projstatus == 5) {
 			$evaluationtype = "Endline";
 			$query_concluded_endline_evaluations = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE resultstype=:resultstype AND resultstypeid=:resultstypeid AND survey_type=:surveytype");
 			$query_concluded_endline_evaluations->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":surveytype" => $evaluationtype));
@@ -159,7 +159,7 @@ try {
 														</div>
 													</div>
 													<?php
-													if ($projstage > 10 && $projstatus == 5) {
+													if ($projstage > 15 && $projstatus == 5) {
 														$report = $endline_report_date;
 													} else {
 														$report = "Pending";
@@ -224,7 +224,7 @@ try {
 																		</tr>
 																		<?php
 																		foreach ($projlocations as $locations) {
-																			if ($projstage == 6) {
+																			if ($projstage == 15) {
 																				$query_baseline_survey = $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Baseline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
 																				$query_baseline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":location" => $locations));
 																				$count_baseline_survey = $query_baseline_survey->rowCount();
@@ -236,7 +236,7 @@ try {
 																				$rows_baseline_survey = $query_baseline_survey->fetchAll();
 																			}
 
-																			if ($projstage > 10) {
+																			if ($projstage > 15) {
 																				$query_endline_survey = $db->prepare("SELECT variable_category AS cat, c.disaggregation, c.measurement, c.comments FROM tbl_projects p INNER JOIN tbl_survey_conclusion c ON p.projid=c.projid inner join tbl_indicator i on i.indid=c.indid WHERE survey_type='Endline' and c.resultstype=:resultstype and c.resultstypeid=:resultstypeid and level3=:location");
 																				$query_endline_survey->execute(array(":resultstype" => $resultstype, ":resultstypeid" => $resultsid, ":location" => $locations));
 																				$rows_endline_survey = $query_endline_survey->fetchAll();
@@ -262,14 +262,14 @@ try {
 																					echo '<td class="bg-lime text-center"><font color="#f7070b">' . $baseline . '</font></td>';
 																				}
 
-																				if ($projstage > 8 && $projstage < 11 && $projstatus != 5) {
+																				if ($projstage > 15 && $projstage < 21 && $projstatus != 5) {
 																					for ($j = 0; $j < $count_baseline_survey; $j++) {
 																						echo '<td class="bg-lime text-center"><font color="#f7070b">Pending</font></td><td class="bg-lime text-center"><font color="#f7070b">Pending</font></td>
 																				';
 																					}
 																				}
 
-																				if ($projstage > 10 && $projstatus == 5) {
+																				if ($projstage > 15 && $projstatus == 5) {
 																					foreach ($rows_endline_survey as $row) {
 																						if ($count_endline_surveys > 0) {
 																							$endlinemeasurement = $row["measurement"];
@@ -325,11 +325,11 @@ try {
 																			echo '<td class="bg-green text-center" colspan="' . $colspan . '">' . number_format($combined_baseline, 2) . '</td>';
 
 
-																			if ($projstage > 8 && $projstage < 11 && $projstatus != 5) {
+																			if ($projstage > 15 && $projstage < 21 && $projstatus != 5) {
 																				echo '<td class="bg-green text-center" colspan="' . $colspan . '">Pending</td><td class="bg-green text-center" colspan="' . $colspan . '">Pending</td>';
 																			}
 
-																			if ($projstage > 10 && $projstatus == 5) {
+																			if ($projstage > 20 && $projstatus == 5) {
 																				$combined_endline = 0;
 																				$combined_change = 0;
 

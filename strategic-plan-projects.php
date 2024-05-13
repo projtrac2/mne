@@ -309,11 +309,11 @@ try {
 																						</a>
 																					</li>
 																				<?php
-																				} else if ($child_stage_id == 8 && $project_type == 0) {
+																				} else if ($child_stage_id == 8) {
 																				?>
 																					<li>
 																						<a type="button" onclick="remove_from_adp(<?= $projid ?>)">
-																							<i class="glyphicon glyphicon-edit"></i> Remove from ADP
+																							<i class="fa fa-minus-square"></i> Remove from ADP
 																						</a>
 																					</li>
 																			<?php

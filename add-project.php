@@ -251,7 +251,7 @@ try {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <!-- <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <label for="" class="control-label">CIDP linked? *:</label>
                                             <div class="form-line">
                                                 <input name="project_type" type="radio" value="1" <?= $project_type == 1 && $projid != "" ? "checked" : "" ?> id="project_type1" class="with-gap radio-col-green project_type" required="required" />
@@ -259,7 +259,7 @@ try {
                                                 <input name="project_type" type="radio" value="0" <?= $project_type == 0 && $projid != "" ? "checked" : "" ?> id="project_type2" class="with-gap radio-col-red project_type" required="required" />
                                                 <label for="project_type2">NO</label>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <label for="" class="control-label">Outcome Evaluation Required? *:</label>
                                             <div class="form-line">
@@ -278,7 +278,7 @@ try {
                                                 <label for="impact2">NO</label>
                                             </div>
                                         </div>
-                                        <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                                        <!-- <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                                             <label for="" class="control-label">Asset ? *:</label>
                                             <div class="form-line">
                                                 <input name="project_asset" type="radio" value="1" <?= $asset == 1 && $projid != "" ? "checked" : "" ?> id="project_asset1" class="with-gap radio-col-green project_asset" required="required" />
@@ -286,7 +286,9 @@ try {
                                                 <input name="project_asset" type="radio" value="0" <?= $asset == 0 && $projid != "" ? "checked" : "" ?> id="project_asset2" class="with-gap radio-col-red project_asset" required="required" />
                                                 <label for="project_asset2">NO</label>
                                             </div>
-                                        </div>
+                                        </div> -->
+                                        <input type="hidden" name="project_asset" id="project_asset" value="0">
+                                        <input type="hidden" name="project_type" id="project_type" value="1">
                                         <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
                                             <label for="" class="control-label">Project Sites Required? *:</label>
                                             <div class="form-line">

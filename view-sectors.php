@@ -19,7 +19,7 @@ try {
                         <div class="btn-group" style="float:right">
                             <div class="btn-group" style="float:right">
                                 <button type="button" id="modal_button" onclick="add('0', 'Ministry')" class="pull-right btn bg-deep-purple" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
-                                    <i class="fa fa-plus-square"></i> Add Ministry
+                                    <i class="fa fa-plus-square"></i> Add <?= $ministrylabel ?>
                                 </button>
                             </div>
                         </div>
@@ -39,7 +39,7 @@ try {
                                         <tr style="background-color:#0b548f; color:#FFF">
                                             <th></th>
                                             <th>#</th>
-                                            <th colspan="2">Ministry</th>
+                                            <th colspan="2"><?= $ministrylabel ?></th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -71,7 +71,7 @@ try {
                                                             <ul class="dropdown-menu">
                                                                 <li>
                                                                     <a type="button" data-toggle="modal" data-target="#editItemModal" id="moreModalBtn" onclick="edit(0, 'Ministry' ,'<?= $ministry ?>' ,<?= $role_group ?>,<?= $ministry_id ?>)">
-                                                                        <i class="fa fa-file-text"></i> Edit
+                                                                        <i class="fa fa-file-text"></i> Edit <?= $ministrylabel ?>
                                                                     </a>
                                                                 </li>
                                                                 <li>
@@ -81,7 +81,7 @@ try {
                                                                 </li>
                                                                 <li>
                                                                     <a type="button" id="modal_button" onclick="add(<?= $ministry_id ?>, 'Sector')" class="" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
-                                                                        <i class="fa fa-plus-square"></i> Add Sector
+                                                                        <i class="fa fa-plus-square"></i> Add <?= $departmentlabel ?>
                                                                     </a>
                                                                 </li>
                                                             </ul>
@@ -99,7 +99,7 @@ try {
                                                     <tr class="collapse project<?php echo $ministry_id ?>" style="background-color:#2d8bd6; color:#FFF">
                                                         <th width="5%"></th>
                                                         <th width="5%">#</th>
-                                                        <th colspan="2" width="40%">Section</th>
+                                                        <th colspan="2" width="40%"><?= $departmentlabel ?></th>
                                                         <th width="10%">Action</th>
                                                     </tr>
                                                     <?php
@@ -137,7 +137,7 @@ try {
                                                                         </li>
                                                                         <li>
                                                                             <a type="button" id="modal_button" onclick="add(<?= $sector_id ?>, 'Directorate')" data-toggle="modal" id="addItemModalBtn" data-target="#addItemModal">
-                                                                                <i class="fa fa-plus-square"></i> Add Directorate
+                                                                                <i class="fa fa-plus-square"></i> Add <?= $directoratelabel ?>
                                                                             </a>
                                                                         </li>
                                                                     </ul>
@@ -200,7 +200,7 @@ try {
                                                             ?>
                                                             <tr class="collapse output<?php echo $sector_id ?>" style="background-color:#FFC107; color:#FFF">
                                                                 <td width="5%"></td>
-                                                                <td colspan="5">Sorry this Sector does not have Directorate/s!!!</td>
+                                                                <td colspan="5">Sorry this <?= $departmentlabel ?> does not have <?= $directoratelabel ?>/s!!!</td>
                                                             </tr>
                                             <?php
                                                         }
@@ -211,7 +211,7 @@ try {
                                         } else {
                                             ?>
                                             <tr>
-                                                <td colspan="7">No projects Approved Currently</td>
+                                                <td colspan="7">No <?= $ministrylabel ?></td>
                                             </tr>
                                         <?php
                                         }

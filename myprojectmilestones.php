@@ -22,15 +22,6 @@ try {
 			$row_rsOutputs = $query_rsOutputs->fetch();
 			$totalRows_rsOutputs = $query_rsOutputs->rowCount();
 
-			function get_expense($projid, $direct_cost_id)
-			{
-				global $db;
-				$query_rsPayement_requests =  $db->prepare("SELECT SUM(d.no_of_units * d.unit_cost) FROM tbl_payments_request p INNER JOIN tbl_payments_request_details d ON p.id = d.request_id WHERE p.stage = 3 AND p.status != 3  AND p.projid=:projid AND d.direct_cost_id=:direct_cost_id");
-				$query_rsPayement_requests->execute(array("projid" => $projid, ":direct_cost_id" => $direct_cost_id));
-				$rows_rsPayement_requests = $query_rsPayement_requests->fetch();
-				return !is_null($rows_rsPayement_requests['cost']) ? $rows_rsPayement_requests['cost'] : 0;
-			}
-
 			function get_consumed($output_id, $site_id)
 			{
 				global $db, $projid;
@@ -116,31 +107,6 @@ try {
 				$row_site_score = $query_Site_score->fetch();
 				return ($row_site_score['achieved'] != null) ? $row_site_score['achieved'] : 0;
 			}
-
-			function get_planned($site_id, $subtask_id, $unit_cost, $units_no)
-			{
-				global $db, $implimentation_type;
-				if ($implimentation_type == 2) {
-					$query_Procurement = $db->prepare("SELECT * FROM tbl_project_tender_details WHERE projid = :projid AND site_id=:site_id AND subtask_id=:subtask_id ");
-					$query_Procurement->execute(array(":site_id" => $site_id, ":subtask_id" => $subtask_id));
-					$row_rsProcurement = $query_Procurement->fetch();
-					$total_rsProcurement = $query_Procurement->rowCount();
-					if ($total_rsProcurement > 0) {
-						$unit_cost = $row_rsProcurement['unit_cost'];
-						$units_no = $row_rsProcurement['units_no'];
-					}
-				}
-
-				$query_rsAdjustments = $db->prepare("SELECT SUM(units) as units FROM tbl_project_adjustments where site_id=:site_id AND sub_task_id=:subtask_id");
-				$query_rsAdjustments->execute(array(":site_id" => $site_id, ":subtask_id" => $subtask_id));
-				$row_rsAdjustments = $query_rsAdjustments->fetch();
-				$adjusted_units = ($row_rsAdjustments['units'] != null) ? $row_rsAdjustments['units'] : 0;
-
-				$cost = $unit_cost * $units_no;
-
-				return $cost;
-			}
-
 ?>
 			<link href="projtrac-dashboard/plugins/nestable/jquery-nestable.css" rel="stylesheet" />
 			<link rel="stylesheet" href="assets/css/strategicplan/view-strategic-plan-framework.css">
@@ -254,7 +220,6 @@ try {
 																						<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 																							<i class="fa fa-list-ol" aria-hidden="true"></i> Output <?= $output_counter ?> : <?= $output ?>
 																						</legend>
-
 																						<?php
 																						$query_rsMilestone = $db->prepare("SELECT * FROM tbl_milestone WHERE outputid=:output_id ORDER BY parent ASC");
 																						$query_rsMilestone->execute(array(":output_id" => $output_id));
@@ -263,7 +228,6 @@ try {
 																							while ($row_rsMilestone = $query_rsMilestone->fetch()) {
 																								$milestone = $row_rsMilestone['milestone'];
 																								$msid = $row_rsMilestone['msid'];
-
 																								$query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=1 AND site_id=:site_id AND tasks=:tasks");
 																								$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ':site_id' => $site_id, ":tasks" => $msid));
 																								$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
@@ -286,7 +250,7 @@ try {
 																											</div>
 																										</div>
 																										<div class="table-responsive">
-																											<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table">
+																											<table class="table table-bordered table-striped table-hover js-basic-example dataTable" id="direct_table<?= $output_id ?>">
 																												<thead>
 																													<tr>
 																														<th style="width:5%">#</th>
@@ -306,14 +270,14 @@ try {
 																														while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
 																															$table_counter++;
 																															$rmkid = $row_rsOther_cost_plan['id'];
-																															$subtask_id = $row_rsOther_cost_plan['subtask_id'];
 																															$description = $row_rsOther_cost_plan['description'];
 																															$financial_year = $row_rsOther_cost_plan['financial_year'];
 																															$unit_cost = $row_rsOther_cost_plan['unit_cost'];
 																															$units_no = $row_rsOther_cost_plan['units_no'];
-																															$expense = get_expense($projid, $direct_cost_id);
-																															$total_cost = get_planned($site_id, $subtask_id, $unit_cost, $units_no);
-																															$rate = $total_cost > 0 && $expense > 0 ? $expense / $total_cost * 100 : 0;
+																															$total_cost = $unit_cost * $units_no;
+
+																															$expense = 0;
+																															$rate = $total > 0 && $expense > 0 ? $expense / $total * 100 : 0;
 																													?>
 																															<tr id="row">
 																																<td style="width:5%"><?= $table_counter ?></td>
@@ -457,6 +421,26 @@ try {
 													if ($administrative_cost > 0) {
 													?>
 														<div id="administrative" class="tab-pane fade">
+															<?php
+															$query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
+															$query_rsOther_cost_plan->execute(array(":projid" => $projid, ":cost_type" => 2));
+															$totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
+
+
+															$cost_type = $budget_line_id = 2;
+															$query_rsOther_cost_plan1 =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
+															$query_rsOther_cost_plan1->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+															$totalRows_rsOther_cost_plan1 = $query_rsOther_cost_plan1->rowCount();
+															$row_rsOther_cost_plan1 = $query_rsOther_cost_plan1->fetch();
+															$plan_id = $totalRows_rsOther_cost_plan1 > 0 ? $row_rsOther_cost_plan1['plan_id'] : 0;
+
+
+															$query_rsOther_cost_plan_budget =  $db->prepare("SELECT SUM(unit_cost * units_no) as sum_cost FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type");
+															$query_rsOther_cost_plan_budget->execute(array(":projid" => $projid, ":cost_type" => $cost_type));
+															$row_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->fetch();
+															$totalRows_rsOther_cost_plan_budget = $query_rsOther_cost_plan_budget->rowCount();
+															$sum_cost = $row_rsOther_cost_plan_budget['sum_cost'] != null ? $row_rsOther_cost_plan_budget['sum_cost'] : 0;
+															?>
 															<div class="header">
 																<h4 class="contentheader"> Administrative/Operational Cost </h4>
 															</div>
@@ -474,10 +458,6 @@ try {
 																		</thead>
 																		<tbody id="budget_lines_table2">
 																			<?php
-
-																			$query_rsOther_cost_plan =  $db->prepare("SELECT * FROM tbl_project_direct_cost_plan WHERE projid =:projid AND cost_type=:cost_type ");
-																			$query_rsOther_cost_plan->execute(array(":projid" => $projid, ":cost_type" => 2));
-																			$totalRows_rsOther_cost_plan = $query_rsOther_cost_plan->rowCount();
 																			if ($totalRows_rsOther_cost_plan > 0) {
 																				$table_counter = 0;
 																				while ($row_rsOther_cost_plan = $query_rsOther_cost_plan->fetch()) {
@@ -489,7 +469,7 @@ try {
 																					$unit_cost = $row_rsOther_cost_plan['unit_cost'];
 																					$units_no = $row_rsOther_cost_plan['units_no'];
 																					$total_cost = $unit_cost * $units_no;
-																					$expense = get_expense($projid, $rmkid);
+																					$expense = 0;
 																					$rate = $total_cost > 0 && $expense > 0 ? $expense / $total_cost * 100 : 0;
 																			?>
 																					<tr id="row">
@@ -802,7 +782,6 @@ try {
 							</div>
 						</div>
 					</div>
-				</div>
 			</section>
 			<!-- end body  -->
 <?php

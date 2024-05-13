@@ -77,7 +77,7 @@ if ($permission) {
                                                             <td><?php echo $row_rsProjects['projcode'] ?></td>
                                                             <td><?php echo $row_rsProjects['projname'] ?></td>
                                                             <td><?= date('Y M d', strtotime($due_date))  ?></td>
-                                                            <td><label class='label label-success'><?= $activity_status; ?></label></td>
+                                                            <td><?= $activity_status; ?></td>
                                                             <td>
                                                                 <div class="btn-group">
                                                                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -346,6 +346,7 @@ if ($permission) {
                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                     <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
                                     <button type="submit" class="btn btn-primary waves-effect waves-light" value="button" id="tag-form-submit1"> Save</button>
+                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                 </div>
                             </div> <!-- /modal-footer -->
                         </form>

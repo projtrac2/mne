@@ -135,7 +135,7 @@ try {
                                                             <th width="12%"><strong><?= $departmentlabel ?></strong></th>
                                                             <th width="8%"><strong>Budget (Ksh)</strong></th>
                                                             <?php
-                                                            if ($stage > 2) {
+                                                            if ($stage > 1) {
                                                             ?>
                                                                 <th width="8%"><strong>Start Date</strong></th>
                                                                 <th width="8%"><strong>End Date</strong></th>
@@ -147,11 +147,11 @@ try {
                                                             }
                                                             if ($stage == 2) {
                                                             ?>
-                                                                <th width="10%"><strong>Substage,Status,Progress(%)</strong></th>
+                                                                <th width="10%"><strong>Substage, Status, Progress(%)</strong></th>
                                                             <?php
                                                             } else {
                                                             ?>
-                                                                <th width="10%"><strong>Substage,Status</strong></th>
+                                                                <th width="10%"><strong>Substage, Status</strong></th>
                                                             <?php
                                                             }
                                                             ?>
@@ -188,7 +188,6 @@ try {
 
                                                                 $project_start_date = '';
                                                                 $project_end_date = '';
-                                                                if ($stage > 2) {
                                                                     $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
                                                                     $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
                                                                     $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
@@ -197,7 +196,7 @@ try {
                                                                         $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
                                                                         $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
                                                                     }
-                                                                }
+
 
 
                                                                 $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
@@ -249,7 +248,7 @@ try {
                                                                     <td width="12%"><?= $sector ?></td>
                                                                     <td width="8%"><?= number_format($projcost, 2) ?></td>
                                                                     <?php
-                                                                    if ($stage > 2) {
+                                                                    if ($stage > 1) {
                                                                     ?>
                                                                         <td width="8%"><?= $project_start_date; ?></td>
                                                                         <td width="8%"><?= $project_end_date; ?></td>
@@ -307,7 +306,7 @@ try {
                                                             <th width="12%"><strong><?= $departmentlabel ?></strong></th>
                                                             <th width="8%"><strong>Budget (Ksh)</strong></th>
                                                             <?php
-                                                            if ($stage > 2) {
+                                                            if ($stage > 1) {
                                                             ?>
                                                                 <th width="8%"><strong>Start Date</strong></th>
                                                                 <th width="8%"><strong>End Date</strong></th>
@@ -319,11 +318,11 @@ try {
                                                             }
                                                             if ($stage == 2) {
                                                             ?>
-                                                                <th width="10%"><strong>Substage,Status,Progress(%)</strong></th>
+                                                                <th width="10%"><strong>Substage, Status, Progress(%)</strong></th>
                                                             <?php
                                                             } else {
                                                             ?>
-                                                                <th width="10%"><strong>Substage,Status</strong></th>
+                                                                <th width="10%"><strong>Substage, Status</strong></th>
                                                             <?php
                                                             }
                                                             ?>
@@ -362,16 +361,15 @@ try {
 
                                                                 $project_start_date = '';
                                                                 $project_end_date = '';
-                                                                if ($stage > 2) {
-                                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
-                                                                    $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
-                                                                    $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-                                                                    $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                                    if ($total_rsTask_Start_Dates > 0) {
-                                                                        $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
-                                                                        $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
-                                                                    }
+                                                                $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
+                                                                $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+                                                                $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+                                                                $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                                if ($total_rsTask_Start_Dates > 0) {
+                                                                    $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
+                                                                    $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
                                                                 }
+
 
                                                                 $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
                                                                 $query_rsProjissues->execute(array(":projid" => $projid));
@@ -411,7 +409,7 @@ try {
                                                                     <td width="12%"><?= $sector ?></td>
                                                                     <td width="8%"><?= number_format($projcost, 2) ?></td>
                                                                     <?php
-                                                                    if ($stage > 2) {
+                                                                    if ($stage > 1) {
                                                                     ?>
                                                                         <td width="8%"><?= $project_start_date; ?></td>
                                                                         <td width="8%"><?= $project_end_date; ?></td>

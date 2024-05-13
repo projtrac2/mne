@@ -96,6 +96,8 @@ try {
                                                             $totalRows_rsStrategicPlanProgram = $query_rsStrategicPlanProgram->rowCount();
 
                                                             $projectscount = '<a href="#"><span class="badge bg-purple">0</span></a>';
+                                                            $progbudgetbal = number_format(0, 2);
+
                                                             if ($totalRows_rsStrategicPlanProgram > 0) {
                                                                 $strategic_plan_program_id = $row_rsStrategicPlanProgram['id'];
                                                                 //get total projects
@@ -104,11 +106,10 @@ try {
                                                                 $row_projsbudget = $query_projsbudget->fetch();
                                                                 $count_projsbudget = $query_projsbudget->rowCount();
 
-                                                                $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
                                                                 $count_projects = !is_null($row_projsbudget['projectscount']) ? $row_projsbudget['projectscount'] : 0;
-                                                                $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
-
                                                                 if ($count_projects > 0) {
+                                                                    $projsbudget = !is_null($row_projsbudget['budget']) ? $row_projsbudget['budget'] : number_format(0, 2);
+                                                                    $progbudgetbal = number_format(($row_rsBudget['budget'] - $projsbudget), 2);
                                                                     $progid_hashed = base64_encode("progid54321{$strategic_plan_program_id}");
                                                                     $projectscount = '<a href="view-project.php?prg=' . $progid_hashed . '"><span class="badge bg-purple">' . $count_projects . '</span></a>';
                                                                 }

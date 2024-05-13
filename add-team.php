@@ -22,7 +22,6 @@ try {
             $project_directorate = $row_rsProjects['directorate'];
             $project_sub_stage = $row_rsProjects['proj_substage'];
             $approval_stage = ($sub_stage  >= 2) ? true : false;
-
 ?>
             <!-- start body  -->
             <section class="content">
@@ -234,9 +233,13 @@ try {
                                                         }";
                                                     ?>
                                                         <button type="button" onclick="save_data_entry_project(<?= $data_entry_details ?>)" class="btn btn-success">Proceed</button>
-                                            <?php
+                                                <?php
                                                     }
                                                 }
+                                            } else {
+                                                ?>
+                                                <span style="color: red;"><strong>Note: To proceed add team leader and assign all activities to users.</strong></span>
+                                            <?php
                                             }
                                             ?>
                                         </div>

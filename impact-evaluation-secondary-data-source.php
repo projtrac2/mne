@@ -4,11 +4,11 @@ try {
 
   if ($permission) {
 
-    $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=2 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=2 and (projstage=15 OR projstage=21) AND responsible=:user_name ORDER BY p.projid ASC");
     $query_baseline_survey->execute(array(":user_name" => $user_name));
 
     if ($designation == 1) {
-      $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=2 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=2 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
       $query_baseline_survey->execute();
     }
     //$rows = $query_baseline_survey->fetch();
@@ -72,7 +72,7 @@ try {
                           $impactid = $rows_baseline_survey['id'];
                           $projdate = date('d-m-Y');
                           $evaluationtype = "Baseline";
-                          if ($projstage == 10) {
+                          if ($projstage == 21) {
                             $evaluationtype = "Endline";
                           }
 
@@ -98,9 +98,9 @@ try {
                             echo '
 							  <tr>
 								<td style="width:3%">' . $deploy_counter . '</td>
-								<td style="width:20%">' . $impactindicator . '</td>
-								<td style="width:35%">' . $projname . '</td>
-								<td style="width:12%">' . $evaluationtype . '</td>
+								<td style="width:30%">' . $impactindicator . '</td>
+								<td style="width:42%">' . $projname . '</td>
+								<td style="width:15%">' . $evaluationtype . '</td>
 								<td style="width:10%">';
                             if (($designation == 1) || ($designation >= 7 && $designation <= 13)) {
                               echo '

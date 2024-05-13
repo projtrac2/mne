@@ -4,11 +4,11 @@ try {
 
   if ($permission) {
 
-    $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=2 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=2 and (projstage=15 OR projstage=21) AND responsible=:user_name ORDER BY p.projid ASC");
     $query_baseline_survey->execute(array(":user_name" => $user_name));
 
     if ($designation == 1) {
-      $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=2 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_baseline_survey = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_outcome_details o on o.projid=p.projid WHERE data_source=2 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
       $query_baseline_survey->execute();
     }
     //$rows = $query_baseline_survey->fetch();
@@ -49,10 +49,10 @@ try {
                     <thead>
                       <tr class="bg-green">
                         <th style="width:3%">#</th>
-                        <th style="width:30%">Indicator</th>
-                        <th style="width:42%">Project Name</th>
+                        <th style="width:35%">Indicator</th>
+                        <th style="width:40%">Project Name</th>
                         <th style="width:15%">Evaluation&nbsp;Type</th>
-                        <th style="width:10%" data-orderable="false">Action</th>
+                        <th style="width:7%" data-orderable="false">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -72,9 +72,11 @@ try {
                           $outcomeid = $rows_baseline_survey['id'];
                           $projdate = date('d-m-Y');
                           $evaluationtype = "Baseline";
-                          if ($projstage == 10) {
+                          if ($projstage == 21) {
                             $evaluationtype = "Endline";
                           }
+						  
+							$outcome_type = $rows_baseline_survey['outcome_type'] == 1 ? "Primary Outcome":"Secondary Outcome";
 
                           $query_count_conclusions = $db->prepare("SELECT * FROM tbl_survey_conclusion WHERE projid=:projid AND survey_type=:evaluationtype");
                           $query_count_conclusions->execute(array(":projid" => $projid, ":evaluationtype" => $evaluationtype));
@@ -96,10 +98,10 @@ try {
                             echo '
 							  <tr>
 								<td style="width:3%">' . $deploy_counter . '</td>
-								<td style="width:20%">' . $outcomeindicator . '</td>
-								<td style="width:35%">' . $projname . '</td>
-								<td style="width:12%">' . $evaluationtype . '</td>
-								<td style="width:10%">';
+								<td style="width:35%">' . $outcomeindicator . '</td>
+								<td style="width:40%">' . $projname . '</td>
+								<td style="width:15%">' . $evaluationtype . '<br>(' . $outcome_type . ')</td>
+								<td style="width:7%">';
                             if (($designation == 1) || ($designation >= 7 && $designation <= 13)) {
                               echo '
 									  <a type="button" class="badge bg-purple" href="secondary-data-evaluation?results=' . $outcomeidencoded . '&resultstype=2">

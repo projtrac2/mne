@@ -17,6 +17,7 @@ try {
         if (($role_group == 4 && $designation == 1) || ($role_group == 2 && $designation < 5) || ($role_group == 1)) {
             $accesslevel = "";
             $sector = 1;
+
             $query_rsSectors = $db->prepare("SELECT * FROM tbl_sectors WHERE parent='0'");
             $query_rsSectors->execute();
             $totalRows_rsSectors = $query_rsSectors->rowCount();

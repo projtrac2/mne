@@ -100,17 +100,17 @@ try {
 						// Comments link back to the system
 						$issuemessage = "The committee has decided to ignore the issue and allow the project <strong>TO CONTINUE</strong>. Please proceed to close the issue";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
-						$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
+						$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
 
 						$receipient = $row["email"];
 						$fullname = $row['title'] . "." . $row['fullname'];
 
-						$message = ' Dear ' . $fullname . ',
+						$mainmessage = ' Dear ' . $fullname . ',
 						<p><br>' . $issuemessage . '</p>';
 						$title = $subject;
 						$receipientName = $fullname;
 
-						include("assets/processor/email-body.php");
+						include("assets/processor/email-body-orig.php");
 						include("assets/processor/email-conf-settings.php");
 					}
 					$msg = 'Project issue status successfully updated';
@@ -131,7 +131,7 @@ try {
 				$projissue = $_POST["issueid"];
 				$comments = $_POST["comments"];
 				$subject = "Project On Hold";
-				$assessment = $_POST["assessment"];
+				//$assessment = $_POST["assessment"];
 				$actiondate = date("Y-m-d");
 				$issue_status = $_POST["projstatuschange"];
 				$reason = "Project Committee Action: " . $subject;
@@ -205,13 +205,13 @@ try {
 					$updateQuery = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus, projchangedstatus=:projchangedstatus WHERE projid=:projid");
 					$updated = $updateQuery->execute(array(':projstatus' => $newstatus, ':projchangedstatus' => $origstatus, ':projid' => $projid));
 
-					if ($assessment == 1) {
+					/* if ($assessment == 1) {
 						$projeval = " <br><strong>Please NOTE Issue Assessment/Evaluation is required for this project</strong>";
-					}
+					} */
 
 					$status = 2;
-					$insertSQL = $db->prepare("UPDATE tbl_projissues SET status = :status, assessment = :assessment WHERE projid = :projid AND id = :issueid");
-					$update_results = $insertSQL->execute(array(':status' => $status, ':assessment' => $assessment, ':projid' => $projid, ':issueid' => $projissue));
+					$insertSQL = $db->prepare("UPDATE tbl_projissues SET status = :status WHERE projid = :projid AND id = :issueid");
+					$update_results = $insertSQL->execute(array(':status' => $status, ':projid' => $projid, ':issueid' => $projissue));
 
 					$query_url =  $db->prepare("SELECT * FROM tbl_company_settings");
 					$query_url->execute();
@@ -226,18 +226,18 @@ try {
 						// Comments link back to the system
 						$issuemessage = "After enough deliberation, the committee has decided to put the project <strong>ON HOLD</strong> based on the issue weight.<br>";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
-						$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">More Details</a>';
+						$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">More Details</a>';
 
 						$receipient = $row["email"];
 						$fullname = $row['title'] . "." . $row['fullname'];
 
-						$message = ' Dear ' . $fullname . ',
+						$mainmessage = ' Dear ' . $fullname . ',
 						<p><br>' . $issuemessage . '</p>
 						<p>Please make the necessary arrangements as advised. </p>';
 						$title = $subject;
 						$receipientName = $fullname;
 
-						include("assets/processor/email-body.php");
+						include("assets/processor/email-body-orig.php");
 						include("assets/processor/email-conf-settings.php");
 					}
 
@@ -346,18 +346,18 @@ try {
 						$issuemessage = "After enough deliberation, the committee has decided to cancel the project based on the issue weight.<br>";
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
 
-						$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
+						$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close Issue</a>';
 
 						$receipient = $row["email"];
 						$fullname = $row['title'] . "." . $row['fullname'];
 
-						$message = ' Dear ' . $fullname . ',
+						$mainmessage = ' Dear ' . $fullname . ',
 						<p><br>' . $issuemessage . '</p>
 						<p>Please make the necessary arrangements as advised. </p>';
 						$title = $subject;
 						$receipientName = $fullname;
 
-						include("assets/processor/email-body.php");
+						include("assets/processor/email-body-orig.php");
 						include("assets/processor/email-conf-settings.php");
 					}
 
@@ -526,17 +526,17 @@ try {
 							// Comments link back to the system
 							$issuemessage = "The committee has restored the project and approved the request. Please proceed to close the issue.";
 							$encrypted_issue = base64_encode("projid54321{$projissue}");
-							$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
+							$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
 
 							$receipient = $row["email"];
 							$fullname = $row['title'] . "." . $row['fullname'];
 
-							$message = ' Dear ' . $fullname . ',
+							$mainmessage = ' Dear ' . $fullname . ',
 							<p><br>' . $issuemessage . '</p>';
 							$title = $subject;
 							$receipientName = $fullname;
 
-							include("assets/processor/email-body.php");
+							include("assets/processor/email-body-orig.php");
 							include("assets/processor/email-conf-settings.php");
 
 							$msg = 'Record successfully saved';
@@ -681,17 +681,17 @@ try {
 							// Comments link back to the system
 							$issuemessage = "The committee has restored the project, please proceed to close the issue.";
 							$encrypted_issue = base64_encode("issueid254{$projissue}");
-							$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
+							$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
 
 							$receipient = $rows["email"];
 							$fullname = $rows['title'] . "." . $rows['fullname'];
 
-							$message = ' Dear ' . $fullname . ',
+							$mainmessage = ' Dear ' . $fullname . ',
 							<p><br>' . $issuemessage . '</p>';
 							$title = $subject;
 							$receipientName = $fullname;
 
-							include("assets/processor/email-body.php");
+							include("assets/processor/email-body-orig.php");
 							include("assets/processor/email-conf-settings.php");
 
 							$msg = 'Project restored successfully!!';
@@ -787,13 +787,12 @@ try {
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
+						$row_program_of_works = $query_program_of_works->fetch();
 
-						$sub_task_duration = $row_project_adjustments["duration"];
+						$sub_task_duration = $row_program_of_works["duration"];
 						$new_duration = $sub_task_duration + $timeline;
-						$sub_task_program_end_date = $row_project_adjustments["end_date"];
-						$date = date_create($sub_task_program_end_date);
-						date_add($date, date_interval_create_from_date_string($onhold_days));
-						$new_end_date = date_format($date, "Y-m-d");
+						$sub_task_program_end_date = $row_program_of_works["end_date"];
+						$new_end_date = date('Y-m-d', strtotime($sub_task_program_end_date. " + ".$timeline." days"));
 
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
@@ -801,13 +800,12 @@ try {
 						$timeline = $row_project_adjustments["timeline"];
 						$query_program_of_works =  $db->prepare("SELECT duration, end_date FROM tbl_program_of_works WHERE id=:pw_id");
 						$query_program_of_works->execute(array(":pw_id" => $pw_id));
+						$row_program_of_works = $query_program_of_works->fetch();
 
-						$sub_task_duration = $row_project_adjustments["duration"];
+						$sub_task_duration = $row_program_of_works["duration"];
 						$new_duration = $sub_task_duration + $timeline;
 						$sub_task_program_end_date = $row_project_adjustments["end_date"];
-						$date = date_create($sub_task_program_end_date);
-						date_add($date, date_interval_create_from_date_string($onhold_days));
-						$new_end_date = date_format($date, "Y-m-d");
+						$new_end_date = date('Y-m-d', strtotime($sub_task_program_end_date. " + ".$timeline." days"));
 
 						$update_program_of_works = $db->prepare("UPDATE tbl_program_of_works SET duration=:duration, original_duration=:original_duration, end_date=:new_end_date WHERE id=:pw_id");
 						$update_program_of_works->execute(array(':duration' => $new_duration, ':original_duration' => $sub_task_duration, ':new_end_date' => $new_end_date, ':pw_id' => $pw_id));
@@ -847,17 +845,17 @@ try {
 						$iowner = $row["userid"];
 						// Comments link back to the system
 						$encrypted_issue = base64_encode("projid54321{$projissue}");
-						$details_link = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
+						$detailslink  = '<a href="' . $url . 'my-project-issues?proj=' . $encrypted_issue . '" class="btn bg-light-blue waves-effect" style="margin-top:10px; margin-left:-9px">Close the Issue</a>';
 
 						$receipient = $row["email"];
 						$fullname = $row['title'] . "." . $row['fullname'];
 
-						$message = ' Dear ' . $fullname . ',
+						$mainmessage = ' Dear ' . $fullname . ',
 						<p><br>' . $issuemessage . '</p>';
 						$title = $subject;
 						$receipientName = $fullname;
 
-						include("assets/processor/email-body.php");
+						include("assets/processor/email-body-orig.php");
 						include("assets/processor/email-conf-settings.php");
 					}
 

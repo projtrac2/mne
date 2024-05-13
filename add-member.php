@@ -25,19 +25,16 @@ try {
 
         function sendMail($user_id, $fullname, $email, $password)
         {
-            global $db;
-
             $mail = new Email();
             $notification_group_id = 1;
             $notification_type_id = 7;
             $priority = 1;
-            $page_url = "index.php";
+            $page_url = "https://mne.projtrac.co.ke/index.php";
             $token = $mail->get_auth_token($fullname, $email, $password, '');
             $notification = $mail->get_notifications($priority, $notification_group_id);
             $notification_id = $notification->id;
             return $mail->get_template($token, $user_id, $notification_type_id, $notification_group_id, $notification_id, $page_url);
         }
-
 
         function get_title($title_id)
         {
@@ -48,8 +45,6 @@ try {
             $totalRows_rsTitle = $query_rsTitle->rowCount();
             return $totalRows_rsTitle > 0 ? $row_rsTitle['title'] : '';
         }
-
-
 
         function alert_message($title, $msg, $type, $icon)
         {
@@ -318,11 +313,11 @@ try {
         }
         $where = '';
 
-        if ($designation == 6) {
-            $where = " WHERE position > 6";
-        } elseif ($designation == 1) {
-            $where = " WHERE position > 1";
-        }
+        // if ($designation == 6) {
+        //     $where = " WHERE position > 6";
+        // } elseif ($designation == 1) {
+        //     $where = " WHERE position > 1";
+        // }
 
         $query_rsPMDesignation =  $db->prepare("SELECT * FROM tbl_pmdesignation $where ORDER BY moid ASC");
         $query_rsPMDesignation->execute();

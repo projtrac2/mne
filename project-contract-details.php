@@ -211,60 +211,59 @@ try {
 											<legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
 												<i class="fa fa-list" style="color:#F44336" aria-hidden="true"></i> Tender and Contract Details
 											</legend>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Contract Ref. Number *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $contractrefno ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Contract Signature Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tendersignaturedate ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Contract Start Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tenderstartdate ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Contract Expiry Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tenderenddate ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Number *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tenderno ?></div>
 											</div>
-											<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
-												<label for="Title">Tender Title *:</label>
-												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; height: auto; width:98%"><?= $tendertitle; ?>
-												</div>
+											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+												<label for="">Tender Title *</label>
+												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; height: auto; width:100%"><?= $tendertitle ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Type *</label>
-												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?php echo $tendertype; ?></div>
+												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tendertype ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Category *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?php echo $tendercat; ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Procurement Method *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?php echo $procurementmethod ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Evaluation Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tenderevaluationdate ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Technical Score *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $technicalscore ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Financial Score *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $financialscore ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Award Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tenderawarddate ?></div>
 											</div>
-											<div class="col-lg-3 col-md-3 col-sm-12 col-xs-12">
+											<div class="col-lg-3 col-md-4 col-sm-12 col-xs-12">
 												<label for="">Tender Notification Date *</label>
 												<div class="form-control require" style="border:#CCC thin solid; border-radius:5px; width:98%"><?= $tendernotificationdate ?></div>
 											</div>

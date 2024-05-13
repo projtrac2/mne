@@ -36,7 +36,7 @@ try {
     </div>
     <div class="body">
         <div style="margin-top:5px">
-            <form id="add_financier" method="POST" name="addfinancierfrm" action="" enctype="multipart/form-data" autocomplete="off">
+            <form id="add_financier" method="POST" name="addfinancierfrm" action="<?php echo $editFormAction; ?>" enctype="multipart/form-data" autocomplete="off">
                 <?= csrf_token_html(); ?>
                 <fieldset class="scheduler-border">
                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">DETAILS</legend>

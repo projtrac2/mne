@@ -2,7 +2,7 @@
 try {
 	require('includes/head.php');
 	if ($permission) {
-		$query_mne_projects = $db->prepare("SELECT * FROM tbl_projects where projstage > 7");
+		$query_mne_projects = $db->prepare("SELECT * FROM tbl_projects where projstage > 14");
 		$query_mne_projects->execute();
 		$count_mne_projects = $query_mne_projects->rowCount();
 ?>

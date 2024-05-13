@@ -172,6 +172,7 @@ try {
 		if ($row_proj) {
 			$project = $row_proj["projname"];
 			$projstage = $row_proj["projstage"];
+			$projcategory = $row_proj["projcategory"];
 			$proj_locations = $row_proj["projlga"];
 			$projlocations = explode(",", $proj_locations);
 			$proj_location_count = count($projlocations);
@@ -240,11 +241,12 @@ try {
 
 
 		$evaluationtype = "Baseline";
-		if ($projstage == 10) {
+		if ($projstage == 21) {
 			$evaluationtype = "Endline";
 		}
 
 		$pageTitle = "Project " . $resultstype . " " . $evaluationtype . " Evaluation Conclusion";
+		$next_projstage = $projcategory == 2 ? $projstage + 1 : $projstage + 2;
 
 ?>
 		<script src="ckeditor/ckeditor.js"></script>
@@ -431,7 +433,7 @@ try {
 																						while ($rows_answers = $query_answers->fetch()) {
 																							$question_answer += $rows_answers["answer"];
 																						}
-																					} elseif ($question_calculation_method == 3) { //average
+																					} elseif ($question_calculation_method == 4) { //average
 																						$summation = 0;
 																						while ($rows_answers = $query_answers->fetch()) {
 																							$summation += $rows_answers["answer"];
@@ -465,7 +467,7 @@ try {
 																						$question_answer += $rows_answers["answer"];
 																					}
 																					$totalanswer += $question_answer;
-																				} elseif ($question_calculation_method == 3) { //average
+																				} elseif ($question_calculation_method == 4) { //average
 																					$summation = 0;
 																					while ($rows_answers = $query_disag_answers->fetch()) {
 																						$summation += $rows_answers["answer"];
@@ -493,14 +495,14 @@ try {
 																				$query_answers =  $db->prepare("SELECT answer FROM tbl_project_evaluation_submission s left join tbl_project_evaluation_answers a on a.submissionid=s.id WHERE formid=:formid and level3=:location and questionid=:questionid");
 																				$query_answers->execute(array(":formid" => $formid, ":location" => $locationid, ":questionid" => $questionid));
 																				$count_answers = $query_answers->rowCount();
-																				$question_answer = $summation = 0;
+																				$question_answer = $summation = $totalanswer = 0;
 																				if ($question_calculation_method == 1) {
 																					while ($rows_answers = $query_answers->fetch()) {
 																						$question_answer += $rows_answers["answer"];
 																					}
 																					$totalanswer += $question_answer;
 																					$totalamount = $totalanswer;
-																				} elseif ($question_calculation_method == 3) {
+																				} elseif ($question_calculation_method == 4) {
 																					while ($rows_answers = $query_answers->fetch()) {
 																						$summation += $rows_answers["answer"];
 																					}
@@ -517,7 +519,7 @@ try {
 																			<td><strong>';
 																			if ($question_calculation_method == 1) {
 																				echo 'Total Number';
-																			} elseif ($question_calculation_method == 3) {
+																			} elseif ($question_calculation_method == 4) {
 																				echo 'Average Number';
 																			}
 																			echo '</strong></td>
@@ -1619,7 +1621,7 @@ try {
 																	<input name="category" type="hidden" class="form-control" value="<?php echo $category; ?>" />
 																	<input name="surveytype" type="hidden" value="<?php echo $evaluationtype; ?>" />
 																	<input name="disaggregation" type="hidden" value="<?php echo $disaggregated; ?>" />
-																	<input name="projstage" type="hidden" value="<?php echo $projstage + 1; ?>" />
+																	<input name="projstage" type="hidden" value="<?php echo $next_projstage; ?>" />
 
 																</div>
 															</div>

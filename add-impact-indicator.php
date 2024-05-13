@@ -13,6 +13,7 @@ try {
 		$data_sources = get_data_sources();
 		$measurement_units = get_measurement_units();
 		$indicator_calculation_methods = get_indicator_calculation_methods();
+		$editFormAction = $_SERVER['PHP_SELF'];
 
 		$results = "";
 		if ((isset($_POST["MM_insert"])) && ($_POST["MM_insert"] == "addindfrm")) {
@@ -130,6 +131,11 @@ try {
 				</script>";
 				}
 			}
+		}
+
+
+		if (isset($_SERVER['QUERY_STRING'])) {
+			$editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
 		}
 
 ?>

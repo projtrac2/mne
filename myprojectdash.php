@@ -1,7 +1,6 @@
 <?php
 try {
 	require('includes/head.php');
-	include_once('projects-functions.php');
 	if ($permission &&  (isset($_GET['proj']) && !empty($_GET["proj"]))) {
 		$decode_projid =  base64_decode($_GET['proj']);
 		$projid_array = explode("projid54321", $decode_projid);
@@ -12,7 +11,7 @@ try {
 		$query_rsMyP->execute(array(":projid" => $projid));
 		$row_rsMyP = $query_rsMyP->fetch();
 		$count_rsMyP = $query_rsMyP->rowCount();
-		
+
 		$projname = $projstartdate = $projenddate = $implimentation_method = "";
 		if ($count_rsMyP > 0) {
 			$projstatusid = $row_rsMyP["projstatus"];

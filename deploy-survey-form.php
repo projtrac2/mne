@@ -2,9 +2,6 @@
 try {
     require('includes/head.php');
     if ($permission) {
-
-
-
         if (isset($_GET['formid']) && !empty($_GET['formid'])) {
             $encoded_formid = $_GET['formid'];
             $decode_formid = base64_decode($encoded_formid);
@@ -19,23 +16,29 @@ try {
             $indid = $row_rs_form['indid'];
             $form_name = $row_rs_form['form_name'];
             $resultstype = $row_rs_form['resultstype'];
-            $resultstypename = $resultstype == 1 ? "Impact" : "Outcome";
-            $surveytype = $row_rs_form['form_type'];
-            $formtype = $row_rs_form['type'];
+			$resultstypeid = $row_rs_form['resultstypeid'];
             $enumtype = $row_rs_form['enumerator_type'];
             $startdate = date("d M Y", strtotime($row_rs_form['startdate']));
             $enddate = date("d M Y", strtotime($row_rs_form['enddate']));
 
-            if ($enumtype == 1) {
-                $enumeratortype = "In-house";
+            $enumeratortype = $enumtype == 1 ? "In-house" : "Out-Sourced";
+
+            if ($resultstype == 2) {
+                $query_results = $db->prepare("SELECT * FROM tbl_project_expected_outcome_details WHERE id=:resultstypeid");
+                $query_results->execute(array(":resultstypeid" => $resultstypeid));
+                $row_results = $query_results->fetch();
+                $formtype = "Outcome ";
+                $resultstobemeasured = $row_results['outcome'];
             } else {
-                $enumeratortype = "Out-Sourced";
+                $query_results = $db->prepare("SELECT * FROM tbl_project_expected_impact_details WHERE id=:resultstypeid");
+                $query_results->execute(array(":resultstypeid" => $resultstypeid));
+                $row_results = $query_results->fetch();
+                $formtype = "Impact ";
+                $resultstobemeasured = $row_results['impact'];
             }
 
-            if ($surveytype == 9)
-                $svytype = "Baseline";
-            else
-                $svytype = "Endline";
+            $surveytype = $row_rs_form['form_type'] == 15 ? "Baseline":"Endline";
+            $formname = "Project " . $formtype . $surveytype;
 
             $query_rsIndicator = $db->prepare("SELECT * FROM tbl_indicator WHERE indid ='$indid'");
             $query_rsIndicator->execute();
@@ -77,9 +80,9 @@ try {
             $count_projects = $query_projects->rowCount();
             $rows_projects = $query_projects->fetch();
             $level2 = explode(",", $rows_projects['projlga']);
+            $projname  = $rows_projects['projname'];
         }
-
-?>
+		?>
         <style>
             #links a {
                 color: #FFFFFF;
@@ -94,11 +97,9 @@ try {
                         <?= $icon ?>
                         <?= $pageTitle ?>
                         <div class="btn-group" style="float:right">
-                            <div class="btn-group" style="float:right">
-                                <button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
-                                    Go Back
-                                </button>
-                            </div>
+							<button onclick="history.go(-1)" class="btn bg-orange waves-effect pull-right" style="margin-right: 10px">
+								Go Back
+							</button>
                         </div>
                     </h4>
                 </div>
@@ -110,10 +111,10 @@ try {
                         <div class="card">
                             <div class="card-header">
                                 <ul class="list-group">
-                                    <li class="list-group-item list-group-item list-group-item-action active">Form Name: <?php echo $resultstypename . " " . $form_name ?> </li>
-                                    <li class="list-group-item ">Change to be measured: <?= $indname ?> </li>
-                                    <li class="list-group-item ">Unit of Measure: <?= $unit ?> </li>
-                                    <li class="list-group-item ">Enumerator Type: <?= $enumeratortype ?> </li>
+                                    <li class="list-group-item list-group-item list-group-item-action active">Form Name: <?php echo $formname . " " . $form_name ?> </li>
+									<li class="list-group-item">Project Name: <?= $projname ?> </li>
+									<li class="list-group-item"><strong>Indicator: </strong> <?= $indname ?> </li>
+                                    <li class="list-group-item "><strong>Enumerator Type: </strong> <?= $enumeratortype ?> </li>
                                 </ul>
                             </div>
                             <div class="body">
@@ -285,7 +286,7 @@ try {
                                                         <input name="projid" type="hidden" id="projid" value="<?php echo $projid; ?>" />
                                                         <input name="form_id" type="hidden" id="form_id" value="<?= $formid ?>" />
                                                         <input name="resultstype" type="hidden" id="resultstype" value="<?= $resultstype ?>" />
-                                                        <a href="view-project-survey" type="button" class="btn bg-orange"> Cancel </a>
+                                                        <a href="#" onclick="history.go(-1)" type="button" class="btn bg-orange"> Cancel </a>
                                                         <input name="submit" type="submit" class="btn bg-light-blue waves-effect waves-light" id="submit" value="Submit" />
                                                         <input type="hidden" name="MM_insert" value="addenumeratorbasefrme" />
                                                     </div>

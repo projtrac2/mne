@@ -273,12 +273,12 @@ function send_activity_monitoring_mails()
                     // reminder
                     $today_reminders = check_reminder($projid, $today, $member_id);
                     if ($today_reminders != '') {
-                        $response = $mail->send_activity_notification($member_id, $projid, $project, $upcoming_reminder_date, '', '', '',  9, 10, 5);
+                        // $response = $mail->send_activity_notification($member_id, $projid, $project, $upcoming_reminder_date, '', '', '',  9, 10, 5);
                     }
 
                     $upcoming_reminders = check_reminder($projid, $upcoming_reminder_date, $member_id);
                     if ($upcoming_reminders != '') {
-                        $response = $mail->send_activity_notification($member_id, $projid, $project, $upcoming_reminder_date, '', '', '',  9, 10, 5);
+                        // $response = $mail->send_activity_notification($member_id, $projid, $project, $upcoming_reminder_date, '', '', '',  9, 10, 5);
                     }
 
                     //Escalation
@@ -300,7 +300,7 @@ function send_activity_monitoring_mails()
                             $user_id = ($total_rsTeamLeader > 0) ? $row_rsTeamLeader['responsible'] : '';
                         }
 
-                        $response = $mail->send_activity_notification($user_id, $projid, $project, $escalation_date, $member_id, '', '',  9, 10, 4);
+                        // $response = $mail->send_activity_notification($user_id, $projid, $project, $escalation_date, $member_id, '', '',  9, 10, 4);
                     }
                 }
             }

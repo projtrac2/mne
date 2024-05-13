@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 function customErrorHandler($errno, $errstr, $errfile, $errline)
 {
     $message = "Error: [$errno] $errstr - $errfile:$errline";
-    var_dump($message);
+    // var_dump($message);
     error_log($message . PHP_EOL, 3, "logs/error_log.log");
 }
 

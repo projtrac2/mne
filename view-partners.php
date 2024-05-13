@@ -5,6 +5,7 @@ try {
         $query_rspartner = $db->prepare("SELECT * FROM tbl_partners");
         $query_rspartner->execute();
         $totalRows_rspartner = $query_rspartner->rowCount();
+
 ?>
         <!-- start body  -->
         <section class="content">
@@ -182,7 +183,6 @@ try {
                                     icon: "error",
                                 });
                             }
-                            
                             setTimeout(function() {
                                 window.location.reload(true);
                             }, 3000);

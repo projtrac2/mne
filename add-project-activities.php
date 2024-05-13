@@ -73,6 +73,7 @@ try {
                                                             $activity = $sub_stage > 1 ? "Approve"  : "Edit";
                                                         }
 
+
                                                         $assigned = ($sub_stage == 3 || $sub_stage == 1) ? true : false;
                                                         $edit =  $assigned ? "edit" : "new";
                                                         $details = "{

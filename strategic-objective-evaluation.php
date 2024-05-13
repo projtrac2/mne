@@ -129,31 +129,31 @@ try {
 													$strategic_objective = $rows_strategic_objective['objective'];
 
 													/* $startdate = date_format(date_create($rows_baseline_survey['projstartdate']), "d M Y");
-							$enddate = date_format(date_create($rows_baseline_survey['projenddate']), "d M Y"); */
+													$enddate = date_format(date_create($rows_baseline_survey['projenddate']), "d M Y"); */
 
 													$today = date('d-m-Y');
 													$Performance = 20 . "%";
 
 													$counter++;
 													echo '
-							<tr>
-								<td>' . $counter . '</td>
-								<td colspan="3"><div onclick="objective_kpi(' . $objid . ')">' . $strategic_objective . '</div></td>
-								<td align="center">' . $Performance . '</td>
-								<td>' . $today . '</td>
-								<td class="text-primary">
-									<div onclick="objective_kpi(' . $objid . ')" id="action' . $objid . '">';
-													/* if (( $designation == 1) || ( $designation >= 7 && $designation <= 13)) {
-										  echo '
-										  <a type="button" class="badge bg-purple" href="secondary-data-evaluation?results=' . $outcomeidencoded . '&resultstype=2">
-											Add Data
-										  </a>';
-										} */
-													echo '
-										<i class="fa fa-angle-double-right text-primary" aria-hidden="true"></i> View KPIs
-									</div>
-								</td>
-							</tr>';
+													<tr>
+														<td>' . $counter . '</td>
+														<td colspan="3"><div onclick="objective_kpi(' . $objid . ')">' . $strategic_objective . '</div></td>
+														<td align="center">' . $Performance . '</td>
+														<td>' . $today . '</td>
+														<td class="text-primary">
+															<div onclick="objective_kpi(' . $objid . ')" id="action' . $objid . '">';
+																			/* if (( $designation == 1) || ( $designation >= 7 && $designation <= 13)) {
+																  echo '
+																  <a type="button" class="badge bg-purple" href="secondary-data-evaluation?results=' . $outcomeidencoded . '&resultstype=2">
+																	Add Data
+																  </a>';
+																} */
+																			echo '
+																<i class="fa fa-angle-double-right text-primary" aria-hidden="true"></i> View KPIs
+															</div>
+														</td>
+													</tr>';
 
 													$query_kpis = $db->prepare("SELECT id, indicator_name, data_source, responsible FROM tbl_kpi k left join tbl_indicator i on i.indid=k.outcome_indicator_id WHERE strategic_objective_id=:objid");
 													$query_kpis->execute(array(":objid" => $objid));
@@ -175,23 +175,41 @@ try {
 															$count_kpi++;
 															$kpi_id = $rows['id'];
 															$kpi_description = $rows['indicator_name'];
-															$data_source = $rows['data_source'];
+															$data_source_id = $rows['data_source'];
+															$data_source = $data_source_id == 1 ? "Survey":"Records";
 															$responsible_id = $rows["responsible"];
-															$responsible_id = 8;
+															$encrypted_kpi_id = base64_encode("kpi254{$kpi_id}");
+															//$responsible_id = 8;
+															
+															$evaluation_link = $responsible_designation = "";
 
 															$query_responsible_designation = $db->prepare("SELECT designation FROM tbl_pmdesignation WHERE moid=:responsible_id");
 															$query_responsible_designation->execute(array(":responsible_id" => $responsible_id));
 															$rows_responsible_designation = $query_responsible_designation->fetch();
-															$responsible_designation = $rows_responsible_designation["designation"];
+															
+															if($rows_responsible_designation){
+																$responsible_designation = $rows_responsible_designation["designation"];
+															}
+															
+															if($data_source_id == 2){
+																$evaluation_link =
+																'<a data-toggle="modal" data-target="#evaluateItemModal" data-toggle-class="evaluateItemModalID" onclick="kpi_evaluation('.$kpi_id.')" style="color:green">
+																	<i class="fa fa-pencil-square-o" aria-hidden="true"></i> Evaluate
+																</a>';
+															}else{
+																$evaluation_link =
+																'<a href="create-kpi-survey-form?kpi='.$encrypted_kpi_id.'" alt="Create KPI data collection form" width="16" height="16" data-toggle="tooltip" data-placement="bottom" title="Create KPI data collection form">
+																	<i class="fa fa-pencil-square-o" aria-hidden="true"></i> Create Form
+																</a>';
+															}
 
 															/* $query_responsible = $db->prepare("SELECT tt.title AS title, fullname FROM users u left join tbl_projteam2 t on t.ptid=u.pt_id left join tbl_titles tt on tt.id=t.title WHERE u.userid=:responsible_id");
-									$query_responsible->execute(array(":responsible_id"=>$responsible_id));
-									$rows_responsible = $query_responsible->fetch();
-									$title = $rows_responsible["title"];
-									$full_name = $rows_responsible["fullname"];
-									$responsible = $title.".".$full_name; */
-
-														?>
+															$query_responsible->execute(array(":responsible_id"=>$responsible_id));
+															$rows_responsible = $query_responsible->fetch();
+															$title = $rows_responsible["title"];
+															$full_name = $rows_responsible["fullname"];
+															$responsible = $title.".".$full_name; */
+															?>
 															<tr class="objid <?= $objid ?>" style="background-color:#e3e9ea">
 																<td></td>
 																<td><?= $counter . "." . $count_kpi ?></td>
@@ -205,10 +223,7 @@ try {
 																			Options <span class="caret"></span>
 																		</button>
 																		<ul class="dropdown-menu">
-																			<li>
-																				<a data-toggle="modal" data-target="#evaluateItemModal" data-toggle-class="evaluateItemModalID" onclick="kpi_evaluation(<?= $kpi_id ?>)" style="color:green">
-																					<i class="fa fa-pencil-square-o" aria-hidden="true"></i> Evaluate
-																				</a>
+																			<li><?=$evaluation_link?>
 																			</li>
 																			<li>
 																				<a data-toggle="modal" data-target="#kpi-modal-right" data-toggle-class="modal-open-aside" onclick="kpi_score_details(<?= $kpi_id ?>)" style="color:blue">
@@ -219,7 +234,7 @@ try {
 																	</div>
 																</td>
 															</tr>
-											<?php
+														<?php
 														}
 													}
 												}

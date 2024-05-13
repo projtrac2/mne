@@ -4,11 +4,11 @@ try {
   if ($permission) {
 
 
-    $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency  FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible=:user_name ORDER BY p.projid ASC");
+    $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency  FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) AND responsible=:user_name ORDER BY p.projid ASC");
     $query_impact_baseline_survey->execute(array(":user_name" => $user_name));
 
     if ($designation == 1) {
-      $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_impact_baseline_survey = $db->prepare("SELECT o.id AS id, projstage, projstatus,date_changed, date_added,evaluation_frequency FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
       $query_impact_baseline_survey->execute();
     }
     //$rows = $query_baseline_survey->fetch();
@@ -22,7 +22,7 @@ try {
         $impactid = $row["id"];
         $impactprojstatus = $row["projstatus"];
         $impactprojstage = $row["projstage"];
-        if ($impactprojstage == 9) {
+        if ($impactprojstage == 15) {
           $query_survey_forms = $db->prepare("SELECT * FROM tbl_indicator_baseline_survey_forms WHERE resultstypeid=:impactid and resultstype = 1");
           $query_survey_forms->execute(array(":impactid" => $impactid));
           $totalrows_survey_forms = $query_survey_forms->rowCount();
@@ -62,9 +62,9 @@ try {
       }
     }
 
-    $query_impact_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) AND responsible='$user_name' ORDER BY p.projid ASC");
+    $query_impact_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) AND responsible='$user_name' ORDER BY p.projid ASC");
     if ($designation == 1) {
-      $query_impact_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=9 OR projstage=10) ORDER BY p.projid ASC");
+      $query_impact_baseline_step1 = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_project_expected_impact_details o on o.projid=p.projid WHERE data_source=1 and (projstage=15 OR projstage=21) ORDER BY p.projid ASC");
     }
     $query_impact_baseline_step1->execute();
     $count_impact_baseline_step1 = $query_impact_baseline_step1->rowCount();
@@ -262,7 +262,7 @@ try {
                                   $indicatorunit = $rows_impact_ind['unit'];
                                 }
 
-                                if ($projstage == 9) {
+                                if ($projstage == 15) {
                                   $stagetype = "Baseline";
                                 } else {
                                   $stagetype = "Endline";
@@ -277,7 +277,7 @@ try {
 
                                 $survey_date = '';
 
-                                if ($projstage == 9) {
+                                if ($projstage == 15) {
                                   if ($date_changed != NULL) {
                                     $survey_date = $date_changed;
                                   } else {
@@ -356,14 +356,10 @@ try {
                                 $query_survey->execute(array(":resultstypeid" => $impactid, ":stagetype" => $stagetype));
                                 $totalrows_survey = $query_survey->rowCount();
 
-                                if ($projstage == 9) {
-                                  $resultstagetype = "Impact Baseline";
-                                } else {
-                                  $resultstagetype = "Impact Endline";
-                                }
+                                $resultstagetype = $projstage == 15? "Baseline":"Endline";
 
                                 if ($totalrows_survey == 0) {
-                                  if ($projstage == 9) {
+                                  if ($projstage == 15) {
                                     $sn++;
                                     echo '
 									<tr>
@@ -485,7 +481,7 @@ try {
                                   echo '
                                 <tr>
                                   <td style="width:3%">' . $deploy_counter . '</td>
-                                  <td style="width:20%">' . $impactindicatorunit . ' of ' . $impactindicator . '</td>
+                                  <td style="width:20%">' . $impactindicator . '</td>
                                   <td style="width:35%">' . $projname . '</td>
                                   <td style="width:15%">' . $form_name . '</td>
                                   <td style="width:10%">' . $startdate . '</td>
@@ -585,7 +581,7 @@ try {
                                   echo '
 										<tr>
 											<td style="width:3%">' . $deploy_counter . '</td>
-											<td style="width:20%">' . $impactindicatorunit . ' of ' . $impactindicator . '</td>
+											<td style="width:20%">' . $impactindicator . '</td>
 											<td style="width:35%">' . $projname . '</td>
 											<td style="width:12%">' . $form_name . '</td>
 											<td style="width:10%">' . $startdate . '</td>
@@ -668,10 +664,10 @@ try {
 
                                   $totalsamplesize = $locations * $samplesize;
 
-                                  $query_outcome_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
-                                  $query_outcome_ind->execute(array(":indid" => $indid));
-                                  $rows_outcome_ind = $query_outcome_ind->fetch();
-                                  $outcomeindicator = $rows_outcome_ind['unit'] . " of " . $rows_outcome_ind['indicator_name'];
+                                  $query_impact_ind = $db->prepare("SELECT * FROM tbl_indicator i left join tbl_measurement_units u on u.id=i.indicator_unit WHERE indid=:indid");
+                                  $query_impact_ind->execute(array(":indid" => $indid));
+                                  $rows_impact_ind = $query_impact_ind->fetch();
+                                  $impactindicator = $rows_impact_ind['indicator_name'];
 
 
 
@@ -689,7 +685,7 @@ try {
                                       echo '
 										<tr>
 										  <td style="width:3%">' . $deploy_counter . '</td>
-										  <td style="width:20%">' . $outcomeindicator . '</td>
+										  <td style="width:20%">' . $impactindicator . '</td>
 										  <td style="width:35%">' . $projname . '</td>
 										  <td style="width:12%">' . $form_name . '</td>
 										  <td style="width:10%">' . $startdate . '</td>
