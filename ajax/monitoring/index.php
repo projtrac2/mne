@@ -106,7 +106,7 @@ try {
 			$total_monitored_tkMs = $query_monitored_tkMs->rowCount();
 			if ($total_monitored_tkMs > 0) {
 				$taskcount++;
-			}
+			} 
 		}
 
 		if ($total_tkMs == $taskcount) {

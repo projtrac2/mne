@@ -169,4 +169,3 @@ function get_indicator_details(rowno) {
         });
     }
 }
-

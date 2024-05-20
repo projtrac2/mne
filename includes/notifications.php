@@ -84,19 +84,19 @@
             });
         }
 
-        // $(document).on('click', '#notif', function() {
-        //     $('.count').html('');
-        //     load_unseen_notification('yes');
-        // });
+        $(document).on('click', '#notif', function() {
+            $('.count').html('');
+            load_unseen_notification('yes');
+        });
 
-        // $(document).on('click', '#msg', function() {
-        //     $('.number').html('');
-        //     load_unseen_message('yes');
-        // });
+        $(document).on('click', '#msg', function() {
+            $('.number').html('');
+            load_unseen_message('yes');
+        });
 
-        // setInterval(function() {
-        //     load_unseen_notification();
-        //     load_unseen_message();
-        // }, 5000);
+        setInterval(function() {
+            load_unseen_notification();
+            load_unseen_message();
+        }, 5000);
     });
 </script>

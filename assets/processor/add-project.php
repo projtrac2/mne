@@ -1,7 +1,28 @@
-<?php
-require('includes/head.php');
-if ($permission) {
+<?php 
+require('includes/head.php'); 
+if ($permission) { 
+    function generate_key($str_length)
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = array();
+        $alphaLength = strlen($alphabet) - 1;
+        for ($i = 0; $i < $str_length; $i++) {
+            $n = rand(0, $alphaLength);
+            $pass[] = $alphabet[$n];
+        }
+        return implode($pass);
+    }
     try {
+
+        $results = "";
+        $editFormAction = $_SERVER['PHP_SELF'];
+        if (isset($_SERVER['QUERY_STRING'])) {
+            $editFormAction .= "?" . htmlentities($_SERVER['QUERY_STRING']);
+        }
+
+
+        $key_unique = time() . generate_key(6);
+
         if (isset($_GET['progid'])) {
             $progid = $_GET['progid'];
         }
@@ -34,8 +55,8 @@ if ($permission) {
             $result  = $insertSQL->execute(array(":progid" => $progid, ":projcode" => $projcode, ":projname" => $projname, ":projtype" => $projtype, ":projbudget" => $projbudget, ":projfscyear" => $projfscyear, ":projduration" => $projduration, ":projmapping" => $projmapping, ":projinspection" => $projinspection, ":projevaluation" => $projevaluation, ":projlevel1" => $projlevel1, ":projlevel2" => $projlevel2, ":projlevel3" => $projlevel3,  ":projimplmethod" => $projimplmethod, ":bigfour" => $bigfour, ":projstartdate" => $projstartdate, ":projenddate" => $projenddate, ":createdby" => $createdby, ":datecreated" => $datecreated));
 
             if ($result) {
-                $last_id = $db->lastInsertId(); // get the project id
-                // add attachment files
+                $last_id = $db->lastInsertId(); // get the project id   
+                // add attachment files  
                 $catid = $last_id;
                 if (isset($_POST['attachmentpurpose'])) {
                     $countP = count($_POST["attachmentpurpose"]);
@@ -92,7 +113,7 @@ if ($permission) {
                     }
                 }
 
-                // add implementors
+                // add implementors 
                 if (isset($_POST['projleadimplementor'])) {
                     $projleadimplementor = $_POST['projleadimplementor'];
                     $projimplementingpartner = implode(",", $_POST['projimplementingpartner']);
@@ -100,7 +121,7 @@ if ($permission) {
                     $result1  = $insertSQL1->execute(array(":projid" => $last_id, ":lead_implementer" => $projleadimplementor, ":implementing_partner" => $projimplementingpartner));
                 }
 
-                // project funding
+                // project funding 
                 for ($i = 0; $i < count($_POST['amountfunding']); $i++) {
                     $sourcecatergory = $_POST['finance'][$i];
                     $amountfunding = $_POST['amountfunding'][$i];
@@ -127,7 +148,7 @@ if ($permission) {
                         $op_budget =  $_POST[$topbudget];
 
                         $insertSQL2 = $db->prepare("INSERT INTO `tbl_project_output_details`(projoutputid, progid, projid, indicator, year, target, budget) VALUES(:outputid, :progid, :projid,:indicatorid, :qyear, :target, :budget)");
-                        $result2  = $insertSQL2->execute(array(":outputid" => $outputid, ":progid" => $progid, ":projid" => $last_id, ":indicatorid" => $indicatorid, ":qyear" => $qyear, ":target" => $target, ":budget" => $op_budget));
+                        $result2  = $insertSQL2->execute(array(":outputid" => $outputid, ":progid" => $progid, ":projid" => $last_id, ":indicatorid" => $indicatorid, ":qyear" => $qyear, ":target" => $target, ":budget"=>$op_budget));
                     }
 
                     if (isset($_POST['ben_diss']) && !empty($_POST['ben_diss'])) {
@@ -173,13 +194,13 @@ if ($permission) {
                             title: \"Success!\",
                             text: \" $msg\",
                             type: 'Success',
-                            timer: 2000,
+                            timer: 2000, 
                             showConfirmButton: false });
-                            setTimeout(function(){
+                            setTimeout(function(){ 
                                 var pdfPage = window.open('add-projects-pdf?projid=$last_id');
-                                $(pdfPage).bind('beforeunload',function(){
+                                $(pdfPage).bind('beforeunload',function(){ 
                                     window.location.href = 'add-project?progid=$progid';
-                                });
+                                });  
                             }, 2000);
                         </script>";
                     } else {
@@ -189,7 +210,7 @@ if ($permission) {
                             title: \"Success!\",
                             text: \" $msg\",
                             type: 'Success',
-                            timer: 2000,
+                            timer: 2000, 
                             showConfirmButton: false });
                             setTimeout(function(){
                                     window.location.href = 'add-project?progid=$progid';
@@ -202,7 +223,7 @@ if ($permission) {
             }
         }
 
-        //get the project name
+        //get the project name 
         $query_rsProgram = $db->prepare("SELECT * FROM tbl_programs WHERE deleted='0' and progid='$progid'");
         $query_rsProgram->execute();
         $row_rsProgram = $query_rsProgram->fetch();
@@ -212,25 +233,25 @@ if ($permission) {
         $syear = $row_rsProgram['syear'];
         $years = $row_rsProgram['years'];
 
-        //get  funding
+        //get  funding 
         $query_rsFunding =  $db->prepare("SELECT * FROM tbl_myprogfunding WHERE progid ='$progid'");
         $query_rsFunding->execute();
         $row_rsFunding = $query_rsFunding->fetch();
         $totalRows_rsFunding = $query_rsFunding->rowCount();
 
-        //get subcounty
+        //get subcounty  
         $query_rsComm =  $db->prepare("SELECT id, state FROM tbl_state WHERE parent IS NULL ORDER BY id ASC");
         $query_rsComm->execute();
         $row_rsComm = $query_rsComm->fetch();
         $totalRows_rsComm = $query_rsComm->rowCount();
 
-        //get mapping type
+        //get mapping type 
         $query_rsMapType =  $db->prepare("SELECT id, type FROM tbl_map_type");
         $query_rsMapType->execute();
         $row_rsMapType = $query_rsMapType->fetch();
         $totalRows_rsMapType = $query_rsMapType->rowCount();
 
-        //get project implementation methods
+        //get project implementation methods 
         $query_rsProjImplMethod =  $db->prepare("SELECT DISTINCT id, method FROM tbl_project_implementation_method");
         $query_rsProjImplMethod->execute();
         $row_rsProjImplMethod = $query_rsProjImplMethod->fetch();
@@ -271,9 +292,9 @@ if ($permission) {
                     if ($remainingTarget > 0) {
                         $financialYear[] = $year;
                     }
-                } while ($row_Output = $query_Output->fetch()); //loop output
+                } while ($row_Output = $query_Output->fetch()); //loop output 
 
-            } while ($row_Years = $query_Years->fetch()); //loop year
+            } while ($row_Years = $query_Years->fetch()); //loop year 
         }
     } catch (PDOException $ex) {
         $results = "An error occurred: " . $ex->getMessage();
@@ -387,7 +408,7 @@ if ($permission) {
                                                 <?php
                                                 $financialYear = array_unique($financialYear);
                                                 foreach ($financialYear as $financialyear) {
-                                                    // get financial years
+                                                    // get financial years 
                                                     $query_rsYear =  $db->prepare("SELECT * FROM tbl_fiscal_year where yr ='$financialyear'");
                                                     $query_rsYear->execute();
                                                     $row_rsYear = $query_rsYear->fetch();
@@ -397,10 +418,10 @@ if ($permission) {
                                                     $currdatetime = date("Y-m-d H:i:s");
 
                                                     // if ($currdatetime <= $yrenddate) {
-                                                    $finyear = $row_rsYear['year'];
-                                                    $finyearid = $row_rsYear['id'];
-                                                    $yr = $row_rsYear["yr"];
-                                                    echo '<option value="' . $finyearid . '">' . $finyear . '</option>';
+                                                        $finyear = $row_rsYear['year'];
+                                                        $finyearid = $row_rsYear['id'];
+                                                        $yr = $row_rsYear["yr"];
+                                                        echo '<option value="' . $finyearid . '">' . $finyear . '</option>';
                                                     //}
                                                 }
                                                 ?>
@@ -981,6 +1002,7 @@ if ($permission) {
                                                 <div class="col-md-12 text-center">
                                                     <input type="hidden" name="addoutput" id="addoutput" value="addoutput">
                                                     <input type="hidden" name="opid" id="opid" value="">
+                                                    <input type="hidden" name="key_unique" id="key_unique" value="<?= $key_unique ?>">
                                                     <input type="hidden" name="dben_diss" id="dben_diss" value="">
                                                     <input type="hidden" name="user_name" id="user_name" value="<?= $user_name ?>">
                                                     <input name="save" type="submit" class="btn btn-primary waves-effect waves-light" id="tag-form-submit" value="Save" />

@@ -401,10 +401,11 @@ try {
       $status = $purpose != 1 ? 1 : 0;
       $stage = $purpose != 1 ? 1 : 0;
       $results = $data =  array();
-
+      $request_id ='';
       if (isset($_POST['request_id']) && !empty($_POST['request_id'])) {
+         $request_id = $_POST['request_id'];
          $sql = $db->prepare("UPDATE tbl_payments_request  SET due_date=:due_date,date_requested=:date_requested, status=:status,comments=:comments WHERE request_id =:request_id");
-         $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":comments" => $comments, ":request_id" => $request_id,));
+         $result = $sql->execute(array(":due_date" => $due_date, ":date_requested" => $date_requested, ":status" => $status, ":comments" => $comments, ":request_id" => $request_id));
 
          if ($result) {
             $deleteQueryI = $db->prepare("DELETE FROM `tbl_payments_request_details` WHERE request_id=:request_id");
@@ -428,6 +429,8 @@ try {
          $requested_for = $user_name;
          $sql = $db->prepare("INSERT INTO tbl_payments_request (projid,requested_for,due_date,amount_requested,requested_by,date_requested,status,stage,purpose) VALUES(:projid,:requested_for,:due_date,:amount_requested,:requested_by,:date_requested,:status,:stage,:purpose) ");
          $result = $sql->execute(array(":projid" => $projid, ":requested_for" => $requested_for, ":due_date" => $due_date, ":amount_requested" => $amount_requested, ":requested_by" => $user_name, ":date_requested" => $date_requested, ":status" => $status, ":stage" => $stage, ":purpose" => $cost_type));
+
+
          if ($result) {
             $request_id = $db->lastInsertId();
             if (isset($_POST["direct_cost_id"]) && !empty($_POST['direct_cost_id'])) {
@@ -448,7 +451,7 @@ try {
          }
       }
 
-
+      $request_id_hashed = base64_encode("projid54321{$request_id}");
       $msg = !in_array(false, $results) ? true : false;
       echo json_encode(array("success" => $msg, "items_url" => 'inhouse-payment-request-amend.php?request_id=' . $request_id_hashed));
    }

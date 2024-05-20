@@ -160,20 +160,14 @@ try {
 																	$query_prgbudget =  $db->prepare("SELECT SUM(amount) as budget, SUM(adjusted_amount) as adjusted_amount FROM tbl_adp_projects_budget WHERE progid = :progid AND year=:yrid");
 																	$query_prgbudget->execute(array(":progid" => $progid, ":yrid" => $yrid));
 																	$row_prgbudget = $query_prgbudget->fetch();
-																	$requested_budget = number_format($row_prgbudget['budget'], 2);
-																	$adjusted_amount = number_format($row_prgbudget['adjusted_amount'], 2);
+																	$requested_budget = !is_null($row_prgbudget['budget']) ? number_format($row_prgbudget['budget'], 2) : number_format(0, 2);
+																	$adjusted_amount = !is_null($row_prgbudget['adjusted_amount']) ? number_format($row_prgbudget['adjusted_amount'], 2) : number_format(0, 2);
 
 																	//get program sector
 																	$query_sector = $db->prepare("SELECT stid, sector FROM `tbl_sectors` WHERE stid=:progsector");
 																	$query_sector->execute(array(":progsector" => $progsector));
 																	$rowsector = $query_sector->fetch();
 																	$sector = $rowsector["sector"];
-
-																	//get adjusted program based budget
-																	/* $query_sum = $db->prepare("SELECT SUM(budget) AS amount FROM `tbl_programs_based_budget` WHERE progid=:progid and finyear=:adpyr");
-																$query_sum->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
-																$rowsum = $query_sum->fetch();
-																$amount = number_format($rowsum["amount"], 2); */
 
 																	// get department
 																	$query_dept =  $db->prepare("SELECT stid, sector FROM tbl_sectors WHERE stid=:progdept");
@@ -189,38 +183,31 @@ try {
 																	$query_pbb->execute(array(":progid" => $progid, ":adpyr" => $adpyr));
 																	$norows_pbb = $query_pbb->rowCount();
 
-																	if ($row_prgbudget['adjusted_amount'] == 0) {
+																	if (!is_null($row_prgbudget['adjusted_amount'])) {
 																		// get program quarterly targets
 																		$query_pbbtargets =  $db->prepare("SELECT * FROM  tbl_programs_quarterly_targets WHERE progid = :progid and year = :yrid");
-																		$query_pbbtargets->execute(array(":progid" => $progid, ":yrid" => $yrid));
+																		$query_pbbtargets->execute(array(":progid" => $progid, ":yrid" => $adpyr));
 																		$norows_pbbtargets = $query_pbbtargets->rowCount();
 
 																		if ($norows_pbbtargets > 0) {
-																			$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
-																			$query_projects_count->execute();
-																			$count_projects_count = $query_projects_count->rowCount();
+																			// $query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = '$progid' AND projstage > 7");
+																			// $query_projects_count->execute();
+																			// $count_projects_count = $query_projects_count->rowCount();
 																			//if (in_array("edit_quarterly_targets", $page_actions) && $count_projects_count == 0) {
-																			if ($count_projects_count == 0) {
-																				$buttonunapprov .= '
+																			// if ($count_projects_count == 0) {
+																			$buttonunapprov .= '
 																			<li>
 																				<a type="button" data-toggle="modal" id="editquarterlyTargetsModalBtn" data-target="#editquarterlyTargetsModal" onclick="editQuarterlytargets(' . $progid . ', ' . $adpyr . ')">
 																					<i class="glyphicon glyphicon-edit"></i> Edit Quarterly Targets
 																				</a>
 																			</li>';
-																			}
+																			// }
 																		} else {
 																			$query_projects_count = $db->prepare("SELECT projid FROM tbl_projects WHERE progid = :progid AND projstage > 1");
 																			$query_projects_count->execute(array(":progid" => $progid));
 																			$count_projects_count = $query_projects_count->rowCount();
 																			//if (in_array("edit_budget", $page_actions) && $count_projects_count == 0) {
-																			if ($count_projects_count == 0) {
-																				if ($month >= 7 && $month <= 12) {
-																					$buttonunapprov .= '
-																					<li>
-																						<a type="button" data-toggle="modal" id="editItemModalBtns" data-target="#editItemModal" onclick="editPADP(' . $progid . ', ' . $adpyr . ')"> <i class="glyphicon glyphicon-edit"></i> Edit Budget</a>
-																					</li>';
-																				}
-																			}
+
 
 																			//if (in_array("add_quarterly_targets", $page_actions)) {
 																			$buttonunapprov .= '
@@ -231,28 +218,19 @@ try {
 																			</li>';
 																			//}
 																		}
-																	} else {
-																		//if (in_array("add_budget", $page_actions)) {
-																		if ($month >= 7 && $month <= 12) {
-																			$buttonunapprov .= '
-																			<li>
-																				<a type="button" data-toggle="modal" id="approveItemModalBtn" data-target="#approveItemModal" onclick="approvePADP(' . $progid . ')">
-																				<i class="fa fa-check-square-o"></i> Add Approved Budget
-																				</a>
-																			</li>';
-																		}
-																		//}
 																	}
+
+
 																	$button = '<!-- Single button -->
-																<div class="btn-group">
-																	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-																		Options <span class="caret"></span>
-																	</button>
-																	<ul class="dropdown-menu">
-																		' . $buttonunapprov . '
-																		<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>
-																	</ul>
-																</div>';
+																		<div class="btn-group">
+																			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+																				Options <span class="caret"></span>
+																			</button>
+																			<ul class="dropdown-menu">
+																				' . $buttonunapprov . '
+																				<li><a type="button" data-toggle="modal" data-target="#moreInfoModal" id="moreItemModalBtn" onclick="moreInfo(' . $progid . ')"> <i class="glyphicon glyphicon-file"></i> Program Info</a></li>
+																			</ul>
+																		</div>';
 
 																	$filter_department = view_record($progsector, $progdept, $project_directorate);
 																	if ($filter_department) {
@@ -511,8 +489,6 @@ try {
 <script>
 	$(document).ready(function() {
 		$('.tables').DataTable();
-
-
 		// submit approved pbb details
 		$("#approveItemForm").submit(function(e) {
 			e.preventDefault();

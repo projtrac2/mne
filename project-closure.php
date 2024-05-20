@@ -2,7 +2,6 @@
 try {
     require('includes/head.php');
     if ($permission) {
-
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -174,6 +173,7 @@ try {
                                     <input type="hidden" name="projid" id="projid" value="<?= $projid ?>">
                                     <input type="hidden" name="workflow_stage" id="workflow_stage" value="<?= $workflow_stage ?>">
                                     <button type="submit" class="btn btn-primary waves-effect waves-light" value="button" id="tag-form-submit1"> Save</button>
+                                    <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Cancel</button>
                                 </div>
                             </div> <!-- /modal-footer -->
                         </form>

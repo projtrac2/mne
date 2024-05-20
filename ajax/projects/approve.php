@@ -409,14 +409,9 @@ try {
 
 
       if ($results === TRUE) {
-         $projstage = 9;
+         $projstage = 8;
          $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
          $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $user_name, ":date_updated" => $date, ":projid" => $projid));
-
-         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
-         $result = $sql->execute(array(":projid" => $projid, ':stage' => $projstage, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
-
-         return;
 
          $valid['success'] = true;
          $valid['messages'] = "Budget successfully requested";
@@ -529,12 +524,16 @@ try {
       if ($results === TRUE) {
          $projstage = 9;
          $adp_status = 1;
+         $stage_id = 1;
 
          $update_adp_status = $db->prepare("UPDATE `tbl_annual_dev_plan` SET status=:status, approved_by=:approved_by, date_approved=:date_approved WHERE projid=:projid AND financial_year=:year");
          $update_adp_status->execute(array(":status" => $adp_status, ":approved_by" => $userid, ":date_approved" => $date, ":projid" => $projid, ":year" => $budgetyear));
 
-         $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
-         $update_sub_stage->execute(array(":projstage" => $projstage, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid));
+         $update_sub_stage = $db->prepare("UPDATE `tbl_projects` SET stage_id=:stage_id, projstage=:projstage, updated_by=:updated_by, date_updated=:date_updated WHERE projid=:projid");
+         $update_sub_stage->execute(array(":stage_id" => $stage_id, ":projstage" => $projstage, ":updated_by" => $userid, ":date_updated" => $date, ":projid" => $projid));
+
+         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
+         $result = $sql->execute(array(":projid" => $projid, ':stage' => $projstage, ':sub_stage' => 0, ':created_by' => $user_name, ':created_at' => $date));
 
          $valid['success'] = true;
          $valid['messages'] = "Budget successfully approved";

@@ -433,7 +433,7 @@ try {
 						</div> <!-- /modal-footer -->
 					</div> <!-- /modal-content -->
 				</div> <!-- /modal-dailog -->
-			</div>
+			</div> 
 		</div>
 		<!-- End add item -->
 

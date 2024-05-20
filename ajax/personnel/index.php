@@ -103,7 +103,7 @@ if ($_POST["action"] == "design") {
 
 if ($_POST["action"] == "department") {
     $output = array();
-    $statement = $db->prepare("SELECT * FROM tbl_sectors WHERE parent = '" . $_POST["stid"] . "' AND deleted='1'");
+    $statement = $db->prepare("SELECT * FROM tbl_sectors WHERE parent = '" . $_POST["stid"] . "' ");
     $statement->execute();
     $rowcount = $statement->rowCount();
     if ($rowcount > 0) {
@@ -118,7 +118,7 @@ if ($_POST["action"] == "department") {
 
 if ($_POST["action"] == "directorate") {
     $output = array();
-    $statement = $db->prepare("SELECT * FROM tbl_sectors WHERE parent = '" . $_POST["stid"] . "'  AND deleted='1'");
+    $statement = $db->prepare("SELECT * FROM tbl_sectors WHERE parent = '" . $_POST["stid"] . "'");
     $statement->execute();
     $rowcount = $statement->rowCount();
     if ($rowcount > 0) {

@@ -151,11 +151,10 @@ try {
         $milestones = '<option value="">... Select Milestone ...</option>';
         $project_type = 1; // output based
         if ($totalRows_rsOutput > 0) {
-            $project_type = 2;
+            // $project_type = 2;
             while ($row_rsOutput = $query_rsOutput->fetch()) {
                 $milestone_id = $row_rsOutput['id'];
                 $milestone = $row_rsOutput['milestone'];
-
                 $query_rsMilestone_Outputs = $db->prepare("SELECT * FROM tbl_project_milestone_outputs WHERE output_id=:output_id AND milestone_id=:milestone_id");
                 $query_rsMilestone_Outputs->execute(array(":output_id" => $output_id, ":milestone_id" => $milestone_id));
                 $totalRows_rsMilestone_Outputs = $query_rsMilestone_Outputs->rowCount();
@@ -164,9 +163,9 @@ try {
                 $query_rsSubtasks->execute(array(":milestone_id" => $milestone_id));
                 $totalRows_rsSubtasks = $query_rsSubtasks->rowCount();
 
-                if ($totalRows_rsSubtasks > 0 && $totalRows_rsMilestone_Outputs > 0) {
-                    $milestones .= '<option value="' . $milestone_id . '">' . $milestone . '</option>';
-                }
+                // if ($totalRows_rsSubtasks > 0 && $totalRows_rsMilestone_Outputs > 0) {
+                $milestones .= '<option value="' . $milestone_id . '">' . $milestone . '</option>';
+                // }
             }
         }
 

@@ -2,7 +2,7 @@
 try {
     require('includes/head.php');
     if ($permission) {
-        $workflow_stage = 9;
+        $workflow_stage = 19;
         $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage = :workflow_stage AND proj_substage >= 1 AND  proj_substage <= 4  ORDER BY p.projid DESC");
         $query_rsProjects->execute(array(":workflow_stage" => $workflow_stage));
         $totalRows_rsProjects = $query_rsProjects->rowCount();
@@ -40,8 +40,14 @@ try {
 
             return $input;
         }
+		
 
-?>
+        $query_risk_impact =  $db->prepare("SELECT * FROM tbl_risk_impact WHERE active = 1");
+        $query_risk_impact->execute();
+
+        $query_risk_categories = $db->prepare("SELECT * FROM tbl_projrisk_categories");
+        $query_risk_categories->execute();
+		?>
         <section class="content">
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
@@ -126,7 +132,11 @@ try {
                                                         <tr>
                                                             <td align="center"><?= $counter ?></td>
                                                             <td><?= $projcode ?></td>
-                                                            <td><?= $projname ?></td>
+                                                            <td>
+																<div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
+																	<a href="myprojectdash.php?proj=<?php echo $projid_hashed; ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
+																</div>
+															</td>
                                                             <td><?= $due_date ?></td>
                                                             <td><label class='label label-success'><?= $activity_status; ?></label></td>
                                                             <td>
@@ -177,7 +187,13 @@ try {
                                                                                             <i class="fa fa-list"></i> Re-inspect
                                                                                         </a>
                                                                                     </li>
-                                                                        <?php
+																					
+																					<li>
+																						<a type="button" data-toggle="modal" data-target="#outputItemModal" data-backdrop="static" data-keyboard="false" onclick="add_project_issues('<?= $projid_hashed ?>', '<?= htmlspecialchars($projname) ?>')">
+																							<i class="fa fa-exclamation-triangle text-danger"></i> Issues
+																						</a>
+																					</li>
+																				<?php
                                                                                 }
                                                                             }
                                                                         }
@@ -354,6 +370,39 @@ try {
             </div><!-- /.modal-dialog -->
         </div>
         <!-- End  Item more Info -->
+		
+
+        <!-- start issues modal  -->
+        <div class="modal fade" id="outputItemModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color:#03A9F4">
+                        <h3 class="modal-title" style="color:#fff" align="center" id="addModal"><i class="fa fa-warning" style="color:yellow"></i> <span id="modal_info"> PROJECT ISSUES</span></h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="col-md-12">
+                            <ul class="list-group">
+                                <li class="list-group-item list-group-item list-group-item-action active">Project : <span id="project_name"></span> </li>
+                            </ul>
+                        </div>
+                        <div class="tab-content">
+                            <div id="menu1">
+                                <div id="previous_issues">
+                                    <h4 class="text-danger">No records found!!</h4>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                                        <button type="button" class="btn btn-warning waves-effect waves-light" data-dismiss="modal"> Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- /modal-footer -->
+
+                </div> <!-- /modal-content -->
+            </div> <!-- /modal-dailog -->
+        </div>
 <?php
     } else {
         $results =  restriction();
@@ -367,6 +416,7 @@ try {
 ?>
 <script src="assets/js/projects/view-project.js"></script>
 <script src="assets/js/inspection/assign.js"></script>
+<script src="assets/js/monitoring/issues.js"></script>
 <script>
     const members = <?= json_encode(get_members()) ?>;
     const roles = <?= json_encode(get_role()) ?>;

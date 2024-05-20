@@ -58,7 +58,7 @@ $(document).ready(function () {
 });
 
 
-function get_project_outputs(projid, milestone_type) {
+function get_project_outputs(projid, milestone_type, project_name) {
     $(".modal").each(function () {
         $(this).modal("hide");
         $(this)
@@ -71,7 +71,7 @@ function get_project_outputs(projid, milestone_type) {
     $("#output_project_type").val(milestone_type);
     if (projid != "") {
         $("#projid").val(projid);
-        $("#project_name").val(project_name);
+        $("#project_name").html(project_name);
         $.ajax({
             type: "get",
             url: ajax_url,

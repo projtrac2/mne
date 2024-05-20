@@ -8,13 +8,16 @@ function get_due_date($projid, $stage_id)
     $rows_stmt = $stmt->fetch();
     $total_stmt = $stmt->rowCount();
 
+    $start_date = $due_date = "";
+    if ($total_stmt > 0) {
+        $start_date = $rows_stmt['created_at'];
+    }
+
     $sql = $db->prepare("SELECT * FROM `tbl_project_workflow_stage` WHERE priority=:stage_id ");
     $sql->execute(array(":stage_id" => $stage_id));
     $rows_count = $sql->rowCount();
     $row = $sql->fetch();
-    $due_date = '';
-    if ($rows_count > 0 && $total_stmt > 0) {
-        $start_date = $rows_stmt['created_at'];
+    if ($rows_count > 0) {
         $timeline = $row["timeline"];
         $due_date = date('Y-m-d', strtotime($start_date . ' + ' . $timeline . ' days'));
     }
@@ -109,7 +112,6 @@ function get_subtask_status($projid, $monitoring_frequency)
             $complete = $row_rsWorkBreakdown['complete'];
             $subtask_end_date = $row_rsWorkBreakdown['end_date'];
             $subtask_start_date = $row_rsWorkBreakdown['start_date'];
-            // echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; => Contract Start date" . $subtask_start_date . "  Subtask End Date=>" . $subtask_end_date . ")<br/>";
             if ($complete == 0) {
                 if ($today < $subtask_start_date) {
                     $sql = $db->prepare('SELECT * FROM tbl_project_monitoring_checklist_score WHERE site_id=:site_id AND subtask_id=:subtask_id');
@@ -143,6 +145,11 @@ function get_subtask_status($projid, $monitoring_frequency)
             $status_id = 11;
         } else if (in_array(4, $project_status)) {
             $status_id = 4;
+        } else if (in_array(3, $project_status)) {
+            $sql = $db->prepare('SELECT * FROM tbl_project_monitoring_checklist_score WHERE projid=:projid ');
+            $sql->execute(array(':projid' => $projid));
+            $row = $sql->fetch();
+            $subtask_status_id = $row ? 4 : 3;
         } else if (in_array(5, $project_status)) {
             $status_id = 5;
         }
@@ -194,60 +201,47 @@ function update_project_status()
                     $child_stage_id = $row_rsProjects['projstage'];
                     $grand_stage_id = $row_rsProjects['proj_substage'];
                     $implimentation_type =  $row_rsProjects['projcategory'];
-                    $status_id =  $row_rsProjects['projstatus'];
+                    $project_status_id =  $row_rsProjects['projstatus'];
                     $monitoring_frequency =  $row_rsProjects['monitoring_frequency'];
 
-                    if ($stage_id == 1) {
+                    if ($stage_id == 1) { // planning
                         $due_date = get_due_date($projid, $child_stage_id);
                         $status_id = $today < $due_date ? 3 : 11;
-                    } else if ($stage_id == 2) {
+                    } else if ($stage_id == 2) { //ongoing
+                        if ($child_stage_id == 18) { // monitoring
+                            $status_id = get_subtask_status($projid, $monitoring_frequency);
+                            if ($implimentation_type == 2) {
+                                $contract_details = get_contract_dates($projid);
+                                $contract_end_date = ($contract_details) ? date('Y-m-d', strtotime($contract_details["enddate"])) : "";
+                                if ($today > $contract_end_date) {
+                                    $status_id = 11;
+                                    $sql = $db->prepare("UPDATE tbl_program_of_works SET status=:status WHERE  projid=:projid AND complete=0");
+                                    $sql->execute(array(":status" => 11, ":projid" => $projid));
+                                }
+                            }
 
-                        $project_schedule = get_schedule_dates($projid);
-                        if ($child_stage_id == 18) {
                             $change_substage = get_implementation_status($projid);
-                            if ($change_substage) {
-                                $grand_stage_id = 2;
+                            if (($status_id == 5 || $status_id == 11) &&  $change_substage) {
+                                $child_stage_id = 19;
+                                $grand_stage_id = 1;
                                 if ($implimentation_type == 1) {
-                                    $grand_stage_id = 1;
+                                    $grand_stage_id = 0;
                                     $child_stage_id = 20;
-                                    $status_id = 5;
                                     $stage_id = 3;
+                                    $project_status_id = 5;
                                 }
                             } else {
-                                if ($project_schedule) {
-                                    $end_date = $project_schedule['end_date'];
-                                    if ($implimentation_type == 2) {
-                                        $contract_details = get_contract_dates($projid);
-                                        $contract_end_date = ($contract_details) ? date('Y-m-d', strtotime($contract_details["enddate"])) : "";
-                                        if ($today > $contract_end_date) {
-                                            $status_id = 11;
-                                            get_subtask_status($projid, $monitoring_frequency);
-                                        } else {
-                                            $status_id = get_subtask_status($projid, $monitoring_frequency);
-                                        }
-                                    } else {
-                                        if ($today > $end_date) {
-                                            $status_id = 11;
-                                        } else {
-                                            $status_id = get_subtask_status($projid, $monitoring_frequency);
-                                        }
-                                    }
-                                }
+                                $project_status_id = ($status_id != 5) ? $status_id : $project_status_id;
                             }
-                        } else {
+                        } else { // inspection and acceptance
                             $contract_details = get_contract_dates($projid);
                             $contract_end_date = ($contract_details) ? date('Y-m-d', strtotime($contract_details["enddate"])) : "";
-
-                            if ($today > $contract_end_date) {
-                                $status_id = 11;
-                                get_subtask_status($projid, $monitoring_frequency);
-                            }
+                            $status_id = ($today > $contract_end_date) ? 11 : $project_status_id;
                         }
                     }
 
-
                     $sql = $db->prepare("UPDATE tbl_projects SET projstatus=:projstatus,stage_id=:stage_id, projstage=:projstage, proj_substage=:substage_id WHERE  projid=:projid");
-                    $sql->execute(array(":projstatus" => $status_id, ":stage_id" => $stage_id, ":projstage" => $child_stage_id, ":substage_id" => $grand_stage_id, ":projid" => $projid));
+                    $sql->execute(array(":projstatus" => $project_status_id, ":stage_id" => $stage_id, ":projstage" => $child_stage_id, ":substage_id" => $grand_stage_id, ":projid" => $projid));
                 }
             }
         }
@@ -370,13 +364,13 @@ function get_program_of_works_status($projid, $workflow_stage, $sub_stage)
             } else if ($sub_stage == 3) {
                 $activity_status = "<label class='label label-success'>Assigned Activity Duration Approval</label>";
             } else if ($sub_stage == 4) {
-                $activity_status = "<label class='label label-primary'>Pending Data Entry Activity Frequency</label>";
+                $activity_status = "<label class='label label-primary'>Pending Data Entry Activity Target Intervals</label>";
             } else if ($sub_stage == 5) {
-                $activity_status = "<label class='label label-primary'>Assigned Data Entry Activity Frequency</label>";
+                $activity_status = "<label class='label label-primary'>Assigned Data Entry Activity Target Intervals</label>";
             } else if ($sub_stage == 6) {
-                $activity_status = "<label class='label label-success'>Pending Activity Frequency Approval</label>";
+                $activity_status = "<label class='label label-success'>Pending Activity Target Intervals Approval</label>";
             } else if ($sub_stage == 7) {
-                $activity_status = "<label class='label label-success'>Assigned Activity Frequency Approval</label>";
+                $activity_status = "<label class='label label-success'>Assigned Activity Target Intervals Approval</label>";
             } else if ($sub_stage == 8) {
                 $activity_status = "<label class='label label-success'>Pending Data Entry Target Breakdown</label>";
             }
@@ -393,9 +387,9 @@ function get_program_of_works_status($projid, $workflow_stage, $sub_stage)
                 if ($sub_stage > 1 && $sub_stage < 4) {
                     $activity_status = "<label class='label label-success'>Pending Activity Duration Approval</label>";
                 } else if ($sub_stage >= 4 || $sub_stage == 5) {
-                    $activity_status = "<label class='label label-primary'>Pending Data Entry Activity Frequency</label>";
+                    $activity_status = "<label class='label label-primary'>Pending Data Entry Activity Target Intervals</label>";
                 } else if ($sub_stage > 5 && $sub_stage < 8) {
-                    $activity_status = "<label class='label label-primary'>Pending Activity Frequency Approval</label>";
+                    $activity_status = "<label class='label label-primary'>Pending Activity Target Intervals Approval</label>";
                 } else if ($sub_stage == 8) {
                     $activity_status = "<label class='label label-success'>Pending Data Entry Target Breakdown</label>";
                 }

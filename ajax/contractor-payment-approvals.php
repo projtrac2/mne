@@ -2,7 +2,6 @@
 try {
     require('includes/head.php');
     if ($permission) {
-
         function get_section($projid)
         {
             global $db;
@@ -34,7 +33,7 @@ try {
                             <div class="button-demo" style="margin-top:-15px">
                                 <span class="label bg-black" style="font-size:18px"><img src="images/proj-icon.png" alt="Project Menu" title="Project Menu" style="vertical-align:middle; height:25px" /> Menu</span>
                                 <a href="#" class="btn bg-grey waves-effect" style="margin-top:10px">Contractor</a>
-                                <a href="inhouse-payment-requests.php" class="btn bg-light-blue waves-effect" style="margin-top:10px">In House</a>
+                                <a href="inhouse-payment-approvals.php" class="btn bg-light-blue waves-effect" style="margin-top:10px">In House</a>
                             </div>
                         </div>
                     </div>
@@ -43,17 +42,17 @@ try {
                             <div class="card-header">
                                 <ul class="nav nav-tabs" style="font-size:14px">
                                     <li class="active">
-                                        <a data-toggle="tab" href="#menu1">
-                                            <i class="fa fa-caret-square-o-up bg-deep-purple" aria-hidden="true"></i>
-                                            Pending Requests &nbsp;
-                                            <span class="badge bg-deep-purple"></span>
+                                        <a data-toggle="tab" href="#home">
+                                            <i class="fa fa-caret-square-o-down bg-purple" aria-hidden="true"></i>
+                                            New Requests&nbsp;
+                                            <span class="badge bg-purple"></span>
                                         </a>
                                     </li>
                                     <li>
-                                        <a data-toggle="tab" href="#menu2">
-                                            <i class="fa fa-caret-square-o-right bg-indigo" aria-hidden="true"></i>
+                                        <a data-toggle="tab" href="#menu1">
+                                            <i class="fa fa-caret-square-o-up bg-deep-purple" aria-hidden="true"></i>
                                             Paid Requests &nbsp;
-                                            <span class="badge bg-indigo"></span>
+                                            <span class="badge bg-deep-purple"></span>
                                         </a>
                                     </li>
                                 </ul>
@@ -63,9 +62,9 @@ try {
                                 <!-- Start Page Content -->
                                 <!-- ============================================================== -->
                                 <div class="tab-content">
-                                    <div id="menu1" class="tab-pane fade in active">
+                                    <div id="home" class="tab-pane fade in active">
                                         <div style="color:#333; background-color:#EEE; width:100%; height:30px">
-                                            <h4 style="width:100%"><i class="fa fa-hourglass-half fa-sm" style="font-size:25px;color:#6c0eb0"></i> New Requests</h4>
+                                            <h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:#9C27B0"></i> New</h4>
                                         </div>
                                         <div class="table-responsive">
                                             <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
@@ -78,38 +77,36 @@ try {
                                                         <th style="width:10%">Payment Plan</th>
                                                         <th style="width:10%">Stage</th>
                                                         <th style="width:10%">Status</th>
-                                                        <th style="width:10%">More Details</th>
+                                                        <th style="width:10%">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_contractor_payment_requests WHERE status <> 3 ");
+                                                    $query_rsPayement_reuests =  $db->prepare("SELECT * FROM  tbl_contractor_payment_requests WHERE status != 3");
                                                     $query_rsPayement_reuests->execute();
                                                     $total_rsPayement_reuests = $query_rsPayement_reuests->rowCount();
                                                     if ($total_rsPayement_reuests > 0) {
                                                         $counter = 0;
-                                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
+                                                        while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) { 
                                                             $costline_id = $rows_rsPayement_reuests['id'];
                                                             $projid = $rows_rsPayement_reuests['projid'];
+                                                            $project_plan = $rows_rsPayement_reuests['project_plan'];
                                                             $payment_requested_date = $rows_rsPayement_reuests['created_at'];
+                                                            $amount_paid = $rows_rsPayement_reuests['requested_amount'];
                                                             $payment_status = $rows_rsPayement_reuests['status'];
                                                             $payment_stage = $rows_rsPayement_reuests['stage'];
-                                                            $amount_paid = $rows_rsPayement_reuests['requested_amount'];
-                                                            $contractor_id = $rows_rsPayement_reuests['contractor_id'];
-                                                            $complete = $rows_rsPayement_reuests['acceptance'];
 
                                                             $query_rsprojects =  $db->prepare("SELECT * FROM  tbl_projects WHERE projid = :projid");
                                                             $query_rsprojects->execute(array(":projid" => $projid));
                                                             $rows_rsprojects = $query_rsprojects->fetch();
                                                             $total_rsprojects = $query_rsprojects->rowCount();
-                                                            if ($total_rsprojects > 0) {
 
+                                                            if ($total_rsprojects > 0) {
                                                                 $progid = $rows_rsprojects['progid'];
                                                                 $project_name = $rows_rsprojects['projname'];
                                                                 $payment_plan = $rows_rsprojects['payment_plan'];
                                                                 $contrid = $rows_rsprojects['projcontractor'];
-                                                                $stage = "";
-                                                                $status  = "Pending";
+                                                                $stage = $status = '';
 
                                                                 if ($payment_stage == 1) {
                                                                     $stage = "Team Leader";
@@ -123,7 +120,6 @@ try {
                                                                 } else if ($payment_stage == 5) {
                                                                     $stage = "Director Finance";
                                                                 }
-
 
                                                                 $payment_plan_name = "";
                                                                 if ($payment_plan == 1) {
@@ -142,47 +138,48 @@ try {
                                                                 $contract_no = $totalRows_rsTender > 0 ? $row_rsTender['contractrefno'] : '';
 
                                                                 $query_rsContractor = $db->prepare("SELECT * FROM tbl_contractor WHERE contrid = :contrid");
-                                                                $query_rsContractor->execute(array(":contrid" => $contractor_id));
+                                                                $query_rsContractor->execute(array(":contrid" => $contrid));
                                                                 $row_rsContractor = $query_rsContractor->fetch();
                                                                 $totalRows_rsContractor = $query_rsContractor->rowCount();
                                                                 $contractor_name = $totalRows_rsContractor > 0 ? $row_rsContractor['contractor_name'] : '';
 
-                                                                $project_details = "{
+                                                                $approval_details = "{
                                                                 project_name:'$project_name',
-                                                                projid: '$projid',
-                                                                payment_plan: '$payment_plan',
+                                                                projid: $projid,
+                                                                payment_plan: $payment_plan,
+                                                                project_plan: $project_plan,
                                                                 request_id: '$costline_id',
                                                                 contractor_name:'$contractor_name',
                                                                 contract_no:'$contract_no',
-                                                                stage:'$payment_stage',
-                                                                complete:'$complete',
+                                                                stage:$payment_stage
                                                             }";
                                                                 $counter++;
                                                     ?>
                                                                 <tr class="">
-                                                                    <td style="width:5%"><?= $counter ?></td>
-                                                                    <td style="width:35%"><?= $project_name ?></td>
-                                                                    <td style="width:10%"><?= number_format($amount_paid, 2) ?></td>
-                                                                    <td style="width:10%"><?= date("Y-m-d", strtotime($payment_requested_date)) ?></td>
-                                                                    <td style="width:10%"><?= $payment_plan_name ?></td>
-                                                                    <td style="width:10%"><?= $stage ?></td>
-                                                                    <td style="width:10%"><?= $status ?></td>
-                                                                    <td style="width:10%">
+                                                                    <td><?= $counter ?></td>
+                                                                    <td><?= $project_name ?></td>
+                                                                    <td><?= number_format($amount_paid, 2) ?></td>
+                                                                    <td><?= date("Y-m-d", strtotime($payment_requested_date)) ?></td>
+                                                                    <td><?= $payment_plan_name ?></td>
+                                                                    <td><?= $stage ?></td>
+                                                                    <td><?= $status ?></td>
+                                                                    <td>
+                                                                        <!-- Single button -->
                                                                         <div class="btn-group">
                                                                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                                                 Options <span class="caret"></span>
                                                                             </button>
                                                                             <ul class="dropdown-menu">
                                                                                 <li>
-                                                                                    <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#approve_data" onclick="get_details(<?= $project_details ?>, 1)">
-                                                                                        <i class="fa fa-info"></i>More Info
+                                                                                    <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#approve_data" onclick="get_details(<?= $approval_details ?>,1)">
+                                                                                        <i class="fa fa-info"></i> More Info
                                                                                     </a>
                                                                                 </li>
                                                                                 <?php
-                                                                                if ($payment_stage == 1) {
+                                                                                if ($payment_stage == 3 || $payment_stage == 4) {
                                                                                 ?>
                                                                                     <li>
-                                                                                        <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#approve_data" onclick="get_details(<?= $project_details ?>, 2)">
+                                                                                        <a type="button" data-toggle="modal" id="approve_dataBtn" data-target="#approve_data" onclick="get_details(<?= $approval_details ?>, 2)">
                                                                                             <i class="fa fa-info"></i> Approve
                                                                                         </a>
                                                                                     </li>
@@ -190,6 +187,7 @@ try {
                                                                                 }
                                                                                 ?>
                                                                             </ul>
+
                                                                         </div>
                                                                     </td>
                                                                 </tr>
@@ -202,15 +200,14 @@ try {
                                             </table>
                                         </div>
                                     </div>
-
-                                    <div id="menu2" class="tab-pane">
+                                    <div id="menu1" class="tab-pane">
                                         <div style="color:#333; background-color:#EEE; width:100%; height:30px">
-                                            <h4 style="width:100%"><i class="fa fa-money" style="font-size:25px;color:indigo"></i> Paid Requests</h4>
+                                            <h4 style="width:100%"><i class="fa fa-list" style="font-size:25px;color:#9C27B0"></i> Paid</h4>
                                         </div>
                                         <div class="table-responsive">
                                             <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                                                 <thead>
-                                                    <tr class="bg-indigo">
+                                                    <tr class="bg-deep-purple">
                                                         <th style="width:5%">#</th>
                                                         <th style="width:45%">Project Name</th>
                                                         <th style="width:10%">Amount Paid</th>
@@ -229,26 +226,16 @@ try {
                                                         $counter = 0;
                                                         while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                                             $costline_id = $rows_rsPayement_reuests['id'];
-                                                            $projid = $rows_rsPayement_reuests['projid'];
                                                             $request_id = $rows_rsPayement_reuests['request_id'];
+                                                            $projid = $rows_rsPayement_reuests['projid'];
                                                             $date_requested = $rows_rsPayement_reuests['created_at'];
+                                                            $payment_stage = $rows_rsPayement_reuests['stage'];
                                                             $date_paid = $rows_rsPayement_reuests['date_paid'];
                                                             $created_by = $rows_rsPayement_reuests['created_by'];
+                                                            $created_at = $rows_rsPayement_reuests['created_at'];
                                                             $amount_paid = $rows_rsPayement_reuests['requested_amount'];
                                                             $receipt = $rows_rsPayement_reuests['receipt'];
 
-
-                                                            $query_rsPayement =  $db->prepare("SELECT SUM(requested_amount) requested_amount FROM tbl_contractor_payment_requests WHERE id=:request_id");
-                                                            $query_rsPayement->execute(array(":request_id" => $request_id));
-                                                            $rows_rsPayement = $query_rsPayement->fetch();
-                                                            $total_rsPayement = $query_rsPayement->rowCount();
-                                                            $amount_paid = $rows_rsPayement['requested_amount']  != null ? $rows_rsPayement['requested_amount'] : 0;
-
-                                                            $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
-                                                            $get_user->execute(array(":user_id" => $created_by));
-                                                            $count_user = $get_user->rowCount();
-                                                            $user = $get_user->fetch();
-                                                            $officer = $user['fullname'];
 
                                                             $query_rsprojects =  $db->prepare("SELECT * FROM  tbl_projects WHERE projid = :projid");
                                                             $query_rsprojects->execute(array('projid' => $projid));
@@ -256,10 +243,11 @@ try {
                                                             $total_rsprojects = $query_rsprojects->rowCount();
 
                                                             if ($total_rsprojects > 0) {
-                                                                $contractor_id = $rows_rsprojects['projcontractor'];
                                                                 $progid = $rows_rsprojects['progid'];
                                                                 $project_name = $rows_rsprojects['projname'];
                                                                 $payment_plan = $rows_rsprojects['payment_plan'];
+                                                                $contrid = $rows_rsprojects['projcontractor'];
+
 
                                                                 // contractor_name contract_no
                                                                 $query_rsTender = $db->prepare("SELECT * FROM tbl_tenderdetails WHERE projid = :projid");
@@ -269,22 +257,37 @@ try {
                                                                 $contract_no = $totalRows_rsTender > 0 ? $row_rsTender['contractrefno'] : '';
 
                                                                 $query_rsContractor = $db->prepare("SELECT * FROM tbl_contractor WHERE contrid = :contrid");
-                                                                $query_rsContractor->execute(array(":contrid" => $contractor_id));
+                                                                $query_rsContractor->execute(array(":contrid" => $contrid));
                                                                 $row_rsContractor = $query_rsContractor->fetch();
                                                                 $totalRows_rsContractor = $query_rsContractor->rowCount();
                                                                 $contractor_name = $totalRows_rsContractor > 0 ? $row_rsContractor['contractor_name'] : '';
 
 
+                                                                $get_user = $db->prepare("SELECT * FROM tbl_projteam2 p INNER JOIN users u ON u.pt_id = p.ptid WHERE u.userid=:user_id");
+                                                                $get_user->execute(array(":user_id" => $created_by));
+                                                                $count_user = $get_user->rowCount();
+                                                                $user = $get_user->fetch();
+                                                                $officer = $user['fullname'];
 
-                                                                $project_details = "{
+
+                                                                $payment_plan_name = "";
+                                                                if ($payment_plan == 1) {
+                                                                    $payment_plan_name = "Milestone";
+                                                                } else if ($payment_plan == 2) {
+                                                                    $payment_plan_name = "Task";
+                                                                } else if ($payment_plan == 3) {
+                                                                    $payment_plan_name = "Work Measured";
+                                                                }
+
+                                                                $approval_details = "{
                                                                 project_name:'$project_name',
-                                                                projid: '$projid',
-                                                                payment_plan: '$payment_plan',
+                                                                projid: $projid,
+                                                                payment_plan: $payment_plan,
                                                                 request_id: '$costline_id',
                                                                 contractor_name:'$contractor_name',
                                                                 contract_no:'$contract_no',
+                                                                stage:$payment_stage
                                                             }";
-
                                                                 $counter++;
                                                     ?>
                                                                 <tr class="">
@@ -301,13 +304,13 @@ try {
                                                                             </button>
                                                                             <ul class="dropdown-menu">
                                                                                 <li>
-                                                                                    <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#approve_data" onclick="get_details(<?= $costline_id ?>)">
-                                                                                        <i class="fa fa-info"></i>More Info
+                                                                                    <a type="button" data-toggle="modal" id="moreItemModalBtn" data-target="#approve_data" onclick="get_details(<?= $approval_details ?>)">
+                                                                                        <i class="fa fa-info"></i> More Info
                                                                                     </a>
                                                                                 </li>
                                                                                 <li>
                                                                                     <a type="button" href="<?= $receipt ?>" download>
-                                                                                        <i class="fa fa-info"></i> Receipt
+                                                                                        <i class="fa fa-info"></i>Receipt
                                                                                     </a>
                                                                                 </li>
                                                                             </ul>
@@ -345,7 +348,7 @@ try {
                     <form class="form-horizontal" id="modal_form_submit" action="" method="POST" enctype="multipart/form-data">
                         <?= csrf_token_html(); ?>
                         <div class="modal-body">
-                            <div class="col-md-12">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <fieldset class="scheduler-border">
                                     <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px">
                                         <i class="fa fa-comment" aria-hidden="true"></i> Request Details
@@ -463,12 +466,11 @@ try {
                             <!-- /modal-body -->
                         </div> <!-- /modal-content -->
                         <div class="modal-footer">
-                            <div class="col-md-12 text-center">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
                                 <input type="hidden" name="projid" id="projid" value="">
                                 <input type="hidden" name="payment_plan" id="payment_plan" value="">
                                 <input type="hidden" name="stage" id="stage" value="1">
                                 <input type="hidden" name="request_id" id="request_id" value="">
-                                <input type="hidden" name="complete" id="complete" value="">
                                 <input type="hidden" name="user_name" id="username" value="<?= $user_name ?>">
                                 <input type="hidden" name="approve_contractor_payment" id="approve_contractor_payment" value="new">
                                 <button name="save" type="" class="btn btn-primary waves-effect waves-light" id="modal-form-submit" value="">Approve</button>
@@ -488,7 +490,6 @@ try {
     }
     require('includes/footer.php');
 } catch (PDOException $ex) {
-    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

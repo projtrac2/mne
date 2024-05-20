@@ -104,7 +104,6 @@ try {
                         $proceed[] = $row_rsOutput_dissaggregation > 0 ? true : false;
                     }
                 }
-
                 return $output && $outcome && $impact && $monitoring_frequency != '' && !in_array(false, $proceed) ? true : false;
             }
 ?>
@@ -344,6 +343,7 @@ try {
                                             </div>
                                         <?php
                                         }
+
                                         if ($projimpact == 1) {
                                         ?>
                                             <div id="impact" class="tab-pane fade">

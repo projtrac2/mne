@@ -90,7 +90,7 @@ try {
                                                         $counter = 0;
                                                         while ($rows_rsPayement_reuests = $query_rsPayement_reuests->fetch()) {
                                                             $costline_id = $rows_rsPayement_reuests['id'];
-                                                            $projid = $rows_rsPayement_reuests['projid'];
+                                                            $projid = $rows_rsPayement_reuests['projid']; 
                                                             $payment_requested_date = $rows_rsPayement_reuests['created_at'];
                                                             $payment_status = $rows_rsPayement_reuests['status'];
                                                             $payment_stage = $rows_rsPayement_reuests['stage'];
@@ -238,7 +238,7 @@ try {
                                                             $receipt = $rows_rsPayement_reuests['receipt'];
 
 
-                                                            $query_rsPayement =  $db->prepare("SELECT SUM(requested_amount) requested_amount FROM tbl_contractor_payment_requests WHERE id=:request_id");
+                                                            $query_rsPayement =  $db->prepare("SELECT SUM(requested_amount) requested_amount FROM tbl_contractor_payment_requests WHERE request_id=:request_id");
                                                             $query_rsPayement->execute(array(":request_id" => $request_id));
                                                             $rows_rsPayement = $query_rsPayement->fetch();
                                                             $total_rsPayement = $query_rsPayement->rowCount();
@@ -488,7 +488,6 @@ try {
     }
     require('includes/footer.php');
 } catch (PDOException $ex) {
-    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

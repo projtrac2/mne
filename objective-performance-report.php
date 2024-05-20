@@ -24,8 +24,11 @@ try {
         }
 
         $yr = date("Y");
-        $month = date("m");
-        $sector_id = $user_department != '' ? $user_department :  15;
+        $today = date('2024-05-17');
+        $month = date("m", strtotime($today));
+        $yr = date("Y", strtotime($today));
+
+        $sector_id =   15;
         $start_year = $end_year = '';
         if ($month >= 7 && $month <= 12) {
             $start_year = $yr;
@@ -143,13 +146,12 @@ try {
         }
 
         $approve_responsible = 1;
-
 ?>
         <section class="content">
             <div class="container-fluid">
                 <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                     <h4 class="contentheader">
-                        <?= $icon ?> <?= $pageTitle ?>
+                        <?= $icon  . " " . $pageTitle  ?>
                     </h4>
                 </div>
                 <div class="row clearfix">
@@ -162,7 +164,7 @@ try {
                                 <div class="row clearfix">
                                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                         <ul class="list-group">
-                                            <li class="list-group-item list-group-item list-group-item-action active"> Financial Year: <?= $b_financial_year ?> </li>
+                                            <li class="list-group-item list-group-item list-group-item-action active"> Financial Year: <?= $financial_year ?> </li>
                                             <li class="list-group-item">
                                                 <strong>Financial Year Start Date: </strong> <?= $financial_start_date ?> : <strong> Financial Year End Date: </strong> <?= $financial_end_date ?>
                                             </li>
@@ -195,8 +197,8 @@ try {
                                         $Rows_rsConclusion = $query_rsConclusion->fetch();
                                         $totalRows_rsConclusion = $query_rsConclusion->rowCount();
 
-                                        $query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector ORDER BY `indid` ASC");
-                                        $query_indicators->execute(array(":sector" => $sector_id));
+                                        $query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 ORDER BY `indid` ASC");
+                                        $query_indicators->execute();
                                         $sector = get_sector($sector_id);
                                         $totalRows_indicators = $query_indicators->rowCount();
                                         ?>
@@ -278,7 +280,6 @@ try {
                                                                                 $counter = 0;
                                                                                 $quarter_target = 0;
                                                                                 while ($row_indicators = $query_indicators->fetch()) {
-                                                                                    $counter++;
                                                                                     $initial_basevalue = 0;
                                                                                     $actual_basevalue = 0;
                                                                                     $annualtarget = 0;
@@ -287,81 +288,90 @@ try {
                                                                                     $indicator = $row_indicators['indicator_name'];
                                                                                     $unit = $row_indicators['indicator_unit'];
 
-                                                                                    $query_indunit =  $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id='$unit'");
-                                                                                    $query_indunit->execute();
-                                                                                    $row_indunit = $query_indunit->fetch();
-                                                                                    $unit = ($row_indunit) ? $row_indunit["unit"] : "";
 
-                                                                                    $query_indbasevalue_year = $db->prepare("SELECT * FROM tbl_indicator_baseline_years WHERE indid=:indid AND year <= :finyear");
-                                                                                    $query_indbasevalue_year->execute(array(":indid" => $indid, ":finyear" => $start));
-                                                                                    $totalRows_indbasevalue_year = $query_indbasevalue_year->rowCount();
+                                                                                    $query_indicator = $db->prepare("SELECT * FROM tbl_progdetails p INNER JOIN tbl_programs g ON g.progid = p.progid WHERE g.projsector=:ministry_id AND  indicator=:indid AND year=:finyear");
+                                                                                    $query_indicator->execute(array(":ministry_id" => $sector_id, ":indid" => $indid, ":finyear" => $start_year));
+                                                                                    $rows_indicator = $query_indicator->rowCount();
 
-                                                                                    if ($totalRows_indbasevalue_year >= 0) {
-                                                                                        $query_initial_indbasevalue = $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid=:indid ");
-                                                                                        $query_initial_indbasevalue->execute(array(":indid" => $indid));
-                                                                                        $rows_initial_indbasevalue = $query_initial_indbasevalue->fetch();
-                                                                                        $initial_basevalue = !is_null($rows_initial_indbasevalue["basevalue"]) ? $rows_initial_indbasevalue["basevalue"] : 0;
+                                                                                    if ($rows_indicator > 0) {
+                                                                                        $counter++;
 
-                                                                                        $query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE m.record_type=1 AND d.indicator=:indid AND m.date_created <= '" . $base_date . "'");
-                                                                                        $query_actual_ind_value->execute(array(":indid" => $indid));
-                                                                                        $rows_actual_ind_value = $query_actual_ind_value->fetch();
-                                                                                        $actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
+                                                                                        $query_indunit =  $db->prepare("SELECT unit FROM tbl_measurement_units WHERE id='$unit'");
+                                                                                        $query_indunit->execute();
+                                                                                        $row_indunit = $query_indunit->fetch();
+                                                                                        $unit = ($row_indunit) ? $row_indunit["unit"] : "";
 
-                                                                                        $basevalue = $initial_basevalue + $actual_basevalue;
+                                                                                        $query_indbasevalue_year = $db->prepare("SELECT * FROM tbl_indicator_baseline_years WHERE indid=:indid AND year <= :finyear");
+                                                                                        $query_indbasevalue_year->execute(array(":indid" => $indid, ":finyear" => $start));
+                                                                                        $totalRows_indbasevalue_year = $query_indbasevalue_year->rowCount();
 
-                                                                                        $query_annual_target = $db->prepare("SELECT SUM(target) as target FROM `tbl_progdetails` WHERE indicator=:indid AND year=:finyear");
-                                                                                        $query_annual_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
-                                                                                        $rows_annual_target = $query_annual_target->fetch();
-                                                                                        $annualtarget = !is_null($rows_annual_target["target"]) ? $rows_annual_target["target"] : 0;
+                                                                                        if ($totalRows_indbasevalue_year >= 0) {
+                                                                                            $query_initial_indbasevalue = $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid=:indid ");
+                                                                                            $query_initial_indbasevalue->execute(array(":indid" => $indid));
+                                                                                            $rows_initial_indbasevalue = $query_initial_indbasevalue->fetch();
+                                                                                            $initial_basevalue = !is_null($rows_initial_indbasevalue["basevalue"]) ? $rows_initial_indbasevalue["basevalue"] : 0;
 
-                                                                                        $query_quarterly_target = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE indid=:indid AND year=:finyear");
-                                                                                        $query_quarterly_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
-                                                                                        $rows_quarterly_target = $query_quarterly_target->fetch();
-                                                                                        $totalRows_quarterly_target = $query_quarterly_target->rowCount();
+                                                                                            $query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE d.indicator=:indid AND m.date_created <= '" . $base_date . "'");
+                                                                                            $query_actual_ind_value->execute(array(":indid" => $indid));
+                                                                                            $rows_actual_ind_value = $query_actual_ind_value->fetch();
+                                                                                            $actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
 
-                                                                                        $query_quarter_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created >= '" . $start_date . "' AND date_created <= '" . $end_date . "')");
-                                                                                        $query_quarter_one_actual->execute(array(":indid" => $indid));
-                                                                                        $rows_quarter_one_actual = $query_quarter_one_actual->fetch();
-                                                                                        $totalRows_quarter_one_actual = $query_quarter_one_actual->rowCount();
-                                                                                        $quarter_achived =  !is_null($rows_quarter_one_actual["achieved"]) ? $rows_quarter_one_actual["achieved"] : 0;
+                                                                                            $basevalue = $initial_basevalue + $actual_basevalue;
+
+                                                                                            $query_annual_target = $db->prepare("SELECT SUM(target) as target FROM `tbl_progdetails` WHERE indicator=:indid AND year=:finyear");
+                                                                                            $query_annual_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+                                                                                            $rows_annual_target = $query_annual_target->fetch();
+                                                                                            $annualtarget = !is_null($rows_annual_target["target"]) ? $rows_annual_target["target"] : 0;
+
+                                                                                            $query_quarterly_target = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE indid=:indid AND year=:finyear");
+                                                                                            $query_quarterly_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+                                                                                            $rows_quarterly_target = $query_quarterly_target->fetch();
+                                                                                            $totalRows_quarterly_target = $query_quarterly_target->rowCount();
+
+                                                                                            $query_quarter_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created >= '" . $start_date . "' AND date_created <= '" . $end_date . "')");
+                                                                                            $query_quarter_one_actual->execute(array(":indid" => $indid));
+                                                                                            $rows_quarter_one_actual = $query_quarter_one_actual->fetch();
+                                                                                            $totalRows_quarter_one_actual = $query_quarter_one_actual->rowCount();
+                                                                                            $quarter_achived =  !is_null($rows_quarter_one_actual["achieved"]) ? $rows_quarter_one_actual["achieved"] : 0;
 
 
-                                                                                        $quarter_rate = "";
-                                                                                        if ($totalRows_quarterly_target > 0) {
-                                                                                            $quarter_target =  $rows_quarterly_target["Q$quarter"];
-                                                                                            $quarter_1_rate = $quarter_achived > 0 && $quarter_target > 0 ? number_format((($quarter_achived / $quarter_target) * 100), 2) : 0;
-                                                                                            $quarter_rate = $quarter_1_rate . "%";
-                                                                                        } else {
-                                                                                            $quarter_rate = number_format(0, 2) . "%";
+                                                                                            $quarter_rate = "";
+                                                                                            if ($totalRows_quarterly_target > 0) {
+                                                                                                $quarter_target =  $rows_quarterly_target["Q$quarter"];
+                                                                                                $quarter_1_rate = $quarter_achived > 0 && $quarter_target > 0 ? number_format((($quarter_achived / $quarter_target) * 100), 2) : 0;
+                                                                                                $quarter_rate = $quarter_1_rate . "%";
+                                                                                            } else {
+                                                                                                $quarter_rate = number_format(0, 2) . "%";
+                                                                                            }
                                                                                         }
-                                                                                    }
 
-                                                                                    $query_indRemarks =  $db->prepare("SELECT * FROM tbl_qapr_report_remarks WHERE indid=:indid AND year=:year AND quarter=:quarter");
-                                                                                    $query_indRemarks->execute(array(":indid" => $indid, ":year" => $year, ":quarter" => $quarter));
-                                                                                    $row_indRemarks = $query_indRemarks->fetch();
-                                                                                    $count_row_indRemarks = $query_indRemarks->rowCount();
-                                                                                    $proceed_button[] = $count_row_indRemarks > 0 ? true : false;
-                                                                                    $edit = ($count_row_indRemarks > 0) ?  "edit" : "new";
-                                                                                    $remark_id = $count_row_indRemarks > 0 ? $row_indRemarks['id'] : '';
+                                                                                        $query_indRemarks =  $db->prepare("SELECT * FROM tbl_qapr_report_remarks WHERE indid=:indid AND year=:year AND quarter=:quarter");
+                                                                                        $query_indRemarks->execute(array(":indid" => $indid, ":year" => $year, ":quarter" => $quarter));
+                                                                                        $row_indRemarks = $query_indRemarks->fetch();
+                                                                                        $count_row_indRemarks = $query_indRemarks->rowCount();
+                                                                                        $proceed_button[] = $count_row_indRemarks > 0 ? true : false;
+                                                                                        $edit = ($count_row_indRemarks > 0) ?  "edit" : "new";
+                                                                                        $remark_id = $count_row_indRemarks > 0 ? $row_indRemarks['id'] : '';
 
                                                                             ?>
-                                                                                    <tr>
-                                                                                        <td><?= $counter ?></td>
-                                                                                        <td colspan=""><?= $indicator ?></td>
-                                                                                        <td colspan=""><?= $unit . " of " .  $indicator ?></td>
-                                                                                        <td colspan=""><?= number_format($basevalue) ?></td>
-                                                                                        <td colspan=""><?= number_format($annualtarget) ?></td>
-                                                                                        <td><?= number_format($quarter_target) ?></td>
-                                                                                        <td><?= number_format($quarter_achived) ?></td>
-                                                                                        <td><?= $quarter_rate ?></td>
-                                                                                        <td>
-                                                                                            <button type="button" data-toggle="modal" data-target="#remarksItemModal" id="remarksItemModalBtn" class="btn btn-success btn-sm" onclick="remarks(<?= $indid ?>, 1,'<?= $edit ?>', '<?= $remark_id ?>')">
-                                                                                                <i class="glyphicon glyphicon-file"></i>
-                                                                                                <strong> <?= ($count_row_indRemarks > 0)  ? "Edit" : "Add" ?> Remarks</strong>
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    </tr>
+                                                                                        <tr>
+                                                                                            <td><?= $counter ?></td>
+                                                                                            <td colspan=""><?= $indicator ?></td>
+                                                                                            <td colspan=""><?= $unit . " of " .  $indicator ?></td>
+                                                                                            <td colspan=""><?= number_format($basevalue) ?></td>
+                                                                                            <td colspan=""><?= number_format($annualtarget) ?></td>
+                                                                                            <td><?= number_format($quarter_target) ?></td>
+                                                                                            <td><?= number_format($quarter_achived) ?></td>
+                                                                                            <td><?= $quarter_rate ?></td>
+                                                                                            <td>
+                                                                                                <button type="button" data-toggle="modal" data-target="#remarksItemModal" id="remarksItemModalBtn" class="btn btn-success btn-sm" onclick="remarks(<?= $indid ?>, 1,'<?= $edit ?>', '<?= $remark_id ?>')">
+                                                                                                    <i class="glyphicon glyphicon-file"></i>
+                                                                                                    <strong> <?= ($count_row_indRemarks > 0)  ? "Edit" : "Add" ?> Remarks</strong>
+                                                                                                </button>
+                                                                                            </td>
+                                                                                        </tr>
                                                                             <?php
+                                                                                    }
                                                                                 }
                                                                             }
                                                                             ?>
@@ -539,8 +549,8 @@ try {
                                         $Rows_rsConclusion = $query_rsConclusion->fetch();
                                         $totalRows_rsConclusion = $query_rsConclusion->rowCount();
 
-                                        $query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 and indicator_sector=:sector ORDER BY `indid` ASC");
-                                        $query_indicators->execute(array(":sector" => $sector_id));
+                                        $query_indicators = $db->prepare("SELECT * FROM tbl_indicator WHERE indicator_category='Output' AND baseline=1 ORDER BY `indid` ASC");
+                                        $query_indicators->execute();
                                         $sector = get_sector($sector_id);
                                         $totalRows_indicators = $query_indicators->rowCount();
                                         ?>
@@ -619,7 +629,6 @@ try {
                                                                                 $counter = 0;
                                                                                 $quarter_target = 0;
                                                                                 while ($row_indicators = $query_indicators->fetch()) {
-                                                                                    $counter++;
                                                                                     $initial_basevalue = 0;
                                                                                     $actual_basevalue = 0;
                                                                                     $annualtarget = 0;
@@ -633,78 +642,86 @@ try {
                                                                                     $row_indunit = $query_indunit->fetch();
                                                                                     $unit = ($row_indunit) ? $row_indunit["unit"] : "";
 
-                                                                                    $query_indbasevalue_year = $db->prepare("SELECT * FROM tbl_indicator_baseline_years WHERE indid=:indid AND year <= :finyear");
-                                                                                    $query_indbasevalue_year->execute(array(":indid" => $indid, ":finyear" => $start));
-                                                                                    $totalRows_indbasevalue_year = $query_indbasevalue_year->rowCount();
-                                                                                    $year_rate = $year_target = $year_achived = 0;
+                                                                                    $query_indicator = $db->prepare("SELECT * FROM tbl_progdetails p INNER JOIN tbl_programs g ON g.progid = p.progid WHERE g.projsector=:ministry_id AND  indicator=:indid");
+                                                                                    $query_indicator->execute(array(":ministry_id" => $sector_id, ":indid" => $indid));
+                                                                                    $rows_indicator = $query_indicator->fetchAll();
 
-                                                                                    if ($totalRows_indbasevalue_year >= 0) {
-                                                                                        $query_initial_indbasevalue = $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid=:indid ");
-                                                                                        $query_initial_indbasevalue->execute(array(":indid" => $indid));
-                                                                                        $rows_initial_indbasevalue = $query_initial_indbasevalue->fetch();
-                                                                                        $initial_basevalue = !is_null($rows_initial_indbasevalue["basevalue"]) ? $rows_initial_indbasevalue["basevalue"] : 0;
+                                                                                    if ($rows_indicator > 0) {
+                                                                                        $counter++;
 
-                                                                                        $query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE m.record_type=1 AND d.indicator=:indid AND m.date_created <= '" . $base_date . "'");
-                                                                                        $query_actual_ind_value->execute(array(":indid" => $indid));
-                                                                                        $rows_actual_ind_value = $query_actual_ind_value->fetch();
-                                                                                        $actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
+                                                                                        $query_indbasevalue_year = $db->prepare("SELECT * FROM tbl_indicator_baseline_years WHERE indid=:indid AND year <= :finyear");
+                                                                                        $query_indbasevalue_year->execute(array(":indid" => $indid, ":finyear" => $start));
+                                                                                        $totalRows_indbasevalue_year = $query_indbasevalue_year->rowCount();
+                                                                                        $year_rate = $year_target = $year_achived = 0;
 
-                                                                                        $basevalue = $initial_basevalue + $actual_basevalue;
+                                                                                        if ($totalRows_indbasevalue_year >= 0) {
+                                                                                            $query_initial_indbasevalue = $db->prepare("SELECT SUM(value) AS basevalue FROM tbl_indicator_output_baseline_values WHERE indid=:indid ");
+                                                                                            $query_initial_indbasevalue->execute(array(":indid" => $indid));
+                                                                                            $rows_initial_indbasevalue = $query_initial_indbasevalue->fetch();
+                                                                                            $initial_basevalue = !is_null($rows_initial_indbasevalue["basevalue"]) ? $rows_initial_indbasevalue["basevalue"] : 0;
 
-                                                                                        $query_annual_target = $db->prepare("SELECT SUM(target) as target FROM `tbl_progdetails` WHERE indicator=:indid AND year=:finyear");
-                                                                                        $query_annual_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
-                                                                                        $rows_annual_target = $query_annual_target->fetch();
-                                                                                        $annualtarget = !is_null($rows_annual_target["target"]) ? $rows_annual_target["target"] : 0;
+                                                                                            $query_actual_ind_value = $db->prepare("SELECT SUM(achieved) AS basevalue FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE m.record_type=1 AND d.indicator=:indid AND m.date_created <= '" . $base_date . "'");
+                                                                                            $query_actual_ind_value->execute(array(":indid" => $indid));
+                                                                                            $rows_actual_ind_value = $query_actual_ind_value->fetch();
+                                                                                            $actual_basevalue = !is_null($rows_actual_ind_value["basevalue"]) ? $rows_actual_ind_value["basevalue"] : 0;
 
-                                                                                        $query_year_target = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE indid=:indid AND year=:finyear");
-                                                                                        $query_year_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
-                                                                                        $rows_year_target = $query_year_target->fetch();
-                                                                                        $totalRows_year_target = $query_year_target->rowCount();
+                                                                                            $basevalue = $initial_basevalue + $actual_basevalue;
+
+                                                                                            $query_annual_target = $db->prepare("SELECT SUM(target) as target FROM `tbl_progdetails` WHERE indicator=:indid AND year=:finyear");
+                                                                                            $query_annual_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+                                                                                            $rows_annual_target = $query_annual_target->fetch();
+                                                                                            $annualtarget = !is_null($rows_annual_target["target"]) ? $rows_annual_target["target"] : 0;
+
+                                                                                            $query_year_target = $db->prepare("SELECT * FROM tbl_programs_quarterly_targets WHERE indid=:indid AND year=:finyear");
+                                                                                            $query_year_target->execute(array(":indid" => $indid, ":finyear" => $start_year));
+                                                                                            $rows_year_target = $query_year_target->fetch();
+                                                                                            $totalRows_year_target = $query_year_target->rowCount();
 
 
-                                                                                        $query_year_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created >= '" . $start_date . "' AND date_created <= '" . $end_date . "')");
-                                                                                        $query_year_one_actual->execute(array(":indid" => $indid));
-                                                                                        $rows_year_one_actual = $query_year_one_actual->fetch();
-                                                                                        $totalRows_year_one_actual = $query_year_one_actual->rowCount();
-                                                                                        $year_achived =  !is_null($rows_year_one_actual["achieved"]) ? $rows_quarter_one_actual["achieved"] : 0;
+                                                                                            $query_year_one_actual = $db->prepare("SELECT SUM(achieved) AS achieved FROM tbl_monitoringoutput m inner join tbl_project_details d on d.id=m.output_id WHERE indicator=:indid AND (date_created >= '" . $start_date . "' AND date_created <= '" . $end_date . "')");
+                                                                                            $query_year_one_actual->execute(array(":indid" => $indid));
+                                                                                            $rows_year_one_actual = $query_year_one_actual->fetch();
+                                                                                            $totalRows_year_one_actual = $query_year_one_actual->rowCount();
+                                                                                            $year_achived =  !is_null($rows_year_one_actual["achieved"]) ? $rows_quarter_one_actual["achieved"] : 0;
 
-                                                                                        $year_rate1 = 0;
-                                                                                        if ($totalRows_year_target > 0) {
-                                                                                            $year_target +=  $rows_year_target["Q1"];
-                                                                                            $year_target +=  $rows_year_target["Q2"];
-                                                                                            $year_target +=  $rows_year_target["Q3"];
-                                                                                            $year_target +=  $rows_year_target["Q4"];
-                                                                                            $year_rate1 = $year_achived > 0 && $year_target > 0 ? (($year_achived / $year_target) * 100) : 0;
+                                                                                            $year_rate1 = 0;
+                                                                                            if ($totalRows_year_target > 0) {
+                                                                                                $year_target +=  $rows_year_target["Q1"];
+                                                                                                $year_target +=  $rows_year_target["Q2"];
+                                                                                                $year_target +=  $rows_year_target["Q3"];
+                                                                                                $year_target +=  $rows_year_target["Q4"];
+                                                                                                $year_rate1 = $year_achived > 0 && $year_target > 0 ? (($year_achived / $year_target) * 100) : 0;
+                                                                                            }
+                                                                                            $year_rate = number_format($year_rate1, 2) . "%";
                                                                                         }
-                                                                                        $year_rate = number_format($year_rate1, 2) . "%";
-                                                                                    }
 
-                                                                                    $query_indRemarks =  $db->prepare("SELECT * FROM tbl_capr_report_remarks WHERE indid=:indid AND year=:financial_year_id");
-                                                                                    $query_indRemarks->execute(array(":indid" => $indid, ":financial_year_id" => $financial_year_id));
-                                                                                    $row_indRemarks = $query_indRemarks->fetch();
-                                                                                    $count_row_indRemarks = $query_indRemarks->rowCount();
-                                                                                    $remarks = ($count_row_indRemarks > 0) ?  $row_indRemarks['remarks'] : "No record";
-                                                                                    $year_proceed_button[] = ($count_row_indRemarks > 0) ?  true : false;
-                                                                                    $edit = ($count_row_indRemarks > 0) ?  "edit" : "new";
-                                                                                    $remark_id = $count_row_indRemarks > 0 ? $row_indRemarks['id'] : '';
+                                                                                        $query_indRemarks =  $db->prepare("SELECT * FROM tbl_capr_report_remarks WHERE indid=:indid AND year=:financial_year_id");
+                                                                                        $query_indRemarks->execute(array(":indid" => $indid, ":financial_year_id" => $financial_year_id));
+                                                                                        $row_indRemarks = $query_indRemarks->fetch();
+                                                                                        $count_row_indRemarks = $query_indRemarks->rowCount();
+                                                                                        $remarks = ($count_row_indRemarks > 0) ?  $row_indRemarks['remarks'] : "No record";
+                                                                                        $year_proceed_button[] = ($count_row_indRemarks > 0) ?  true : false;
+                                                                                        $edit = ($count_row_indRemarks > 0) ?  "edit" : "new";
+                                                                                        $remark_id = $count_row_indRemarks > 0 ? $row_indRemarks['id'] : '';
                                                                             ?>
-                                                                                    <tr>
-                                                                                        <td><?= $counter ?></td>
-                                                                                        <td colspan=""><?= $indicator ?></td>
-                                                                                        <td colspan=""><?= $unit . " of " .  $indicator ?></td>
-                                                                                        <td colspan=""><?= number_format($basevalue) ?></td>
-                                                                                        <td colspan=""><?= number_format($annualtarget) ?></td>
-                                                                                        <td><?= number_format($quarter_target) ?></td>
-                                                                                        <td><?= number_format($quarter_achived) ?></td>
-                                                                                        <td><?= $quarter_rate ?></td>
-                                                                                        <td>
-                                                                                            <button type="button" data-toggle="modal" data-target="#remarksItemModal" id="remarksItemModalBtn" class="btn btn-success btn-sm" onclick="remarks(<?= $indid ?>, 2,'<?= $edit ?>', '<?= $remark_id ?>')">
-                                                                                                <i class="glyphicon glyphicon-file"></i>
-                                                                                                <strong> <?= ($count_row_indRemarks > 0)  ? "Edit" : "Add" ?> Remarks</strong>
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    </tr>
+                                                                                        <tr>
+                                                                                            <td><?= $counter ?></td>
+                                                                                            <td colspan=""><?= $indicator ?></td>
+                                                                                            <td colspan=""><?= $unit . " of " .  $indicator ?></td>
+                                                                                            <td colspan=""><?= number_format($basevalue) ?></td>
+                                                                                            <td colspan=""><?= number_format($annualtarget) ?></td>
+                                                                                            <td><?= number_format($quarter_target) ?></td>
+                                                                                            <td><?= number_format($quarter_achived) ?></td>
+                                                                                            <td><?= $quarter_rate ?></td>
+                                                                                            <td>
+                                                                                                <button type="button" data-toggle="modal" data-target="#remarksItemModal" id="remarksItemModalBtn" class="btn btn-success btn-sm" onclick="remarks(<?= $indid ?>, 2,'<?= $edit ?>', '<?= $remark_id ?>')">
+                                                                                                    <i class="glyphicon glyphicon-file"></i>
+                                                                                                    <strong> <?= ($count_row_indRemarks > 0)  ? "Edit" : "Add" ?> Remarks</strong>
+                                                                                                </button>
+                                                                                            </td>
+                                                                                        </tr>
                                                                             <?php
+                                                                                    }
                                                                                 }
                                                                             }
                                                                             ?>
@@ -935,6 +952,7 @@ try {
     }
     require('includes/footer.php');
 } catch (PDOException $ex) {
+    var_dump($ex);
     customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>

@@ -45,7 +45,7 @@ try {
                 <div class="container-fluid">
                     <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                         <h4 class="contentheader">
-                            <i class="fa fa-columns" style="color:white"></i> Program of Works
+                             <?= $icon . " " . $pageTitle ?>
                             <div class="btn-group" style="float:right">
                                 <div class="btn-group" style="float:right">
                                     <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
@@ -155,7 +155,7 @@ try {
                                                                                                 <th style="width:5%">#</th>
                                                                                                 <th style="width:60%">Subtask</th>
                                                                                                 <th style="width:15%">Unit of Measure</th>
-                                                                                                <th style="width:10%">Frequency</th>
+                                                                                                <th style="width:10%">Interval</th>
                                                                                             </tr>
                                                                                         </thead>
                                                                                         <tbody>
@@ -271,7 +271,7 @@ try {
                                                                                     <th style="width:5%">#</th>
                                                                                     <th style="width:60%">Item</th>
                                                                                     <th style="width:15%">Unit of Measure</th>
-                                                                                    <th style="width:10%">Frequency</th>
+                                                                                    <th style="width:10%">Interval</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>

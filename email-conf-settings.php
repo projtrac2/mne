@@ -1,12 +1,15 @@
-<?php  
+<?php
+//include_once 'includes/head-alt.php';
 
+try {
 	$query_settings = $db->prepare("SELECT * FROM tbl_email_settings");
-	$query_settings->execute();		
+	$query_settings->execute();
 	$settings = $query_settings->fetch();
-	$sender  = $org;
+	$sender  = $settings["username"];
 	//$receipient = "denkytheka@gmail.com";
-	
+
 	$mail = new PHPMailer;
+
 	//Server settings
 	//$mail->SMTPDebug = 2;                                       // Enable verbose debug output
 	$mail->isSMTP();                                            // Set mailer to use SMTP
@@ -25,8 +28,12 @@
 	//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
 	$mail->isHTML(True);                                  // Set email format to HTML
 
-	$mail->Subject = $subject; 
+	$mail->Subject = $subject;
 	$mail->Body    = $body;
 	$mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
-	$mail->send();
+	$response = $mail->send();
+	var_dump($response);
+} catch (Exception $ex) {
+	var_dump($ex);
+}

@@ -18,8 +18,7 @@ try {
     }
 
 
-    if (isset($_GET['compare_dates'])) {
-        $project_end_date = date('Y-m-d', strtotime($_GET["project_end_date"]));
+    if (isset($_GET['compare_dates'])) { 
         $start_date = date('Y-m-d', strtotime($_GET["start_date"]));
         $duration = $_GET["duration"];
         $end_date = date('Y-m-d', strtotime($start_date . ' + ' . $duration . ' days'));
@@ -262,7 +261,7 @@ try {
             $output_id = $_POST['output_id'];
             $site_id = $_POST['site_id'];
             $task_id = $_POST['task_id'];
-            $tasks = $_POST['tasks']; 
+            $tasks = $_POST['tasks'];
             $frequencies = $_POST['frequency_id'];
             $current_date = date('Y-m-d');
 

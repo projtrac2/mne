@@ -27,7 +27,6 @@ try {
         $query_rsCompleted->execute(array(":output_id" => $output_id));
         $totalRows_rsCompleted = $query_rsCompleted->rowCount();
         $completed = $totalRows_rsCompleted > 0 ? 1 : 2;
-
         return array("output_target" => $target, "output_cummulative_record" => $cummulative_record, "output_previous_record" => $previous_record, "output_completed" => $completed);
     }
 
@@ -437,8 +436,8 @@ try {
         $query_rsCummulative->execute(array(":output_id" => $output_id));
         $Rows_rsCummulative = $query_rsCummulative->fetch();
         $cummulative_record = $Rows_rsCummulative['achieved'] != null ? $Rows_rsCummulative['achieved'] : 0;
-
-        if ($complete == 1 || $cummulative_record == $total_target) {
+        $proceed = $cummulative_record == $total_target ? true : false;
+        if ($complete == 1 || $proceed) {
             $sql = $db->prepare("UPDATE tbl_project_details SET complete=1, status=5 WHERE  projid=:projid AND id=:output_id");
             $result  = $sql->execute(array(":projid" => $projid, ":output_id" => $output_id));
         }

@@ -1,7 +1,7 @@
 <?php
 try {
     require('includes/head.php');
-    if ($permission && isset($_GET['projid']) && !empty($_GET['projid'])) {
+    if (isset($_GET['projid']) && !empty($_GET['projid'])) {
         $encoded_projid = $_GET['projid'];
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
@@ -15,8 +15,9 @@ try {
         $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
         $row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
         $approve_details = "";
+        // && !is_null($row_rsTask_Start_Dates['start_date'])
 
-        if ($totalRows_rsProjects > 0 && !is_null($row_rsTask_Start_Dates['start_date'])) {
+        if ($totalRows_rsProjects > 0) {
             $projname = $row_rsProjects['projname'];
             $projcode = $row_rsProjects['projcode'];
             $progid = $row_rsProjects['progid'];
@@ -140,7 +141,7 @@ try {
                                                                                                 <th style="width:5%">#</th>
                                                                                                 <th style="width:65%">Subtask</th>
                                                                                                 <th style="width:15%">Unit of Measure</th>
-                                                                                                <th style="width:15%">Frequency</th>
+                                                                                                <th style="width:15%">Interval</th>
                                                                                                 <th style="width:15%">Action</th>
                                                                                             </tr>
                                                                                         </thead>
@@ -252,7 +253,7 @@ try {
                                                                                     <th style="width:5%">#</th>
                                                                                     <th style="width:65%">Item</th>
                                                                                     <th style="width:15%">Unit of Measure</th>
-                                                                                    <th style="width:15%">Frequency</th>
+                                                                                    <th style="width:15%">Interval</th>
                                                                                     <th style="width:15%">Action</th>
                                                                                 </tr>
                                                                             </thead>

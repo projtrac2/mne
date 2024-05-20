@@ -26,6 +26,8 @@ try {
         $msg = false;
         $projid = false;
 
+
+
         if (isset($_POST['project_id']) && !empty($_POST['project_id'])) {
             $projid = $_POST['project_id'];
             $insertSQL = $db->prepare("UPDATE `tbl_projects` SET projcode=:projcode, projname=:projname, projdesc=:projdesc, projduration=:projduration,projimpact=:projimpact,project_type=:project_type,asset=:asset,projevaluation=:projevaluation, projcommunity=:projlevel1, projlga=:projlevel2,projcost=:projcost, projcategory=:projimplmethod,updated_by=:createdby, date_updated=:datecreated WHERE projid =:projid");
@@ -39,6 +41,13 @@ try {
         if ($projid) {
             $sql = $db->prepare("DELETE FROM `tbl_project_sites` WHERE projid=:projid");
             $results = $sql->execute(array(':projid' => $projid));
+
+            $sql = $db->prepare("DELETE FROM `tbl_project_details` WHERE projid=:projid");
+            $results = $sql->execute(array(':projid' => $projid));
+
+            $sql = $db->prepare("DELETE FROM `tbl_output_disaggregation` WHERE projid=:projid");
+            $results = $sql->execute(array(':projid' => $projid));
+
             if (isset($_POST['lvid'])) {
                 $counter = count($_POST['lvid']);
                 for ($i = 0; $i < $counter; $i++) {
@@ -94,6 +103,7 @@ try {
                 }
             }
         }
+
 
         echo json_encode(array("projid" => $projid, "success" => $msg));
     }
@@ -478,9 +488,15 @@ try {
         $row_Indicator = $query_Indicator->fetch();
         $mapping_type = $row_Indicator ? $row_Indicator['indicator_mapping_type'] : 0;
         $indicator_name = $row_Indicator ? $row_Indicator['indicator_name'] : '';
+        $indicator_unit = $row_Indicator ? $row_Indicator['indicator_unit'] : '';
+
+        $query_rsunit = $db->prepare("SELECT * FROM tbl_measurement_units WHERE id =:indicator_unit ");
+        $query_rsunit->execute(array(":indicator_unit" => $indicator_unit));
+        $row_rsunit = $query_rsunit->fetch();
+        $opunit = $row_rsunit ?  $row_rsunit['unit'] : "";
 
         echo json_encode(array(
-            "program_target" => $program_target . " " . $indicator_name,
+            "program_target" => $program_target . " " . $opunit . ' of ' . $indicator_name,
             "mapping_type" => $mapping_type,
             "output_data" => $row_rsOutput,
             "output_details" => $row_rsOutput_details,

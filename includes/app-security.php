@@ -6,7 +6,7 @@ function customErrorHandler($errno, $errstr, $errfile, $errline)
 {
     $message = "Error: [$errno] $errstr - $errfile:$errline";
     // var_dump($message);
-    error_log($message . PHP_EOL, 3, "logs/error_log.log");
+    // error_log($message . PHP_EOL, 3, "logs/error_log.log");
 }
 
 set_error_handler("customErrorHandler");

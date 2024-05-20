@@ -19,42 +19,42 @@ try {
     $user = $user_auth->login($email, $password);
     // $company_settings->login_attempts
 
-    if ($_SESSION['attempt'] == 3) {
-      $_SESSION['errorMessage'] = 'Attempt limit reached';
-      $user_auth->suspicious_activity($email);
-      header("location:index.php");
-      return;
-    } else {
-      if ($user) {
-        unset($_SESSION['attempt']);
-        if ($user->first_login) {
-          $_SESSION['MM_Username_First_Login'] = $user->userid;
-          header("location: set-new-password.php");
+    // if ($_SESSION['attempt'] == 3) {
+    //   $_SESSION['errorMessage'] = 'Attempt limit reached';
+    //   $user_auth->suspicious_activity($email);
+    //   header("location:index.php");
+    //   return;
+    // } else {
+    if ($user) {
+      unset($_SESSION['attempt']);
+      if ($user->first_login) {
+        $_SESSION['MM_Username_First_Login'] = $user->userid;
+        header("location: set-new-password.php");
+      } else {
+        if (isset($_GET['action'])) {
+          $page_url = $_GET['action'];
+          header("location: $page_url");
         } else {
-          if (isset($_GET['action'])) {
-            $page_url = $_GET['action'];
-            header("location: $page_url");
-          } else {
-            $mail_otp_code = $user_auth->otp($email);
-            if ($mail_otp_code) {
-              $_SESSION['MM_Username_Email'] = $user->email;
-              header("location: otp.php");
-            }
+          $mail_otp_code = $user_auth->otp($email);
+          if ($mail_otp_code) {
+            $_SESSION['MM_Username_Email'] = $user->email;
+            header("location: otp.php");
           }
         }
-      } else {
-        $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
-        //this is where we put our 3 attempt limit
-        $_SESSION['attempt'] += 1;
-        //set the time to allow login if third attempt is reach
-        if ($_SESSION['attempt'] == 3) {
-          $_SESSION['attempt_again'] = time() + (5 * 60);
-          //note 5*60 = 5mins, 60*60 = 1hr, to set to 2hrs change it to 2*60*60
-        }
-        header("location:index.php");
-        return;
       }
+    } else {
+      $_SESSION["errorMessage"] =  "Your login attempt failed. You may have entered a wrong username or wrong password.";
+      //this is where we put our 3 attempt limit
+      $_SESSION['attempt'] += 1;
+      //set the time to allow login if third attempt is reach
+      if ($_SESSION['attempt'] == 3) {
+        $_SESSION['attempt_again'] = time() + (5 * 60);
+        //note 5*60 = 5mins, 60*60 = 1hr, to set to 2hrs change it to 2*60*60
+      }
+      header("location:index.php");
+      return;
     }
+    // }
   }
 
 ?>

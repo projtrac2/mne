@@ -33,13 +33,10 @@ try {
 					<!-- body  -->
 					<div class="row clearfix">
 						<div class="block-header">
-							<?php
-							echo $results;
-							?>
+							<?= $results; ?>
 						</div>
 						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 							<div class="card">
-
 								<div class="row clearfix">
 									<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 										<div class="card">

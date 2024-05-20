@@ -61,10 +61,10 @@ try {
 
 
 			if (!empty($prjsector) && empty($prjdept) && empty($projfyfrom) && empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector));
 			} elseif (!empty($prjsector) && !empty($prjdept) && empty($projfyfrom) && empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and g.projdept=:prjdept and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and g.projdept=:prjdept and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector, ":prjdept" => $prjdept));
 			} elseif (empty($prjsector) && empty($prjdept) && !empty($projfyfrom) && empty($projfyto)) {
 				$sql = $db->prepare("SELECT * FROM tbl_projects WHERE projstatus > 9 and projfscyear >= :projfyfrom and deleted='0' ORDER BY `projid` ASC");
@@ -73,32 +73,60 @@ try {
 				$sql = $db->prepare("SELECT * FROM tbl_projects WHERE projstatus > 9 and (projfscyear >= :projfyfrom and projfscyear <=:projfyto) and deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":projfyfrom" => $projfyfrom, ":projfyto" => $projfyto));
 			} elseif (!empty($prjsector) && empty($prjdept) && !empty($projfyfrom) && empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and p.projfscyear >= :projfyfrom and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and p.projfscyear >= :projfyfrom and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector, ":projfyfrom" => $projfyfrom));
 			} elseif (!empty($prjsector) && !empty($prjdept) && !empty($projfyfrom) && empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and g.projdept=:prjdept and p.projfscyear >= :projfyfrom and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and g.projdept=:prjdept and p.projfscyear >= :projfyfrom and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector, ":prjdept" => $prjdept, ":projfyfrom" => $projfyfrom));
 			} elseif (!empty($prjsector) && empty($prjdept) && !empty($projfyfrom) && !empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and (projfscyear >= :projfyfrom and projfscyear <= :projfyto) and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and (projfscyear >= :projfyfrom and projfscyear <= :projfyto) and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector, ":projfyfrom" => $projfyfrom, ":projfyto" => $projfyto));
 			} elseif (!empty($prjsector) && !empty($prjdept) && !empty($projfyfrom) && !empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstatus > 9 and g.projsector=:prjsector and g.projdept=:prjdept and (projfscyear >= :projfyfrom and projfscyear <=:projfyto) and p.deleted='0' ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM tbl_projects p INNER JOIN tbl_programs g ON g.progid= p.progid WHERE p.projstage > 17 and g.projsector=:prjsector and g.projdept=:prjdept and (projfscyear >= :projfyfrom and projfscyear <=:projfyto) and p.deleted='0' ORDER BY `projid` ASC");
 				$sql->execute(array(":prjsector" => $prjsector, ":prjdept" => $prjdept, ":projfyfrom" => $projfyfrom, ":projfyto" => $projfyto));
 			} elseif (empty($prjsector) && empty($prjdept) && empty($projfyfrom) && empty($projfyto)) {
-				$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstatus > 9 ORDER BY `projid` ASC");
+				$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstage > 9 ORDER BY `projid` ASC");
 				$sql->execute();
 			}
 
 			$base_url = "?sector=$prjsector&department=$prjdept&projfyfrom=$projfyfrom&projfyto=$projfyto&btn_search=FILTER";
 		} else {
-			$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstage > 9 ORDER BY `projid` ASC");
+			$sql = $db->prepare("SELECT * FROM `tbl_projects` WHERE projstage > 17 ORDER BY `projid` ASC");
 			$sql->execute();
 		}
 
 		$rows_count = $sql->rowCount();
 
 		include_once('system-labels.php');
+		function get_sub_status($subtask_id)
+		{
+			global $db;
 
+			$query_rsPlan = $db->prepare("SELECT * FROM tbl_program_of_works WHERE  subtask_id=:subtask_id AND complete=0 ");
+			$query_rsPlan->execute(array(':subtask_id' => $subtask_id));
+			$totalRows_plan = $query_rsPlan->rowCount();
+			$status_ids = [];
+			if ($totalRows_plan > 0) {
+				while ($Rows_plan = $query_rsPlan->fetch()) {
+					$status_ids[] = $Rows_plan['status'];
+				}
+			}
+
+			$status_id = 3;
+			if (!empty($status_ids)) {
+				if (in_array(11, $status_ids)) {
+					$status_id = 11;
+				} else if (in_array(4, $status_ids)) {
+					$status_id = 4;
+				} else if (in_array(3, $status_ids)) {
+					$status_id = 3;
+				} else if (in_array(5, $status_ids)) {
+					$status_id = 5;
+				}
+			}
+
+			return 	get_status($status_id);
+		}
 ?>
 		<style>
 			.modal-lg {
@@ -158,9 +186,6 @@ try {
 								</div>
 							</div>
 							<div class="body">
-
-							</div>
-							<div class="body">
 								<div class="row clearfix">
 									<form id="searchform" name="searchform" method="get" style="margin-top:10px" action="<?php echo $_SERVER['PHP_SELF']; ?>">
 										<?= csrf_token_html(); ?>
@@ -185,7 +210,7 @@ try {
 												<option value="">No <?= $departmentlabelplural ?></option>
 											</select>
 										</div>
-										<div class="col-md-2">
+										<!-- <div class="col-md-2">
 											<select name="projfyfrom" id="fyfrom" onchange="finyearfrom()" class="form-control show-tick" data-live-search="false" data-live-search-style="startsWith">
 												<option value="" selected="selected">Select FY From</option>
 												<?php
@@ -200,7 +225,7 @@ try {
 												//projfy();
 												?>
 											</select>
-										</div>
+										</div> -->
 										<div class="col-md-2">
 											<input type="submit" class="btn btn-primary" name="btn_search" id="btn_search" value="FILTER" />
 											<input type="button" VALUE="RESET" class="btn btn-warning" onclick="location.href='project-indicators-tracking-table.php'" id="btnback">
@@ -239,8 +264,18 @@ try {
 														$projbudget = $row["projcost"];
 														$project_cost = number_format($projbudget, 2);
 														$projstatus = $row["projstatus"];
-														$projstartdate = $row["projstartdate"];
-														$projenddate = $row["projenddate"];
+														$projstartdate = '';
+														$projenddate = '';
+														$query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) AS end_date FROM tbl_program_of_works WHERE projid=:projid ");
+														$query_rsTask_Start_Dates->execute(array(':projid' => $itemId));
+														$row_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+
+														if (!is_null($row_rsTask_Start_Dates['start_date'])) {
+															$projstartdate = date("d M Y", strtotime($row_rsTask_Start_Dates['start_date']));
+															$projenddate = date("d M Y", strtotime($row_rsTask_Start_Dates['end_date']));
+														}
+
+
 														$implementation = $row['projcategory'];
 														$projstate = explode(",", $row['projlga']);
 														$status = get_status($projstatus);
@@ -326,12 +361,14 @@ try {
 															$query_rsPlan->execute(array(':subtask_id' => $subtask_id));
 															$totalRows_plan = $query_rsPlan->rowCount();
 															$status = $totalRows_plan > 0 ? 0 : 5;
+
+
 														?>
 															<tr class="collapse project<?= $itemId ?>">
 																<td class="bg-grey text-center"><?= $sn . '.' . $nm ?></td>
 																<td colspan="2"><?= $activity ?></td>
 																<td colspan="3"><?= $startdate . ' AND ' . $enddate ?></td>
-																<td><?= get_subtask_status($progress, $startdate, $enddate, $status, $projstatus) . '<br>' . get_project_progress($progress) ?></td>
+																<td><?= get_sub_status($subtask_id) . '<br>' . get_project_progress($progress) ?></td>
 															</tr>
 													<?php
 														}

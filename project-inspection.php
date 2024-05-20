@@ -6,9 +6,17 @@ try {
             $projid = $_POST['projid'];
             $comments = $_POST['comments'];
             $date_requested = date("Y-m-d");
-            $sub_stage = $comments != '' ? 4 : 5;
-            $sql = $db->prepare("UPDATE tbl_projects SET proj_substage=:proj_substage WHERE  projid=:projid");
-            $result  = $sql->execute(array(":proj_substage" => $sub_stage, ":projid" => $projid));
+            $sub_stage = 0;
+            $stage_id = 3;
+            $projstage = 20;
+            if ($comments != '') {
+                $sub_stage = 0;
+                $stage_id = 2;
+                $projstage = 18;
+            }
+
+            $sql = $db->prepare("UPDATE tbl_projects SET stage_id=:stage_id, projstage=:projstage, proj_substage=:proj_substage WHERE  projid=:projid");
+            $result  = $sql->execute(array(":stage_id" => $stage_id, ":projstage" => $projstage, ":proj_substage" => $sub_stage, ":projid" => $projid));
 
             if ($comments != '') {
                 $sql = $db->prepare("INSERT INTO tbl_projissues (projid, issue_description, issue_area, risk_category, issue_priority, issue_impact, created_by, date_created) VALUES (:projid, :issue_description, :issue_area, :risk_category, :issue_priority, :issue_impact, :user, :date)");
@@ -551,18 +559,19 @@ try {
                                                 </legend>
                                                 <form role="form" id="form" action="" method="post" autocomplete="off" enctype="multipart/form-data">
                                                     <?= csrf_token_html(); ?>
+                                                    <input type="hidden" name="comments" value="">
                                                     <?php
                                                     if (in_array(false, $proceed)) {
                                                     ?>
-                                                        <div id="comment_section">
+                                                        <!-- <div id="comment_section">
                                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                                 <label class="control-label">Remarks *:</label>
                                                                 <br>
                                                                 <div class="form-line">
-                                                                    <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
+                                                                    <textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter Comments if necessary" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" ></textarea>
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div> -->
                                                     <?php
                                                     }
                                                     ?>

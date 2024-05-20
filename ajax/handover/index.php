@@ -6,7 +6,7 @@ try {
         $remarks = $_POST['comments'];
         $workflow_stage = $_POST['workflow_stage'];
         $stage = $workflow_stage;
-        $workflow_stage += 1;
+        $workflow_stage = 17;
         $sub_stage = 0;
         $today = date('Y-m-d');
 
@@ -27,11 +27,11 @@ try {
                             $newname = date("d-m-Y") . "-" . $projid . "-" . $filecategory . "-" . time() . "-" . $filename;
                             $filepath = "../../uploads/handover/other-files/" . $newname;
                             $path = "uploads/handover/other-files/" . $newname;
+                            
                             if ($ext == "jpg" || $ext == "png" || $ext == "jpeg") {
                                 $filepath = "../../uploads/handover/photos/" . $newname;
                                 $path = "uploads/handover/photos/" . $newname;
                             }
-
                             if (!file_exists($filepath)) {
                                 if (move_uploaded_file($_FILES['handoverattachment']['tmp_name'][$cnt], $filepath)) {
                                     $qry2 = $db->prepare("INSERT INTO tbl_files (projid,projstage,form_id,filename,ftype,floc,fcategory,reason,uploaded_by,date_uploaded)  VALUES (:projid,:projstage,:formid,:filename,:ftype,:floc,:fcat,:desc,:user,:date)");
@@ -50,7 +50,6 @@ try {
 
         $sql = $db->prepare("INSERT INTO tbl_project_stage_actions (projid,stage,sub_stage,created_by,created_at) VALUES (:projid,:stage,:sub_stage,:created_by,:created_at)");
         $result = $sql->execute(array(":projid" => $projid, ':stage' => $workflow_stage, ':sub_stage' => $sub_stage, ':created_by' => $user_name, ':created_at' => $today));
-
         echo json_encode(array('success' => $result));
     }
 } catch (PDOException $ex) {

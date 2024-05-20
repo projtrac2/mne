@@ -296,6 +296,7 @@ try {
         } else if ($frequency == 2) {
             $table_head = 'Week';
             $table_body = get_table_body($annual_dates, $subtask_start_date, $subtask_end_date, $week_dates, $site_id, $subtask_id, $task_id, $frequency);
+            var_dump($table_body, $week_dates);
         } else if ($frequency == 3) {
             $table_head = 'Month';
             $table_body = get_table_body($annual_dates, $subtask_start_date, $subtask_end_date, $month_dates, $site_id, $subtask_id, $task_id, $frequency);

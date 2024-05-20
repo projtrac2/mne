@@ -52,7 +52,7 @@ $(document).ready(function () {
                 });
 
                 setTimeout(() => {
-                    if (cost_type == '1') {
+                    if (cost_type == '2') {
                         window.location.reload();
                     } else {
                         window.location.href = response.items_url;
@@ -478,7 +478,7 @@ function add_budget_costline() {
             </td>
             <td id="unit${$rowno}"> </td>
             <td>
-                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})">
+                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" readonly>
             </td>
             <td>
                 <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" id="no_units${$rowno}">

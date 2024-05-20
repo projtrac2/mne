@@ -88,8 +88,7 @@ try {
                         <div class="container-fluid">
                             <div class="block-header bg-blue-grey" width="100%" height="55" style="margin-top:10px; padding-top:5px; padding-bottom:5px; padding-left:15px; color:#FFF">
                                 <h4 class="contentheader">
-                                    <?= $icon ?>
-                                    <?php echo $pageTitle ?>
+                                    <?= $icon . " " . $pageTitle ?>
                                     <div class="btn-group" style="float:right">
                                         <div class="btn-group" style="float:right">
                                             <a type="button" id="outputItemModalBtnrow" onclick="history.back()" class="btn btn-warning pull-right">
@@ -591,14 +590,14 @@ try {
                                                                             </tbody>
                                                                             <tfoot id="budget_line_foot">
                                                                                 <tr>
-                                                                                    <td colspan="1"><strong>Sub Total</strong></td>
-                                                                                    <td colspan="1">
+                                                                                    <td colspan="5"><strong>Sub Total</strong></td>
+                                                                                    <td>
                                                                                         <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
                                                                                     </td>
-                                                                                    <td colspan="1"> <strong>% Sub Total</strong></td>
+                                                                                    <!-- <td colspan="1"> <strong>% Sub Total</strong></td>
                                                                                     <td colspan="2">
                                                                                         <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
-                                                                                    </td>
+                                                                                    </td> -->
                                                                                 </tr>
                                                                             </tfoot>
                                                                         </table>
@@ -823,7 +822,7 @@ try {
             </td>
             <td id="unit${$rowno}"> </td>
             <td>
-                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})">
+                <input type="number" name="unit_cost[]" min="0" class="form-control " id="unit_cost${$rowno}" onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" readonly>
             </td>
             <td>
                 <input type="number" name="no_units[]" min="0" class="form-control " onchange="calculate_total_cost(${$rowno})" onkeyup="calculate_total_cost(${$rowno})" id="no_units${$rowno}">

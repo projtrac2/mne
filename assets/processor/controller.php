@@ -6,6 +6,12 @@ error_reporting(E_ALL);
 include_once '../../projtrac-dashboard/resource/Database.php';
 include_once '../../projtrac-dashboard/resource/utilities.php';
 include_once("../../includes/system-labels.php");
+
+include_once '../../Models/Email.php';
+include_once '../../Models/Connection.php';
+require '../../vendor/autoload.php';
+
+
 $currentdate = date("Y-m-d");
 session_start();
 (!isset($_SESSION['MM_Username'])) ? header("location: index.php") : "";
@@ -65,8 +71,6 @@ function get_page_details($designation_id, $path)
     $rows_stmt = $stmt->rowCount();
     return $rows_stmt > 0 ? $row_stmt : false;
 }
-
-
 
 function view_record($department, $section, $directorate, $allow_read_records)
 {

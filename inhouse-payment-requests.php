@@ -74,7 +74,7 @@ try {
                                     </thead>
                                     <tbody>
                                        <?php
-                                       $query_rsprojects =  $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage > 7 AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11 OR projstatus=5) ");
+                                       $query_rsprojects =  $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND p.projstage > 7 AND (p.projstatus=3 OR p.projstatus=4 OR p.projstatus=11 OR projstatus=5) AND administrative_cost > 0");
                                        $query_rsprojects->execute();
                                        $total_rsprojects = $query_rsprojects->rowCount();
                                        if ($total_rsprojects > 0) {
@@ -533,13 +533,9 @@ try {
                                                 </tbody>
                                                 <tfoot id="budget_line_foot">
                                                    <tr>
-                                                      <td colspan="1"><strong>Sub Total</strong></td>
-                                                      <td colspan="1">
+                                                      <td colspan="5"><strong>Sub Total</strong></td>
+                                                      <td>
                                                          <input type="text" name="subtotal_amount1" value="" id="sub_total_amount" class="form-control" placeholder="Total sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
-                                                      </td>
-                                                      <td colspan="1"> <strong>% Sub Total</strong></td>
-                                                      <td colspan="2">
-                                                         <input type="text" name="subtotal_percentage" value="%" id="subtotal_percentage" class="form-control" placeholder="% sub-total" style="height:35px; width:99%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" disabled>
                                                       </td>
                                                    </tr>
                                                 </tfoot>

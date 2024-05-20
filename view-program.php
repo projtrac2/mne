@@ -117,6 +117,7 @@ try {
 
                                                             $program_hashed = base64_encode("progid54321{$progid}");
                                                             $filter_department = view_record($project_department, $project_section, $project_directorate);
+
                                                             if ($filter_department) {
                                                                 $sn++;
                                                     ?>
@@ -151,15 +152,18 @@ try {
                                                                                         </li>
                                                                                     <?php
                                                                                     }
+
+                                                                                    if (!is_null($row_rsBudget['budget'])) {
                                                                                     ?>
-                                                                                    <li>
-                                                                                        <a type="button" data-toggle="modal" id="editprogram" href="add-project.php?progid=<?= $strategic_plan_program_hashed ?>">
-                                                                                            <i class="glyphicon glyphicon-edit"></i> Add Project
-                                                                                        </a>
-                                                                                    </li>
-                                                                                <?php
+                                                                                        <li>
+                                                                                            <a type="button" data-toggle="modal" id="editprogram" href="add-project.php?progid=<?= $strategic_plan_program_hashed ?>">
+                                                                                                <i class="glyphicon glyphicon-edit"></i> Add Project
+                                                                                            </a>
+                                                                                        </li>
+                                                                                    <?php
+                                                                                    }
                                                                                 } else {
-                                                                                ?>
+                                                                                    ?>
                                                                                     <li>
                                                                                         <a type="button" data-toggle="modal" id="editprogram" href="add-program-details.php?progid=<?= $program_hashed ?>&plan=<?= $stplane ?>">
                                                                                             <i class="glyphicon glyphicon-edit"></i>Add Output Targets
@@ -171,7 +175,7 @@ try {
                                                                                         </a>
                                                                                     </li>
                                                                                     <li>
-                                                                                        <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="removeItem(<?= $progid ?>)"> <i class="glyphicon glyphicon-trash"></i> Delete
+                                                                                        <a type="button" data-toggle="modal" data-target="#removeItemModal" id="removeItemModalBtn" onclick="destroy_program(<?= $progid ?>)"> <i class="glyphicon glyphicon-trash"></i> Delete
                                                                                         </a>
                                                                                     </li>
                                                                                 <?php

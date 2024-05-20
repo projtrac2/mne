@@ -90,7 +90,7 @@ try {
                                 $budgets = "budget" . $indicator;
                                 $target = $_POST[$targets];
                                 $budget = $_POST[$budgets];
-                                if (isset($_POST[$budgets]) && isset($_POST[$targets])) { 
+                                if (isset($_POST[$budgets]) && isset($_POST[$targets])) {
                                     $target = isset($_POST[$targets][$p]) ? $_POST[$targets][$p] : 0;
                                     $budget = isset($_POST[$budgets][$p]) ? $_POST[$budgets][$p] : 0;
                                     $sql = $db->prepare("INSERT INTO tbl_progdetails (strategic_plan_id,progid,year,output,indicator,target,budget) VALUES (:strategic_plan_id,:progid,:year,:outputid,:indicator,:target,:budget)");
@@ -113,12 +113,18 @@ try {
                 $query_rsStrategicObjectives = $db->prepare("SELECT o.id, o.objective FROM tbl_key_results_area k JOIN tbl_strategicplan p ON p.id = k.spid INNER JOIN tbl_strategic_plan_objectives o ON o.kraid = k.id WHERE p.current_plan=1 ");
                 $query_rsStrategicObjectives->execute();
                 $totalRows_rsStrategicObjectives = $query_rsStrategicObjectives->rowCount();
-
                 $strategic_objective_options = '';
                 if ($totalRows_rsStrategicObjectives > 0) {
                     while ($row_rsStrategicObjectives = $query_rsStrategicObjectives->fetch()) {
-                        $selected = $row_rsStrategicObjectives['id'] == $strategic_objective_id ? 'selected' : '';
-                        $strategic_objective_options .= '<option value="' . $row_rsStrategicObjectives['id'] . '" ' . $selected . '>' . $row_rsStrategicObjectives['objective'] . '</option>';
+                        $strategic_objid = $row_rsStrategicObjectives['id'];
+                        $query_strategy =  $db->prepare("SELECT * FROM tbl_kpi where strategic_objective_id=:strategic_objective_id");
+                        $query_strategy->execute(array(":strategic_objective_id" => $strategic_objid));
+                        $totalRows_strategy = $query_strategy->rowCount();
+                        if ($totalRows_strategy > 0) {
+                            $selected = $strategic_objid == $strategic_objective_id ? 'selected' : '';
+                            $strategic_objective_options .=
+                                '<option value="' . $strategic_objid . '" ' . $selected . '>' . $row_rsStrategicObjectives['objective'] . '</option>';
+                        }
                     }
                 }
                 return $strategic_objective_options;
@@ -127,7 +133,6 @@ try {
             function get_strategies($strategic_objective_id, $strategy_id)
             {
                 global $db;
-
                 if ($strategy_id != '') {
                     $query_strategy =  $db->prepare("SELECT * FROM tbl_objective_strategy where objid=:objid");
                     $query_strategy->execute(array(":objid" => $strategic_objective_id));
@@ -281,7 +286,7 @@ try {
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                                 <label class="control-label" id="programworkplan"> Program Output Targets </label>
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped table-hover" id="program" style="width:100%">
+                                                    <table class="table table-bordered table-striped table-hover" id="program" onsubmit="return output_validation()" style="width:100%">
                                                         <thead class="thead" id="phead">
                                                             <!-- //tale head -->
                                                             <tr>
@@ -321,14 +326,19 @@ try {
                                                                         <td id="output<?= $counter ?>"> <?= $output ?></td>
                                                                         <?= get_table_body($indicator_id, $counter) ?>
                                                                         <td>
-                                                                            <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_program_row("<?= $counter ?>")'>
-                                                                                <span class="glyphicon glyphicon-minus"></span>
-                                                                            </button>
+                                                                            <?php
+                                                                            if ($counter != 1) {
+                                                                            ?>
+                                                                                <button type="button" class="btn btn-danger btn-sm" id="delete" onclick='delete_program_row("<?= $counter ?>")'>
+                                                                                    <span class="glyphicon glyphicon-minus"></span>
+                                                                                </button>
+                                                                            <?php
+                                                                            }
+                                                                            ?>
                                                                         </td>
                                                                     </tr>
                                                             <?php
                                                                 }
-                                                            } else {
                                                             }
                                                             ?>
                                                         </tbody>
@@ -336,6 +346,7 @@ try {
                                                 </div>
                                             </div>
                                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="margin-top:15px" align="center">
+                                                <span style="color: red;"><strong>Note: Add outputs .</strong></span> <br>
                                                 <input type="hidden" name="MM_insert" value="addprogramfrm">
                                                 <input type="hidden" name="progid" value="<?= $progid ?>">
                                                 <input type="hidden" name="strategic_plan_id" value="<?= $strategic_plan_id ?>">

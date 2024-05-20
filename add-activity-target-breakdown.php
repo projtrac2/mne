@@ -6,8 +6,6 @@ try {
         $decode_projid = base64_decode($encoded_projid);
         $projid_array = explode("projid54321", $decode_projid);
         $projid = $projid_array[1];
-
-
         $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.deleted='0' AND projid = :projid");
         $query_rsProjects->execute(array(":projid" => $projid));
         $row_rsProjects = $query_rsProjects->fetch();

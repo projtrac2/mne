@@ -416,7 +416,7 @@ try {
 
 		if ($issue_type == 2) {
 			//--------------------- Start Scope Adjustment ----------------------------
-			$issuefields = '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_scope" style="margin-bottom:10px">';
+			$issuefields .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_scope" style="margin-bottom:10px">';
 
 			$query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
 			$query_Sites->execute(array(":projid" => $projid));
@@ -548,7 +548,7 @@ try {
 				}
 			}
 
-			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
 			$query_Output->execute(array(":projid" => $projid));
 			$total_Output = $query_Output->rowCount();
 			$outputs = '';
@@ -668,7 +668,7 @@ try {
 
 			//--------------------- Start Schedule Adjustment ----------------------------
 
-			$issuefields = '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_schedule" style="margin-bottom:10px">';
+			$issuefields .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_schedule" style="margin-bottom:10px">';
 
 			$query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
 			$query_Sites->execute(array(":projid" => $projid));
@@ -800,7 +800,7 @@ try {
 				}
 			}
 
-			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
 			$query_Output->execute(array(":projid" => $projid));
 			$total_Output = $query_Output->rowCount();
 			$outputs = '';
@@ -919,7 +919,7 @@ try {
 
 			//----------------- Start Cost Adjustment -------------------------
 
-			$issuefields = '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_cost" style="margin-bottom:10px">';
+			$issuefields .= '<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="adjust_cost" style="margin-bottom:10px">';
 
 			$query_Sites = $db->prepare("SELECT * FROM tbl_project_sites WHERE projid=:projid");
 			$query_Sites->execute(array(":projid" => $projid));
@@ -1062,7 +1062,7 @@ try {
 				}
 			}
 
-			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE indicator_mapping_type=2 AND projid = :projid");
+			$query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE (indicator_mapping_type=2 OR indicator_mapping_type=0) AND projid = :projid");
 			$query_Output->execute(array(":projid" => $projid));
 			$total_Output = $query_Output->rowCount();
 			$outputs = '';
@@ -1178,7 +1178,7 @@ try {
 			$success = true;
 			//------------------------- End Cost Adjustment -----------------------
 
-		} else {
+		}else {
 
 			//----------------- Start Cost Adjustment -------------------------
 			/*
@@ -1188,12 +1188,13 @@ try {
 					<textarea name="comments" cols="" rows="7" class="form-control" id="comment" placeholder="Enter any other issue details here" style="width:98%; color:#000; font-size:12px; font-family:Verdana, Geneva, sans-serif" required></textarea>
 				</div>
 			</div>'; */
-			$issuefields = '';
+			//------------------------- End Cost Adjustment -----------------------
+			$issuefields .= '';
 
 			$success = true;
-			//------------------------- End Cost Adjustment -----------------------
 
 		}
+		
 		echo json_encode(array('success' => $success, 'issuefields' => $issuefields));
 	}
 
@@ -1432,24 +1433,27 @@ try {
 				<div class="col-lg-3 col-md-6 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
 					<label class="control-label">Issue Priority:</label>
 					<div class="form-control">' . $issue_priority . '</div>
-				</div>
-				<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
-					<label class="control-label">Resolution Comments:</label>
-					<div class="form-control" style="height: auto">' . $recommendation . '</div>
-				</div>
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped table-hover js-basic-example">
-							<thead>
-								<h4 class="text-primary">Issue Details:</h4>
-							</thead>
-							<tbody>
-								' . $issues_scope . '
-							</tbody>
-                        </table>
-                    </div>
-                </div>
-            </fieldset>';
+				</div>';
+				
+				if($issueareaid != 5){
+					$issue_details.='<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 clearfix" style="margin-top:5px; margin-bottom:5px">
+						<label class="control-label">Resolution Comments:</label>
+						<div class="form-control" style="height: auto">' . $recommendation . '</div>
+					</div>
+					<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+						<div class="table-responsive">
+							<table class="table table-bordered table-striped table-hover js-basic-example">
+								<thead>
+									<h4 class="text-primary">Issue Details:</h4>
+								</thead>
+								<tbody>
+									' . $issues_scope . '
+								</tbody>
+							</table>
+						</div>
+					</div>';
+				}
+            $issue_details.='</fieldset>';
 		echo json_encode(array('success' => $success, 'projname' => $projname, 'issue_details' => $issue_details));
 	}
 

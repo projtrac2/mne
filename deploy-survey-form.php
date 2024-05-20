@@ -436,7 +436,6 @@ try {
 
     function userMinistry(min) {
         var ministry = $("#ministry" + min).val();
-
         if (ministry) {
             $.ajax({
                 type: "post",

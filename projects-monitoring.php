@@ -117,10 +117,7 @@ try {
                                                     $monitoring_frequency =  $row_rsProjects['monitoring_frequency'];
                                                     $daily_team = daily_team($projid, $workflow_stage, 2);
 
-                                                    $Date = date("Y-m-d");
-                                                    $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
-                                                    $project_complete = false;
-                                                    $Date = date("Y-m-d");
+                                                    $Date = date("Y-m-d"); 
                                                     $due_date = date('Y-m-d', strtotime($Date . ' + 1 days'));
                                                     $project_complete = check_output_completion($projid);
 

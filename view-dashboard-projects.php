@@ -25,8 +25,9 @@ try {
         function widgets($stage_id, $level_one_id, $level_two_id, $project_type)
         {
             global $db, $access_level;
-            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.stage_id=:stage_id AND project_type=:project_type $access_level ");
-            $query_rsprojects->execute(array(":stage_id" => $stage_id, ":project_type" => $project_type));
+            // , ":project_type" => $project_type AND project_type=:project_type
+            $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects p inner join tbl_programs g on g.progid=p.progid WHERE p.stage_id=:stage_id $access_level ");
+            $query_rsprojects->execute(array(":stage_id" => $stage_id));
             $allprojects = $query_rsprojects->rowCount();
             $projids_array = [];
             if ($allprojects > 0) {
@@ -107,356 +108,174 @@ try {
                 <div class="row clearfix">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="card">
-                            <ul class="nav nav-tabs" style="font-size:14px">
-                                <li class="active">
-                                    <a data-toggle="tab" href="#home">
-                                        <i class="fa fa-caret-square-o-down bg-green" aria-hidden="true"></i> Strategic Plan Projects &nbsp;
-                                        <span class="badge bg-green"><?= count($projects) ?></span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a data-toggle="tab" href="#menu1">
-                                        <i class="fa fa-caret-square-o-up bg-blue" aria-hidden="true"></i> Independent Projects &nbsp;
-                                        <span class="badge bg-blue"><?= count($ind_projects) ?></span>
-                                    </a>
-                                </li>
-                            </ul>
                             <div class="body">
-                                <!-- strat body -->
-                                <div class="tab-content">
-                                    <div id="home" class="tab-pane fade in active">
-                                        <div class="body">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                                    <thead>
-                                                        <tr id="colrow">
-                                                            <th width="4%"><strong>SN</strong></th>
-                                                            <th width="25%"><strong>Project &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong></th>
-                                                            <th width="12%"><strong><?= $departmentlabel ?></strong></th>
-                                                            <th width="8%"><strong>Budget (Ksh)</strong></th>
-                                                            <?php
-                                                            if ($stage > 1) {
-                                                            ?>
-                                                                <th width="8%"><strong>Start Date</strong></th>
-                                                                <th width="8%"><strong>End Date</strong></th>
-                                                            <?php
-                                                            } else {
-                                                            ?>
-                                                                <th width="16%"><strong>Duration (Days)</strong></th>
-                                                            <?php
-                                                            }
-                                                            if ($stage == 2) {
-                                                            ?>
-                                                                <th width="10%"><strong>Substage, Status, Progress(%)</strong></th>
-                                                            <?php
-                                                            } else {
-                                                            ?>
-                                                                <th width="10%"><strong>Substage, Status</strong></th>
-                                                            <?php
-                                                            }
-                                                            ?>
-                                                            <th width="9%"><strong> <?= $level2label ?></strong></th>
-                                                            <th width="7%"><strong>Issues</strong></th>
-                                                            <th width="9%"><strong>Implementer</strong></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <!-- =========================================== -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                                        <thead>
+                                            <tr id="colrow">
+                                                <th width="4%"><strong>SN</strong></th>
+                                                <th width="25%"><strong>Project &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong></th>
+                                                <th width="12%"><strong><?= $departmentlabel ?></strong></th>
+                                                <th width="8%"><strong>Budget (Ksh)</strong></th>
+                                                <?php
+                                                if ($stage > 1) {
+                                                ?>
+                                                    <th width="8%"><strong>Start Date</strong></th>
+                                                    <th width="8%"><strong>End Date</strong></th>
+                                                <?php
+                                                } else {
+                                                ?>
+                                                    <th width="16%"><strong>Duration (Days)</strong></th>
+                                                <?php
+                                                }
+                                                if ($stage == 2) {
+                                                ?>
+                                                    <th width="10%"><strong>Substage, Status, Progress(%)</strong></th>
+                                                <?php
+                                                } else {
+                                                ?>
+                                                    <th width="10%"><strong>Substage, Status</strong></th>
+                                                <?php
+                                                }
+                                                ?>
+                                                <th width="9%"><strong> <?= $level2label ?></strong></th>
+                                                <th width="7%"><strong>Issues</strong></th>
+                                                <th width="9%"><strong>Implementer</strong></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- =========================================== -->
+                                            <?php
+                                            if (count($projects) > 0) {
+                                                $sn = 0;
+                                                foreach ($projects as $projid) {
+                                                    $sn++;
+                                                    $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
+                                                    $query_rsprojects->execute(array(":projid" => $projid));
+                                                    $detail = $query_rsprojects->fetch();
+                                                    $allprojects = $query_rsprojects->rowCount();
+                                                    $projname =  $detail['projname'];
+                                                    $progid =  $detail['progid'];
+                                                    $projcode =  $detail['projcode'];
+                                                    $projcost =  $detail['projcost'];
+                                                    $projstage =  $detail['projstage'];
+                                                    $substage_id =  $detail['proj_substage'];
+                                                    $projstatus =  $detail['projstatus'];
+                                                    $duration =  $detail['projduration'];
+                                                    $location = explode(",", $detail['projlga']);
+                                                    $fscyear = $detail['projfscyear'];
+                                                    $row_progid = $detail['progid'];
+                                                    $projcategory =  $detail['projcategory'];
+                                                    $progress = number_format(calculate_project_progress($projid, $projcategory), 2);
+                                                    $projectid = base64_encode("projid54321{$projid}");
+
+                                                    $project_start_date = '';
+                                                    $project_end_date = '';
+                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
+                                                    $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
+                                                    $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
+                                                    $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
+                                                    if ($total_rsTask_Start_Dates > 0) {
+                                                        $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
+                                                        $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
+                                                    }
+
+
+
+                                                    $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
+                                                    $query_rsSect->execute(array(":progid" => $progid));
+                                                    $row_rsSector = $query_rsSect->fetch();
+                                                    $totalRows_rsSect = $query_rsSect->rowCount();
+
+                                                    $sector = $totalRows_rsSect > 0 ? $row_rsSector['sector'] : "";
+
+                                                    $query_FY = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id=:fscyear");
+                                                    $query_FY->execute(array(":fscyear" => $fscyear));
+                                                    $row_FY = $query_FY->fetch();
+                                                    $totalRows_rsFY = $query_FY->rowCount();
+                                                    $financial_year = $totalRows_rsFY > 0 ? $row_FY['year'] : "";
+
+                                                    $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
+                                                    $query_rsProjissues->execute(array(":projid" => $projid));
+                                                    $totalRows_rsProjissues = $query_rsProjissues->rowCount();
+
+                                                    $projcontractor = "In House";
+                                                    if ($projcategory == 2) {
+                                                        $projcontractor = "Contractor";
+                                                        $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
+                                                        $query_contractor->execute(array(":projid" => $projid));
+                                                        $row_contractor = $query_contractor->fetch();
+                                                        $totalRows_contractor = $query_contractor->rowCount();
+
+                                                        if ($totalRows_contractor > 0) {
+                                                            $contractor = $row_contractor['contractor_name'];
+                                                            $projcontractor_id = $row_contractor['contrid'];
+                                                            $projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
+                                                            $projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
+                                                        }
+                                                    }
+
+                                                    $project_progress = get_project_progress($progress);
+                                                    $status = get_project_status($projstatus);
+                                                    $locations = get_wards($location);
+                                                    $project_stage =  get_project_stage($projstage);
+                                            ?>
+                                                    <tr id="rows">
+                                                        <td width="4%"><?php echo $sn; ?></td>
+                                                        <td width="25%" style="padding-right:0px; padding-left:0px; padding-top:0px">
+                                                            <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
+                                                                <b>Code:</b> <?= $projcode ?><br />
+                                                                <b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
+                                                            </div>
+                                                        </td>
+                                                        <td width="12%"><?= $sector ?></td>
+                                                        <td width="8%"><?= number_format($projcost, 2) ?></td>
                                                         <?php
-                                                        if (count($projects) > 0) {
-                                                            $sn = 0;
-                                                            foreach ($projects as $projid) {
-                                                                $sn++;
-                                                                $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
-                                                                $query_rsprojects->execute(array(":projid" => $projid));
-                                                                $detail = $query_rsprojects->fetch();
-                                                                $allprojects = $query_rsprojects->rowCount();
-                                                                $projname =  $detail['projname'];
-                                                                $progid =  $detail['progid'];
-                                                                $projcode =  $detail['projcode'];
-                                                                $projcost =  $detail['projcost'];
-                                                                $projstage =  $detail['projstage'];
-                                                                $substage_id =  $detail['proj_substage'];
-                                                                $projstatus =  $detail['projstatus'];
-                                                                $duration =  $detail['projduration'];
-                                                                $location = explode(",", $detail['projlga']);
-                                                                $fscyear = $detail['projfscyear'];
-                                                                $row_progid = $detail['progid'];
-                                                                $projcategory =  $detail['projcategory'];
-                                                                $progress = number_format(calculate_project_progress($projid, $projcategory), 2);
-                                                                $projectid = base64_encode("projid54321{$projid}");
-
-                                                                $project_start_date = '';
-                                                                $project_end_date = '';
-                                                                    $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
-                                                                    $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
-                                                                    $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-                                                                    $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                                    if ($total_rsTask_Start_Dates > 0) {
-                                                                        $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
-                                                                        $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
-                                                                    }
-
-
-
-                                                                $query_rsSect = $db->prepare("SELECT sector FROM tbl_sectors s inner join tbl_programs g on g.projsector = s.stid WHERE progid=:progid");
-                                                                $query_rsSect->execute(array(":progid" => $progid));
-                                                                $row_rsSector = $query_rsSect->fetch();
-                                                                $totalRows_rsSect = $query_rsSect->rowCount();
-
-                                                                $sector = $totalRows_rsSect > 0 ? $row_rsSector['sector'] : "";
-
-                                                                $query_FY = $db->prepare("SELECT * FROM tbl_fiscal_year WHERE id=:fscyear");
-                                                                $query_FY->execute(array(":fscyear" => $fscyear));
-                                                                $row_FY = $query_FY->fetch();
-                                                                $totalRows_rsFY = $query_FY->rowCount();
-                                                                $financial_year = $totalRows_rsFY > 0 ? $row_FY['year'] : "";
-
-                                                                $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
-                                                                $query_rsProjissues->execute(array(":projid" => $projid));
-                                                                $totalRows_rsProjissues = $query_rsProjissues->rowCount();
-
-                                                                $projcontractor = "In House";
-                                                                if ($projcategory == 2) {
-                                                                    $projcontractor = "Contractor";
-                                                                    $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
-                                                                    $query_contractor->execute(array(":projid" => $projid));
-                                                                    $row_contractor = $query_contractor->fetch();
-                                                                    $totalRows_contractor = $query_contractor->rowCount();
-
-                                                                    if ($totalRows_contractor > 0) {
-                                                                        $contractor = $row_contractor['contractor_name'];
-                                                                        $projcontractor_id = $row_contractor['contrid'];
-                                                                        $projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
-                                                                        $projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
-                                                                    }
-                                                                }
-
-                                                                $project_progress = get_project_progress($progress);
-                                                                $status = get_project_status($projstatus);
-                                                                $locations = get_wards($location);
-                                                                $project_stage =  get_project_stage($projstage);
+                                                        if ($stage > 1) {
                                                         ?>
-                                                                <tr id="rows">
-                                                                    <td width="4%"><?php echo $sn; ?></td>
-                                                                    <td width="25%" style="padding-right:0px; padding-left:0px; padding-top:0px">
-                                                                        <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
-                                                                            <b>Code:</b> <?= $projcode ?><br />
-                                                                            <b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td width="12%"><?= $sector ?></td>
-                                                                    <td width="8%"><?= number_format($projcost, 2) ?></td>
-                                                                    <?php
-                                                                    if ($stage > 1) {
-                                                                    ?>
-                                                                        <td width="8%"><?= $project_start_date; ?></td>
-                                                                        <td width="8%"><?= $project_end_date; ?></td>
-                                                                    <?php
-                                                                    } else {
-                                                                    ?>
-                                                                        <td width="8%"><?= $duration; ?></td>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
-                                                                    <td width="10%" style="padding-right:0px; padding-left:0px">
-                                                                        <br />
-                                                                        <br />
-                                                                        <?= "Sub-Stage: " . $project_stage . " <br/>" . $status  ?>
-                                                                        <br />
-                                                                        <?php
-                                                                        if ($stage == 2) {
-                                                                        ?>
-                                                                            <strong>
-                                                                                <?= $project_progress ?>
-                                                                            </strong>
-                                                                            <br />
-                                                                        <?php
-                                                                        }
-                                                                        ?>
-                                                                    </td>
-                                                                    <td width="9%">
-                                                                        <?= $locations; ?>
-                                                                    </td>
-                                                                    <td width="7%" align="center">
-                                                                        <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
-                                                                            <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
-                                                                            <font size="5px"><?= $totalRows_rsProjissues ?></font>
-                                                                        </a>
-                                                                    </td>
-                                                                    <td width="9%"><?php echo $projcontractor; ?></td>
-                                                                </tr>
+                                                            <td width="8%"><?= $project_start_date; ?></td>
+                                                            <td width="8%"><?= $project_end_date; ?></td>
                                                         <?php
-                                                            }
+                                                        } else {
+                                                        ?>
+                                                            <td width="8%"><?= $duration; ?></td>
+                                                        <?php
                                                         }
                                                         ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="menu1" class="tab-pane fade">
-                                        <div class="body">
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
-                                                    <thead>
-                                                        <tr id="colrow">
-                                                            <th width="4%"><strong>SN</strong></th>
-                                                            <th width="25%"><strong>Project</strong></th>
-                                                            <th width="12%"><strong><?= $departmentlabel ?></strong></th>
-                                                            <th width="8%"><strong>Budget (Ksh)</strong></th>
+                                                        <td width="10%" style="padding-right:0px; padding-left:0px">
+                                                            <br />
+                                                            <br />
+                                                            <?= "Sub-Stage: " . $project_stage . " <br/>" . $status  ?>
+                                                            <br />
                                                             <?php
-                                                            if ($stage > 1) {
-                                                            ?>
-                                                                <th width="8%"><strong>Start Date</strong></th>
-                                                                <th width="8%"><strong>End Date</strong></th>
-                                                            <?php
-                                                            } else {
-                                                            ?>
-                                                                <th width="16%"><strong>Duration (Days)</strong></th>
-                                                            <?php
-                                                            }
                                                             if ($stage == 2) {
                                                             ?>
-                                                                <th width="10%"><strong>Substage, Status, Progress(%)</strong></th>
-                                                            <?php
-                                                            } else {
-                                                            ?>
-                                                                <th width="10%"><strong>Substage, Status</strong></th>
+                                                                <strong>
+                                                                    <?= $project_progress ?>
+                                                                </strong>
+                                                                <br />
                                                             <?php
                                                             }
                                                             ?>
-                                                            <th width="9%"><strong> <?= $level2label ?></strong></th>
-                                                            <th width="7%"><strong>Issues</strong></th>
-                                                            <th width="9%"><strong>Implementer</strong></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <!-- =========================================== -->
-                                                        <?php
-                                                        if (count($ind_projects) > 0) {
-                                                            $sn = 0;
-                                                            foreach ($ind_projects as $projid) {
-                                                                $sn++;
-                                                                $query_rsprojects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
-                                                                $query_rsprojects->execute(array(":projid" => $projid));
-                                                                $detail = $query_rsprojects->fetch();
-                                                                $allprojects = $query_rsprojects->rowCount();
-
-                                                                $projname =  $detail['projname'];
-                                                                $progid =  $detail['progid'];
-                                                                $projcode =  $detail['projcode'];
-                                                                $projcost =  $detail['projcost'];
-                                                                $projstage =  $detail['projstage'];
-                                                                $substage_id =  $detail['proj_substage'];
-                                                                $projstatus =  $detail['projstatus'];
-                                                                $location = explode(",", $detail['projlga']);
-                                                                $fscyear = $detail['projfscyear'];
-                                                                $row_progid = $detail['progid'];
-                                                                $duration = $detail['projduration'];
-                                                                $projcategory =  $detail['projcategory'];
-
-                                                                $progress = number_format(calculate_project_progress($projid, $projcategory), 2);
-                                                                $projectid = base64_encode("projid54321{$projid}");
-
-                                                                $project_start_date = '';
-                                                                $project_end_date = '';
-                                                                $query_rsTask_Start_Dates = $db->prepare("SELECT MIN(start_date) as start_date, MAX(end_date) as end_date FROM tbl_program_of_works WHERE projid=:projid LIMIT 1");
-                                                                $query_rsTask_Start_Dates->execute(array(':projid' => $projid));
-                                                                $rows_rsTask_Start_Dates = $query_rsTask_Start_Dates->fetch();
-                                                                $total_rsTask_Start_Dates = $query_rsTask_Start_Dates->rowCount();
-                                                                if ($total_rsTask_Start_Dates > 0) {
-                                                                    $project_start_date =  date_format(date_create($rows_rsTask_Start_Dates['start_date']), "d M Y");
-                                                                    $project_end_date =  date_format(date_create($rows_rsTask_Start_Dates['end_date']), "d M Y");
-                                                                }
-
-
-                                                                $query_rsProjissues =  $db->prepare("SELECT * FROM tbl_projissues WHERE projid = :projid");
-                                                                $query_rsProjissues->execute(array(":projid" => $projid));
-                                                                $totalRows_rsProjissues = $query_rsProjissues->rowCount();
-
-                                                                $projcontractor = "In House";
-                                                                if ($projcategory == 2) {
-                                                                    $projcontractor = "Contractor";
-                                                                    $query_contractor = $db->prepare("SELECT projstartdate, projenddate, projcategory, contractor_name, contrid FROM tbl_projects p LEFT JOIN tbl_contractor c ON p.projcontractor = c.contrid WHERE projid=:projid");
-                                                                    $query_contractor->execute(array(":projid" => $projid));
-                                                                    $row_contractor = $query_contractor->fetch();
-                                                                    $totalRows_contractor = $query_contractor->rowCount();
-
-                                                                    if ($totalRows_contractor > 0) {
-                                                                        $contractor = $row_contractor['contractor_name'];
-                                                                        $projcontractor_id = $row_contractor['contrid'];
-                                                                        $projcontractor_ids = base64_encode("projid54321{$projcontractor_id}");
-                                                                        $projcontractor =  '<a href="view-project-contractor-info?contrid=' . $projcontractor_ids . '" style="color:#4CAF50">' . $contractor . '</a>';
-                                                                    }
-                                                                }
-
-                                                                $project_progress = get_project_progress($progress);
-                                                                $status = get_project_status($projstatus);
-                                                                $locations = get_wards($location);
-                                                                $sector = get_sector($progid);
-
-                                                                $project_stage =  get_project_stage($projstage);
-                                                        ?>
-                                                                <tr id="rows">
-                                                                    <td width="4%"><?php echo $sn; ?></td>
-                                                                    <td width="25%" style="padding-right:0px; padding-left:0px; padding-top:0px">
-                                                                        <div class="links" style="background-color:#9E9E9E; color:white; padding:5px;">
-                                                                            <b>Code:</b> <?= $projcode ?><br />
-                                                                            <b>Name:</b> <a href="project-dashboard?proj=<?= $projectid ?>" style="color:#FFF; font-weight:bold"><?= $projname ?></a>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td width="12%"><?= $sector ?></td>
-                                                                    <td width="8%"><?= number_format($projcost, 2) ?></td>
-                                                                    <?php
-                                                                    if ($stage > 1) {
-                                                                    ?>
-                                                                        <td width="8%"><?= $project_start_date; ?></td>
-                                                                        <td width="8%"><?= $project_end_date; ?></td>
-                                                                    <?php
-                                                                    } else {
-                                                                    ?>
-                                                                        <td width="8%"><?= $duration; ?></td>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
-                                                                    <td width="10%" style="padding-right:0px; padding-left:0px">
-                                                                        <br />
-                                                                        <?= "Sub-Stage: " . $project_stage . " <br/>" . $status  ?>
-                                                                        <br />
-                                                                        <?php
-                                                                        if ($stage == 2) {
-                                                                        ?>
-                                                                            <strong>
-                                                                                <?= $project_progress ?>
-                                                                            </strong>
-                                                                            <br />
-                                                                        <?php
-                                                                        }
-                                                                        ?>
-                                                                    </td>
-                                                                    <td width="9%">
-                                                                        <?= $locations; ?>
-                                                                    </td>
-                                                                    <td width="7%" align="center">
-                                                                        <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
-                                                                            <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
-                                                                            <font size="5px"><?= $totalRows_rsProjissues ?></font>
-                                                                        </a>
-                                                                    </td>
-                                                                    <td width="9%"><?php echo $projcontractor; ?></td>
-                                                                </tr>
-                                                        <?php
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                        </td>
+                                                        <td width="9%">
+                                                            <?= $locations; ?>
+                                                        </td>
+                                                        <td width="7%" align="center">
+                                                            <a href="#" onclick="javascript:GetProjIssues(<?= $projid ?>)" style="color:#FF5722">
+                                                                <i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true" title="Messages"></i>
+                                                                <font size="5px"><?= $totalRows_rsProjissues ?></font>
+                                                            </a>
+                                                        </td>
+                                                        <td width="9%"><?php echo $projcontractor; ?></td>
+                                                    </tr>
+                                            <?php
+                                                }
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <!-- end body -->
                             </div>
                         </div>
                     </div>

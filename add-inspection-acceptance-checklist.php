@@ -5,10 +5,13 @@ try {
         $proj_id_decode = base64_decode($_GET['projid']);
         $proj_id_array = explode("projid54321", $proj_id_decode);
         $projid = $proj_id_array[1];
-        $query_rsProjects = $db->prepare("SELECT p.*, s.sector, g.projsector, g.projdept, g.directorate FROM tbl_projects p inner join tbl_programs g ON g.progid=p.progid inner join tbl_sectors s on g.projdept=s.stid WHERE p.deleted='0' AND proj_substage = 1  ORDER BY p.projid DESC");
-        $query_rsProjects->execute();
+
+        $query_rsProjects = $db->prepare("SELECT * FROM tbl_projects WHERE projid=:projid");
+        $query_rsProjects->execute(array(":projid" => $projid));
         $row_rsProjects = $query_rsProjects->fetch();
         $totalRows_rsProjects = $query_rsProjects->rowCount();
+        $projname = $row_rsProjects['projname'];
+        $projcode = $row_rsProjects['projcode'];
 
 ?>
         <section class="content">
@@ -31,6 +34,16 @@ try {
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="card">
+                            <div class="card-header">
+                                <div class="row clearfix">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                        <ul class="list-group">
+                                            <li class="list-group-item list-group-item list-group-item-action active">Project Name: <?= $projname ?> </li>
+                                            <li class="list-group-item"><strong>Project Code: </strong> <?= $projcode ?> </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="body">
                                 <?php
                                 $query_Output = $db->prepare("SELECT * FROM tbl_project_details d INNER JOIN tbl_indicator i ON i.indid = d.indicator WHERE projid = :projid");
@@ -43,8 +56,6 @@ try {
                                     while ($row_rsOutput = $query_Output->fetch()) {
                                         $output_id = $row_rsOutput['id'];
                                         $output = $row_rsOutput['indicator_name'];
-                                        $projname = $row_rsProjects['projname'];
-                                        $projcode = $row_rsProjects['projcode'];
 
                                         $query_rsQuestions = $db->prepare("SELECT * FROM tbl_inspection_checklist_questions WHERE projid=:projid AND output_id=:output_id");
                                         $query_rsQuestions->execute(array(":projid" => $projid, ":output_id" => $output_id));
@@ -146,7 +157,7 @@ try {
                                 <legend class="scheduler-border" style="background-color:#c7e1e8; border-radius:3px"> Checklists </legend>
                                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                     <ul class="list-group">
-                                        <li class="list-group-item list-group-item list-group-item-action active"> Project Name: <span id="projname"></span> </li>
+                                        <li class="list-group-item list-group-item list-group-item-action active"> Project Name: <span id=""><?= $projname ?></span> </li>
                                         <li class="list-group-item"><strong> Output Name: </strong><span id="outputname"></span> </li>
                                         <li class="list-group-item"><strong> Code: </strong> <span id="projcode"></span> </li>
                                     </ul>
