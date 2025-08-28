@@ -5,7 +5,8 @@ return [
         'host' => 'localhost',
         'dbname' => 'mne',
         'username' => 'root',
-        'password' => '3!&o@8ProjTrack4',
+        // 'password' => '3!&o@8ProjTrack4',
+        'password' => '',
     ],
     'mail' => [
         'transport' => 'smtp',

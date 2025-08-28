@@ -94,6 +94,7 @@ try {
 <?php
   include_once('includes/auth-footer.php');
 } catch (PDOException $ex) {
-  customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
+  var_dump($ex);
+  // customErrorHandler($ex->getCode(), $ex->getMessage(), $ex->getFile(), $ex->getLine());
 }
 ?>
